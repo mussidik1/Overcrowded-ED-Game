@@ -5,7 +5,7 @@ const E = window.OC;
 const $ = (s, r) => (r || document).querySelector(s);
 const SPEEDS = [1, 2, 3, 4];
 const BASE = 0.4; // game minutes per real second at 1×: a 12-hour shift takes about 30 minutes
-const U = { scene: 'title', lvl: 'med', pack: 'national', sel: null, sheet: null, modal: null, speed: 1, paused: false, sound: true, ringId: null, ringT: 0, wide: false, lastSave: 0 };
+const U = { scene: 'title', lvl: 'med', pack: 'national', sel: null, sheet: null, modal: null, speed: 1, paused: false, sound: true, ringId: null, ringT: 0, wide: false, lastSave: 0, hold: false, ff: 0, coachKey: null };
 let audio = null;
 
 /* ---------- small helpers ---------- */
@@ -115,8 +115,10 @@ function render() {
   const G = g(); if (!G) return;
   U.wide = window.matchMedia('(min-width: 1100px)').matches;
   renderHud(G); renderBox(G); renderObjs(G); renderSel(G); renderZoneBar(G); renderIntakeStaff(G); renderLanes(G); renderBoard(G); renderDock(G); renderSide(G); renderLog(G);
+  coachRun();
   renderSheet(G); renderModal(G);
   live(G);
+  renderCoach();
   const top = $('#top'); if (top) document.documentElement.style.setProperty('--topH', top.offsetHeight + 'px');
 }
 function pill(id, val, cls) { const el = document.getElementById(id); setC(el, 'pill ' + (cls || '')); const b = el.querySelector('b'); if (b.textContent !== val) b.textContent = val; }
@@ -737,7 +739,218 @@ function renderSheet(G) {
     else if (s.type === 'help') h = helpHTML();
     if (!h) U.sheet = null;
   } else if (s && s.type === 'help') h = helpHTML();
+  if (h && TR()) h = coachHTML('in') + h;
   wrap.hidden = !h; morph(el, h);
+}
+
+/* ---------- Orientation: the preceptor ----------
+   One scripted patient at a time. Each step spotlights what to tap, holds the clock until the player acts,
+   and fast-forwards through the waiting. "Do it for me" performs the step, so nobody gets stuck. */
+const TR = () => { const G = g(); return G && G.train && G.tr && U.scene === 'game' ? G.tr : null; };
+const tid = k => { const t = TR(); return t && t.ids[k] ? E.pt(t.ids[k]) : null; };
+const mag = id => `[data-act="pt"][data-arg="${id}"]`;
+const roomSel = p => (p && p.room ? `#room-${p.room}` : '');
+const provSel = sid => `#dockProv [data-arg="${sid}"], #sideProv [data-arg="${sid}"]`;
+const onSheet = p => !!(p && U.sheet && U.sheet.type === 'pt' && U.sheet.pid === p.id);
+const selPt = p => !!(p && U.sel && U.sel.type === 'pt' && U.sel.pid === p.id);
+const sheetIs = (type, z) => !!(U.sheet && U.sheet.type === type && (z == null || U.sheet.z === z));
+function firstRoom(p, want) {
+  const G = g(), ok = G.rooms.filter(r => r.kind !== 'chair' && E.canPlace(p, r).ok);
+  return (ok.find(r => r.id === want) || ok[0] || {}).id;
+}
+const regStep = (key, sid) => ({
+  spot: () => { const p = tid(key); if (onSheet(p)) return [`#sheet [data-act="regAssign"][data-arg$="|${sid}"]`]; return U.sel && U.sel.type === 'reg' ? [mag(p.id)] : [`#istaff [data-act="regSel"][data-arg="${sid}"]`]; },
+  done: () => tid(key).reg !== 'none',
+  auto: () => E.register(tid(key).id, sid),
+});
+const triStep = (key, sid) => ({
+  spot: () => { const p = tid(key); if (onSheet(p)) return [`#sheet [data-act="triAssign"][data-arg$="|${sid}"]`]; return U.sel && U.sel.type === 'tri' ? [mag(p.id)] : [`#istaff [data-act="triSel"][data-arg="${sid}"]`]; },
+  done: () => tid(key).tri !== 'none',
+  auto: () => E.triage(tid(key).id, sid),
+});
+const intakeStep = (key, rsid, tsid) => ({
+  spot: () => { const p = tid(key); if (!onSheet(p)) return [mag(p.id)]; return p.reg === 'none' ? [`#sheet [data-act="regAssign"][data-arg$="|${rsid}"]`] : [`#sheet [data-act="triAssign"][data-arg$="|${tsid}"]`]; },
+  done: () => { const p = tid(key); return p.reg !== 'none' && p.tri !== 'none'; },
+  auto: () => { const p = tid(key); if (p.reg === 'none') E.register(p.id, rsid); if (p.tri === 'none') E.triage(p.id, tsid); },
+});
+const bedStep = (key, rid) => ({
+  spot: () => { const p = tid(key); return selPt(p) ? [`#room-${rid}`] : [mag(p.id)]; },
+  done: () => ['room', 'gone'].includes(tid(key).loc),
+  auto: () => { const p = tid(key); return E.place(p.id, firstRoom(p, rid)); },
+});
+const provStep = (key, sid) => ({
+  spot: () => (U.sel && U.sel.type === 'prov' && U.sel.sid === sid ? [roomSel(tid(key))] : [provSel(sid)]),
+  done: () => !!tid(key).prov || tid(key).loc === 'gone',
+  auto: () => E.assign(sid, tid(key).id),
+});
+const roomAct = (key, sel) => ({ spot: () => { const p = tid(key); return onSheet(p) ? [`#sheet ${sel}`] : [roomSel(p)]; } });
+const STEPS = [
+  { id: 'hi', next: true, title: 'Welcome to Orientation', text: "I'm your preceptor. We'll take one patient at a time, and I'll light up what to tap. The clock only runs when we're waiting on something. Nothing here counts against you." },
+  { id: 'top', next: true, title: 'The top of the board', text: 'The clock and your five scores sit up top, next to Divert. Under them is the Box, your EMS radio, and a bar that jumps to each pod.', spot: () => ['#top .hud', '#boxbar'] },
+  { id: 'intake', next: true, title: 'Intake', text: 'Registrars are green. Your triage nurse is purple. New patients land in the Ambulance bay or the Waiting room.', spot: () => ['#istaff', '#intake .lane'] },
+  { id: 'pods', next: true, title: 'Pods and providers', text: 'Each pod has four rooms and a nurse, and the header shows the nurse’s load. Your providers wait at the bottom. Nobody sees a patient until you send one.', spot: () => ['#zh-a', '#dockProv', '#sideProv'] },
+
+  { id: 'm1', title: 'A walk-in', text: 'Maria, 34, has burning when she pees. Everyone starts with a quick registration: name and date of birth. Tap Tasha, then tap Maria.',
+    setup: () => ({ maria: E.trainPatient('uti', 'walk', { name: 'Maria L.', age: 34 }) }), ...regStep('maria', 'reg1') },
+  { id: 'm2', wait: true, title: 'Registering', text: 'Tasha takes about two minutes. Full registration happens later at the bedside, and nobody leaves the ED until it is done.', done: () => E.regQuick(tid('maria')) },
+  { id: 'm3', title: 'Triage', text: 'Now triage. Tap Bea, then tap Maria.', ...triStep('maria', 'rnT') },
+  { id: 'm4', wait: true, title: 'Triaging', text: 'Triage sets the ESI, from 1 (dying) to 5 (can wait). Walk-ins go to the waiting room after triage.', done: () => tid('maria').tri === 'done' },
+  { id: 'm5', title: 'Give her a bed', text: 'Maria is ESI 4. Tap her in the waiting room, then tap Room 1. Green rooms are open.', ...bedStep('maria', '1') },
+  { id: 'm6', title: 'Send a provider', text: () => `Nobody sees a provider until you send one. Tap Rivera at the bottom, then tap ${E.roomName(tid('maria').room || '1')}.`, ...provStep('maria', 'pa1') },
+  { id: 'm7', wait: true, title: 'Workup', text: 'Rivera examines her and orders a urine test. A tech collects it and the lab runs it. The tags on her room show what is pending.', done: () => tid('maria').dxK || tid('maria').loc === 'gone' },
+  { id: 'm8', wait: true, title: 'Treatment', text: 'The pharmacist checks the antibiotic, then her nurse gives it. Registration finishes her paperwork at the bedside.', done: () => tid('maria').dsp !== 'none' || tid('maria').loc === 'gone' },
+  { id: 'm9', title: 'Discharge', text: 'She is ready to go home. Tap her room, then Discharge home.', ...roomAct('maria', '[data-act="dc"]'),
+    done: () => ['dc', 'dcing'].includes(tid('maria').dsp) || tid('maria').loc === 'gone', auto: () => E.discharge(tid('maria').id) },
+  { id: 'm10', wait: true, title: 'Discharge teaching', text: 'Her nurse goes over the plan and the warning signs with her.', setup: () => ({ room1: tid('maria').room || '1' }), done: () => tid('maria').loc === 'gone' },
+  { id: 'm11', title: 'Turn the room', text: () => `${E.roomName(TR().ids.room1)} is dirty. Nothing gets cleaned until you send EVS. Tap the dirty room.`, spot: () => [`#room-${TR().ids.room1}`],
+    done: () => { const r = E.room(TR().ids.room1); return r.st !== 'dirty' || g().evsQ.includes(r.id); }, auto: () => E.evsTap(TR().ids.room1) },
+
+  { id: 'w1', title: 'An ambulance', text: 'Medic 7 brought Walter, 82, after a fall. The crew waits on the wall with him until a nurse takes report. Tap Walter. On his card, pick Miguel to register him, then Bea to take report.',
+    setup: () => ({ walter: E.trainPatient('hipfx', 'ems', { name: 'Walter K.', age: 82, sex: 'M', unit: 'Medic 7' }) }), ...intakeStep('walter', 'reg2', 'rnT') },
+  { id: 'w2', wait: true, title: 'Taking report', text: 'Every minute on the wall is a crew that can’t take the next call. Try to keep wall time under 30 minutes.', done: () => tid('walter').tri === 'done' && E.regQuick(tid('walter')) },
+  { id: 'w3', title: 'Offload', text: 'Tap Walter, then Room 5 in Pod B. When you are full, ESI 3 to 5 EMS patients can go to the waiting room instead.', ...bedStep('walter', '5') },
+  { id: 'w4', title: 'An attending', text: () => `Tap Dr. Patel, then tap ${E.roomName(tid('walter').room || '5')}.`, ...provStep('walter', 'md1') },
+  { id: 'w5', wait: true, title: 'Results', text: 'An X-ray and labs. Results land on his card. Consultants want them back before you call.', done: () => tid('walter').dxK || tid('walter').consult.st !== 'none' || tid('walter').loc === 'gone' },
+  { id: 'w6', title: 'Call the right service', text: 'Walter broke his hip. Tap his room, then Call a consult, then Orthopedics. Call the wrong service, or call before the results are back, and the consultant gets angry and slow.',
+    spot: () => { const p = tid('walter'); if (sheetIs('consult')) return ['#sheet [data-act="consultSpec"][data-arg="ortho"]']; return onSheet(p) ? ['#sheet [data-act="consultOpen"]'] : [roomSel(p)]; },
+    done: () => tid('walter').consult.st !== 'none' || tid('walter').loc === 'gone', auto: () => E.consult(tid('walter').id, 'ortho') },
+  { id: 'w7', wait: true, title: 'Admitted', text: 'Orthopedics sees him and admits him. Now he waits for a bed upstairs. That wait is called boarding, and it is why EDs back up.', done: () => ['callrep', 'reporting', 'bedready', 'xportq'].includes(tid('walter').dsp) || tid('walter').loc === 'gone' },
+  { id: 'w8', wait: true, title: 'Calling report', text: 'A bed opened upstairs. His nurse calls report to the floor before he can go.', done: () => ['bedready', 'xportq'].includes(tid('walter').dsp) || tid('walter').loc === 'gone' },
+  { id: 'w9', title: 'Send him up', text: 'Tap his room, then Ray from transport. A tech can take him too, but then that tech is off your floor.', ...roomAct('walter', '[data-act="sendUp"][data-arg$="|tp1"]'),
+    done: () => tid('walter').dsp === 'xportq' || tid('walter').loc === 'gone', auto: () => E.sendUp(tid('walter').id, 'tp1') },
+
+  { id: 't1', title: 'The Box is ringing', text: 'An ambulance is calling in a trauma alert. Tap Take report so the trauma team is ready when he gets here.',
+    setup: () => ({ trauma: E.trainPatient('mvc', 'alert', { name: 'Tyler B.', age: 19, sex: 'M', unit: 'Medic 21', eta: 8 }) }),
+    spot: () => ['#boxbar .bx-btn'], done: () => !!tid('trauma').pren, auto: () => E.boxNotify() },
+  { id: 't2', title: 'Get blood moving', text: 'He rolled his car. BP 78/40 and pale: he is bleeding out. Tap him in the Ambulance bay, then Activate massive transfusion. Don’t wait for him to arrive.',
+    spot: () => { const p = tid('trauma'); return onSheet(p) ? ['#sheet [data-act="mtp"]'] : [mag(p.id)]; }, done: () => !!tid('trauma').bb, auto: () => E.activateMTP(tid('trauma').id) },
+  { id: 't3', wait: true, title: 'Inbound', text: 'The blood bank is packing a cooler. Keep a resus bay clean for him.', done: () => tid('trauma').loc !== 'enroute' },
+  { id: 't4', title: 'Straight to Resus', text: 'Critical patients skip registration and triage. Tap him, then Resus 1.', ...bedStep('trauma', 'R1') },
+  { id: 't5', title: 'Attending only', text: 'ESI 1 needs an attending. Tap Dr. Okafor, then Resus 1.', ...provStep('trauma', 'md2') },
+  { id: 't6', title: 'Pull a second nurse', text: 'An active resuscitation takes a nurse and a half. Tap the Resus header, then add Casey, your resource nurse.',
+    spot: () => (sheetIs('zone', 'resus') ? ['#sheet [data-act="zt"][data-arg="rnX|resus"]'] : ['#zh-resus']),
+    done: () => E.staff('rnX').zones.includes('resus'), auto: () => E.toggleZone('rnX', 'resus') },
+  { id: 't7', wait: true, title: 'To the OR', text: 'A tech runs the cooler, his nurse hangs the blood, and the trauma surgeon takes him to the OR. Without blood in the first 15 minutes, he would go into shock.', done: () => tid('trauma').loc === 'gone' },
+
+  { id: 'c1', title: 'Medical direction', text: 'The Box again: a medic needs an order. Only attendings can answer. Tap Answer, pick Dr. Patel, then approve or deny what the medic asks.',
+    setup: () => { E.trainConsult(); return null; },
+    spot: () => { if (U.modal && U.modal.type === 'scen') return ['#modal [data-act="scen"]']; if (U.modal && U.modal.type === 'result') return ['#modal [data-act="modalOk"]']; if (sheetIs('boxdoc')) return ['#sheet [data-act="boxDoc"][data-arg="md1"]']; return ['#boxbar .bx-btn']; },
+    done: () => g().stats.boxC.ans >= 1 && !U.modal,
+    auto: () => { const c = g().box.cur; let sc = U.modal && U.modal.sc; if (c && c.kind === 'consult') { if (!c.taken) { const r = E.boxTake('md1'); sc = r.sc; } E.boxDecide(sc ? sc.a : true); } U.modal = null; U.sheet = null; } },
+
+  { id: 'g1', title: 'Chest pain at the door', text: 'Grace, 58, walked in with chest pressure. Chest pain gets an ECG within 10 minutes. Tap her, then register and triage her from her card.',
+    setup: () => ({ grace: E.trainPatient('cpmod', 'walk', { name: 'Grace T.', age: 58, sex: 'F' }) }), ...intakeStep('grace', 'reg1', 'rnT') },
+  { id: 'g2', wait: true, title: 'Triage', text: 'A tech does her ECG while Bea triages.', done: () => tid('grace').tri === 'done' },
+  { id: 'g3', title: 'No waiting', text: 'She is ESI 2: a room now, not the waiting room or a hallway. Tap her, then Room 10 in Pod C.', ...bedStep('grace', '10') },
+  { id: 'g4', title: 'A PA or NP for ESI 2', text: () => `Tap Chen, then ${E.roomName(tid('grace').room || '10')}. PAs and NPs can take ESI 2. An attending co-signs before she leaves.`, ...provStep('grace', 'np1') },
+  { id: 'g5', wait: true, title: 'Workup', text: 'ECG, labs, and a chest X-ray. Then an attending co-signs.', done: () => tid('grace').dsp !== 'none' || tid('grace').loc === 'gone' },
+  { id: 'g6', title: 'Your call', text: () => `Her HEART score is ${tid('grace').gray ? tid('grace').gray.score : 5}. Low risk (0 to 3) goes home. Moderate (4 to 6) goes to observation. High (7 and up) gets admitted. Tap her room and choose.`,
+    ...roomAct('grace', '[data-act="gray"][data-arg$="|obs"]'), done: () => !!tid('grace').grayPick || tid('grace').loc === 'gone', auto: () => E.grayDispo(tid('grace').id, 'obs') },
+
+  { id: 'h1', title: 'Free a bed', text: 'Jordan was seen and is waiting on a strep test. He doesn’t need a bed for that. Tap his room, then Move bed, then Chair 1 at the bottom of the board.',
+    setup: () => ({ jordan: E.trainPatient('strep', 'seat', { room: '9', prov: 'pa1', name: 'Jordan P.', age: 22, sex: 'M', run: { lab: 15 } }) }),
+    spot: () => { const p = tid('jordan'); if (U.sel && U.sel.type === 'move' && U.sel.pid === p.id) return ['#room-C1']; return onSheet(p) ? ['#sheet [data-act="moveSel"]'] : [roomSel(p)]; },
+    done: () => { const r = E.roomOf(tid('jordan')); return !r || r.kind === 'chair'; }, auto: () => E.move(tid('jordan').id, 'C1') },
+
+  { id: 'r1', title: 'Walk the waiting room', text: 'Two people are waiting. An honest update buys patience, so fewer walk out. Tap the Waiting room header, then Walk the waiting room.',
+    setup: () => ({ sofia: E.trainPatient('ankle', 'waiting', { name: 'Sofia R.', age: 27, sex: 'F', waited: 35 }), victor: E.trainPatient('afib', 'waiting', { name: 'Victor S.', age: 71, sex: 'M', waited: 20, esiT: 3, lang: 'es' }) }),
+    spot: () => (sheetIs('zone', 'triage') ? ['#sheet [data-act="updWait"]'] : ['.lane-h[data-arg="triage"]']),
+    done: () => g().wrUpdate > -1e8, auto: () => E.updateWaiting() },
+  { id: 'r2', title: 'Recheck', text: 'Triage called Victor ESI 3. Look at his heart rate. Rechecks catch people who are sicker than their triage. Tap Victor, then Details, then Bea under Recheck vitals.',
+    spot: () => { const p = tid('victor'); if (onSheet(p)) return ['#sheet [data-act="recheck"][data-arg$="|rnT"]']; return selPt(p) ? ['#selbar [data-act="selInfo"]'] : [mag(p.id)]; },
+    done: () => { const p = tid('victor'), b = E.staff('rnT'); return p.esiT == null || b.tq.some(k => k.pid === p.id && k.kind === 'recheck') || !!(b.task && b.task.kind === 'recheck' && b.task.pid === p.id); },
+    auto: () => E.recheck(tid('victor').id, 'rnT') },
+  { id: 'r3', wait: true, title: 'Rechecking', text: 'Bea redoes his vitals.', done: () => tid('victor').esiT == null },
+  { id: 'r4', title: 'Bed him now', text: 'Victor is really ESI 2: his heart is racing. Tap him, then Room 13 in Pod D.', ...bedStep('victor', '13') },
+  { id: 'r5', title: 'Interpreter', text: 'Victor speaks Spanish. Without an interpreter, care is slower and riskier, and he is likelier to come back. Tap his room, then Get a Spanish interpreter.',
+    ...roomAct('victor', '[data-act="interp"]'), done: () => tid('victor').interp !== 'none' || tid('victor').loc === 'gone', auto: () => E.requestInterp(tid('victor').id) },
+
+  { id: 's1', title: 'Breaks', text: 'Tired staff slow down, and at the bottom they walk out. Open Team, then send Mo, a tech, on a 30-minute break.',
+    spot: () => (sheetIs('team') || U.wide ? ['#sheet [data-act="brk"][data-arg="pct1"]', '#side [data-act="brk"][data-arg="pct1"]'] : ['#dockTeam']),
+    done: () => E.staff('pct1').st !== 'on', auto: () => E.sendBreak('pct1') },
+
+  { id: 'd1', title: 'Something broke', text: 'The CT scanner just went down. Strokes and head injuries need a hospital with a working scanner. Tap Divert, then Go on CT Divert.',
+    setup: () => { E.trainOutage('ct', 8); return null; },
+    spot: () => (sheetIs('divert') ? ['#sheet [data-act="divertSet"][data-arg="ct|1"]'] : ['#btnYellow']),
+    done: () => g().dv.ct.on, auto: () => E.setDivert('ct', true) },
+  { id: 'd2', wait: true, title: 'Biomed is on it', text: 'While you are on CT Divert, ambulances with strokes and head injuries go elsewhere.', done: () => !E.outActive('ct') },
+  { id: 'd3', title: 'Lift it', text: 'CT is back. Staying on divert after the fix costs you. Tap Divert, then Lift CT Divert.',
+    spot: () => (sheetIs('divert') ? ['#sheet [data-act="divertSet"][data-arg="ct|0"]'] : ['#btnYellow']),
+    done: () => !g().dv.ct.on, auto: () => E.setDivert('ct', false) },
+
+  { id: 'x1', title: 'A transfer', text: 'Zoe, 1, has RSV and is tiring out. She needs a pediatric ICU, and you don’t have one. Tap her room in Resus, then Request transfer.',
+    setup: () => ({ zoe: E.trainPatient('rsv', 'seat', { room: 'R2', prov: 'md1', name: 'Zoe N.', age: 1, sex: 'F', dsp: 'readytx' }) }),
+    ...roomAct('zoe', '[data-act="tx"]'), done: () => tid('zoe').dsp !== 'readytx', auto: () => E.requestTransfer(tid('zoe').id) },
+  { id: 'x2', wait: true, title: 'Calling around', text: 'The transfer center calls the pediatric ICU. RT starts high-flow oxygen meanwhile.', done: () => tid('zoe').dsp !== 'txcall' },
+  { id: 'x3', title: 'Book the ambulance', text: 'The PICU said yes. She is ICU-level, so she needs critical care transport; an ALS crew would refuse her. Tap her room, then Critical care transport.',
+    ...roomAct('zoe', '[data-act="ift"][data-arg$="|cct"]'), done: () => tid('zoe').dsp !== 'txok', auto: () => E.bookIFT(tid('zoe').id, 'cct') },
+
+  { id: 'end', final: true, title: 'You’re ready', text: 'That’s the job: intake, beds, providers, consults, the Box, blood, the waiting room, nurses, divert, and transfers. A real shift throws all of it at you at once, and every shift report walks you through your three worst moments. Start with Quiet Tuesday.' },
+];
+function coachSafe(fn) { try { return !!fn(); } catch (e) { return false; } }
+function coachStep() { const t = TR(); return t ? STEPS[Math.min(t.step, STEPS.length - 1)] : null; }
+function coachWaitDone() { const s = coachStep(); return !!(s && s.wait && coachSafe(s.done)); }
+function coachAdvance() {
+  const t = TR(); if (!t || t.step >= STEPS.length - 1) return;
+  t.step++; t.t0 = g().t; U.sel = null; U.sheet = null; U.coachKey = null;
+}
+function coachRun() {
+  const t = TR();
+  if (!t) { U.hold = false; U.ff = 0; return; }
+  if (t.t0 == null) t.t0 = g().t;
+  for (let guard = 0; guard < 6; guard++) {
+    const s = STEPS[t.step];
+    if (s.setup && !t.setup[s.id]) { t.setup[s.id] = 1; let ids = null; try { ids = s.setup(); } catch (e) { ids = null; } if (ids) Object.assign(t.ids, ids); }
+    const stuck = s.wait && g().t - t.t0 > 150;   // a safety valve: never fast-forward forever
+    if ((s.done && coachSafe(s.done)) || stuck) { coachAdvance(); continue; }
+    break;
+  }
+  const s = coachStep();
+  U.hold = !s.wait; U.ff = s.wait ? 18 : 0;
+}
+function coachSkip() {
+  const s = coachStep(); if (!s) return;
+  if (s.wait) {
+    let n = 0; while (!coachSafe(s.done) && n++ < 1500 && !g().over) { if (g().card) E.botStep({ budget: 0 }); E.step(0.1); }
+    if (!coachSafe(s.done)) coachAdvance();
+    return;
+  }
+  if (s.auto) { try { s.auto(); } catch (e) { /* fall through */ } }
+  if (!(s.done && coachSafe(s.done))) coachAdvance();
+}
+function coachHTML(where) {
+  const t = TR(); if (!t) return '';
+  const s = coachStep(), n = STEPS.length;
+  const title = typeof s.title === 'function' ? s.title() : s.title;
+  let text = ''; try { text = typeof s.text === 'function' ? s.text() : s.text; } catch (e) { text = ''; }
+  const btns = s.final ? '<button type="button" data-act="coachDone">Menu</button><button type="button" class="go" data-act="coachEasy">Start Quiet Tuesday</button>'
+    : s.next ? '<button type="button" class="skip" data-act="coachExit">Exit</button><button type="button" class="go" data-act="coachNext">Next</button>'
+    : s.wait ? '<span class="cff">Fast-forwarding…</span><button type="button" class="skip" data-act="coachSkip">Skip ahead</button>'
+    : '<button type="button" class="skip" data-act="coachExit">Exit</button><button type="button" class="skip" data-act="coachSkip">Do it for me</button>';
+  return `<div class="coach-c ${where}"><div class="ck">Preceptor · ${t.step + 1} of ${n}</div><h4>${esc(title)}</h4><p>${esc(text)}</p><div class="cb">${btns}</div></div>`;
+}
+function renderCoach() {
+  const el = $('#coach'), t = TR();
+  document.body.classList.toggle('training', !!t);
+  const inner = !!(U.sheet || U.modal || (g() && g().card) || U.paused);
+  const h = t && !inner ? coachHTML('float') : '';
+  setH(el, h); el.hidden = !h;
+  for (const x of document.querySelectorAll('.coach-spot')) x.classList.remove('coach-spot');
+  if (!t) return;
+  const s = coachStep(); if (!s || !s.spot) return;
+  let sels = []; try { sels = s.spot().filter(Boolean); } catch (e) { sels = []; }
+  const els = [];
+  for (const q of sels) for (const x of document.querySelectorAll(q)) if (x.offsetParent !== null || getComputedStyle(x).position === 'fixed') els.push(x);
+  for (const x of els) x.classList.add('coach-spot');
+  const key = t.step + '|' + sels.join(',');
+  if (key === U.coachKey || !els.length) return;
+  U.coachKey = key;
+  const x = els[0];
+  if (x.closest('.sheet-body, .modal, .dock, .top, .side')) x.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  else {
+    const r = x.getBoundingClientRect(), top = ($('#top') || { offsetHeight: 0 }).offsetHeight;
+    if (r.top < top + 8 || r.bottom > window.innerHeight - 250) x.scrollIntoView({ block: 'center' });
+  }
 }
 
 /* ---------- modals (these pause the shift) ---------- */
@@ -756,6 +969,7 @@ function renderModal(G) {
   } else if (U.scene === 'game' && U.paused && !U.sheet) {
     h = `<div class="mc-who">${esc(E.LEVELS[G.level].name)} · ${E.clock()}</div><h3>Paused</h3><p>The department waits for you. It will not wait long. Your shift is saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="restart"><b>Restart this shift</b></button><button type="button" data-act="menu"><b>Quit to menu</b></button></div>`;
   }
+  if (h && TR()) h = coachHTML('in') + h;
   wrap.hidden = !h; morph(el, h);
 }
 function isPaused() { const G = g(); return U.paused || !!U.modal || (G && !!G.card) || U.scene !== 'game'; }
@@ -824,6 +1038,11 @@ const ACT = {
   regSel: id => { U.sel = U.sel && U.sel.type === 'reg' && U.sel.sid === id ? null : { type: 'reg', sid: id }; },
   triSel: id => { U.sel = U.sel && U.sel.type === 'tri' && U.sel.sid === id ? null : { type: 'tri', sid: id }; },
   regAssign: a => { const [pid, sid] = a.split('|'); res(E.register(pid, sid)); },
+  coachNext: () => coachAdvance(),
+  coachSkip: () => coachSkip(),
+  coachExit: () => { save(true); showTitle(); },
+  coachDone: () => { store('oc-trained', '1'); store('oc-save', null); showTitle(); },
+  coachEasy: () => { store('oc-trained', '1'); start('easy'); },
   recheck: a => { const [pid, sid] = a.split('|'); res(E.recheck(pid, sid)); },
   gray: a => { const [pid, k] = a.split('|'); res(E.grayDispo(pid, k), true); },
   upd: pid => res(E.updatePt(pid)),
@@ -913,7 +1132,9 @@ function resumeSave() {
 const DOT = { easy: 'var(--e4)', med: 'var(--e3)', hard: 'var(--e1)' };
 function bestOf(l) { return +(store('oc-best-' + l) || 0); }
 function titleHTML() {
-  const lv = ['easy', 'med', 'hard'].map(k => { const L = E.LEVELS[k], b = bestOf(k), st = b ? E.starsFor(b, k) : 0; return `<button type="button" class="lvl" data-act="start" data-arg="${k}"><span class="dot" style="background:${DOT[k]}"></span><span><b>${L.name}</b><small>${L.blurb}</small></span>${b ? `<span class="best">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>` : ''}</button>`; }).join('');
+  const fresh = !['easy', 'med', 'hard'].some(k => bestOf(k));
+  const train = `<button type="button" class="lvl train" data-act="start" data-arg="train"><span class="dot" style="background:var(--accent)"></span><span><b>${E.LEVELS.train.name}</b><small>${E.LEVELS.train.blurb}</small></span>${store('oc-trained') ? '<span class="best">Done ✓</span>' : fresh ? '<span class="best go">Start here</span>' : ''}</button>`;
+  const lv = train + ['easy', 'med', 'hard'].map(k => { const L = E.LEVELS[k], b = bestOf(k), st = b ? E.starsFor(b, k) : 0; return `<button type="button" class="lvl" data-act="start" data-arg="${k}"><span class="dot" style="background:${DOT[k]}"></span><span><b>${L.name}</b><small>${L.blurb}</small></span>${b ? `<span class="best">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>` : ''}</button>`; }).join('');
   const sv = readSave();
   const resume = sv ? `<button type="button" class="lvl resume" data-act="resumeSave"><span class="dot" style="background:var(--accent)"></span><span><b>Resume your shift</b><small>${esc(E.LEVELS[sv.lvl] ? E.LEVELS[sv.lvl].name : '')}, paused at ${E.clock(sv.G.t)}</small></span></button>` : '';
   const packs = Object.entries(E.PACKS).map(([k, P]) => `<button type="button" class="seg${U.pack === k ? ' on' : ''}" data-act="pack" data-arg="${k}" aria-pressed="${U.pack === k}">${esc(P.name)}</button>`).join('');
@@ -933,11 +1154,12 @@ function start(lvl) {
   ensureAudio();
   U.lvl = lvl; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = false; U.speed = 1;
   store('oc-save', null);
-  E.newGame(lvl, (Math.random() * 2147483647) | 0, { pack: U.pack });
+  E.newGame(lvl, lvl === 'train' ? 20261116 : (Math.random() * 2147483647) | 0, { pack: U.pack });
   $('#title').hidden = true; $('#report').hidden = true;
-  if (!store('oc-seen-help2')) { store('oc-seen-help2', '1'); U.paused = true; U.sheet = { type: 'help' }; }
+  U.coachKey = null;
+  if (lvl !== 'train' && !store('oc-seen-help2')) { store('oc-seen-help2', '1'); U.paused = true; U.sheet = { type: 'help' }; }
   render();
-  toast(`${E.LEVELS[lvl].name}. Night shift hands you the board.`, 'info');
+  if (lvl !== 'train') toast(`${E.LEVELS[lvl].name}. Night shift hands you the board.`, 'info');
 }
 const VERDICT = ['Rough one. Everybody survived the shift, mostly.', 'You kept the doors open. Tomorrow will be better.', 'Solid shift. The night charge owes you.', 'Charge nurse of the year. Somebody frame this board.'];
 function reportHTML(R) {
@@ -985,9 +1207,9 @@ let last = 0, lastR = 0, demoAcc = 0;
 function frame(now) {
   const dt = Math.min(0.25, Math.max(0, (now - (last || now)) / 1000)); last = now;
   const G = g();
-  if (G && U.scene === 'game' && !isPaused() && !G.over) {
-    let left = dt * U.speed * BASE;
-    while (left > 1e-6) { const s = Math.min(0.1, left); E.step(s); left -= s; if (G.card || G.over) break; }
+  if (G && U.scene === 'game' && !isPaused() && !G.over && !U.hold) {
+    let left = dt * (U.ff || U.speed) * BASE;
+    while (left > 1e-6) { const s = Math.min(0.1, left); E.step(s); left -= s; if (G.card || G.over) break; if (U.ff && coachWaitDone()) { U.ff = 0; U.hold = true; break; } }
     save(false);
   } else if (G && U.scene === 'title') {
     demoAcc += dt;
@@ -1027,5 +1249,5 @@ function boot(data) {
 }
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-window.OCUI = { U, render, start, showTitle };
+window.OCUI = { U, render, start, showTitle, coach: () => { const t = TR(), st = coachStep(); return t && st ? { i: t.step, id: st.id, wait: !!st.wait, next: !!st.next, final: !!st.final, n: STEPS.length } : null; } };
 })();

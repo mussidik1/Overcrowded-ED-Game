@@ -435,3 +435,25 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .mm time { grid-row: span 2; color: var(--ink-3); font: 700 13px/1.4 var(--ui); font-variant-numeric: tabular-nums; }
 .mm b { font: 700 15px/1.3 var(--body); }
 .mm span { color: var(--ink-2); font-size: 14px; line-height: 1.35; }
+
+/* ---------- Orientation: the preceptor ---------- */
+.coach { position: fixed; right: 10px; bottom: calc(88px + env(safe-area-inset-bottom)); left: 10px; z-index: 85; max-width: 540px; margin: 0 auto; }
+.coach-c { padding: 11px 13px 10px; border: 2px solid var(--ink); border-radius: 14px; background: #FFF6D9; box-shadow: 0 10px 26px rgba(0, 0, 0, .24); font-family: var(--body); }
+.coach-c.in { margin: 0 0 12px; padding-right: 44px; box-shadow: none; }
+.coach-c .ck { color: #8A6400; font: 700 11px/1 var(--ui); letter-spacing: .7px; text-transform: uppercase; }
+.coach-c h4 { margin: 5px 0 3px; color: var(--ink); font: 700 18px/1.15 var(--display); letter-spacing: 0; text-transform: none; }
+.coach-c p { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.38; }
+.coach-c .cb { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 9px; }
+.coach-c .cb button { min-height: 36px; padding: 0 13px; border: 2px solid var(--ink); border-radius: 9px; background: var(--paper); color: var(--ink); font: 700 14.5px/1 var(--ui); }
+.coach-c .cb button.go { background: var(--ink); color: #fff; }
+.coach-c .cb button.skip { padding: 0 6px; border-color: transparent; background: none; color: var(--ink-2); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.coach-c .cb .cff { margin-right: auto; color: #8A6400; font: 600 13px/1 var(--ui); }
+body .coach-spot, body .room.coach-spot, body .mag.coach-spot { outline: 3px solid #E9A800; outline-offset: 3px; animation: coachspot 1.1s ease-in-out infinite; }
+body .lane-row .coach-spot, body .dock-prov .coach-spot { outline-offset: -3px; animation-name: coachspotin; }
+@keyframes coachspot { 50% { outline-color: rgba(233, 168, 0, .3); outline-offset: 6px; } }
+@keyframes coachspotin { 50% { outline-color: rgba(233, 168, 0, .35); } }
+@media (prefers-reduced-motion: reduce) { body .coach-spot, body .room.coach-spot, body .mag.coach-spot { animation: none; } }
+body.training .app { padding-bottom: calc(300px + env(safe-area-inset-bottom)); }
+.lvl.train { border-color: var(--accent); }
+.lvl .best.go { color: var(--accent); }
+@media (min-width: 1100px) { .coach { right: auto; bottom: 18px; left: 18px; width: 440px; margin: 0; } }

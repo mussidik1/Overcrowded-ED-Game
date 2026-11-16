@@ -37,6 +37,8 @@ const LEVELS = {
   easy: { name: 'Quiet Tuesday', blurb: 'Fewer ambulances, no call-outs. Learn the board.', walk: 3.6, ems: 1.8, alerts: 0.6, consult: [42, 64], events: [52, 76], callouts: 0, board: 0.85, sickMax: 1, boarders: 2, shift: 720 },
   med:  { name: 'Manic Monday', blurb: 'A normal busy day. Somebody always calls out.', walk: 4.8, ems: 2.4, alerts: 0.85, consult: [32, 50], events: [40, 60], callouts: 1, board: 1, sickMax: 2, boarders: 3, shift: 720 },
   hard: { name: 'Full Moon Friday', blurb: 'Everything, all at once. Good luck.', walk: 6.2, ems: 3.1, alerts: 1.15, consult: [26, 40], events: [32, 50], callouts: 2, board: 1.15, sickMax: 3, boarders: 4, shift: 720 },
+  // Orientation: no random arrivals, events, or bad luck. The UI's preceptor brings in one scripted patient at a time.
+  train: { name: 'Orientation', blurb: 'A preceptor walks you through every step. Nothing counts.', walk: 0, ems: 0, alerts: 0, consult: [30, 40], events: [1e9, 1e9], callouts: 0, board: 0.2, sickMax: 0, boarders: 0, shift: 720, train: true },
 };
 
 const ZONES = [
@@ -358,6 +360,7 @@ function newGame(level, seed, opts) {
     pizza: false, sec: { busy: -1e9 }, agN: 0, report: null,
     nextArr: { walk: 0, ems: 0, alert: 1e9 },
     stats: freshStats(), care: 0, ledger: {}, log: [],
+    train: !!L.train, tr: L.train ? { step: 0, ids: {}, setup: {} } : null,
   };
   G.staff = ROSTER.map(mkStaff);
   for (const r of G.rooms) if (r.z === 'ft') r.closed = true;  // Fast Track opens at 09:00
@@ -399,7 +402,8 @@ function startShift() {
   for (let i = 0; i < L.callouts; i++) G.sched.push({ t: G.t + 0.3 + i * 0.3, k: 'callout' });
   G.sched.push({ t: 240, k: 'swing' });
   G.sched.push({ t: 120, k: 'ftopen' });
-  note(`07:00, ${L.name}. Night shift hands you the board.`);
+  if (G.train) { G.nextArr = { walk: 1e9, ems: 1e9, alert: 1e9 }; G.box.nextC = 1e9; }
+  note(`07:00, ${L.name}. ${G.train ? 'Your preceptor has the board with you.' : 'Night shift hands you the board.'}`);
 }
 
 /* ---------- main step ---------- */
@@ -773,7 +777,7 @@ function taskStart(s, k) {
   if (k.type === 'eval' || k.type === 'code') {
     p.ev = 'doing'; if (p.tProv == null) p.tProv = G.t; if (k.type === 'code') codeTeam(p);
     const waiting = s.q.filter(x => !x.started && x.type !== 'box').length;
-    if (k.type === 'eval' && waiting >= 3 && chance(Math.min(0.15, 0.03 * (waiting - 2)))) { p.missedDx = { by: s.short, n: waiting + 1 }; if (!G.pre) G.stats.missedDx++; }
+    if (!G.train && k.type === 'eval' && waiting >= 3 && chance(Math.min(0.15, 0.03 * (waiting - 2)))) { p.missedDx = { by: s.short, n: waiting + 1 }; if (!G.pre) G.stats.missedDx++; }
   }
   else if (k.type === 'reassess') p.re = 'doing';
   else if (k.type === 'proc') {
@@ -984,7 +988,7 @@ function finishTriage(p, s) {
   p.tri = 'done'; p.triBy = null; p.tTriage = G.t; p.triaging = false;
   if (!G.pre) G.stats.triaged++;
   const risk = (s && (s.skill === 'new' || s.skill === 'agency') ? 0.1 : 0.05) * (p.lang && p.interp !== 'on' ? 1.5 : 1);
-  if (p.esi >= 2 && p.esi <= 3 && !p.alert && chance(risk)) { p.esiT = p.esi + 1; if (!G.pre) G.stats.underTriage++; }
+  if (!G.train && p.esi >= 2 && p.esi <= 3 && !p.alert && chance(risk)) { p.esiT = p.esi + 1; if (!G.pre) G.stats.underTriage++; }
   if (p.loc === 'triage') { p.loc = 'waiting'; const i = G.triageQ.indexOf(p.id); if (i >= 0) G.triageQ.splice(i, 1); }
   callWalkinAlert(p);
 }
@@ -1616,7 +1620,7 @@ function leave(p, outcome) {
 
 /* ---------- 72-hour returns ---------- */
 function bounceRoll(p, outcome, wasLoc) {
-  if (p.ret) return;
+  if (p.ret || G.train) return;
   let c = outcome === 'ama' ? 0.35 : outcome === 'lwbs' ? 0.12 : 0.02;
   let why = outcome === 'ama' ? 'Left against medical advice' : outcome === 'lwbs' ? 'Left without being seen' : 'Discharged; sometimes it just happens';
   if (outcome === 'dc') {
@@ -1722,6 +1726,7 @@ function hemorrhageTick(p) {
   }
 }
 function amaRisk(p) {
+  if (G.train) return 0;
   if (p.loc !== 'room' || p.alertOn || p.esi <= 1 || p.arrest || p.vip) return 0;
   if (!(p.dsp === 'none' || p.dsp === 'board' || p.dsp === 'decide')) return 0;
   if (G.t < p.amaSafe) return 0;
@@ -1737,11 +1742,11 @@ function minuteTick() {
   for (const p of active()) {
     if (p.loc === 'triage') {
       if (p.esi >= 3 && p.tri !== 'doing' && t - p.tArrive > p.patience * 0.8) { toast(`${p.name} left before triage after ${Math.round(t - p.tArrive)} min`, 'bad'); mm(22, `${p.name} left before triage after ${Math.round(t - p.tArrive)} min`, p.reg === 'none' ? 'Nobody registered them' : 'No nurse got to their triage'); leave(p, 'lwbs'); continue; }
-      if (p.esi === 2 && !p.crash && !p.alertOn && t - p.tArrive > 20 && chance(0.012)) crash(p);
+      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tArrive > 20 && chance(0.012)) crash(p);
     }
     if (p.loc === 'waiting') {
       if (p.esi >= 3 && t - p.tTriage > p.patience && !p.pitDcQ) { toast(`${p.name} (ESI ${vEsi(p)}) left without being seen after ${Math.round(t - p.tArrive)} min`, 'bad'); mm(25, `${p.name} (ESI ${vEsi(p)}) left without being seen after ${Math.round(t - p.tArrive)} min`, crowdWhy()); leave(p, 'lwbs'); continue; }
-      if (p.esi === 2 && !p.crash && !p.alertOn && t - p.tTriage > 30 && chance(0.012)) crash(p);
+      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tTriage > 30 && chance(0.012)) crash(p);
     }
     if (p.crash && !p.arrest && p.loc !== 'room' && t - p.tCrash > 15) waitingArrest(p);
     hemorrhageTick(p);
@@ -1768,7 +1773,7 @@ function minuteTick() {
   for (const s of G.staff) {
     if (s.role !== 'rn' || s.st !== 'on') continue;
     const over = nurseLoad(s) - ratioCap(s);
-    if (over > 0.01) { care(-0.15 * over, 'ratio'); s.morale -= 0.12 * over; G.stats.ratioMin += over; if (chance(0.002 * over)) adverse(s); }
+    if (over > 0.01) { care(-0.15 * over, 'ratio'); s.morale -= 0.12 * over; G.stats.ratioMin += over; if (!G.train && chance(0.002 * over)) adverse(s); }
   }
   const hn = holdNurses().length;
   for (const z of ZONES) {
@@ -1834,6 +1839,7 @@ function recheck(pid, sid) {
 }
 /* Neighboring hospitals go on and off alert. If too many are on at once, the region suspends everyone. */
 function regionTick() {
+  if (G.train) return;
   const R = G.region, t = G.t;
   for (const h of R.hosps) {
     if (h.st === 'open') { if (t > R.susp && chance(0.002)) { h.st = 'yellow'; h.since = t; h.hold = t + 30; note(`${h.name} went on Yellow Alert. Expect more ambulances.`); } }
@@ -2087,7 +2093,7 @@ function scheduled() {
   }
 }
 function eventsTick() {
-  if (G.card) return;
+  if (G.card || G.train) return;
   if (G.ev.regionDue && !G.ev.regionFired) { G.ev.regionFired = true; fireEv('region'); return; }
   if (G.t < G.ev.next) return;
   const L = LEVELS[G.level];
@@ -2383,6 +2389,58 @@ const EV = {
   },
 };
 
+/* ---------- Orientation: scripted patients, Box calls, and outages ---------- */
+function trainPatient(k, how, o) {
+  o = o || {};
+  const c = CASES.find(x => x.k === k);
+  if (!c) return null;
+  const p = makePatient(c, how === 'walk' || how === 'waiting' ? 'walk' : 'ems');
+  if (o.name) p.name = o.name;
+  if (o.age != null) p.age = o.age;
+  if (o.sex) p.sex = o.sex;
+  p.lang = o.lang || null; p.tArrive = G.t;
+  if (how === 'walk') { p.loc = 'triage'; G.triageQ.push(p.id); onArrive(p); }
+  else if (how === 'ems') { p.unit = o.unit || 'Medic 7'; p.loc = 'wall'; onArrive(p); note(`${p.unit} at the bay: ${p.age}${p.sex}, ${p.cc}`); }
+  else if (how === 'alert') {
+    p.unit = o.unit || 'Medic 21'; p.loc = 'enroute'; p.eta = G.t + (o.eta || 6); p.alertOn = true; p.dxK = true;
+    G.enroute.push(p.id);
+    G.box.cur = { kind: 'notify', pid: p.id, unit: p.unit, id: ++G.box.seq, ring: 1e9, left: 1e9, t0: G.t };
+    sound('ring');
+  } else if (how === 'waiting') {
+    p.loc = 'waiting'; p.reg = 'quick'; p.quick = true; p.tri = 'done'; onArrive(p);
+    p.tTriage = G.t - (o.waited || 25); p.tArrive = p.tTriage - 8;
+    if (o.esiT) p.esiT = o.esiT;
+  } else if (how === 'seat') {
+    const r = room(o.room);
+    if (!r || r.pid) return null;
+    p.loc = 'room'; p.room = r.id; r.pid = p.id; r.st = 'occ'; onArrive(p);
+    p.tArrive = G.t - 45; p.tTriage = G.t - 40; p.tRoom = G.t - 35; p.tProv = G.t - 25; p.tWall = 0;
+    p.reg = 'done'; p.tri = 'done'; p.rn = 'done'; p.ev = 'done'; p.prov = o.prov || null;
+    const run = o.run || {};
+    for (const w of p.wk) p.work[w] = run[w] ? { st: 'run', tOrd: G.t - 20, due: G.t + run[w] } : { st: 'done', tOrd: G.t - 25, tDone: G.t - 5 };
+    for (const k2 of p.tr) p.treat[k2] = newTreat(k2);
+    p.dxK = !Object.keys(run).length;
+    if (p.alert) p.alertOn = true;
+    p.goals = {};
+    if (o.dsp) p.dsp = o.dsp;
+  }
+  p.patience = 1e9; p.amaSafe = 1e9;
+  return p.id;
+}
+function trainConsult() {
+  if (G.box.cur) return false;
+  G.box.cur = { kind: 'consult', sc: nextScen(), unit: 'Medic 12', id: ++G.box.seq, ring: 1e9, left: 1e9, t0: G.t };
+  sound('ring');
+  return true;
+}
+function trainOutage(k, mins) {
+  const O = OUTAGES[k], until = G.t + mins;
+  G.out[k] = { t0: G.t, until, credited: false };
+  G.stats.outLog.push({ k, t0: G.t, t1: until, divertAt: null, misses: 0, after: 0 });
+  if (k === 'ct' || k === 'power') G.img.ct.down = Math.max(G.img.ct.down, until);
+  toast(`${O.msg} Expected back in about ${mins} min.`, 'alert'); sound('alarm');
+}
+
 /* ---------- end of shift ---------- */
 function avgWait() {
   let n = 0, sum = 0;
@@ -2417,7 +2475,7 @@ function staffHours() {
   const seen = G.order.filter(id => G.pts[id].tArrive >= 0 && G.pts[id].loc !== 'enroute' && G.pts[id].loc !== 'new').length || 1;
   return { rn, agency, mandated, md: h('md'), app: h('app'), pct: h('pct'), rt: h('rt'), rnPerVisit: Math.round(100 * (rn + agency + mandated) / seen) / 100 };
 }
-const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200, 2200] };
+const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200, 2200], train: [300, 800, 1400] };
 function starsFor(c, level) { const s = STARS[level || (G && G.level) || 'med']; return c >= s[2] ? 3 : c >= s[1] ? 2 : c >= s[0] ? 1 : 0; }
 function endShift(reason) {
   if (G.over) return;
@@ -2583,7 +2641,7 @@ const OC = {
   setPit, activateMTP, releaseONeg, requestInterp, overrideRx,
   register, triage, toWaiting, sendUp, bookIFT, IFT, emergent, DIVERTS, OUTAGES, outActive, justified,
   startOutage, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
-  metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad,
+  metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage,
 };
 root.OC = OC;
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;

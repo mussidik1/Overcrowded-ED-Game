@@ -4,6 +4,10 @@ You're the charge nurse for a 32-bed emergency department, 07:00 to 19:00. Patie
 
 **Play it:** https://mussidik1.github.io/Overcrowded-ED-Game/
 
+**New here? Start with Orientation.** A preceptor walks you through one patient at a time: a walk-in from registration to discharge, an ambulance patient through consult, admission, and report, a trauma alert with massive transfusion, a Box consult, a chest-pain call, chairs, waiting-room rechecks, an interpreter, breaks, an equipment outage, and a transfer. It lights up what to tap, holds the clock until you act, and fast-forwards through the waiting. Nothing counts against you.
+
+![Orientation: the preceptor lights up the next tap](docs/screenshots/orientation.png)
+
 ![Intake, transport, and ambulance screens](docs/screenshots/intake-and-transport.png)
 
 ## How a shift works
@@ -46,7 +50,8 @@ npm run build    # writes index.html
 npm test         # rule checks (three suites)
 npm run sim      # simulated shifts at several player speeds
 npm run stress   # 60 shifts, checks for stuck states
-python3 test/ui_test.py   # taps through every system in headless Chrome (Playwright)
+python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)
+python3 test/train_test.py   # plays Orientation end to end by tapping only what the preceptor lights up
 ```
 
 ![Laptop view](docs/screenshots/desktop.png)

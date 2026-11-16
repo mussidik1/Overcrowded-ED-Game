@@ -216,7 +216,7 @@ def run():
             tap('#selbar [data-act="selInfo"]')
             page.screenshot(path=f'{OUT}/06c_waiting_patient.png')
             if tap('#sheet [data-act="recheck"]:not([disabled])'):
-                ok(J(f"OC.G.staff.some(s => s.tq.some(k => k.pid === '{wid}' && k.kind === 'recheck'))"), 'recheck ordered from the waiting patient card')
+                ok(J(f"OC.G.staff.some(s => s.tq.some(k => k.pid === '{wid}' && k.kind === 'recheck') || (s.task && s.task.kind === 'recheck' && s.task.pid === '{wid}')) || OC.pt('{wid}').lastRecheck != null"), 'recheck ordered from the waiting patient card')
             else: checks.append('skip  no nurse free for a recheck')
             J(f"OC.pt('{wid}').lastUpdate = null")
             page.wait_for_timeout(250)
