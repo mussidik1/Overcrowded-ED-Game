@@ -25,14 +25,15 @@ function check(G) {
 
 function run(level, seed, opts) {
   OC.hooks.toast = () => {}; OC.hooks.sound = () => {};
-  OC.newGame(level, seed);
+  OC.newGame(level, seed, { mode: opts.mode });
   const G = () => OC.G;
   let steps = 0, maxWait = 0, maxWall = 0, maxBoard = 0, sinceBot = 0;
   while (!G().over && steps < 20000) {
     OC.step(0.1); steps++;
     sinceBot += 0.1;
     if (G().card && opts.cardDelay == null) OC.botStep({ budget: 0 });
-    if (sinceBot >= opts.every) { sinceBot = 0; OC.botStep({ budget: opts.budget, acc: opts.acc, early: opts.early, breaks: opts.breaks, pit: opts.pit, interp: opts.interp }); }
+    if (sinceBot >= opts.every && opts.mode === 'md') { sinceBot = 0; OC.mdPlay(opts); }
+    else if (sinceBot >= opts.every) { sinceBot = 0; OC.botStep({ budget: opts.budget, acc: opts.acc, early: opts.early, breaks: opts.breaks, pit: opts.pit, interp: opts.interp }); }
     if (steps % 50 === 0) {
       check(G());
       maxWait = Math.max(maxWait, OC.waitingCount());
@@ -54,6 +55,9 @@ const profiles = {
   real: { every: 3.0, budget: 2, acc: 0.7, early: false, breaks: true, pit: false, interp: 0.4 },
   newbie: { every: 5.0, budget: 2, acc: 0.6, early: true, breaks: false, pit: false, interp: 0.2 },
   sloppy: { every: 2.0, budget: 2, acc: 0.6, early: false, breaks: false },
+  // Physician mode: the player is one attending; the engine runs the charge nurse.
+  doc: { mode: 'md', every: 2.0, budget: 2, acc: 0.8, line: 1 },
+  slowdoc: { mode: 'md', every: 4.0, budget: 2, acc: 0.7, line: 1 },
 };
 const which = process.argv[2] || 'all';
 for (const [name, prof] of Object.entries(profiles)) {
@@ -62,6 +66,7 @@ for (const [name, prof] of Object.entries(profiles)) {
     const rows = [];
     for (let seed = 1; seed <= 5; seed++) rows.push(run(level, seed * 7919, prof));
     const avg = k => (rows.reduce((a, r) => a + r[k], 0) / rows.length).toFixed(1);
+    if (prof.mode === 'md') { const m = k => (rows.reduce((a, r) => a + r.md[k], 0) / rows.length).toFixed(1); console.log(`${name.padEnd(8)} ${level.padEnd(5)} care=${avg('care')} stars=${avg('stars')} wait=${avg('wait')} seenByYou=${m('seen')} clean=${m('clean')} gaps=${m('gaps')} harm=${m('harm')} untreated=${m('untreated')} dispo=${m('dispoRight')}/${m('dispoWrong')} left=${avg('left')} returns=${avg('returns')} fails=${rows.filter(r => r.fail).length}`); continue; }
     console.log(`${name.padEnd(8)} ${level.padEnd(5)} care=${avg('care')} stars=${avg('stars')} wait=${avg('wait')} sat=${avg('sat')} seen=${avg('seen')} dc=${avg('dc')} adm=${avg('adm')} lwbs=${avg('lwbs')} left=${avg('left')} wallAvg=${avg('wallAvg')} wallMax=${avg('wallMax')} maxWaitRm=${avg('maxWait')} maxBoard=${avg('maxBoard')} goals=${avg('goalsMet')}/${avg('goalsMiss')} angry=${avg('angry')} ratioMin=${avg('ratioMin')} adverse=${avg('adverse')} ev=${avg('events')} fails=${rows.filter(r => r.fail).length}`);
   }
 }

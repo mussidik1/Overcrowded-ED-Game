@@ -40,11 +40,13 @@ if (G.box.cur && G.box.cur.kind === 'consult') {
   const app = G.staff.find(s => s.role === 'app');
   assert(!OC.boxTake(app.id).ok, 'a PA/NP cannot take a Box consult');
   const md = G.staff.find(s => s.role === 'md' && s.st === 'on');
-  const t = OC.boxTake(md.id);
+  const c0 = G.care, t = OC.boxTake(md.id);
   assert(t.ok && md.q.some(k => k.type === 'box'), 'attending takes it and it lands at the front of their queue');
   assert(md.q[0].type === 'box', 'box consult pre-empts their current work');
-  const d = OC.boxDecide(t.sc.a);
-  assert(d && d.ok, 'right call scores as correct');
+  assert(G.care - c0 === 10, 'getting a doctor on the line fast is the charge nurse\'s points');
+  assert(OC.boxDecide(t.sc.a) === null, 'the charge nurse cannot give medical direction');
+  runUntil(() => !G.box.cur, 200);
+  assert(!G.box.cur && G.stats.boxC.ans === 1, 'the attending gives the orders and closes the call');
 }
 // unanswered consult rings out
 G = fresh(303);

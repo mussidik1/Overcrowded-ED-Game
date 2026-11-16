@@ -13,9 +13,11 @@ with sync_playwright() as pw:
     page.on('pageerror', lambda e: errors.append('pageerror: ' + str(e)))
     page.on('console', lambda m: errors.append('console.' + m.type + ': ' + m.text) if m.type == 'error' else None)
     J = page.evaluate
+    MODE = os.environ.get('MODE', 'rn')
     page.goto(URL); page.wait_for_timeout(1200)
+    page.locator(f'[data-act="mode"][data-arg="{MODE}"]').tap(); page.wait_for_timeout(300)
     page.locator('button.lvl[data-arg="train"]').tap(); page.wait_for_timeout(500)
-    ok_start = J('OC.G.level') == 'train' and J('OC.active().length') == 0
+    ok_start = J('OC.G.level') == 'train' and J('OC.G.mode') == MODE and J('OC.active().length') == 0
     if not ok_start: errors.append('Orientation did not start on an empty board')
     last, same, taps, shots = -1, 0, 0, set()
     for it in range(600):
@@ -23,8 +25,8 @@ with sync_playwright() as pw:
         if not c: errors.append('preceptor vanished'); break
         if c['i'] != last:
             log.append(f"{c['i'] + 1:>2}/{c['n']} {c['id']}"); last, same = c['i'], 0
-            if c['id'] in ('m1', 'w6', 't2', 'g6', 'h1', 'r2', 'd1', 'end') and c['id'] not in shots:
-                shots.add(c['id']); page.wait_for_timeout(250); page.screenshot(path=f"{OUT}/train_{c['id']}.png")
+            if c['id'] in ('m1', 'w6', 't2', 'g6', 'h1', 'r2', 'd1', 'j3', 'a3', 'b5', 'r1', 's4', 'end') and c['id'] not in shots:
+                shots.add(c['id']); page.wait_for_timeout(250); page.screenshot(path=f"{OUT}/train_{MODE}_{c['id']}.png")
         else: same += 1
         if c['final']: break
         if same > 40:
@@ -46,7 +48,7 @@ with sync_playwright() as pw:
         page.wait_for_timeout(180)
     c = J('OCUI.coach()')
     if not c or not c['final']: errors.append('did not reach the last step')
-    page.screenshot(path=f'{OUT}/train_end.png')
+    page.screenshot(path=f'{OUT}/train_{MODE}_final.png')
     print('\n'.join(log))
     print(f'taps: {taps}, game clock: {J("OC.clock()")}, care {J("Math.round(OC.G.care)")}')
     b.close()

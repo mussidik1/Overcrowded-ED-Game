@@ -195,7 +195,7 @@ if (up) {
 let tx = null;
 for (let seed = 1; seed < 40 && !tx; seed++) {
   OC.newGame('hard', seed * 7); clearCard(); G = OC.G;
-  run(720, () => { OC.botStep({ budget: 3, ift: false }); return (tx = OC.inRooms().find(p => p.dsp === 'txok' && p.needCC)); });
+  run(720, () => { OC.botStep({ budget: 3, ift: false }); return (tx = OC.G.t < 540 ? OC.inRooms().find(p => p.dsp === 'txok' && p.needCC) : null); });  // leave time for two crews
 }
 assert(tx, 'a critical patient was accepted for transfer');
 if (tx) {

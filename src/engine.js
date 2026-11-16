@@ -305,7 +305,16 @@ function genName(sex, age) { const pool = age < 13 ? KIDS[sex] : NAMES[sex]; ret
 const cap = x => x ? x.charAt(0).toUpperCase() + x.slice(1) : x;
 const langMul = p => (p.lang && p.interp !== 'on' ? 1.5 : 1);
 
-function care(n, tag) { if (G.pre) return; G.care += n; const k = tag || 'other'; G.ledger[k] = (G.ledger[k] || 0) + n; }
+/* In physician mode the player answers only for physician work, and only for their own patients. */
+const MD_TAGS = new Set(['md', 'orders', 'harm', 'dispo', 'box', 'consult', 'flow', 'goals', 'returns', 'gray', 'blood']);
+const PT_TAGS = new Set(['flow', 'goals', 'returns', 'gray', 'blood', 'consult']);
+function care(n, tag, p) {
+  if (G.pre) return;
+  const k = tag || 'other';
+  if (G.mode === 'md' && (!MD_TAGS.has(k) || (PT_TAGS.has(k) && !(p && p.mine)))) return;
+  G.care += n; G.ledger[k] = (G.ledger[k] || 0) + n;
+}
+const mdMine = p => !!(p && G.mode === 'md' && p.mine && p.prov === G.me);
 function note(msg, kind) { if (G.pre) return; G.log.unshift({ t: G.t, msg, kind: kind || 'info' }); if (G.log.length > 60) G.log.length = 60; }
 function toast(msg, kind) { if (G.pre) return; note(msg, kind); hooks.toast(msg, kind || 'info'); }
 function sound(n) { if (!G.pre) hooks.sound(n); }
@@ -323,6 +332,7 @@ function freshStats() {
     outLog: [], outRight: 0, outMiss: 0, divertExtra: 0, divertAny: 0, obs: 0, quickReg: 0, intub: 0, intubNoRT: 0,
     gray: { right: 0, ok: 0, under: 0, over: 0 }, mm: [], fcp: 0, updates: 0, complaints: 0, hallMins: 0, underTriage: 0, underCaught: 0,
     cosign: 0, missedDx: 0, chairMoves: 0, staffMins: {}, suspended: 0,
+    md: { seen: 0, fast: 0, ordRight: 0, ordExtra: 0, ordMiss: 0, clean: 0, gaps: 0, harm: 0, untreated: 0, dispoRight: 0, dispoWrong: 0 },
     returns: 0, returnsLate: 0, lep: 0, interp: 0, mtp: 0, mtpWaste: 0, oneg: 0, overrides: 0, medErrors: 0, pitDc: 0, pitSeen: 0, diverted: 0, shock: 0 };
 }
 function mkStaff(r) {
@@ -361,6 +371,7 @@ function newGame(level, seed, opts) {
     nextArr: { walk: 0, ems: 0, alert: 1e9 },
     stats: freshStats(), care: 0, ledger: {}, log: [],
     train: !!L.train, tr: L.train ? { step: 0, ids: {}, setup: {} } : null,
+    mode: opts.mode === 'md' ? 'md' : 'rn', me: opts.mode === 'md' ? 'md1' : null,
   };
   G.staff = ROSTER.map(mkStaff);
   for (const r of G.rooms) if (r.z === 'ft') r.closed = true;  // Fast Track opens at 09:00
@@ -403,12 +414,15 @@ function startShift() {
   G.sched.push({ t: 240, k: 'swing' });
   G.sched.push({ t: 120, k: 'ftopen' });
   if (G.train) { G.nextArr = { walk: 1e9, ems: 1e9, alert: 1e9 }; G.box.nextC = 1e9; }
+  if (G.mode === 'md') { const me = staff(G.me); orphanPatients(me); me.morale = 85; }  // the night doc signed out to the team
   note(`07:00, ${L.name}. ${G.train ? 'Your preceptor has the board with you.' : 'Night shift hands you the board.'}`);
 }
 
 /* ---------- main step ---------- */
 function step(dt) {
-  if (!G || !G.running || G.over || G.card) return;
+  if (!G || !G.running || G.over) return;
+  if (G.card && G.mode === 'md' && !G.pre) aiCard();
+  if (G.card) return;
   G.t += dt;
   arrivals();
   scheduled(); if (G.card) return;
@@ -430,7 +444,7 @@ function step(dt) {
   consultTick();
   flowTick();
   const m = Math.floor(G.t);
-  if (m !== G.lastMin) { G.lastMin = m; minuteTick(); }
+  if (m !== G.lastMin) { G.lastMin = m; minuteTick(); if (G.mode === 'md' && !G.pre && !G.over) aiTick(); }
   if (!G.pre && G.t >= G.shift) endShift('time');
 }
 
@@ -475,7 +489,8 @@ const vEsi = p => (p.esiT != null ? p.esiT : p.esi);
 const regQuick = p => ['quick', 'fq', 'fdoing', 'done'].includes(p.reg);
 const BOARD_ST = ['board', 'callrep', 'reporting', 'bedready', 'xportq', 'obsq'];
 const isBoarder = p => BOARD_ST.includes(p.dsp);
-function mm(sev, what, why) { if (!G.pre) G.stats.mm.push({ sev, t: G.t, what, why }); }
+// own: the attending player's responsibility. In physician mode, M&M only lists those.
+function mm(sev, what, why, own) { if (G.pre || (G.mode === 'md' && !own)) return; G.stats.mm.push({ sev, t: G.t, what, why }); }
 function unitName() { return (chance(0.85) ? 'Medic ' : 'Ambulance ') + randi(2, 49); }
 function onArrive(p) {
   if (!G.pre) { G.stats.arrived++; if (p.lang) G.stats.lep++; }
@@ -723,6 +738,10 @@ function assign(sid, pid) {
   const c = canAssign(s, p); if (!c.ok) return c;
   if (p.prov && p.prov !== sid) unassign(p);
   p.prov = sid;
+  if (G.mode === 'md' && sid === G.me && !p.mine) {
+    p.mine = true;
+    if (!G.pre) { G.stats.md.seen++; care(5, 'md'); if (vEsi(p) <= 2 && p.tRoom != null && G.t - p.tRoom <= 10) { G.stats.md.fast++; care(5, 'md'); } }
+  }
   if (p.ev === 'none') {
     p.ev = 'q';
     const dur = (p.pitSeen ? 5 : s.role === 'md' ? 9 : 11) * langMul(p);
@@ -730,7 +749,7 @@ function assign(sid, pid) {
   }
   if (p.re === 'need') { p.re = 'q'; addTask(s, { type: 'reassess', pid, dur: 3 * langMul(p), label: 'Recheck' }); }
   queueProcs(p);
-  return { ok: true, msg: `${s.name} has ${label(p)}` };
+  return { ok: true, msg: G.mode === 'md' && sid === G.me ? `You picked up ${label(p)}` : `${s.name} has ${label(p)}` };
 }
 function taskPr(k) {
   if (k.type === 'box') return -100;
@@ -797,16 +816,133 @@ function taskStart(s, k) {
 function taskDone(s, k) {
   const p = k.pid ? pt(k.pid) : null;
   if (k.type === 'eval') {
-    p.ev = 'done'; orders(p); if (p.pitSeen && !p.dxK && allWorkDone(p)) p.dxK = true;
+    p.ev = 'done';
+    if (mdMine(p)) awaitOrders(p);
+    else { orders(p); if (p.pitSeen && !p.dxK && allWorkDone(p)) p.dxK = true; }
     revealEsi(p, `${s.short}'s exam`);
     if (s.role === 'app' && p.esi <= 2) needCosign(p);
   }
   else if (k.type === 'cosign') { p.cosign = 'done'; if (!G.pre) G.stats.cosign++; }
   else if (k.type === 'code') { p.ev = 'done'; codeOutcome(p); }
-  else if (k.type === 'reassess') { p.re = 'done'; p.dxK = true; note(`${label(p)}: ${p.dx}`); }
-  else if (k.type === 'proc') { p.treat[k.key].st = 'done'; p.treat[k.key].tDone = G.t; if (k.key === 'intub') { if (!G.pre) G.stats.intub++; if (p.treat.vent) openGate(p.treat.vent, 'vent'); } }
+  else if (k.type === 'reassess') {
+    if (mdMine(p) && workGap(p)) return;
+    p.re = 'done'; p.dxK = true; note(`${label(p)}: ${p.dx}`);
+    if (mdMine(p)) treatGap(p);
+  }
+  else if (k.type === 'proc') { p.treat[k.key].st = 'done'; p.treat[k.key].tDone = G.t; harmCheck(p, k.key); if (k.key === 'intub') { if (!G.pre) G.stats.intub++; if (p.treat.vent) openGate(p.treat.vent, 'vent'); } }
+  else if (k.type === 'box' && G.mode !== 'md') autoDirection(s);
   else if (k.type === 'pit') pitDone(s, p);
   else if (k.type === 'pitdc') { if (p.loc === 'waiting') { G.stats.pitDc++; note(`${s.short} discharged ${p.name} from triage`); leave(p, 'dc'); } }
+}
+/* ---------- physician mode: the player writes the orders ---------- */
+const NORMAL = { ecg: 'Normal sinus rhythm', lab: 'Normal', xr: 'No acute findings', ct: 'No acute findings', us: 'Normal' };
+const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU', or: 'the OR', cath: 'the cath lab', bh: 'psychiatric admission', transfer: 'a transfer', obs: 'observation' };
+// What the drug in "Medications" was, for each case that needs one.
+const RX = { rash: 'an antihistamine and steroid cream', otitis: 'amoxicillin', dental: 'an antibiotic and pain control', strep: 'penicillin', ankle: 'ibuprofen', uti: 'an antibiotic for the UTI',
+  gastro: 'ondansetron', appy: 'pain control', chole: 'pain control', hipfx: 'pain control', chf: 'nitroglycerin and a diuretic', stone: 'ketorolac', dvt: 'an anticoagulant', migraine: 'prochlorperazine and diphenhydramine',
+  cwp: 'ibuprofen', cpmod: 'aspirin', nstemi: 'aspirin and heparin', afib: 'diltiazem', asthma: 'a steroid', anaph: 'an antihistamine and a steroid', stemi: 'aspirin and heparin', burn: 'pain control', mcimin: 'pain control', vip: 'meclizine' };
+const rxName = p => RX[p.ck] || 'symptom treatment';
+// An order with no indication can hurt someone: [chance, points, what happened].
+const HARM = { tnk: [0.5, 50, 'bled after a thrombolytic they did not need'], insulin: [0.5, 25, 'dropped their blood sugar on an insulin drip they did not need'],
+  epi: [0.35, 20, 'went into a fast rhythm from epinephrine they did not need'], intub: [0.3, 25, 'had a complication from an intubation they did not need'],
+  blood: [0.15, 15, 'reacted to blood they did not need'], nalox: [0.3, 8, 'went into withdrawal from naloxone they did not need'], bipap: [0.1, 5, 'vomited on BiPAP they did not need'] };
+function awaitOrders(p) {
+  if (!p.right) p.right = { wk: p.wk.slice(), tr: p.tr.filter(k => k !== 'vent') };
+  p.wk = p.wk.filter(k => p.work[k]);          // anything triage already started stays (an ECG for chest pain)
+  p.tr = p.tr.filter(k => p.treat[k]);
+  p.ord = 'need';
+  if (!G.pre) note(`${label(p)}: you've seen them. Write orders.`);
+}
+function signOrders(pid, tests, treats) {
+  const p = pt(pid);
+  if (!p || !mdMine(p)) return { ok: false, why: 'That is not your patient' };
+  if (p.ev !== 'done') return { ok: false, why: 'See the patient first' };
+  const R = p.right, S = G.stats.md, first = p.ord === 'need';
+  const newT = (tests || []).filter(k => WORK[k] && !p.wk.includes(k));
+  const newR = (treats || []).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
+  if (!newT.length && !newR.length && !(first && R.wk.every(k => p.wk.includes(k)) && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
+  let pts = 0, extra = 0;
+  for (const k of newT) {
+    p.wk.push(k);
+    if (R.wk.includes(k)) { pts += 2; S.ordRight++; } else { pts -= k === 'ct' ? 8 : 3; extra++; S.ordExtra++; if (!p.find[k]) p.find[k] = NORMAL[k]; }
+  }
+  for (const k of newR) {
+    if (k === 'mtp') { const r = activateMTP(p.id); if (!r.ok && p.bleed !== 'mtp') { pts -= 3; extra++; S.ordExtra++; continue; } }
+    p.tr.push(k);
+    if (k === 'intub' && !p.tr.includes('vent')) p.tr.push('vent');
+    if (R.tr.includes(k)) { pts += 3; S.ordRight++; }
+    else { pts -= 3; extra++; S.ordExtra++; (p.extraTr = p.extraTr || []).push(k); if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
+  }
+  if (first) {
+    const miss = R.wk.filter(k => !p.wk.includes(k)).length + R.tr.filter(k => !p.tr.includes(k)).length;
+    S.ordMiss += miss;
+    if (!miss && !extra) { pts += 10; S.clean++; }
+  }
+  care(pts, 'orders', p);
+  p.ord = 'signed';
+  orders(p);
+  if (p.dxK) { if (!workGap(p)) treatGap(p); }   // field diagnoses (alerts) are known already, so gaps show now
+  else if (!p.wk.length && !R.wk.length) { p.dxK = true; note(`${label(p)}: ${p.dx}`); treatGap(p); }
+  else if (!p.wk.length) workGap(p);
+  if (p.txGap) p.txGap = R.tr.filter(k => !p.tr.includes(k));
+  if (p.txGap && !p.txGap.length) p.txGap = null;
+  const n = newT.length + newR.length;
+  return { ok: true, msg: `${n} order${n === 1 ? '' : 's'} signed for ${label(p)}${newR.includes('meds') ? ` (${rxName(p)})` : ''}` };
+}
+// A workup that is missing a test the plan needs: the diagnosis waits until it's ordered.
+function workGap(p) {
+  const miss = p.right.wk.filter(k => !p.wk.includes(k));
+  if (!miss.length) return false;
+  p.re = 'none'; p.ord = 'more';
+  if (!G.pre) { G.stats.md.gaps++; care(-5 * miss.length, 'orders', p); note(`${label(p)}: the workup isn't complete. Something the plan needs is missing.`, 'bad'); }
+  return true;
+}
+function treatGap(p) {
+  const gap = p.right.tr.filter(k => !p.tr.includes(k));
+  if (gap.length) { p.txGap = gap; p.tGap = G.t; if (!G.pre) note(`${label(p)} isn't improving. Something isn't treated.`, 'bad'); }
+}
+function harmCheck(p, k) {
+  if (!mdMine(p) || !p.extraTr || !p.extraTr.includes(k) || G.pre) return;
+  const h = HARM[k]; if (!h || !chance(h[0])) return;
+  G.stats.md.harm++; care(-h[1], 'harm', p);
+  mm(55, `${p.name} ${h[2]}`, `${TREAT[k].label} was ordered without an indication`, true);
+  toast(`${p.name} ${h[2]}.`, 'bad'); sound('bad');
+}
+/* The disposition call, once the diagnosis is in. Consults go through consult(). */
+function mdDecide(pid, pick) {
+  const p = pt(pid);
+  if (!p || !mdMine(p) || p.dsp !== 'mddecide') return { ok: false, why: 'There is no decision waiting for this patient' };
+  const want = p.dispo, S = G.stats.md;
+  if (pick === 'home') {
+    if (want === 'home') { S.dispoRight++; care(12, 'dispo', p); }
+    else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; mm(65, `${p.name} went home with ${p.dx.charAt(0).toLowerCase() + p.dx.slice(1)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
+    p.mdPick = 'home'; p.dispo = 'home'; p.dsp = 'none';
+    return { ok: true, msg: `${label(p)} is going home once treatment is done.` };
+  }
+  if (pick === 'transfer') {
+    if (want !== 'transfer') { S.dispoWrong++; care(-10, 'dispo', p); return { ok: false, why: `The receiving hospital declined: ${p.name} can be cared for here.` }; }
+    S.dispoRight++; care(12, 'dispo', p); p.mdPick = 'transfer'; p.dsp = 'readytx';
+    return { ok: true, msg: `Transfer to ${p.txTo}. The charge nurse calls the transfer center and books the ambulance.` };
+  }
+  return { ok: false, why: 'Pick home, a consult, or a transfer' };
+}
+/* Charge-nurse mode: the attending who takes a medical-direction call handles it. */
+function autoDirection(s) {
+  const c = G.box.cur; if (!c || c.kind !== 'consult' || c.taken !== s.id) return;
+  G.box.cur = null; G.stats.boxC.ans++;
+  if (chance(s.morale < 30 ? 0.75 : 0.93)) G.stats.boxC.right++; else G.stats.boxC.wrong++;
+  note(`${s.name} finished medical direction with ${c.unit}`);
+}
+/* Physician mode: the computer runs the charge nurse's side of the board. */
+function aiTick() {
+  const o = G.train ? { budget: 6, prov: false, divert: false, breaks: false, updates: false, recheck: false, chairs: false, fcp: false, zones: false, pit: false }
+    : { budget: 4, acc: 0.85, breaks: true, pit: true, interp: 0.8 };
+  botStep(o);
+}
+function aiCard() {
+  const c = G.card, ch = c.choices.find(x => !x.dis) || c.choices[0];
+  note(`Charge nurse · ${c.title}: ${ch.label}`);
+  chooseCard(ch.k);
 }
 function needCosign(p) {
   const md = G.staff.filter(x => x.role === 'md' && x.st === 'on').sort((a, b) => a.q.length - b.q.length)[0];
@@ -846,7 +982,8 @@ function codeOutcome(p) {
     for (const k of ['intub', 'vent']) if (!p.tr.includes(k)) p.tr.push(k);
     if (!tubed) p.treat.intub = newTreat('intub');
     p.treat.vent = tubed ? newTreat('vent') : { st: 'wait' }; queueProcs(p);
-    if (!G.pre) { G.stats.rosc++; care(30, 'flow'); }
+    if (mdMine(p)) { p.ord = 'signed'; p.right = { wk: p.wk.slice(), tr: ['intub'] }; p.txGap = null; }   // post-arrest orders are standard; the ICU call is yours
+    if (!G.pre) { G.stats.rosc++; care(30, 'flow', p); }
     toast(`ROSC in ${roomName(p.room)}! Intubate (attending and RT), then the vent. Get Critical Care down here.`, 'good'); sound('good');
   } else {
     p.arrest = false; p.dx = 'Resuscitation unsuccessful'; p.dxK = true; p.dsp = 'family'; p.due = G.t + 15;
@@ -980,6 +1117,7 @@ function rnDone(s, k, p) {
 function treatDone(p, key) {
   const it = p.treat[key]; if (!it) return;
   it.st = 'done'; it.tDone = G.t;
+  harmCheck(p, key);
   if (key === 'abx') goalHit(p, 'abx60');
   if (key === 'tnk') goalHit(p, 'dtn60');
   if (key === 'mtp') { p.shock = false; note(`${label(p)}: massive transfusion running, pressure coming up`); }
@@ -1287,7 +1425,7 @@ function activateMTP(pid) {
   const uses = Math.min(4, G.blood.oneg);
   G.blood.oneg -= uses; G.stats.oneg += uses;
   if (p.bleed !== 'mtp') {
-    G.stats.mtpWaste++; care(-10, 'blood');
+    G.stats.mtpWaste++; care(-10, 'blood', p);
     note(`MTP cancelled for ${label(p)}: not a hemorrhage. ${uses} units of O-negative wasted.`, 'bad');
     return { ok: false, why: 'The blood bank pushed back: this patient is not bleeding out. Cooler cancelled, O-negative wasted.' };
   }
@@ -1386,18 +1524,20 @@ function consult(pid, spec) {
   if (p.consult.st !== 'none') return { ok: false, why: `${SPECS[p.consult.spec].name} is already involved` };
   const m = G.spec[spec];
   if (p.con !== spec) {
-    m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-10, 'consult'); G.stats.wrongSpec++; provHit(p, 3); sound('bad');
+    if (mdMine(p) && !p.con) G.stats.md.dispoWrong++;
+    m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-10, 'consult', p); G.stats.wrongSpec++; provHit(p, 3); sound('bad');
     return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? `Why is ${S.name.toLowerCase()} getting this call? Not ours.` : 'This patient does not need a consult. Send them home.'}"` };
   }
   // EMS-activated STEMI, stroke, and trauma alerts can call their team on the field report alone
   const miss = (p.alertOn && ALERTS[p.alert] && ALERTS[p.alert].auto) ? [] : p.pre.filter(k => !(p.work[k] && p.work[k].st === 'done'));
   if (miss.length) {
-    m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-15, 'consult'); G.stats.angry++; provHit(p, 4); sound('bad');
+    m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-15, 'consult', p); G.stats.angry++; provHit(p, 4); sound('bad');
     return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${S.mad(miss.map(k => MISS_NAME[k]).join(' and '))}"` };
   }
   const base = (spec === 'trauma' ? randi(8, 14) : randi(12, 22)) + (spec === 'trauma' && outActive('or') ? 30 : 0), mult = [1, 1.2, 1.5, 1.9][-m.mood] || 1;
   const mins = Math.round(base * mult);
   p.consult = { st: 'req', spec, due: G.t + mins, t0: G.t };
+  if (mdMine(p) && !p.mdPick) { p.mdPick = 'consult'; if (p.dsp === 'mddecide') p.dsp = 'none'; G.stats.md.dispoRight++; care(12, 'dispo', p); }
   return { ok: true, msg: `${S.doc} (${S.name}) will see ${label(p)} in about ${mins} min` };
 }
 function provHit(p, n) { const s = staff(p.prov); if (s) s.morale -= n; }
@@ -1410,16 +1550,16 @@ function goalHit(p, key, when) {
   p.goals[key] = ok;
   if (G.pre) return;
   G.stats.goals.list.push({ key, ok, el: Math.round(el), alert: p.alert });
-  if (ok) { G.stats.goals.met++; care(30, 'goals'); toast(`${GOALS[key].label}: ${Math.round(el)} min. Goal met · ${label(p)}`, 'good'); sound('good'); }
-  else { G.stats.goals.miss++; care(-20, 'goals'); mm(40, `${GOALS[key].label} took ${Math.round(el)} min (goal ${GOALS[key].lim}) for ${p.name}`, goalWhy(p, key)); }
+  if (ok) { G.stats.goals.met++; care(30, 'goals', p); toast(`${GOALS[key].label}: ${Math.round(el)} min. Goal met · ${label(p)}`, 'good'); sound('good'); }
+  else { G.stats.goals.miss++; care(-20, 'goals', p); mm(40, `${GOALS[key].label} took ${Math.round(el)} min (goal ${GOALS[key].lim}) for ${p.name}`, goalWhy(p, key), !!p.mine); }
 }
 function goalMissTick(p) {
   for (const key in p.goals) {
     if (p.goals[key] === null && G.t - p.tArrive > GOALS[key].lim) {
       p.goals[key] = false;
       if (G.pre) continue;
-      G.stats.goals.miss++; care(-20, 'goals'); G.stats.goals.list.push({ key, ok: false, el: null, alert: p.alert });
-      mm(40, `${GOALS[key].label} went past ${GOALS[key].lim} min for ${p.name}`, goalWhy(p, key));
+      G.stats.goals.miss++; care(-20, 'goals', p); G.stats.goals.list.push({ key, ok: false, el: null, alert: p.alert });
+      mm(40, `${GOALS[key].label} went past ${GOALS[key].lim} min for ${p.name}`, goalWhy(p, key), !!p.mine);
       toast(`Missed: ${GOALS[key].label} under ${GOALS[key].lim} min · ${label(p)}`, 'bad');
     }
   }
@@ -1452,10 +1592,11 @@ const preDone = p => p.pre.every(k => p.work[k] && p.work[k].st === 'done');
 const treatsDone = p => p.tr.every(k => p.treat[k] && p.treat[k].st === 'done');
 function flowTick() {
   for (const p of active()) {
+    if (mdMine(p) && p.treat.tnk && p.treat.tnk.st === 'wait' && p.extraTr && p.extraTr.includes('tnk')) openGate(p.treat.tnk, 'tnk');
     if ('surg15' in p.goals && p.goals.surg15 === null && p.consult.st === 'here' && p.loc === 'room') goalHit(p, 'surg15', Math.max(p.consult.tArr, p.tRoom));
     goalMissTick(p);
     if (p.loc !== 'room') continue;
-    if (p.ev === 'done' && !p.dxK && p.re === 'none' && allWorkDone(p)) {
+    if (p.ev === 'done' && !p.dxK && p.re === 'none' && allWorkDone(p) && !(mdMine(p) && p.ord !== 'signed')) {
       const s = staff(p.prov);
       if (s && isProv(s) && present(s) && !s.pit) { p.re = 'q'; addTask(s, { type: 'reassess', pid: p.id, dur: 3 * langMul(p), label: 'Recheck' }); }
       else { p.re = 'need'; p.prov = null; p.tNeed = G.t; }
@@ -1468,6 +1609,27 @@ function flowTick() {
   }
 }
 function checkDispo(p) {
+  if (mdMine(p)) {
+    if (p.ev !== 'done' || !p.dxK || p.arrest || p.ord !== 'signed') return;
+    if (p.mdPick !== 'transfer' && ((p.dispo === 'cath' && outActive('cath')) || (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')))) {
+      const cath = p.dispo === 'cath';
+      p.dispo = 'transfer'; p.txTo = cath ? 'another PCI center' : 'another trauma center'; if (!cath) p.needCC = true; else delete p.goals.d2b90;
+      p.mdPick = 'transfer'; p.dsp = 'readytx';
+      note(`${label(p)} needs ${cath ? 'a cath lab' : 'an OR'} and ours is down. The charge nurse is calling the transfer center.`, 'bad');
+      return;
+    }
+    if (!p.mdPick) {
+      // Teams the field activated (STEMI, stroke, trauma) take the patient. Otherwise it's your call.
+      if (p.consult.st !== 'none' && p.dispo !== 'transfer') p.mdPick = 'consult';
+      else { const st = p.gray ? 'decide' : 'mddecide'; if (p.dsp !== st) { p.dsp = st; note(`${label(p)}: ${p.dx}. Your call.`); } return; }
+    }
+    if (p.reg !== 'done') return;
+    if (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done')) return;
+    if (p.mdPick === 'consult' && p.consult.st !== 'here') return;
+    if (!treatsDone(p)) return;
+    setDispo(p);
+    return;
+  }
   if (p.ev !== 'done' || !p.dxK || p.arrest || p.reg !== 'done') return;
   if (p.cosign === 'need' || p.cosign === 'wait') return;
   if (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done')) return;
@@ -1498,12 +1660,12 @@ function grayDispo(pid, pick) {
   if (!['home', 'obs', 'admit'].includes(pick)) return { ok: false, why: 'Pick home, observation, or admit' };
   const g = p.gray, S = G.stats.gray, risk = `${cap(g.band)}-risk ${g.tool} (${g.score})`;
   let msg;
-  if (pick === g.right) { S.right++; care(8, 'gray'); msg = `Good call. ${risk}.`; }
+  if (pick === g.right) { S.right++; care(8, 'gray', p); msg = `Good call. ${risk}.`; }
   else if (g.ok.includes(pick)) { S.ok++; msg = `Defensible. ${risk}: most would pick ${g.right === 'obs' ? 'observation' : g.right}.`; }
-  else if (g.right === 'home') { S.over++; care(-6, 'gray'); msg = `${risk} usually goes home. That bed was needed.`; }
+  else if (g.right === 'home') { S.over++; care(-6, 'gray', p); msg = `${risk} usually goes home. That bed was needed.`; }
   else { S.under++; p.grayUnder = true; msg = `${risk}. Most would keep this patient.`; }
   p.grayPick = pick; p.dispo = pick; p.dsp = 'none';
-  setDispo(p);
+  if (mdMine(p)) { p.mdPick = pick; if (pick === g.right || g.ok.includes(pick)) G.stats.md.dispoRight++; else G.stats.md.dispoWrong++; } else setDispo(p);
   return { ok: true, msg: `${label(p)}: ${pick === 'home' ? 'going home' : pick === 'obs' ? 'observation' : 'admitted'}. ${msg}` };
 }
 /* The observation unit: short stays, its own beds, its own turnover. */
@@ -1600,13 +1762,13 @@ function leave(p, outcome) {
   if (outcome === 'cath') goalHit(p, 'd2b90', G.t + randi(15, 25));  // balloon inflation, about 20 min after they reach the lab
   if (G.pre) return;
   const S = G.stats;
-  if (outcome === 'dc') { S.dc++; care(10, 'flow'); if (p.tDone - p.tArrive <= 120) { care(5, 'flow'); S.quick++; } }
-  else if (outcome === 'admit' || outcome === 'icu' || outcome === 'bh' || outcome === 'obs') { S[outcome]++; care(12, 'flow'); }
-  else if (outcome === 'or') { S.or++; care(15, 'flow'); toast(`${p.name} is off to the OR`, 'good'); }
-  else if (outcome === 'cath') { S.cath++; care(15, 'flow'); toast(`${p.name} is in the cath lab, ${Math.round(p.tDone - p.tArrive)} min after arrival`, 'good'); }
-  else if (outcome === 'tx') { S.tx++; care(12, 'flow'); note(`${p.name} transferred to ${p.txTo}`); }
+  if (outcome === 'dc') { S.dc++; care(10, 'flow', p); if (p.tDone - p.tArrive <= 120) { care(5, 'flow', p); S.quick++; } }
+  else if (outcome === 'admit' || outcome === 'icu' || outcome === 'bh' || outcome === 'obs') { S[outcome]++; care(12, 'flow', p); }
+  else if (outcome === 'or') { S.or++; care(15, 'flow', p); toast(`${p.name} is off to the OR`, 'good'); }
+  else if (outcome === 'cath') { S.cath++; care(15, 'flow', p); toast(`${p.name} is in the cath lab, ${Math.round(p.tDone - p.tArrive)} min after arrival`, 'good'); }
+  else if (outcome === 'tx') { S.tx++; care(12, 'flow', p); note(`${p.name} transferred to ${p.txTo}`); }
   else if (outcome === 'lwbs') { S.lwbs++; care(-25, 'lwbs'); }
-  else if (outcome === 'ama') { S.ama++; care(-15, 'ama'); }
+  else if (outcome === 'ama') { S.ama++; care(-15, 'ama'); if (G.mode === 'md' && p.mine) care(-15, 'md'); }
   else if (outcome === 'expired') S.expired++;
   if (outcome !== 'expired' && p.tArrive >= 0) {
     if (outcome === 'lwbs') p.px = Math.min(p.px, 20);
@@ -1620,7 +1782,7 @@ function leave(p, outcome) {
 
 /* ---------- 72-hour returns ---------- */
 function bounceRoll(p, outcome, wasLoc) {
-  if (p.ret || G.train) return;
+  if (p.ret || G.train || (G.mode === 'md' && !p.mine)) return;
   let c = outcome === 'ama' ? 0.35 : outcome === 'lwbs' ? 0.12 : 0.02;
   let why = outcome === 'ama' ? 'Left against medical advice' : outcome === 'lwbs' ? 'Left without being seen' : 'Discharged; sometimes it just happens';
   if (outcome === 'dc') {
@@ -1629,6 +1791,8 @@ function bounceRoll(p, outcome, wasLoc) {
     if (p.lang && p.interp !== 'on') add(0.12, `Discharged without a ${LANGS[p.lang]} interpreter`);
     if (p.gray) add(p.grayUnder ? 0.3 : 0.02, p.grayUnder ? `Sent home with a ${p.gray.band}-risk ${p.gray.tool}` : why);
     if (p.missedDx) add(0.35, `Missed on the first visit: ${p.missedDx.by} had ${p.missedDx.n} patients in line`);
+    if (p.wrongHome) add(0.6, `Sent home when they needed ${DISPO_NAME[p.wrongHome] || 'admission'}`);
+    if (p.txGap && p.txGap.length) add(0.3, `Went home without ${p.txGap.map(k => TREAT[k].label.toLowerCase()).join(' or ')}`);
   }
   if (!chance(c)) return;
   p.retWhy = why;
@@ -1644,8 +1808,8 @@ function returnVisit(orig) {
   p.tArrive = G.t;
   if (p.src === 'ems') { p.unit = unitName(); p.loc = 'wall'; } else { p.loc = 'triage'; G.triageQ.push(p.id); }
   onArrive(p);
-  G.stats.returns++; care(-20, 'returns');
-  mm(35, `${orig.name} came back within 72 hours, sicker`, orig.retWhy || 'Discharged');
+  G.stats.returns++; care(-20, 'returns', orig);
+  mm(35, `${orig.name} came back within 72 hours, sicker`, orig.retWhy || 'Discharged', !!orig.mine);
   toast(`72-hour return: ${p.name} is back and sicker (${orig.outcome === 'ama' ? 'left against advice' : orig.outcome === 'lwbs' ? 'left without being seen' : 'discharged'} earlier)`, 'bad');
   sound('bad');
 }
@@ -1716,12 +1880,12 @@ function hemorrhageTick(p) {
   if (p.bleed !== 'mtp' || p.bb || p.arrest || p.dsp !== 'none') return;
   const el = G.t - p.tArrive;
   if (el > 15 && !p.shock) {
-    p.shock = true; G.stats.shock++; care(-20, 'blood');
-    mm(70, `${label(p)} went into hemorrhagic shock`, 'Massive transfusion was not activated in the first 15 min');
+    p.shock = true; G.stats.shock++; care(-20, 'blood', p);
+    mm(70, `${label(p)} went into hemorrhagic shock`, 'Massive transfusion was not activated in the first 15 min', !p.prov || !!p.mine);
     toast(`${label(p)} is in hemorrhagic shock. Activate the massive transfusion protocol!`, 'alert'); sound('alarm');
   }
   if (el > 30) {
-    toArrest(p, 'Traumatic arrest after hemorrhage'); p.traumatic = true; p.bleed = null; p.shock = false; care(-60, 'blood');
+    toArrest(p, 'Traumatic arrest after hemorrhage'); p.traumatic = true; p.bleed = null; p.shock = false; care(-60, 'blood', p);
     toast(`${label(p)} lost pulses: traumatic arrest. They needed blood.`, 'alert'); sound('alarm');
   }
 }
@@ -1751,6 +1915,16 @@ function minuteTick() {
     if (p.crash && !p.arrest && p.loc !== 'room' && t - p.tCrash > 15) waitingArrest(p);
     hemorrhageTick(p);
     if (G.pre) continue;
+    if (mdMine(p)) {
+      if ((p.ord === 'need' || p.ord === 'more') && p.loc === 'room') { p.ordWait = (p.ordWait || 0) + 1; if (p.ordWait > 15) care(-0.3, 'md'); }
+      if (p.dsp === 'mddecide' || p.dsp === 'decide') { p.decWait = (p.decWait || 0) + 1; if (p.decWait > 15) care(-0.3, 'md'); }
+      if (p.ev === 'q' && p.loc === 'room') { p.queueWait = (p.queueWait || 0) + 1; if (p.queueWait > 30) care(-0.2, 'md'); }
+    }
+    if (mdMine(p) && p.txGap && p.txGap.length && !p.txHarm && t - p.tGap > 20) {
+      p.txHarm = true; G.stats.md.untreated++; care(-20, 'harm', p);
+      mm(50, `${p.name} got worse without ${p.txGap.map(k => TREAT[k].label.toLowerCase()).join(' or ')}`, 'It was never ordered', true);
+      toast(`${label(p)} is getting worse. Something they need was never ordered.`, 'bad'); sound('bad');
+    }
     // Patient experience: an hour without an update starts to cost you.
     const heard = p.lastUpdate != null ? p.lastUpdate : (p.loc === 'room' && p.tRoom != null ? p.tRoom : p.tArrive);
     if (t - heard > 60) p.px -= 0.2;
@@ -1805,7 +1979,7 @@ function minuteTick() {
     if (d.unjust === 10) toast(`${D.name} is still on and nothing is broken. Ambulances are driving past you.`, 'bad');
     if (d.unjust > 20) G.ev.regionDue = true;
   }
-  if (staffSat() < 20) endShift('walkout');
+  if (staffSat() < 20 && G.mode !== 'md') endShift('walkout');   // the attending doesn't run staffing
 }
 /* ---------- keeping people informed ---------- */
 function updatePt(pid) {
@@ -2018,13 +2192,13 @@ function missBox() {
 function missNotify(p) {
   p.missN = true;
   if (G.pre) return;
-  G.stats.boxN.miss++; care(-20, 'box');
+  G.stats.boxN.miss++; care(-20, G.mode === 'md' ? 'boxn' : 'box');
   toast(`Missed the ${ALERTS[p.alert].name} report. ${p.unit} is coming in unannounced.`, 'bad'); sound('bad');
 }
 function boxNotify() {
   const c = G.box.cur; if (!c || c.kind !== 'notify') return { ok: false, why: 'No report on the line' };
   const p = pt(c.pid); G.box.cur = null;
-  p.pren = true; G.stats.boxN.ans++; care(5, 'box');
+  p.pren = true; G.stats.boxN.ans++; care(5, G.mode === 'md' ? 'boxn' : 'box');
   return { ok: true, msg: `Report taken: ${ALERTS[p.alert].name}, ${p.age}${p.sex}, ETA ${Math.max(1, Math.round(p.eta - G.t))} min. ${ALERTS[p.alert].team}.${p.bleed === 'mtp' ? ' EMS says pale and hypotensive.' : ''}` };
 }
 function boxTake(sid) {
@@ -2036,10 +2210,11 @@ function boxTake(sid) {
   if (cur && cur.started && (cur.type === 'code' || (cur.pid && pt(cur.pid) && pt(cur.pid).esi === 1))) s.morale -= 4;
   c.taken = sid;
   addTask(s, { type: 'box', dur: 5, label: 'Box consult' });
+  if (G.mode !== 'md' && !G.pre) care(10, 'box');   // the charge nurse's job is getting a doctor on the line fast
   return { ok: true, sc: scenOf(c), unit: c.unit, doc: s.name, pack: G.pack };
 }
 function boxDecide(approve) {
-  const c = G.box.cur; if (!c || !c.taken) return null;
+  const c = G.box.cur; if (!c || !c.taken || G.mode !== 'md') return null;   // the charge nurse routes the call; the doctor decides
   const sc = scenOf(c), ok = !!approve === sc.a, mul = surveyMul();
   G.box.cur = null; G.stats.boxC.ans++;
   if (ok) { G.stats.boxC.right++; care(20 * mul, 'box'); } else { G.stats.boxC.wrong++; care(-15 * mul, 'box'); }
@@ -2410,6 +2585,13 @@ function trainPatient(k, how, o) {
     p.loc = 'waiting'; p.reg = 'quick'; p.quick = true; p.tri = 'done'; onArrive(p);
     p.tTriage = G.t - (o.waited || 25); p.tArrive = p.tTriage - 8;
     if (o.esiT) p.esiT = o.esiT;
+  } else if (how === 'room') {
+    // Already roomed by the charge nurse, waiting for a provider (physician Orientation).
+    const r = room(o.room);
+    if (!r || r.pid) return null;
+    p.loc = 'room'; p.room = r.id; r.pid = p.id; r.st = 'occ'; onArrive(p);
+    p.tArrive = G.t - 25; p.tTriage = G.t - 20; p.tRoom = G.t - 3; p.tWall = 0;
+    p.reg = 'done'; p.tri = 'done'; p.rn = 'done';
   } else if (how === 'seat') {
     const r = room(o.room);
     if (!r || r.pid) return null;
@@ -2476,10 +2658,11 @@ function staffHours() {
   return { rn, agency, mandated, md: h('md'), app: h('app'), pct: h('pct'), rt: h('rt'), rnPerVisit: Math.round(100 * (rn + agency + mandated) / seen) / 100 };
 }
 const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200, 2200], train: [300, 800, 1400] };
-function starsFor(c, level) { const s = STARS[level || (G && G.level) || 'med']; return c >= s[2] ? 3 : c >= s[1] ? 2 : c >= s[0] ? 1 : 0; }
+const STARS_MD = { easy: [600, 1200, 1800], med: [600, 1300, 2000], hard: [600, 1300, 2000], train: [300, 800, 1400] };
+function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' ? STARS_MD : STARS)[level || (G && G.level) || 'med']; return c >= s[2] ? 3 : c >= s[1] ? 2 : c >= s[0] ? 1 : 0; }
 function endShift(reason) {
   if (G.over) return;
-  if (!G.pre && G.stats.returnsLate) care(-20 * G.stats.returnsLate, 'returns');
+  if (!G.pre && G.stats.returnsLate && G.mode !== 'md') care(-20 * G.stats.returnsLate, 'returns');
   G.over = true; G.running = false; G.fail = reason === 'walkout' ? 'walkout' : null;
   const list = G.order.map(id => G.pts[id]).filter(p => p.tArrive >= 0 && p.loc !== 'enroute' && p.loc !== 'new');
   const ems = list.filter(p => p.src === 'ems');
@@ -2503,7 +2686,7 @@ function endShift(reason) {
     mm: S.mm.slice().sort((a, b) => b.sev - a.sev || a.t - b.t).filter((x, i, arr) => arr.findIndex(y => y.what === x.what) === i).slice(0, 3).map(x => Object.assign({}, x, { t: Math.round(x.t) })),
     gray: Object.assign({}, S.gray), obs: S.obs, fcp: S.fcp, chairMoves: S.chairMoves, hallMins: S.hallMins,
     underTriage: S.underTriage, underCaught: S.underCaught, cosign: S.cosign, missedDx: S.missedDx, intub: S.intub, intubNoRT: S.intubNoRT,
-    suspended: S.suspended, quickReg: S.quickReg,
+    suspended: S.suspended, quickReg: S.quickReg, mode: G.mode, md: Object.assign({}, S.md),
   };
 }
 
@@ -2535,9 +2718,9 @@ function botStep(o) {
   if (b && !b.taken && o.box !== false) add(0, () => {
     if (b !== G.box.cur) return false;
     if (b.kind === 'notify') return boxNotify().ok;
+    if (G.mode === 'md') return false;   // medical direction is the attending player's call
     const d = G.staff.filter(s => s.role === 'md' && s.st === 'on').sort((a, x) => a.q.length - x.q.length)[0];
-    if (!d || !boxTake(d.id).ok) return false;
-    const sc = scenOf(b); boxDecide(chance(o.acc == null ? 0.85 : o.acc) ? sc.a : !sc.a); return true;
+    return !!d && boxTake(d.id).ok;
   });
   const regPick = () => G.staff.filter(s => s.role === 'reg' && s.st === 'on').sort((a, x) => load(a) - load(x))[0];
   const triPick = () => {
@@ -2557,7 +2740,7 @@ function botStep(o) {
   }
   for (const r of G.rooms) if (r.st === 'dirty' && !G.evsQ.includes(r.id)) add(4, () => r.st === 'dirty' && !G.evsQ.includes(r.id) && evsTap(r.id).ok);
   for (const p of active()) {
-    if (p.bleed === 'mtp' && !p.bb && o.mtp !== false) add(1, () => !p.bb && activateMTP(p.id).ok);
+    if (p.bleed === 'mtp' && !p.bb && o.mtp !== false && (G.mode !== 'md' || (p.prov && p.prov !== G.me))) add(1, () => !p.bb && activateMTP(p.id).ok);
     if (p.loc === 'wall' || p.loc === 'triage' || p.loc === 'waiting') {
       if (emergent(p)) { add(2, bed(p)); continue; }
       if (p.loc === 'waiting' || (regQuick(p) && p.tri === 'done')) add(5 + vEsi(p) * 0.1, bed(p));
@@ -2578,16 +2761,17 @@ function botStep(o) {
       const who = tp && load(tp) < 2 ? tp : (pc || tp);
       return !!who && sendUp(p.id, who.id).ok;
     });
-    if (needsProv(p) && o.prov !== false) add(vEsi(p) <= 2 ? 4.5 : 7, () => {
+    const mdWait = G.mode === 'md' && !(p.prov && p.prov !== G.me) && G.t - (p.tNeed != null ? Math.max(p.tNeed, p.tRoom) : p.tRoom) < (p.arrest ? 1 : vEsi(p) <= 2 ? 6 : 15);
+    if (needsProv(p) && o.prov !== false && !(G.mode === 'md' && p.prov === G.me) && !mdWait) add(vEsi(p) <= 2 ? 4.5 : 7, () => {
       if (!needsProv(p)) return false;
-      const opts = G.staff.filter(s => isProv(s) && s.st === 'on' && canAssign(s, p).ok);
+      const opts = G.staff.filter(s => isProv(s) && s.st === 'on' && s.id !== G.me && canAssign(s, p).ok);
       if (!opts.length) return false;
       const cost = s => s.q.length + (s.role === 'md' && p.esi >= 3 ? 1.5 : 0);
       opts.sort((a, x) => cost(a) - cost(x));
       return assign(opts[0].id, p.id).ok;
     });
     if (p.reg === 'none' && o.intake !== false) add(6.2, () => { const s = regPick(); return !!s && p.reg === 'none' && register(p.id, s.id).ok; });
-    if (p.con && p.consult.st === 'none' && (p.alertOn || p.ev === 'done') && preDone(p) && (p.dxK || o.early)) add(7.5, () => p.consult.st === 'none' && consult(p.id, p.con).ok);
+    if (p.con && p.consult.st === 'none' && !mdMine(p) && !(G.mode === 'md' && !p.prov) && (p.alertOn || p.ev === 'done') && preDone(p) && (p.dxK || o.early)) add(7.5, () => p.consult.st === 'none' && consult(p.id, p.con).ok);
     if (p.lang && p.interp === 'none' && (o.interp == null || chance(o.interp))) add(8, () => requestInterp(p.id).ok);
     if (!G.staff.some(s => s.role === 'rph' && s.st === 'on') && !G.mods.remoteRph && Object.keys(p.treat).some(k => p.treat[k].st === 'verify')) add(8.5, () => overrideRx(p.id).ok);
   }
@@ -2599,7 +2783,7 @@ function botStep(o) {
   // Gray-zone calls, rechecks, updates, chairs, the capacity levers, and where Casey works.
   const acc = o.acc == null ? 0.85 : o.acc;
   for (const p of active()) {
-    if (p.dsp === 'decide' && p.loc === 'room' && o.gray !== false) add(3.1, () => { if (p.dsp !== 'decide') return false; let k = p.gray.right; if (!chance(acc)) k = pick(['home', 'obs', 'admit'].filter(x => x !== k)); return grayDispo(p.id, k).ok; });
+    if (p.dsp === 'decide' && p.loc === 'room' && o.gray !== false && !mdMine(p)) add(3.1, () => { if (p.dsp !== 'decide') return false; let k = p.gray.right; if (!chance(acc)) k = pick(['home', 'obs', 'admit'].filter(x => x !== k)); return grayDispo(p.id, k).ok; });
     if (p.loc === 'waiting' && o.recheck !== false && G.t - (p.lastRecheck != null ? p.lastRecheck : (p.tTriage != null ? p.tTriage : p.tArrive)) > 60) add(8.2, () => { const s = triPick(); return !!s && p.loc === 'waiting' && recheck(p.id, s.id).ok; });
     if (p.loc === 'room' && o.updates !== false && (p.dsp === 'none' || p.dsp === 'board') && G.t - (p.lastUpdate != null ? p.lastUpdate : p.tRoom) > 90) add(9.2, () => updatePt(p.id).ok);
   }
@@ -2630,9 +2814,41 @@ function botStep(o) {
   for (const a of acts) { if (budget <= 0) break; if (a.fn()) budget--; }
 }
 
+function mdPlay(o) {
+  // Plays the attending: answers the radio, picks up the sickest patients, writes orders, makes the calls.
+  o = o || {};
+  const acc = o.acc == null ? 0.85 : o.acc, me = staff(G.me);
+  let budget = o.budget == null ? 1e9 : o.budget;
+  const act = fn => { if (budget > 0 && fn()) budget--; };
+  if (!me || G.mode !== 'md') return;
+  const c = G.box.cur;
+  if (c && c.kind === 'consult' && !c.taken) act(() => { const r = boxTake(G.me); if (!r.ok) return false; boxDecide(chance(acc) ? r.sc.a : !r.sc.a); return true; });
+  for (const p of active()) {
+    if (!mdMine(p)) continue;
+    if (p.ord === 'need' || p.ord === 'more') act(() => {
+      const R = p.right; let tests = R.wk.slice(), treats = R.tr.slice();
+      if (p.ord === 'need' && !chance(acc)) { if (chance(0.5) && tests.length) tests.pop(); else tests.push(pick(['lab', 'xr', 'ct'].filter(k => !tests.includes(k))) || 'lab'); }
+      return signOrders(p.id, tests, treats).ok;
+    });
+    else if (p.txGap && p.txGap.length) act(() => signOrders(p.id, [], p.txGap).ok);
+    if (p.dsp === 'mddecide') act(() => {
+      const want = chance(acc) ? p.dispo : pick(['home', 'admit']);
+      if (want === 'home') return mdDecide(p.id, 'home').ok;
+      if (want === 'transfer') return mdDecide(p.id, 'transfer').ok;
+      return p.con && preDone(p) ? consult(p.id, p.con).ok : false;
+    });
+    if (p.dsp === 'decide') act(() => grayDispo(p.id, chance(acc) ? p.gray.right : 'home').ok);
+  }
+  const line = me.q.filter(k => !k.started && k.type !== 'box').length;
+  if (line < (o.line || 2) && me.st === 'on') {
+    const next = inRooms().filter(p => needsProv(p) && !p.prov && p.ev === 'none').sort((a, b) => (b.arrest - a.arrest) || vEsi(a) - vEsi(b) || a.tRoom - b.tRoom)[0];
+    if (next) act(() => assign(G.me, next.id).ok);
+  }
+}
+
 const OC = {
   hooks, get G() { return G; }, load(g) { G = g; }, newGame, step, botStep,
-  LEVELS, ZONES, ZONE_NAME, ROOMS, SPECS, WORK, TREAT, ALERTS, GOALS, SCEN, PACKS, CASES, LANGS,
+  LEVELS, STARS, STARS_MD, ZONES, ZONE_NAME, ROOMS, SPECS, WORK, TREAT, ALERTS, GOALS, SCEN, PACKS, CASES, LANGS,
   pt, room, staff, roomOf, roomName, label, clock, active, inRooms, boarders, isProv, present,
   zoneLoad, zoneNurses, nurseLoad, zonePts, weight, staffSat, avgWait, waitingCount, hallCount, maxWallNow,
   canPlace, canAssign, needsProv, allWorkDone, preDone, treatsDone, pitDcReady,
@@ -2642,6 +2858,7 @@ const OC = {
   register, triage, toWaiting, sendUp, bookIFT, IFT, emergent, DIVERTS, OUTAGES, outActive, justified,
   startOutage, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage,
+  signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,
 };
 root.OC = OC;
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;

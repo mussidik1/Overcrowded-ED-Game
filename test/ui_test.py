@@ -49,8 +49,13 @@ def run():
         # ---------- title ----------
         page.goto(URL, wait_until='domcontentloaded')
         page.wait_for_timeout(1500)
+        ok(page.locator('[data-act="mode"]').count() == 2 and page.locator('[data-act="pack"]').count() == 0, 'two roles on the title; the charge nurse has no medical-direction pack')
+        tap('[data-act="mode"][data-arg="md"]')
+        ok(page.locator('.mode.on').inner_text().startswith('Attending') and page.locator('[data-act="pack"]').count() >= 2, 'Attending role shows the medical-direction calls')
         tap('[data-act="pack"][data-arg="miemss"]')
-        ok('Maryland' in page.inner_text('.seg.on'), 'MIEMSS consult pack selectable on the title screen')
+        ok('Maryland' in page.inner_text('.seg.on'), 'MIEMSS medical-direction pack selectable for the attending')
+        page.screenshot(path=f'{OUT}/01b_title_md.png')
+        tap('[data-act="mode"][data-arg="rn"]')
         page.screenshot(path=f'{OUT}/01_title.png')
 
         # ---------- start: first-play help, then the call-out ----------
@@ -147,19 +152,19 @@ def run():
             if page.is_visible('#sheetWrap'): tap('.sheet-x')
         else: ok(False, 'found a gray-zone patient waiting on a call')
 
-        # ---------- the Box: a Maryland consult ----------
-        J("() => { let n = 0; while (!(OC.G.box.cur && OC.G.box.cur.kind === 'consult') && n++ < 8000) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); } }")
+        # ---------- the Box: medical direction goes to a doctor ----------
+        J("() => { let n = 0; while (!(OC.G.box.cur && OC.G.box.cur.kind === 'consult' && !OC.G.box.cur.taken) && n++ < 8000) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); } }")
         page.wait_for_timeout(300); clear_modal()
+        ok('Find a doctor' in page.inner_text('#boxbar'), 'a medical-direction call asks the charge nurse to find a doctor')
         page.screenshot(path=f'{OUT}/04a_box_ringing.png')
         tap('#boxbar .bx-btn')
+        ok(page.locator('#sheet [data-act="boxDoc"]').count() >= 2, 'Find a doctor lists the attendings')
+        page.screenshot(path=f'{OUT}/04b_box_finddoc.png')
         tap('#sheet [data-act="boxDoc"]:not([disabled])')
-        ok(page.locator('#modal p.scen').count() == 1, 'attending picks up the consult')
-        page.screenshot(path=f'{OUT}/04b_box_consult.png')
-        tap('#modal [data-act="scen"][data-arg="1"]')
-        txt = page.inner_text('#modal') if page.is_visible('#modalWrap') else ''
-        ok(any(w in txt for w in ['4.', '3.', '2.', '6.', 'Protocol', 'Refusal']), 'consult feedback cites the Maryland protocol')
-        page.screenshot(path=f'{OUT}/04c_box_result.png')
-        tap('#modal [data-act="modalOk"]')
+        ok(not page.is_visible('#modalWrap') and J('!!(OC.G.box.cur && OC.G.box.cur.taken)') and 'on the line' in page.inner_text('#boxbar'), 'the attending takes the call; the charge nurse makes no medical decision')
+        page.screenshot(path=f'{OUT}/04c_box_doctor.png')
+        J("() => { let n = 0; while (OC.G.box.cur && n++ < 300) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); } }")
+        ok(J('!OC.G.box.cur && OC.G.stats.boxC.ans >= 1'), 'the attending finishes the call')
 
         # ---------- interpreter ----------
         rid = None
