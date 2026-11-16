@@ -61,11 +61,12 @@ def run():
         ok(page.is_visible('#modalWrap'), 'call-out card appears at shift start')
         page.screenshot(path=f'{OUT}/02_callout.png')
         if not tap('#modal [data-act="card"][data-arg="float"]'): clear_modal()
-        ok(J('OC.G.pack') == 'miemss' and J('OC.G.shift') == 720 and J('OC.G.rooms.length') == 32, 'MIEMSS pack, 12-hour shift, 32 beds')
+        ok(J('OC.G.pack') == 'miemss' and J('OC.G.shift') == 720 and J("OC.G.rooms.filter(r => r.kind !== 'chair').length") == 32 and page.locator('#zone-rp .room').count() == 6, 'MIEMSS pack, 12-hour shift, 32 beds plus 6 results-pending chairs')
+        ok('Opens 09:00' in page.inner_text('#zh-ft'), 'Fast Track header says it opens at 09:00')
         ok(page.inner_text('#clock').startswith('07:'), 'clock starts at 07:00')
 
         # ---------- intake: direct registration and triage, then bed them ----------
-        sim(45, budget=0)
+        sim(80, budget=0)
         clear_modal()
         J('window.scrollTo(0, 0)')
         nid = J("() => { const p = OC.active().find(p => (p.loc === 'wall' || p.loc === 'triage') && !OC.emergent(p) && (p.reg === 'none' || p.tri === 'none')); return p ? p.id : null; }")
@@ -90,7 +91,7 @@ def run():
         sim(30, budget=0)
         clear_modal()
         J('window.scrollTo(0, 0)')
-        ok(J("OC.active().filter(p => p.reg === 'done').length") >= 2, 'registrars finished registering')
+        ok(J("OC.active().filter(p => p.reg === 'quick' || p.reg === 'done').length") >= 2, 'registrars finished the quick registrations')
         placed = 0
         for _ in range(8):
             if not tap('#laneEms .mag.ready, #laneWait .mag:not(.tri):not(.ghost)'): break
@@ -131,6 +132,20 @@ def run():
         page.wait_for_timeout(300)
         page.screenshot(path=f'{OUT}/03_board.png')
         page.screenshot(path=f'{OUT}/03b_board_full.png', full_page=True)
+
+        # ---------- gray-zone call ----------
+        gid = J("""() => { let n = 0; while (!OC.inRooms().some(p => p.dsp === 'decide') && !OC.G.over && n++ < 30000) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); if (n % 10 === 0) OC.botStep({budget: 3, gray: false, interp: 0}); }
+            OCUI.U.sel = null; const p = OC.inRooms().find(p => p.dsp === 'decide'); return p ? p.id : null; }""")
+        page.wait_for_timeout(300); clear_modal()
+        if gid:
+            J('window.scrollTo(0, 0)')
+            tap('#room-' + J(f"OC.pt('{gid}').room"))
+            ok(page.locator('#sheet [data-act="gray"]').count() == 3, 'gray-zone patient card offers home, observation, or admit')
+            page.screenshot(path=f'{OUT}/05c_gray_call.png')
+            tap('#sheet [data-act="gray"][data-arg$="|obs"]')
+            ok(J(f"OC.pt('{gid}').grayPick") == 'obs', 'gray-zone call made from the patient card')
+            if page.is_visible('#sheetWrap'): tap('.sheet-x')
+        else: ok(False, 'found a gray-zone patient waiting on a call')
 
         # ---------- the Box: a Maryland consult ----------
         J("() => { let n = 0; while (!(OC.G.box.cur && OC.G.box.cur.kind === 'consult') && n++ < 8000) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); } }")
@@ -187,7 +202,42 @@ def run():
         ok(J('OC.G.stats.pitSeen') > 0, f"provider in triage saw {J('OC.G.stats.pitSeen')} waiting patients")
         page.screenshot(path=f'{OUT}/06b_pit.png')
 
+        # ---------- waiting room: walk it, recheck someone, update them ----------
+        J('window.scrollTo(0, 0)')
+        J('OC.G.wrUpdate = -1e9')
+        tap('.lane-h[data-arg="triage"]')
+        ok(page.locator('#sheet [data-act="updWait"]').count() == 1, 'the triage sheet offers to walk the waiting room')
+        if tap('#sheet [data-act="updWait"]:not([disabled])'):
+            ok(abs(J('OC.G.wrUpdate') - J('OC.G.t')) < 1, 'walked the waiting room and updated everyone')
+        tap('.sheet-x')
+        wid = J("() => { const p = OC.active().find(p => p.loc === 'waiting'); return p ? p.id : null; }")
+        if wid:
+            tap(f'#laneWait [data-arg="{wid}"]')
+            tap('#selbar [data-act="selInfo"]')
+            page.screenshot(path=f'{OUT}/06c_waiting_patient.png')
+            if tap('#sheet [data-act="recheck"]:not([disabled])'):
+                ok(J(f"OC.G.staff.some(s => s.tq.some(k => k.pid === '{wid}' && k.kind === 'recheck'))"), 'recheck ordered from the waiting patient card')
+            else: checks.append('skip  no nurse free for a recheck')
+            J(f"OC.pt('{wid}').lastUpdate = null")
+            page.wait_for_timeout(250)
+            if tap('#sheet [data-act="upd"]:not([disabled])'):
+                ok(J(f"OC.pt('{wid}').lastUpdate") is not None, 'patient updated from their card')
+            if page.is_visible('#sheetWrap'): tap('.sheet-x')
+            tap('#selbar [data-act="selCancel"]')
+        else: checks.append('skip  nobody in the waiting room')
+
+        # ---------- hold nurse ----------
+        tap('#dockTeam')
+        tap('#sheet [data-act="zone"][data-arg="hold"]')
+        ok('Hold nurse' in page.inner_text('#sheet'), 'the team sheet opens the hold nurse picker')
+        page.screenshot(path=f'{OUT}/06d_hold_nurse.png')
+        tap('#sheet [data-act="zt"][data-arg="rnX|hold"]')
+        ok('hold' in J("OC.staff('rnX').zones"), 'resource nurse assigned to the admitted holds')
+        J("OC.toggleZone('rnX', 'hold')")
+        tap('.sheet-x')
+
         # ---------- divert ----------
+        J("() => { for (const h of OC.G.region.hosps) { h.st = 'open'; h.hold = OC.G.t + 60; } OC.G.region.susp = -1e9; }")
         tap('#btnYellow')
         if page.locator('#sheet [data-act="divertSet"][data-arg="yellow|1"]:not([disabled])').count():
             tap('#sheet [data-act="divertSet"][data-arg="yellow|1"]')
@@ -205,6 +255,8 @@ def run():
             page.screenshot(path=f'{OUT}/08d_ct_divert.png')
             tap('#sheet [data-act="divertSet"][data-arg="ct|0"]')
         else: checks.append('skip  administration had blocked divert')
+        ok(page.locator('#sheet .dv.fcp').count() == 1 and page.locator('#sheet .dv.region').count() == 1, 'divert sheet shows the region and the full-capacity protocol')
+        page.screenshot(path=f'{OUT}/08e_capacity.png', full_page=True)
         tap('.sheet-x')
 
         # ---------- admitted patient: send them up with a transporter ----------
@@ -260,6 +312,9 @@ def run():
         J("() => { let n = 0; while (!OC.G.over && n++ < 90000) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); if (n % 10 === 0) OC.botStep({budget: 2}); } }")
         page.wait_for_timeout(900)
         ok(page.is_visible('#report'), 'shift report at 19:00')
+        rt = page.inner_text('#report')
+        ok('Door to provider (median)' in rt and 'Boarding' in rt and 'RN hours' in rt and 'Experience score' in rt, 'report shows ED metrics, patient experience, and staffing hours')
+        ok(page.locator('#report .mm li').count() >= 1 or 'Nothing went badly wrong' in rt, 'report walks through the worst moments (M&M)')
         page.screenshot(path=f'{OUT}/09_report.png', full_page=True)
         rep = J('OC.G.report')
         print('report', json.dumps({k: rep[k] for k in ['care', 'wait', 'sat', 'stars', 'seen', 'dc', 'adm', 'lwbs', 'ama', 'returns', 'mtp', 'interp', 'pitSeen']}))

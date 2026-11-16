@@ -8,7 +8,7 @@ function run(min, fn) { const n = Math.round(min / 0.1); for (let i = 0; i < n; 
 
 // 1. 12-hour shift, 32 beds, swing staff
 let G = fresh(11);
-assert(G.shift === 720 && G.rooms.length === 32, '12-hour shift with 32 beds');
+assert(G.shift === 720 && G.rooms.filter(r => r.kind !== 'chair').length === 32 && G.rooms.filter(r => r.kind === 'chair').length === 6, '12-hour shift with 32 beds and 6 results-pending chairs');
 assert(OC.clock(0) === '07:00' && OC.clock(720) === '19:00', 'shift runs 07:00 to 19:00');
 assert(G.staff.find(s => s.id === 'md3').st === 'pending', 'swing attending not here at 07:00');
 run(245);
@@ -91,7 +91,7 @@ function emsCount(on) {
   OC.newGame('hard', 909); clearCard();
   if (on) { OC.setDivert('yellow', true); OC.setDivert('red', true); }
   const s0 = OC.G.stats.arrived;
-  for (let i = 0; i < 2400; i++) { clearCard(); OC.G.mods.noDivert = -1e9; if (on) { OC.G.dv.yellow.on = true; OC.G.dv.red.on = true; } OC.step(0.1); }
+  for (let i = 0; i < 6000; i++) { clearCard(); OC.G.mods.noDivert = -1e9; OC.G.region.susp = -1e9; if (on) { OC.G.dv.yellow.on = true; OC.G.dv.red.on = true; } OC.step(0.1); }
   return OC.G.stats.diverted;
 }
 assert(emsCount(true) > 3, 'Yellow and Red Alert divert ambulances');
@@ -119,9 +119,12 @@ G = fresh(89);
 assert(G.pack === 'national', 'general pack is the default');
 
 // 9. emergency-release O-neg
-G = fresh(99);
 let bleeder = null;
-run(720, () => { OC.botStep({ budget: 2 }); return (bleeder = OC.inRooms().find(p => p.bleed === 'prbc' && (!p.bb || p.bb.st === 'xm'))); });
+for (const sd of [99, 101, 103, 107, 109]) {
+  G = fresh(sd);
+  run(720, () => { OC.botStep({ budget: 2 }); return (bleeder = OC.inRooms().find(p => p.bleed === 'prbc' && (!p.bb || p.bb.st === 'xm'))); });
+  if (bleeder) break;
+}
 if (bleeder) {
   G.blood.oneg = 10;
   const o0 = G.blood.oneg, r = OC.releaseONeg(bleeder.id);
@@ -145,7 +148,7 @@ if (ems) {
   assert(!r.ok, 'still no bed while intake is in progress: ' + r.why);
   const t0 = G.t;
   run(30, () => ems.tri === 'done');
-  assert(ems.reg === 'done' && ems.tri === 'done' && ems.loc === 'wall', `registered, then report and triage done in ${Math.round(G.t - t0)} min; crew still on the wall`);
+  assert(ems.reg === 'quick' && ems.tri === 'done' && ems.loc === 'wall', `quick-registered, then report and triage done in ${Math.round(G.t - t0)} min; crew still on the wall`);
   const w = OC.toWaiting(ems.id);
   if (ems.esi >= 3) assert(w.ok && ems.loc === 'waiting' && ems.tWall > 0, `EMS ESI ${ems.esi} handed off to the waiting room after ${Math.round(ems.tWall)} min on the wall`);
 }

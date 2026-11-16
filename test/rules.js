@@ -69,9 +69,11 @@ if (p) {
 
 // 4. APP scope and ratio weights
 G = fresh(505);
-const esi2 = OC.inRooms().find(x => x.esi <= 2) || (() => { runUntil(() => { OC.botStep({}); return OC.inRooms().some(x => x.esi <= 2); }); return OC.inRooms().find(x => x.esi <= 2); })();
-if (esi2) { const app = G.staff.find(s => s.role === 'app'); const c = OC.canAssign(app, esi2); assert(!c.ok, 'APP blocked from ESI ' + esi2.esi + ': ' + c.why); }
-assert(OC.weight({ esi: 1, dsp: 'none' }) === 4 && OC.weight({ esi: 2, dsp: 'none' }) === 2 && OC.weight({ esi: 3, dsp: 'none' }) === 1, 'ratio weights: ESI1=4, ESI2=2, ESI3-5=1');
+const findAcuity = e => OC.inRooms().find(x => x.esi === e && x.ev === 'none') || (() => { runUntil(() => { OC.botStep({}); return OC.inRooms().some(x => x.esi === e && x.ev === 'none'); }); return OC.inRooms().find(x => x.esi === e && x.ev === 'none'); })();
+const app = G.staff.find(s => s.role === 'app');
+const esi1 = findAcuity(1);
+if (esi1) { const c = OC.canAssign(app, esi1); assert(!c.ok, 'APP blocked from ESI 1: ' + c.why); }
+assert(OC.weight({ esi: 1, dsp: 'none', loc: 'room', tRoom: -100 }) === 4 && OC.weight({ esi: 2, dsp: 'none' }) === 2 && OC.weight({ esi: 3, dsp: 'none' }) === 1, 'ratio weights: ESI1=4, ESI2=2, ESI3-5=1');
 
 // 5. snapshot round-trip keeps playing
 G = fresh(606);
