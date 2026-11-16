@@ -10,8 +10,6 @@
     "stress": "node test/stress.js"
   },
   "devDependencies": {
-    "@fontsource/barlow": "^5.3.0",
-    "@fontsource/barlow-condensed": "^5.3.0",
-    "@fontsource/permanent-marker": "^5.3.0"
+    "@fontsource/cardo": "^5.3.0"
   }
 }

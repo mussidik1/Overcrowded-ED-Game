@@ -23,6 +23,7 @@ def run():
 
         def tap(sel, timeout=1500):
             for _ in range(3):
+                if not sel.startswith('#modal') and page.is_visible('#modalWrap'): clear_modal()
                 try:
                     loc = page.locator(sel).first
                     if loc.count() == 0: return False
@@ -36,7 +37,10 @@ def run():
                 if not page.is_visible('#modalWrap'): return
                 for sel in ['#modal [data-act="resume"]', '#modal [data-act="modalOk"]', '#modal [data-act="scen"][data-arg="1"]', '#modal .mc-ch button:not([disabled])']:
                     if page.locator(sel).count():
-                        tap(sel); break
+                        try: page.locator(sel).first.tap(timeout=1500)
+                        except Exception: pass
+                        page.wait_for_timeout(140)
+                        break
 
         def sim(minutes, budget=2, extra=''):
             J('() => { let n = 0; const end = OC.G.t + %s; while (OC.G.t < end && !OC.G.over && n++ < 30000) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); if (%d > 0 && n %% 10 === 0) OC.botStep({budget: %d%s}); } OCUI.U.sel = null; }' % (minutes, budget, budget, extra))

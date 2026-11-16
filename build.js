@@ -1,14 +1,14 @@
 // Builds index.html: one self-contained page with the engine, UI, styles, and fonts inlined.
 const fs = require('fs'), path = require('path');
 const src = p => fs.readFileSync(path.join(__dirname, 'src', p), 'utf8');
-const font = (fam, file, weight) => {
+const font = (fam, file, weight, style = 'normal') => {
   const b64 = fs.readFileSync(path.join(__dirname, 'node_modules/@fontsource', file)).toString('base64');
-  return `@font-face{font-family:"${fam}";font-style:normal;font-weight:${weight};font-display:swap;src:url(data:font/woff2;base64,${b64}) format("woff2");}`;
+  return `@font-face{font-family:"${fam}";font-style:${style};font-weight:${weight};font-display:swap;src:url(data:font/woff2;base64,${b64}) format("woff2");}`;
 };
 const fonts = [
-  font('Permanent Marker', 'permanent-marker/files/permanent-marker-latin-400-normal.woff2', 400),
-  ...[500, 600, 700].map(w => font('Barlow Condensed', `barlow-condensed/files/barlow-condensed-latin-${w}-normal.woff2`, w)),
-  ...[400, 500, 600].map(w => font('Barlow', `barlow/files/barlow-latin-${w}-normal.woff2`, w)),
+  font('Cardo', 'cardo/files/cardo-latin-400-normal.woff2', 400),
+  font('Cardo', 'cardo/files/cardo-latin-700-normal.woff2', 700),
+  font('Cardo', 'cardo/files/cardo-latin-400-italic.woff2', 400, 'italic'),
 ].join('\n');
 const html = src('index.template.html')
   .replace('/*FONTS*/', () => fonts).replace('/*STYLE*/', () => src('style.css'))

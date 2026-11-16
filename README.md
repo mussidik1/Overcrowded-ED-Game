@@ -44,3 +44,7 @@ python3 test/ui_test.py   # taps through every system in headless Chrome (Playwr
 ```
 
 ![Laptop view](docs/screenshots/desktop.png)
+
+## Credits
+
+Set in [Cardo](https://fonts.google.com/specimen/Cardo) by David Perry (SIL Open Font License 1.1), via Fontsource.
