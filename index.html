@@ -306,6 +306,14 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .dv.red button { border-color: var(--bad); background: var(--bad); color: #fff; }
 .dv.on button { border-color: var(--ink); background: var(--paper); color: var(--ink); }
 .dv.yellow.on { border-color: #C99A0A; background: #FFF6D6; }
+.dv.ct button, .dv.stemi button, .dv.trauma button { border-color: var(--ink); background: var(--ink); color: #fff; }
+.dv.disaster button { border-color: #7E1422; background: #7E1422; color: #fff; }
+.dv.ct.on, .dv.stemi.on, .dv.trauma.on, .dv.disaster.on { border-color: var(--bad); background: #FDECEE; }
+.dv p i { color: var(--ink); font-style: italic; }
+.dv-out { display: grid; gap: 4px; margin: 4px 0 10px; padding: 10px 12px; border-radius: 10px; background: #2A0E14; color: #FFDCE1; }
+.dv-out b { color: #fff; font-size: 15px; }
+.ob.down { background: #2A0E14; color: #FFDCE1; font-weight: 700; }
+.hb.alarm { border-color: #FF9191; animation: blink .8s steps(2) infinite; }
 .dv.red.on { border-color: var(--bad); background: #FDECEE; }
 .sheet h4 { margin: 14px 0 6px; color: var(--ink-3); font: 700 12px/1 var(--ui); letter-spacing: .7px; text-transform: uppercase; }
 .slist { display: grid; gap: 6px; }
@@ -626,6 +634,24 @@ const GOALS = {
   tx45:   { label: 'Transfer requested', lim: 45 },
 };
 
+/* Diversion statuses. Capacity ones (Yellow, Red) are for a full ED. The specific ones match something that broke. */
+const DIVERTS = {
+  yellow: { name: 'Yellow Alert', short: 'Yellow', capacity: true, cost: 0.3, rate: 0.6, when: 'The ED is saturated', what: 'Ambulances take non-critical patients elsewhere. Alerts still come.', takes: c => c.esi >= 3 && !c.alert },
+  red: { name: 'Red Alert', short: 'Red', capacity: true, cost: 0.4, rate: 0.5, when: 'No monitored or ICU beds', what: 'Ambulances take critical medical patients elsewhere when they can. Trauma still comes.', takes: c => c.esi <= 2 && c.alert !== 'trauma' && c.alert !== 'arrest' },
+  ct: { name: 'CT Divert', short: 'CT', cost: 0.1, rate: 0.95, when: 'The CT scanner is down', what: 'Stroke alerts and head-injury trauma go to a hospital with a working scanner.', takes: c => c.alert === 'stroke' || (c.alert === 'trauma' && c.wk.includes('ct')) },
+  stemi: { name: 'STEMI Divert', short: 'STEMI', cost: 0.1, rate: 0.95, when: 'The cath lab is down or full', what: 'STEMI alerts go to another PCI center.', takes: c => c.alert === 'stemi' },
+  trauma: { name: 'Trauma Divert', short: 'Trauma', cost: 0.1, rate: 0.95, when: 'No trauma surgeon or OR', what: 'Trauma alerts go to another trauma center.', takes: c => c.alert === 'trauma' },
+  disaster: { name: 'Internal Disaster', short: 'Closed', cost: 0.1, rate: 0.95, when: 'The lab, power, or building has failed', what: 'All ambulances go elsewhere. Walk-ins still come, and patients in cardiac arrest still go to the closest ED.', takes: c => c.alert !== 'arrest' },
+};
+/* Things that break. Each has one right diversion. */
+const OUTAGES = {
+  ct: { name: 'CT scanner down', short: 'CT down', during: 'the CT scanner is down', mins: [45, 75], fix: 'ct', msg: 'The CT scanner is down. Biomed is working on it.', hits: c => c.alert === 'stroke' || (c.alert === 'trauma' && c.wk.includes('ct')) },
+  cath: { name: 'Cath lab down', short: 'Cath lab down', during: 'the cath lab is down', mins: [60, 90], fix: 'stemi', msg: 'The cath lab C-arm failed. No cath cases until it is fixed.', hits: c => c.alert === 'stemi' },
+  or: { name: 'No trauma surgeon or OR', short: 'No trauma OR', during: 'there is no trauma surgeon or OR', mins: [60, 90], fix: 'trauma', msg: 'Both ORs are running and the trauma surgeon is scrubbed in on a long case.', hits: c => c.alert === 'trauma' },
+  lab: { name: 'Lab down', short: 'Lab down', during: 'the lab is down', mins: [40, 60], fix: 'disaster', msg: 'The lab is down hard: no chemistry, no hematology, no blood gases. Point-of-care testing only.', hits: c => c.esi <= 2 && c.wk.includes('lab') },
+  power: { name: 'Power failure', short: 'On generator', during: 'the ED is on generator power', mins: [30, 45], fix: 'disaster', msg: 'Power failure. The ED is on generator: CT is down, the lab is crawling, and the EHR is offline.', hits: c => c.esi <= 2 && c.alert !== 'arrest' },
+};
+
 const LANGS = { es: 'Spanish', ht: 'Haitian Creole', zh: 'Mandarin', ar: 'Arabic', vi: 'Vietnamese', ru: 'Russian', asl: 'ASL' };
 const LANG_W = [['es', 0.065], ['ht', 0.012], ['zh', 0.012], ['ar', 0.012], ['vi', 0.01], ['ru', 0.006], ['asl', 0.006]];
 
@@ -776,6 +802,7 @@ function freshStats() {
     wrCrash: 0, wrCodes: 0, ratioMin: 0, uncovered: 0, angry: 0, wrongSpec: 0, adverse: 0, agency: 0, mandates: 0,
     objOk: 0, objFail: 0, boxC: { ans: 0, miss: 0, right: 0, wrong: 0 }, boxN: { ans: 0, miss: 0 }, goals: { met: 0, miss: 0, list: [] }, events: 0,
     registered: 0, triaged: 0, offloads: 0, transports: { tp: 0, pct: 0 }, ift: { als: 0, cct: 0, air: 0 }, iftRefused: 0, airAbort: 0,
+    outLog: [], outRight: 0, outMiss: 0, divertExtra: 0,
     returns: 0, returnsLate: 0, lep: 0, interp: 0, mtp: 0, mtpWaste: 0, oneg: 0, overrides: 0, medErrors: 0, pitDc: 0, pitSeen: 0, diverted: 0, shock: 0 };
 }
 function mkStaff(r) {
@@ -791,7 +818,7 @@ function newGame(level, seed, opts) {
   opts = opts || {};
   const L = LEVELS[level] || LEVELS.med;
   G = {
-    v: 3, level: LEVELS[level] ? level : 'med', pack: PACKS[opts.pack] ? opts.pack : 'national',
+    v: 4, level: LEVELS[level] ? level : 'med', pack: PACKS[opts.pack] ? opts.pack : 'national',
     seed: seed | 0, rng: (seed | 0) || 7, t: -PREROLL, running: true, over: false, fail: null, pre: true,
     shift: L.shift, nid: 1, tid: 1, sid: 1, lastMin: Math.floor(-PREROLL),
     rooms: ROOMS.map(r => ({ id: r.id, z: r.z, kind: r.kind, iso: !!r.iso, safe: !!r.safe, st: 'clean', pid: null, dirt: 'std', closed: false })),
@@ -805,7 +832,7 @@ function newGame(level, seed, opts) {
     blood: { oneg: 12 },
     remote: null,
     mods: { lab: -1e9, ehr: -1e9, surge: -1e9, survey: -1e9, noDivert: -1e9, noAgency: false, shortage: -1e9, bbSlow: -1e9, interpDown: -1e9, remoteRph: false },
-    yellow: { on: false, mins: 0, since: 0 }, red: { on: false, mins: 0, since: 0 },
+    dv: Object.fromEntries(Object.keys(DIVERTS).map(k => [k, { on: false, mins: 0, since: 0, unjust: 0 }])), out: {},
     pizza: false, sec: { busy: -1e9 }, agN: 0, report: null,
     nextArr: { walk: 0, ems: 0, alert: 1e9 },
     stats: freshStats(), care: 0, ledger: {}, log: [],
@@ -920,10 +947,54 @@ function arrivals() {
   if (!G.pre) { guard = 0; while (t >= G.nextArr.alert && guard++ < 3) { spawnAlert(); G.nextArr.alert += expo(60 / (L.alerts * hm)); } }
 }
 function diverted(c) {
-  if (G.pre) return false;
-  if (G.yellow.on && c.esi >= 3 && chance(0.6)) return true;
-  if (G.red.on && c.esi <= 2 && c.alert !== 'trauma' && chance(0.5)) return true;
+  if (G.pre) return null;
+  for (const k in DIVERTS) if (G.dv[k].on && DIVERTS[k].takes(c) && chance(DIVERTS[k].rate)) return k;
+  return null;
+}
+const outActive = k => !!G.out[k] && G.out[k].until > G.t;
+function justified(k) {
+  for (const o in G.out) if (outActive(o) && (OUTAGES[o].fix === k || (k === 'ct' && o === 'power'))) return true;
   return false;
+}
+function outLogFor(o) { for (let i = G.stats.outLog.length - 1; i >= 0; i--) if (G.stats.outLog[i].k === o) return G.stats.outLog[i]; return null; }
+function outageMiss(c, p) {
+  if (G.pre) return;
+  for (const o in G.out) {
+    const O = OUTAGES[o];
+    if (!outActive(o) || !O.hits(c) || G.dv[O.fix].on) continue;
+    care(-15, 'divert'); G.stats.outMiss++;
+    const log = outLogFor(o); if (log) log.misses++;
+    toast(`${p.unit} brought ${p.alertOn ? 'a ' + ALERTS[p.alert].name + ' alert' : 'a critical patient'} here while ${O.during}. ${DIVERTS[O.fix].name} would have sent them where they can be treated.`, 'bad');
+    return;
+  }
+}
+function startOutage(k) {
+  const O = OUTAGES[k], until = G.t + randi(O.mins[0], O.mins[1]);
+  G.out[k] = { t0: G.t, until, credited: false };
+  G.stats.outLog.push({ k, t0: G.t, t1: until, divertAt: null, misses: 0, after: 0 });
+  if (k === 'ct' || k === 'power') G.img.ct.down = Math.max(G.img.ct.down, until);
+  if (k === 'power') { G.mods.lab = Math.max(G.mods.lab, until); G.mods.ehr = Math.max(G.mods.ehr, until); }
+  toast(`${O.msg} Expected back in about ${until - G.t} min.`, 'alert'); sound('alarm');
+  if (G.dv[O.fix].on) creditDivert(O.fix);
+}
+function outageTick() {
+  for (const o in G.out) {
+    if (G.out[o].until > G.t) continue;
+    const O = OUTAGES[o], on = G.dv[O.fix].on;
+    delete G.out[o];
+    toast(`${O.name}: fixed.${on && !justified(O.fix) ? ` Lift ${DIVERTS[O.fix].name}.` : ''}`, 'good');
+  }
+}
+function creditDivert(kind) {
+  for (const o in G.out) {
+    const O = OUTAGES[o], st = G.out[o];
+    if (O.fix !== kind || st.credited || !outActive(o)) continue;
+    st.credited = true;
+    const log = outLogFor(o); if (log) log.divertAt = G.t;
+    const fast = G.t - st.t0 <= 10;
+    if (!G.pre) { care(fast ? 20 : 8, 'divert'); G.stats.outRight++; }
+    note(`${DIVERTS[kind].name} for ${O.during}: right call${fast ? ', and fast' : ''}`, 'good');
+  }
 }
 function spawnWalk() {
   const p = makePatient(pickCase(['w', 'b']), 'walk');
@@ -931,16 +1002,20 @@ function spawnWalk() {
 }
 function spawnEms() {
   const c = pickCase(['e', 'b']);
-  if (diverted(c)) { G.stats.diverted++; note(`An ambulance went elsewhere (divert): ${c.cc}`); return; }
+  const dk = diverted(c);
+  if (dk) { G.stats.diverted++; note(`An ambulance went elsewhere (${DIVERTS[dk].name}): ${c.cc}`); return; }
   const p = makePatient(c, 'ems');
   p.unit = unitName(); p.loc = 'wall'; p.tArrive = G.t; onArrive(p);
+  outageMiss(c, p);
   note(`${p.unit} at the bay: ${p.age}${p.sex}, ${p.cc}`);
 }
 function spawnAlert() {
   const c = pickCase(['a']);
-  if (diverted(c)) { G.stats.diverted++; note(`A ${ALERTS[c.alert].name} alert went elsewhere (Red Alert)`); return; }
+  const dk = diverted(c);
+  if (dk) { G.stats.diverted++; note(`A ${ALERTS[c.alert].name} alert went elsewhere (${DIVERTS[dk].name})`); return; }
   const p = makePatient(c, 'ems');
   p.unit = unitName(); p.loc = 'enroute'; p.eta = G.t + randi(7, 12); p.alertOn = true; p.dxK = true;
+  outageMiss(c, p);
   G.enroute.push(p.id);
   G.box.q.push({ kind: 'notify', pid: p.id, unit: p.unit, id: ++G.box.seq });
 }
@@ -961,7 +1036,7 @@ function enrouteTick() {
 }
 function autoConsult(p) {
   if (!p.con || p.consult.st !== 'none') return;
-  p.consult = { st: 'req', spec: p.con, due: G.t + (p.alert === 'trauma' ? randi(4, 9) : randi(6, 12)), t0: G.t, auto: true };
+  p.consult = { st: 'req', spec: p.con, due: G.t + (p.alert === 'trauma' ? randi(4, 9) : randi(6, 12)) + (p.con === 'trauma' && outActive('or') ? 30 : 0), t0: G.t, auto: true };
 }
 
 /* ---------- placement ---------- */
@@ -1632,7 +1707,7 @@ function interpTick() {
 function imgTick(dt) {
   for (const m of ['xr', 'ct', 'us']) {
     const S = G.img[m];
-    if (S.down > G.t) continue;
+    if (S.down > G.t || (m === 'ct' && (outActive('ct') || outActive('power')))) continue;
     if (S.busy) {
       S.busy.left -= dt * (G.mods.ehr > G.t ? 1 / 1.3 : 1);
       if (S.busy.left <= 0) {
@@ -1662,7 +1737,7 @@ function resultTick() {
   for (const p of active()) {
     for (const k in p.work) {
       const w = p.work[k];
-      if (w.st === 'run' && G.t >= w.due) { w.st = 'done'; w.tDone = G.t; if (p.alertOn && p.find[k]) note(`${label(p)} ${WORK[k].label}: ${p.find[k]}`); }
+      if (w.st === 'run' && G.t >= w.due && !(k === 'lab' && outActive('lab'))) { w.st = 'done'; w.tDone = G.t; if (p.alertOn && p.find[k]) note(`${label(p)} ${WORK[k].label}: ${p.find[k]}`); }
     }
   }
 }
@@ -1696,7 +1771,7 @@ function consult(pid, spec) {
     m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-15, 'consult'); G.stats.angry++; provHit(p, 4); sound('bad');
     return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${S.mad(miss.map(k => MISS_NAME[k]).join(' and '))}"` };
   }
-  const base = spec === 'trauma' ? randi(8, 14) : randi(12, 22), mult = [1, 1.2, 1.5, 1.9][-m.mood] || 1;
+  const base = (spec === 'trauma' ? randi(8, 14) : randi(12, 22)) + (spec === 'trauma' && outActive('or') ? 30 : 0), mult = [1, 1.2, 1.5, 1.9][-m.mood] || 1;
   const mins = Math.round(base * mult);
   p.consult = { st: 'req', spec, due: G.t + mins, t0: G.t };
   return { ok: true, msg: `${S.doc} (${S.name}) will see ${label(p)} in about ${mins} min` };
@@ -1751,6 +1826,8 @@ function checkDispo(p) {
   if (p.con && p.consult.st !== 'here') return;
   if (!treatsDone(p)) return;
   const L = LEVELS[G.level];
+  if (p.dispo === 'cath' && outActive('cath')) { p.dispo = 'transfer'; p.txTo = 'another PCI center'; note(`${label(p)} needs a cath lab and ours is down. Transfer them.`, 'bad'); }
+  if (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')) { p.dispo = 'transfer'; p.txTo = 'another trauma center'; p.needCC = true; note(`${label(p)} needs an OR and there isn't one. Transfer them.`, 'bad'); }
   if (p.dispo === 'home') p.dsp = 'ready';
   else if (p.dispo === 'transfer') p.dsp = 'readytx';
   else if (p.dispo === 'admit' || p.dispo === 'icu' || p.dispo === 'bh') {
@@ -1959,8 +2036,18 @@ function minuteTick() {
     s.morale = clamp(s.morale, 0, 100);
   }
   for (const k in G.spec) { const m = G.spec[k]; if (m.mood < 0 && t - m.at > 60) { m.mood++; m.at = t; } }
-  if (G.yellow.on) { G.yellow.mins++; care(-0.3, 'divert'); if (t - G.yellow.since > 90) G.ev.regionDue = true; }
-  if (G.red.on) { G.red.mins++; care(-0.4, 'divert'); if (t - G.red.since > 90) G.ev.regionDue = true; }
+  outageTick();
+  for (const k in DIVERTS) {
+    const d = G.dv[k], D = DIVERTS[k];
+    if (!d.on) continue;
+    d.mins++;
+    if (D.capacity) { care(-D.cost, 'divert'); if (t - d.since > 90) G.ev.regionDue = true; continue; }
+    if (justified(k)) { care(-D.cost, 'divert'); d.unjust = 0; continue; }
+    care(-0.6, 'divert'); d.unjust++; G.stats.divertExtra++;
+    const log = G.stats.outLog.slice().reverse().find(x => OUTAGES[x.k].fix === k); if (log && log.t1 <= t) log.after++;
+    if (d.unjust === 10) toast(`${D.name} is still on and nothing is broken. Ambulances are driving past you.`, 'bad');
+    if (d.unjust > 20) G.ev.regionDue = true;
+  }
   if (staffSat() < 20) endShift('walkout');
 }
 function staffSat() { let n = 0, sum = 0; for (const s of G.staff) if (present(s)) { n++; sum += s.morale; } return n ? sum / n : 0; }
@@ -2079,13 +2166,14 @@ function orderPizza() {
   return { ok: true, msg: 'Pizza for the department, on your card. Morale up.' };
 }
 function setDivert(kind, on) {
-  const d = kind === 'red' ? G.red : G.yellow;
-  const nm = kind === 'red' ? 'Red Alert' : 'Yellow Alert';
-  if (on && G.mods.noDivert > G.t) return { ok: false, why: 'Administration ordered no divert right now' };
-  if (d.on === on) return { ok: true, msg: on ? `Already on ${nm}` : `${nm} is off` };
-  d.on = on; if (on) d.since = G.t;
-  if (!on) return { ok: true, msg: `${nm} lifted` };
-  return { ok: true, msg: kind === 'red' ? 'Red Alert: no monitored beds. Ambulances take critical medical patients elsewhere when they can. Trauma still comes.' : 'Yellow Alert: the ED is saturated. Ambulances take non-critical patients elsewhere. Alerts still come.' };
+  const D = DIVERTS[kind], d = G.dv[kind];
+  if (!D) return { ok: false, why: 'Unknown status' };
+  if (on && D.capacity && G.mods.noDivert > G.t) return { ok: false, why: 'Administration ordered no divert right now' };
+  if (d.on === on) return { ok: true, msg: on ? `Already on ${D.name}` : `${D.name} is off` };
+  d.on = on; d.unjust = 0; if (on) d.since = G.t;
+  if (!on) return { ok: true, msg: `${D.name} lifted` };
+  if (!D.capacity) creditDivert(kind);
+  return { ok: true, msg: `${D.name}: ${D.what}` };
 }
 function setYellow(on) { return setDivert('yellow', on); }
 
@@ -2351,8 +2439,12 @@ const EV = {
   oneglow: { w: () => (G.t > 60 && !G.ev.used.oneglow) ? 0.5 : 0, fire() { G.blood.oneg = Math.max(0, G.blood.oneg - 5); toast(`Blood bank: O-negative is short regionwide. ${G.blood.oneg} units left.`, 'bad'); } },
   bbDown: { w: () => (G.t > 60 && !G.ev.used.bbDown) ? 0.4 : 0, fire() { G.mods.bbSlow = G.t + 60; toast('Blood bank analyzer down: crossmatches take an hour. Emergency-release O-negative if you have to.', 'bad'); } },
   interpDown: { w: () => (G.t > 60 && !G.ev.used.interpDown) ? 0.4 : 0, fire() { G.mods.interpDown = G.t + 30; toast('The video interpreter line is down for 30 min. Requests take longer.', 'bad'); } },
-  ctDown: { w: () => (G.t > 30 && !G.ev.used.ctDown) ? 0.8 : 0, fire() { G.img.ct.down = G.t + 40; toast('The CT scanner is down. Biomed says 40 minutes.', 'bad'); } },
-  labDown: { w: () => (G.t > 30 && !G.ev.used.labDown) ? 0.7 : 0, fire() { G.mods.lab = G.t + 40; toast('Lab analyzer down. Results take twice as long for 40 min.', 'bad'); } },
+  ctDown: { w: () => (G.t > 30 && !G.ev.used.ctDown && !Object.keys(G.out).length) ? 0.8 : 0, fire() { startOutage('ct'); } },
+  cathDown: { w: () => (G.t > 45 && !G.ev.used.cathDown && !Object.keys(G.out).length) ? 0.5 : 0, fire() { startOutage('cath'); } },
+  orDown: { w: () => (G.t > 45 && !G.ev.used.orDown && !Object.keys(G.out).length) ? 0.5 : 0, fire() { startOutage('or'); } },
+  labOut: { w: () => (G.t > 60 && !G.ev.used.labOut && !Object.keys(G.out).length) ? 0.4 : 0, fire() { startOutage('lab'); } },
+  powerOut: { w: () => (G.t > 90 && !G.ev.used.powerOut && !Object.keys(G.out).length) ? 0.3 : 0, fire() { startOutage('power'); } },
+  labDown: { w: () => (G.t > 30 && !G.ev.used.labDown) ? 0.7 : 0, fire() { G.mods.lab = G.t + 40; toast('One lab analyzer is down. Results take twice as long for 40 min.', 'bad'); } },
   ehrDown: { w: () => (G.t > 60 && !G.ev.used.ehrDown) ? 0.6 : 0, fire() { G.mods.ehr = G.t + 30; toast('EHR downtime: paper charts for 30 min. Everything is slower.', 'bad'); } },
   surge: { w: () => (G.t > 40 && G.mods.surge < G.t) ? 0.8 : 0, fire() { G.mods.surge = G.t + 60; toast('The hospital across town went on divert. Expect extra ambulances for an hour.', 'alert'); } },
   huddle: { w: () => boarders().length >= 2 ? 1 : 0, fire() { for (const p of boarders()) p.due = G.t + (p.due - G.t) * 0.6; toast('Bed huddle: upstairs found beds. Your admitted patients move faster.', 'good'); } },
@@ -2456,14 +2548,14 @@ const EV = {
     pick(k) { if (k === 'go') { G.errands.push({ label: 'Family update', dur: 6 }); care(10, 'admin'); } else care(-10, 'admin'); },
   },
   noDivert: {
-    w: () => ((G.yellow.on || G.red.on) && !G.ev.used.noDivert) ? 2 : 0,
+    w: () => ((G.dv.yellow.on || G.dv.red.on || Object.keys(DIVERTS).some(k => G.dv[k].on && !DIVERTS[k].capacity && !justified(k))) && !G.ev.used.noDivert) ? 2 : 0,
     fire() {
-      setCard('noDivert', 'Divert pushback', 'VP of Operations', `"Who put us on ${G.red.on ? 'Red' : 'Yellow'} Alert? EMS volume is our volume. Turn it off."`, [
+      setCard('noDivert', 'Divert pushback', 'VP of Operations', `"Who put us on ${Object.keys(DIVERTS).filter(k => G.dv[k].on).map(k => DIVERTS[k].name).join(' and ') || 'divert'}? EMS volume is our volume. Turn it off."`, [
         { k: 'off', label: 'Turn it off', sub: 'No divert for 90 min' },
         { k: 'keep', label: 'Keep it on', sub: 'Admin docks you points' },
       ]);
     },
-    pick(k) { if (k === 'off') { G.yellow.on = false; G.red.on = false; G.mods.noDivert = G.t + 90; } else care(-20, 'admin'); },
+    pick(k) { if (k === 'off') { for (const x in DIVERTS) if (DIVERTS[x].capacity || !justified(x)) G.dv[x].on = false; G.mods.noDivert = G.t + 90; } else care(-20, 'admin'); },
   },
   survey: {
     w: () => (G.t > 30 && G.t < G.shift - 70 && !G.ev.used.survey) ? 0.7 : 0,
@@ -2474,9 +2566,9 @@ const EV = {
   },
   region: {
     fire() {
-      setCard('region', 'EMS system call', 'EMS system coordinator', `"Your hospital has had ambulances on the wall over an hour today${G.ev.missedC >= 2 ? ', and two consults went unanswered' : ''}${G.yellow.on || G.red.on ? ', and you have been on divert a long time' : ''}. What's the plan?"`, [
+      setCard('region', 'EMS system call', 'EMS system coordinator', `"Your hospital has had ambulances on the wall over an hour today${G.ev.missedC >= 2 ? ', and two consults went unanswered' : ''}${Object.keys(DIVERTS).some(k => G.dv[k].on) ? ', and you have been on divert a long time' : ''}. What's the plan?"`, [
         { k: 'commit', label: 'Offload every unit within 30 min', sub: 'A goal for the next hour' },
-        { k: 'yellow', label: 'Go on Yellow Alert', sub: 'Fewer ambulances. Admin will notice.', dis: G.mods.noDivert > G.t || G.yellow.on },
+        { k: 'yellow', label: 'Go on Yellow Alert', sub: 'Fewer ambulances. Admin will notice.', dis: G.mods.noDivert > G.t || G.dv.yellow.on },
         { k: 'blame', label: '"It\'s the boarding."', sub: 'True, but it costs you points' },
       ]);
     },
@@ -2517,7 +2609,8 @@ function endShift(reason) {
     objOk: S.objOk, objFail: S.objFail, agency: S.agency, mandates: S.mandates, rosc: S.rosc,
     lep: S.lep, interp: S.interp, mtp: S.mtp, mtpWaste: S.mtpWaste, oneg: S.oneg, shock: S.shock, overrides: S.overrides, medErrors: S.medErrors,
     registered: S.registered, triaged: S.triaged, offloads: S.offloads, transports: Object.assign({}, S.transports), ift: Object.assign({}, S.ift), iftRefused: S.iftRefused, airAbort: S.airAbort,
-    pitSeen: S.pitSeen, pitDc: S.pitDc, diverted: S.diverted, yellowMins: G.yellow.mins, redMins: G.red.mins,
+    pitSeen: S.pitSeen, pitDc: S.pitDc, diverted: S.diverted, yellowMins: G.dv.yellow.mins, redMins: G.dv.red.mins, divertMins: Object.fromEntries(Object.keys(DIVERTS).map(k => [k, G.dv[k].mins])),
+    outages: S.outLog.map(x => Object.assign({}, x)), outRight: S.outRight, outMiss: S.outMiss, divertExtra: S.divertExtra,
   };
 }
 
@@ -2564,6 +2657,10 @@ function botStep(o) {
     if (r) return place(p.id, r.id).ok;
     return p.loc === 'wall' && p.esi >= 4 ? toWaiting(p.id).ok : false;
   };
+  if (o.divert !== false) {
+    for (const x in G.out) { const k = OUTAGES[x].fix; if (outActive(x) && !G.dv[k].on) add(0.6, () => !G.dv[k].on && setDivert(k, true).ok); }
+    for (const k in DIVERTS) if (!DIVERTS[k].capacity && G.dv[k].on && !justified(k)) add(0.6, () => G.dv[k].on && setDivert(k, false).ok);
+  }
   for (const r of G.rooms) if (r.st === 'dirty' && !G.evsQ.includes(r.id)) add(4, () => r.st === 'dirty' && !G.evsQ.includes(r.id) && evsTap(r.id).ok);
   for (const p of active()) {
     if (p.bleed === 'mtp' && !p.bb && o.mtp !== false) add(1, () => !p.bb && activateMTP(p.id).ok);
@@ -2622,7 +2719,8 @@ const OC = {
   place, move, evsTap, assign, consult, discharge, requestTransfer, escalate, toggleStat,
   boxNotify, boxTake, boxDecide, chooseCard, sendBreak, toggleZone, setZoneClosed, callAgency, orderPizza, setYellow, setDivert, starsFor,
   setPit, activateMTP, releaseONeg, requestInterp, overrideRx,
-  register, triage, toWaiting, sendUp, bookIFT, IFT, emergent,
+  register, triage, toWaiting, sendUp, bookIFT, IFT, emergent, DIVERTS, OUTAGES, outActive, justified,
+  startOutage,
 };
 root.OC = OC;
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
@@ -2756,9 +2854,9 @@ function renderHud(G) {
   const wall = E.active().filter(p => p.loc === 'wall').length, mw = E.maxWallNow();
   pill('pWall', String(wall), mw > 30 ? 'bad' : wall ? 'warn' : '');
   $('#shiftProg').style.width = Math.min(100, Math.max(0, G.t / G.shift * 100)).toFixed(2) + '%';
-  const dv = $('#btnYellow');
-  setC(dv, 'hb' + (G.red.on ? ' red' : G.yellow.on ? ' on' : ''));
-  const dt = G.red.on ? 'Red' : G.yellow.on ? 'Yellow' : 'Divert'; if (dv.textContent !== dt) dv.textContent = dt;
+  const dv = $('#btnYellow'), on = Object.keys(E.DIVERTS).filter(k => G.dv[k].on);
+  setC(dv, 'hb' + (on.some(k => k !== 'yellow') ? ' red' : on.length ? ' on' : '') + (Object.keys(G.out).length && !on.length ? ' alarm' : ''));
+  const dt = !on.length ? 'Divert' : on.length === 1 ? E.DIVERTS[on[0]].short : `Divert ×${on.length}`; if (dv.textContent !== dt) dv.textContent = dt;
   const sp = U.speed + '×'; if ($('#btnSpeed').textContent !== sp) $('#btnSpeed').textContent = sp;
   const pz = U.paused ? '▶' : 'II'; if ($('#btnPause').textContent !== pz) $('#btnPause').textContent = pz;
   $('#btnPause').setAttribute('aria-label', U.paused ? 'Resume' : 'Pause');
@@ -2790,11 +2888,10 @@ function renderObjs(G) {
     const end = o.k === 'nohall' && t >= o.until ? o.until2 : o.until;
     it.push(`<span class="ob goal"><b>${lbl}</b> · <span data-cd="${end}"></span></span>`);
   }
-  if (G.red.on) it.push('<span class="ob red">Red Alert</span>');
-  if (G.yellow.on) it.push('<span class="ob yellow">Yellow Alert</span>');
-  if (G.img.ct.down > t) it.push(`<span class="ob bad">CT down · <span data-cd="${G.img.ct.down}"></span></span>`);
-  if (G.mods.lab > t) it.push(`<span class="ob bad">Lab slow · <span data-cd="${G.mods.lab}"></span></span>`);
-  if (G.mods.ehr > t) it.push(`<span class="ob bad">EHR down · <span data-cd="${G.mods.ehr}"></span></span>`);
+  for (const k of Object.keys(E.DIVERTS)) if (G.dv[k].on) it.push(`<span class="ob ${k === 'yellow' ? 'yellow' : 'red'}">${E.DIVERTS[k].name}</span>`);
+  for (const k of Object.keys(G.out)) if (G.out[k].until > t) it.push(`<span class="ob down">${E.OUTAGES[k].short} · <span data-cd="${G.out[k].until}"></span></span>`);
+  if (G.mods.lab > t && !G.out.power) it.push(`<span class="ob bad">Lab slow · <span data-cd="${G.mods.lab}"></span></span>`);
+  if (G.mods.ehr > t && !G.out.power) it.push(`<span class="ob bad">EHR down · <span data-cd="${G.mods.ehr}"></span></span>`);
   if (G.mods.shortage > t) it.push(`<span class="ob bad">Drug shortage · <span data-cd="${G.mods.shortage}"></span></span>`);
   if (G.mods.bbSlow > t) it.push(`<span class="ob bad">Blood bank slow · <span data-cd="${G.mods.bbSlow}"></span></span>`);
   if (G.mods.interpDown > t) it.push(`<span class="ob bad">Interpreter line down · <span data-cd="${G.mods.interpDown}"></span></span>`);
@@ -3273,9 +3370,16 @@ function boxDocSheet(G) {
   return h + '</div>';
 }
 function divertSheet(G) {
-  const blocked = G.mods.noDivert > G.t;
-  const card = (kind, title, txt, on) => `<div class="dv ${kind}${on ? ' on' : ''}"><b>${title}${on ? ` · on for ${fm(G.t - G[kind].since)}` : ''}</b><p>${txt}</p><button type="button" data-act="divertSet" data-arg="${kind}|${on ? 0 : 1}" ${!on && blocked ? 'disabled' : ''}>${on ? `Lift ${title}` : blocked ? 'Administration blocked divert' : `Go on ${title}`}</button></div>`;
-  return head('Divert status', 'Tell EMS where not to bring patients') + card('yellow', 'Yellow Alert', 'The ED is saturated. Ambulances take non-critical patients to other hospitals; alerts still come to you. Costs a few points every minute.', G.yellow.on) + card('red', 'Red Alert', 'No monitored or ICU beds. Ambulances take critical medical patients elsewhere when they can. Trauma still comes. Costs more points every minute.', G.red.on) + '<p class="hint">Administration and the EMS system both notice when divert drags on past 90 minutes.</p>';
+  const outs = Object.keys(G.out).filter(k => G.out[k].until > G.t);
+  let h = head('Diversion status', 'Tell EMS what this ED cannot take right now');
+  h += outs.length ? `<div class="dv-out"><b>Broken right now</b>${outs.map(k => `<span>${E.OUTAGES[k].name} · back in about <span data-cd="${G.out[k].until}"></span></span>`).join('')}</div>` : '<p class="hint">Nothing is broken right now. Use Yellow or Red Alert only when the department is full.</p>';
+  const card = k => {
+    const D = E.DIVERTS[k], d = G.dv[k], blocked = D.capacity && G.mods.noDivert > G.t && !d.on;
+    return `<div class="dv ${k}${d.on ? ' on' : ''}${D.capacity ? ' cap' : ''}"><b>${D.name}${d.on ? ` · on for ${fm(G.t - d.since)}` : ''}</b><p><i>${D.when}.</i> ${D.what}</p><button type="button" data-act="divertSet" data-arg="${k}|${d.on ? 0 : 1}" ${blocked ? 'disabled' : ''}>${d.on ? `Lift ${D.name}` : blocked ? 'Administration blocked divert' : `Go on ${D.name}`}</button></div>`;
+  };
+  h += '<h4>When something breaks</h4>' + ['ct', 'stemi', 'trauma', 'disaster'].map(card).join('');
+  h += '<h4>When you are full</h4>' + ['yellow', 'red'].map(card).join('');
+  return h + '<p class="hint">A diversion that matches what broke costs little, and going on it fast earns points. Lift it as soon as the fix is in. Diverting when nothing is broken, or staying on after the fix, costs a lot and draws calls from administration and the EMS system.</p>';
 }
 function helpHTML() {
   return head('How to run the board', 'You are the charge nurse from 07:00 to 19:00. Keep patients moving, staff upright, and the Box answered.') + `<ol class="help">
@@ -3289,7 +3393,7 @@ function helpHTML() {
 <li><b>Send them on.</b> When an inpatient bed is ready, choose a transporter or one of your techs to take them up; ICU patients take their nurse along. For transfers, book an ALS ambulance, critical care transport, or a helicopter. The patient holds the room until the crew arrives and takes report.</li>
 <li><b>Turn rooms.</b> Nothing gets cleaned until you send EVS. Tap a dirty room to put it in the EVS line; tap it again to move it to the front, like a resus bay before a trauma arrives.</li>
 <li><b>Watch your nurses.</b> Each nurse handles 4 points. Tap a pod header to move nurses. Casey is your resource nurse. Send people on breaks.</li>
-<li><b>Divert.</b> Yellow Alert (ED saturated) and Red Alert (no monitored beds) cut ambulance traffic, at a cost.</li>
+<li><b>Divert.</b> When something breaks, go on the matching diversion: CT Divert when the scanner is down, STEMI Divert when the cath lab is down, Trauma Divert when there's no trauma surgeon or OR, and Internal Disaster when the lab or power fails. Lift it as soon as the fix is in. Yellow Alert (ED saturated) and Red Alert (no monitored beds) are for when you're full.</li>
 <li><b>Your scores.</b> Avg wait is door to provider. Pt mgmt is your patient management score. Staff is worker satisfaction. Avoid LWBS, AMA, 72-hour returns, and ambulances stuck on the wall.</li>
 </ol>`;
 }
@@ -3467,7 +3571,7 @@ function save(force) {
   U.lastSave = now;
   try { localStorage.setItem('oc-save', JSON.stringify({ G, lvl: U.lvl, pack: G.pack, at: now })); } catch (e) { /* storage full or blocked */ }
 }
-function readSave() { try { const s = localStorage.getItem('oc-save'); if (!s) return null; const d = JSON.parse(s); return d && d.G && d.G.v === 3 && !d.G.over ? d : null; } catch (e) { return null; } }
+function readSave() { try { const s = localStorage.getItem('oc-save'); if (!s) return null; const d = JSON.parse(s); return d && d.G && d.G.v === 4 && !d.G.over ? d : null; } catch (e) { return null; } }
 function resumeSave() {
   const d = readSave(); if (!d) { toast('No saved shift on this device', 'bad'); return; }
   E.load(d.G); U.lvl = d.lvl; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = true; U.speed = 1;
@@ -3508,7 +3612,7 @@ function start(lvl) {
 const VERDICT = ['Rough one. Everybody survived the shift, mostly.', 'You kept the doors open. Tomorrow will be better.', 'Solid shift. The night charge owes you.', 'Charge nurse of the year. Somebody frame this board.'];
 function reportHTML(R) {
   const L = E.LEVELS[R.level], led = g().ledger;
-  const LED = { flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood' };
+  const LED = { flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood', transfer: 'Transfers' };
   const rows = Object.entries(led).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LED[k] || k}</td><td class="${v < 0 ? 'neg' : 'pos'}">${v > 0 ? '+' : ''}${Math.round(v)}</td></tr>`).join('');
   const t = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
   return `<div class="card rep"><h2>${R.fail ? 'The staff walked out' : 'Shift report'}</h2><div class="stars" aria-label="${R.stars} of 3 stars">${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}</div><p class="verdict">${R.fail ? 'Staff satisfaction hit the floor and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : VERDICT[R.stars]} ${esc(L.name)}, ${esc(E.PACKS[R.pack].name)} Box consults.</p>
@@ -3516,6 +3620,7 @@ function reportHTML(R) {
 <h4>Where your points came from</h4><table class="ledger">${rows || t('Nothing yet', '0')}</table>
 <h4>Patients</h4><table>${t('Arrived this shift', R.seen)}${t('Discharged home', R.dc)}${t('Sent home from triage', R.pitDc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('Left against medical advice', R.ama)}${t('72-hour returns', R.returns)}${t('Still in the ED at 19:00', R.left)}</table>
 <h4>EMS and the Box</h4><table>${t('Average EMS wall time (arrival to hand-off)', R.wallAvg + 'm')}${t('EMS handed off to the waiting room', R.offloads)}${t('Units on the wall over 30 min', R.wallOver)}${t('Consults answered', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Medical direction calls right', `${R.boxC.right} of ${R.boxC.ans}`)}${t('Alert reports taken', `${R.boxN.ans} of ${R.boxN.ans + R.boxN.miss}`)}${t('Alert time goals met', `${R.goalsMet} of ${R.goalsMet + R.goalsMiss}`)}${t('Ambulances diverted', `${R.diverted} (${R.yellowMins}m yellow, ${R.redMins}m red)`)}</table>
+<h4>Outages and diversion</h4><table>${R.outages.length ? R.outages.map(o => t(`${esc(E.OUTAGES[o.k].name)} at ${E.clock(o.t0)}`, o.divertAt == null ? `No ${esc(E.DIVERTS[E.OUTAGES[o.k].fix].name)}${o.misses ? ` · ${o.misses} came anyway` : ''}` : `${esc(E.DIVERTS[E.OUTAGES[o.k].fix].short)} divert in ${Math.round(o.divertAt - o.t0)}m${o.misses ? ` · ${o.misses} came first` : ''}${o.after ? ` · ${o.after}m too long` : ''}`)).join('') : t('Nothing broke this shift', '')}${R.divertExtra ? t('Minutes on a specific divert with nothing broken', R.divertExtra) : ''}</table>
 <h4>Services</h4><table>${t('Interpreters requested', `${R.interp} for ${R.lep} patients who needed one`)}${t('Massive transfusions', `${R.mtp}${R.mtpWaste ? ` (${R.mtpWaste} not needed)` : ''}`)}${t('Patients who went into shock', R.shock)}${t('O-negative units used', R.oneg)}${t('Meds pulled on override', `${R.overrides} (${R.medErrors} errors)`)}${t('Seen by a provider in triage', R.pitSeen)}${t('Registered / triaged', `${R.registered} / ${R.triaged}`)}${t('Sent upstairs by transporter / tech', `${R.transports.tp} / ${R.transports.pct}`)}${t('Interfacility ambulances', `${R.ift.als} ALS · ${R.ift.cct} CCT · ${R.ift.air} air${R.iftRefused ? ` (${R.iftRefused} wrong level)` : ''}`)}</table>
 <h4>Team</h4><table>${t('Angry consultants', R.angry + R.wrongSpec)}${t('Nurse-minutes over ratio', R.ratioMin)}${t('Safety events', R.adverse)}${t('Agency nurses / mandates', `${R.agency} / ${R.mandates}`)}</table>
 <div class="rep-btns"><button type="button" class="big act" data-act="restart">Run it back</button><button type="button" class="big" data-act="menu">Menu</button></div></div>`;
@@ -3567,7 +3672,7 @@ function boot(data) {
   const pk = store('oc-pack'); if (pk && E.PACKS[pk]) U.pack = pk;
   buildBoard(); bind();
   for (const [id, txt] of [['laneEms', 'No ambulances waiting'], ['laneWait', 'Waiting room is empty']]) $('#' + id).dataset.empty = txt;
-  if (data.G && data.G.v === 3 && data.G.running && !data.G.over) {
+  if (data.G && data.G.v === 4 && data.G.running && !data.G.over) {
     E.load(data.G); U.scene = 'game'; U.lvl = data.lvl || data.G.level; U.speed = data.speed || 1; U.paused = true;
     $('#title').hidden = true;
     render();

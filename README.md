@@ -15,6 +15,8 @@ You're the charge nurse for a 32-bed emergency department, 07:00 to 19:00. Patie
 5. **Workup and treatment.** Techs draw labs and do ECGs, pharmacy verifies meds, respiratory therapy runs breathing treatments and vents, and the blood bank runs massive transfusion. Get interpreters for patients who need one.
 6. **Disposition.** Discharge, consult and admit, then send admits upstairs with a transporter or a tech. For transfers, book an ALS ambulance, critical care transport, or a helicopter; the patient holds the room until the crew arrives.
 
+**When something breaks, divert for it.** The CT scanner, cath lab, trauma OR, lab, and power can go down mid-shift. Go on the matching status (CT Divert, STEMI Divert, Trauma Divert, or Internal Disaster) fast, and lift it when the fix is in. Yellow and Red Alert are for when the ED is full.
+
 Along the way: nursing ratios, staff morale and breaks, call-outs and sick staff, angry consultants, admin demands, AMA, 72-hour returns, Yellow and Red Alert, equipment downtime, and a mass-casualty bus crash.
 
 **Scores:** average wait (door to provider), patient management, staff satisfaction, patients who left without being seen, and EMS wall time. The shift report at 19:00 gives you up to 3 stars.

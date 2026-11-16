@@ -142,6 +142,24 @@ const GOALS = {
   tx45:   { label: 'Transfer requested', lim: 45 },
 };
 
+/* Diversion statuses. Capacity ones (Yellow, Red) are for a full ED. The specific ones match something that broke. */
+const DIVERTS = {
+  yellow: { name: 'Yellow Alert', short: 'Yellow', capacity: true, cost: 0.3, rate: 0.6, when: 'The ED is saturated', what: 'Ambulances take non-critical patients elsewhere. Alerts still come.', takes: c => c.esi >= 3 && !c.alert },
+  red: { name: 'Red Alert', short: 'Red', capacity: true, cost: 0.4, rate: 0.5, when: 'No monitored or ICU beds', what: 'Ambulances take critical medical patients elsewhere when they can. Trauma still comes.', takes: c => c.esi <= 2 && c.alert !== 'trauma' && c.alert !== 'arrest' },
+  ct: { name: 'CT Divert', short: 'CT', cost: 0.1, rate: 0.95, when: 'The CT scanner is down', what: 'Stroke alerts and head-injury trauma go to a hospital with a working scanner.', takes: c => c.alert === 'stroke' || (c.alert === 'trauma' && c.wk.includes('ct')) },
+  stemi: { name: 'STEMI Divert', short: 'STEMI', cost: 0.1, rate: 0.95, when: 'The cath lab is down or full', what: 'STEMI alerts go to another PCI center.', takes: c => c.alert === 'stemi' },
+  trauma: { name: 'Trauma Divert', short: 'Trauma', cost: 0.1, rate: 0.95, when: 'No trauma surgeon or OR', what: 'Trauma alerts go to another trauma center.', takes: c => c.alert === 'trauma' },
+  disaster: { name: 'Internal Disaster', short: 'Closed', cost: 0.1, rate: 0.95, when: 'The lab, power, or building has failed', what: 'All ambulances go elsewhere. Walk-ins still come, and patients in cardiac arrest still go to the closest ED.', takes: c => c.alert !== 'arrest' },
+};
+/* Things that break. Each has one right diversion. */
+const OUTAGES = {
+  ct: { name: 'CT scanner down', short: 'CT down', during: 'the CT scanner is down', mins: [45, 75], fix: 'ct', msg: 'The CT scanner is down. Biomed is working on it.', hits: c => c.alert === 'stroke' || (c.alert === 'trauma' && c.wk.includes('ct')) },
+  cath: { name: 'Cath lab down', short: 'Cath lab down', during: 'the cath lab is down', mins: [60, 90], fix: 'stemi', msg: 'The cath lab C-arm failed. No cath cases until it is fixed.', hits: c => c.alert === 'stemi' },
+  or: { name: 'No trauma surgeon or OR', short: 'No trauma OR', during: 'there is no trauma surgeon or OR', mins: [60, 90], fix: 'trauma', msg: 'Both ORs are running and the trauma surgeon is scrubbed in on a long case.', hits: c => c.alert === 'trauma' },
+  lab: { name: 'Lab down', short: 'Lab down', during: 'the lab is down', mins: [40, 60], fix: 'disaster', msg: 'The lab is down hard: no chemistry, no hematology, no blood gases. Point-of-care testing only.', hits: c => c.esi <= 2 && c.wk.includes('lab') },
+  power: { name: 'Power failure', short: 'On generator', during: 'the ED is on generator power', mins: [30, 45], fix: 'disaster', msg: 'Power failure. The ED is on generator: CT is down, the lab is crawling, and the EHR is offline.', hits: c => c.esi <= 2 && c.alert !== 'arrest' },
+};
+
 const LANGS = { es: 'Spanish', ht: 'Haitian Creole', zh: 'Mandarin', ar: 'Arabic', vi: 'Vietnamese', ru: 'Russian', asl: 'ASL' };
 const LANG_W = [['es', 0.065], ['ht', 0.012], ['zh', 0.012], ['ar', 0.012], ['vi', 0.01], ['ru', 0.006], ['asl', 0.006]];
 
@@ -292,6 +310,7 @@ function freshStats() {
     wrCrash: 0, wrCodes: 0, ratioMin: 0, uncovered: 0, angry: 0, wrongSpec: 0, adverse: 0, agency: 0, mandates: 0,
     objOk: 0, objFail: 0, boxC: { ans: 0, miss: 0, right: 0, wrong: 0 }, boxN: { ans: 0, miss: 0 }, goals: { met: 0, miss: 0, list: [] }, events: 0,
     registered: 0, triaged: 0, offloads: 0, transports: { tp: 0, pct: 0 }, ift: { als: 0, cct: 0, air: 0 }, iftRefused: 0, airAbort: 0,
+    outLog: [], outRight: 0, outMiss: 0, divertExtra: 0,
     returns: 0, returnsLate: 0, lep: 0, interp: 0, mtp: 0, mtpWaste: 0, oneg: 0, overrides: 0, medErrors: 0, pitDc: 0, pitSeen: 0, diverted: 0, shock: 0 };
 }
 function mkStaff(r) {
@@ -307,7 +326,7 @@ function newGame(level, seed, opts) {
   opts = opts || {};
   const L = LEVELS[level] || LEVELS.med;
   G = {
-    v: 3, level: LEVELS[level] ? level : 'med', pack: PACKS[opts.pack] ? opts.pack : 'national',
+    v: 4, level: LEVELS[level] ? level : 'med', pack: PACKS[opts.pack] ? opts.pack : 'national',
     seed: seed | 0, rng: (seed | 0) || 7, t: -PREROLL, running: true, over: false, fail: null, pre: true,
     shift: L.shift, nid: 1, tid: 1, sid: 1, lastMin: Math.floor(-PREROLL),
     rooms: ROOMS.map(r => ({ id: r.id, z: r.z, kind: r.kind, iso: !!r.iso, safe: !!r.safe, st: 'clean', pid: null, dirt: 'std', closed: false })),
@@ -321,7 +340,7 @@ function newGame(level, seed, opts) {
     blood: { oneg: 12 },
     remote: null,
     mods: { lab: -1e9, ehr: -1e9, surge: -1e9, survey: -1e9, noDivert: -1e9, noAgency: false, shortage: -1e9, bbSlow: -1e9, interpDown: -1e9, remoteRph: false },
-    yellow: { on: false, mins: 0, since: 0 }, red: { on: false, mins: 0, since: 0 },
+    dv: Object.fromEntries(Object.keys(DIVERTS).map(k => [k, { on: false, mins: 0, since: 0, unjust: 0 }])), out: {},
     pizza: false, sec: { busy: -1e9 }, agN: 0, report: null,
     nextArr: { walk: 0, ems: 0, alert: 1e9 },
     stats: freshStats(), care: 0, ledger: {}, log: [],
@@ -436,10 +455,54 @@ function arrivals() {
   if (!G.pre) { guard = 0; while (t >= G.nextArr.alert && guard++ < 3) { spawnAlert(); G.nextArr.alert += expo(60 / (L.alerts * hm)); } }
 }
 function diverted(c) {
-  if (G.pre) return false;
-  if (G.yellow.on && c.esi >= 3 && chance(0.6)) return true;
-  if (G.red.on && c.esi <= 2 && c.alert !== 'trauma' && chance(0.5)) return true;
+  if (G.pre) return null;
+  for (const k in DIVERTS) if (G.dv[k].on && DIVERTS[k].takes(c) && chance(DIVERTS[k].rate)) return k;
+  return null;
+}
+const outActive = k => !!G.out[k] && G.out[k].until > G.t;
+function justified(k) {
+  for (const o in G.out) if (outActive(o) && (OUTAGES[o].fix === k || (k === 'ct' && o === 'power'))) return true;
   return false;
+}
+function outLogFor(o) { for (let i = G.stats.outLog.length - 1; i >= 0; i--) if (G.stats.outLog[i].k === o) return G.stats.outLog[i]; return null; }
+function outageMiss(c, p) {
+  if (G.pre) return;
+  for (const o in G.out) {
+    const O = OUTAGES[o];
+    if (!outActive(o) || !O.hits(c) || G.dv[O.fix].on) continue;
+    care(-15, 'divert'); G.stats.outMiss++;
+    const log = outLogFor(o); if (log) log.misses++;
+    toast(`${p.unit} brought ${p.alertOn ? 'a ' + ALERTS[p.alert].name + ' alert' : 'a critical patient'} here while ${O.during}. ${DIVERTS[O.fix].name} would have sent them where they can be treated.`, 'bad');
+    return;
+  }
+}
+function startOutage(k) {
+  const O = OUTAGES[k], until = G.t + randi(O.mins[0], O.mins[1]);
+  G.out[k] = { t0: G.t, until, credited: false };
+  G.stats.outLog.push({ k, t0: G.t, t1: until, divertAt: null, misses: 0, after: 0 });
+  if (k === 'ct' || k === 'power') G.img.ct.down = Math.max(G.img.ct.down, until);
+  if (k === 'power') { G.mods.lab = Math.max(G.mods.lab, until); G.mods.ehr = Math.max(G.mods.ehr, until); }
+  toast(`${O.msg} Expected back in about ${until - G.t} min.`, 'alert'); sound('alarm');
+  if (G.dv[O.fix].on) creditDivert(O.fix);
+}
+function outageTick() {
+  for (const o in G.out) {
+    if (G.out[o].until > G.t) continue;
+    const O = OUTAGES[o], on = G.dv[O.fix].on;
+    delete G.out[o];
+    toast(`${O.name}: fixed.${on && !justified(O.fix) ? ` Lift ${DIVERTS[O.fix].name}.` : ''}`, 'good');
+  }
+}
+function creditDivert(kind) {
+  for (const o in G.out) {
+    const O = OUTAGES[o], st = G.out[o];
+    if (O.fix !== kind || st.credited || !outActive(o)) continue;
+    st.credited = true;
+    const log = outLogFor(o); if (log) log.divertAt = G.t;
+    const fast = G.t - st.t0 <= 10;
+    if (!G.pre) { care(fast ? 20 : 8, 'divert'); G.stats.outRight++; }
+    note(`${DIVERTS[kind].name} for ${O.during}: right call${fast ? ', and fast' : ''}`, 'good');
+  }
 }
 function spawnWalk() {
   const p = makePatient(pickCase(['w', 'b']), 'walk');
@@ -447,16 +510,20 @@ function spawnWalk() {
 }
 function spawnEms() {
   const c = pickCase(['e', 'b']);
-  if (diverted(c)) { G.stats.diverted++; note(`An ambulance went elsewhere (divert): ${c.cc}`); return; }
+  const dk = diverted(c);
+  if (dk) { G.stats.diverted++; note(`An ambulance went elsewhere (${DIVERTS[dk].name}): ${c.cc}`); return; }
   const p = makePatient(c, 'ems');
   p.unit = unitName(); p.loc = 'wall'; p.tArrive = G.t; onArrive(p);
+  outageMiss(c, p);
   note(`${p.unit} at the bay: ${p.age}${p.sex}, ${p.cc}`);
 }
 function spawnAlert() {
   const c = pickCase(['a']);
-  if (diverted(c)) { G.stats.diverted++; note(`A ${ALERTS[c.alert].name} alert went elsewhere (Red Alert)`); return; }
+  const dk = diverted(c);
+  if (dk) { G.stats.diverted++; note(`A ${ALERTS[c.alert].name} alert went elsewhere (${DIVERTS[dk].name})`); return; }
   const p = makePatient(c, 'ems');
   p.unit = unitName(); p.loc = 'enroute'; p.eta = G.t + randi(7, 12); p.alertOn = true; p.dxK = true;
+  outageMiss(c, p);
   G.enroute.push(p.id);
   G.box.q.push({ kind: 'notify', pid: p.id, unit: p.unit, id: ++G.box.seq });
 }
@@ -477,7 +544,7 @@ function enrouteTick() {
 }
 function autoConsult(p) {
   if (!p.con || p.consult.st !== 'none') return;
-  p.consult = { st: 'req', spec: p.con, due: G.t + (p.alert === 'trauma' ? randi(4, 9) : randi(6, 12)), t0: G.t, auto: true };
+  p.consult = { st: 'req', spec: p.con, due: G.t + (p.alert === 'trauma' ? randi(4, 9) : randi(6, 12)) + (p.con === 'trauma' && outActive('or') ? 30 : 0), t0: G.t, auto: true };
 }
 
 /* ---------- placement ---------- */
@@ -1148,7 +1215,7 @@ function interpTick() {
 function imgTick(dt) {
   for (const m of ['xr', 'ct', 'us']) {
     const S = G.img[m];
-    if (S.down > G.t) continue;
+    if (S.down > G.t || (m === 'ct' && (outActive('ct') || outActive('power')))) continue;
     if (S.busy) {
       S.busy.left -= dt * (G.mods.ehr > G.t ? 1 / 1.3 : 1);
       if (S.busy.left <= 0) {
@@ -1178,7 +1245,7 @@ function resultTick() {
   for (const p of active()) {
     for (const k in p.work) {
       const w = p.work[k];
-      if (w.st === 'run' && G.t >= w.due) { w.st = 'done'; w.tDone = G.t; if (p.alertOn && p.find[k]) note(`${label(p)} ${WORK[k].label}: ${p.find[k]}`); }
+      if (w.st === 'run' && G.t >= w.due && !(k === 'lab' && outActive('lab'))) { w.st = 'done'; w.tDone = G.t; if (p.alertOn && p.find[k]) note(`${label(p)} ${WORK[k].label}: ${p.find[k]}`); }
     }
   }
 }
@@ -1212,7 +1279,7 @@ function consult(pid, spec) {
     m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-15, 'consult'); G.stats.angry++; provHit(p, 4); sound('bad');
     return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${S.mad(miss.map(k => MISS_NAME[k]).join(' and '))}"` };
   }
-  const base = spec === 'trauma' ? randi(8, 14) : randi(12, 22), mult = [1, 1.2, 1.5, 1.9][-m.mood] || 1;
+  const base = (spec === 'trauma' ? randi(8, 14) : randi(12, 22)) + (spec === 'trauma' && outActive('or') ? 30 : 0), mult = [1, 1.2, 1.5, 1.9][-m.mood] || 1;
   const mins = Math.round(base * mult);
   p.consult = { st: 'req', spec, due: G.t + mins, t0: G.t };
   return { ok: true, msg: `${S.doc} (${S.name}) will see ${label(p)} in about ${mins} min` };
@@ -1267,6 +1334,8 @@ function checkDispo(p) {
   if (p.con && p.consult.st !== 'here') return;
   if (!treatsDone(p)) return;
   const L = LEVELS[G.level];
+  if (p.dispo === 'cath' && outActive('cath')) { p.dispo = 'transfer'; p.txTo = 'another PCI center'; note(`${label(p)} needs a cath lab and ours is down. Transfer them.`, 'bad'); }
+  if (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')) { p.dispo = 'transfer'; p.txTo = 'another trauma center'; p.needCC = true; note(`${label(p)} needs an OR and there isn't one. Transfer them.`, 'bad'); }
   if (p.dispo === 'home') p.dsp = 'ready';
   else if (p.dispo === 'transfer') p.dsp = 'readytx';
   else if (p.dispo === 'admit' || p.dispo === 'icu' || p.dispo === 'bh') {
@@ -1475,8 +1544,18 @@ function minuteTick() {
     s.morale = clamp(s.morale, 0, 100);
   }
   for (const k in G.spec) { const m = G.spec[k]; if (m.mood < 0 && t - m.at > 60) { m.mood++; m.at = t; } }
-  if (G.yellow.on) { G.yellow.mins++; care(-0.3, 'divert'); if (t - G.yellow.since > 90) G.ev.regionDue = true; }
-  if (G.red.on) { G.red.mins++; care(-0.4, 'divert'); if (t - G.red.since > 90) G.ev.regionDue = true; }
+  outageTick();
+  for (const k in DIVERTS) {
+    const d = G.dv[k], D = DIVERTS[k];
+    if (!d.on) continue;
+    d.mins++;
+    if (D.capacity) { care(-D.cost, 'divert'); if (t - d.since > 90) G.ev.regionDue = true; continue; }
+    if (justified(k)) { care(-D.cost, 'divert'); d.unjust = 0; continue; }
+    care(-0.6, 'divert'); d.unjust++; G.stats.divertExtra++;
+    const log = G.stats.outLog.slice().reverse().find(x => OUTAGES[x.k].fix === k); if (log && log.t1 <= t) log.after++;
+    if (d.unjust === 10) toast(`${D.name} is still on and nothing is broken. Ambulances are driving past you.`, 'bad');
+    if (d.unjust > 20) G.ev.regionDue = true;
+  }
   if (staffSat() < 20) endShift('walkout');
 }
 function staffSat() { let n = 0, sum = 0; for (const s of G.staff) if (present(s)) { n++; sum += s.morale; } return n ? sum / n : 0; }
@@ -1595,13 +1674,14 @@ function orderPizza() {
   return { ok: true, msg: 'Pizza for the department, on your card. Morale up.' };
 }
 function setDivert(kind, on) {
-  const d = kind === 'red' ? G.red : G.yellow;
-  const nm = kind === 'red' ? 'Red Alert' : 'Yellow Alert';
-  if (on && G.mods.noDivert > G.t) return { ok: false, why: 'Administration ordered no divert right now' };
-  if (d.on === on) return { ok: true, msg: on ? `Already on ${nm}` : `${nm} is off` };
-  d.on = on; if (on) d.since = G.t;
-  if (!on) return { ok: true, msg: `${nm} lifted` };
-  return { ok: true, msg: kind === 'red' ? 'Red Alert: no monitored beds. Ambulances take critical medical patients elsewhere when they can. Trauma still comes.' : 'Yellow Alert: the ED is saturated. Ambulances take non-critical patients elsewhere. Alerts still come.' };
+  const D = DIVERTS[kind], d = G.dv[kind];
+  if (!D) return { ok: false, why: 'Unknown status' };
+  if (on && D.capacity && G.mods.noDivert > G.t) return { ok: false, why: 'Administration ordered no divert right now' };
+  if (d.on === on) return { ok: true, msg: on ? `Already on ${D.name}` : `${D.name} is off` };
+  d.on = on; d.unjust = 0; if (on) d.since = G.t;
+  if (!on) return { ok: true, msg: `${D.name} lifted` };
+  if (!D.capacity) creditDivert(kind);
+  return { ok: true, msg: `${D.name}: ${D.what}` };
 }
 function setYellow(on) { return setDivert('yellow', on); }
 
@@ -1867,8 +1947,12 @@ const EV = {
   oneglow: { w: () => (G.t > 60 && !G.ev.used.oneglow) ? 0.5 : 0, fire() { G.blood.oneg = Math.max(0, G.blood.oneg - 5); toast(`Blood bank: O-negative is short regionwide. ${G.blood.oneg} units left.`, 'bad'); } },
   bbDown: { w: () => (G.t > 60 && !G.ev.used.bbDown) ? 0.4 : 0, fire() { G.mods.bbSlow = G.t + 60; toast('Blood bank analyzer down: crossmatches take an hour. Emergency-release O-negative if you have to.', 'bad'); } },
   interpDown: { w: () => (G.t > 60 && !G.ev.used.interpDown) ? 0.4 : 0, fire() { G.mods.interpDown = G.t + 30; toast('The video interpreter line is down for 30 min. Requests take longer.', 'bad'); } },
-  ctDown: { w: () => (G.t > 30 && !G.ev.used.ctDown) ? 0.8 : 0, fire() { G.img.ct.down = G.t + 40; toast('The CT scanner is down. Biomed says 40 minutes.', 'bad'); } },
-  labDown: { w: () => (G.t > 30 && !G.ev.used.labDown) ? 0.7 : 0, fire() { G.mods.lab = G.t + 40; toast('Lab analyzer down. Results take twice as long for 40 min.', 'bad'); } },
+  ctDown: { w: () => (G.t > 30 && !G.ev.used.ctDown && !Object.keys(G.out).length) ? 0.8 : 0, fire() { startOutage('ct'); } },
+  cathDown: { w: () => (G.t > 45 && !G.ev.used.cathDown && !Object.keys(G.out).length) ? 0.5 : 0, fire() { startOutage('cath'); } },
+  orDown: { w: () => (G.t > 45 && !G.ev.used.orDown && !Object.keys(G.out).length) ? 0.5 : 0, fire() { startOutage('or'); } },
+  labOut: { w: () => (G.t > 60 && !G.ev.used.labOut && !Object.keys(G.out).length) ? 0.4 : 0, fire() { startOutage('lab'); } },
+  powerOut: { w: () => (G.t > 90 && !G.ev.used.powerOut && !Object.keys(G.out).length) ? 0.3 : 0, fire() { startOutage('power'); } },
+  labDown: { w: () => (G.t > 30 && !G.ev.used.labDown) ? 0.7 : 0, fire() { G.mods.lab = G.t + 40; toast('One lab analyzer is down. Results take twice as long for 40 min.', 'bad'); } },
   ehrDown: { w: () => (G.t > 60 && !G.ev.used.ehrDown) ? 0.6 : 0, fire() { G.mods.ehr = G.t + 30; toast('EHR downtime: paper charts for 30 min. Everything is slower.', 'bad'); } },
   surge: { w: () => (G.t > 40 && G.mods.surge < G.t) ? 0.8 : 0, fire() { G.mods.surge = G.t + 60; toast('The hospital across town went on divert. Expect extra ambulances for an hour.', 'alert'); } },
   huddle: { w: () => boarders().length >= 2 ? 1 : 0, fire() { for (const p of boarders()) p.due = G.t + (p.due - G.t) * 0.6; toast('Bed huddle: upstairs found beds. Your admitted patients move faster.', 'good'); } },
@@ -1972,14 +2056,14 @@ const EV = {
     pick(k) { if (k === 'go') { G.errands.push({ label: 'Family update', dur: 6 }); care(10, 'admin'); } else care(-10, 'admin'); },
   },
   noDivert: {
-    w: () => ((G.yellow.on || G.red.on) && !G.ev.used.noDivert) ? 2 : 0,
+    w: () => ((G.dv.yellow.on || G.dv.red.on || Object.keys(DIVERTS).some(k => G.dv[k].on && !DIVERTS[k].capacity && !justified(k))) && !G.ev.used.noDivert) ? 2 : 0,
     fire() {
-      setCard('noDivert', 'Divert pushback', 'VP of Operations', `"Who put us on ${G.red.on ? 'Red' : 'Yellow'} Alert? EMS volume is our volume. Turn it off."`, [
+      setCard('noDivert', 'Divert pushback', 'VP of Operations', `"Who put us on ${Object.keys(DIVERTS).filter(k => G.dv[k].on).map(k => DIVERTS[k].name).join(' and ') || 'divert'}? EMS volume is our volume. Turn it off."`, [
         { k: 'off', label: 'Turn it off', sub: 'No divert for 90 min' },
         { k: 'keep', label: 'Keep it on', sub: 'Admin docks you points' },
       ]);
     },
-    pick(k) { if (k === 'off') { G.yellow.on = false; G.red.on = false; G.mods.noDivert = G.t + 90; } else care(-20, 'admin'); },
+    pick(k) { if (k === 'off') { for (const x in DIVERTS) if (DIVERTS[x].capacity || !justified(x)) G.dv[x].on = false; G.mods.noDivert = G.t + 90; } else care(-20, 'admin'); },
   },
   survey: {
     w: () => (G.t > 30 && G.t < G.shift - 70 && !G.ev.used.survey) ? 0.7 : 0,
@@ -1990,9 +2074,9 @@ const EV = {
   },
   region: {
     fire() {
-      setCard('region', 'EMS system call', 'EMS system coordinator', `"Your hospital has had ambulances on the wall over an hour today${G.ev.missedC >= 2 ? ', and two consults went unanswered' : ''}${G.yellow.on || G.red.on ? ', and you have been on divert a long time' : ''}. What's the plan?"`, [
+      setCard('region', 'EMS system call', 'EMS system coordinator', `"Your hospital has had ambulances on the wall over an hour today${G.ev.missedC >= 2 ? ', and two consults went unanswered' : ''}${Object.keys(DIVERTS).some(k => G.dv[k].on) ? ', and you have been on divert a long time' : ''}. What's the plan?"`, [
         { k: 'commit', label: 'Offload every unit within 30 min', sub: 'A goal for the next hour' },
-        { k: 'yellow', label: 'Go on Yellow Alert', sub: 'Fewer ambulances. Admin will notice.', dis: G.mods.noDivert > G.t || G.yellow.on },
+        { k: 'yellow', label: 'Go on Yellow Alert', sub: 'Fewer ambulances. Admin will notice.', dis: G.mods.noDivert > G.t || G.dv.yellow.on },
         { k: 'blame', label: '"It\'s the boarding."', sub: 'True, but it costs you points' },
       ]);
     },
@@ -2033,7 +2117,8 @@ function endShift(reason) {
     objOk: S.objOk, objFail: S.objFail, agency: S.agency, mandates: S.mandates, rosc: S.rosc,
     lep: S.lep, interp: S.interp, mtp: S.mtp, mtpWaste: S.mtpWaste, oneg: S.oneg, shock: S.shock, overrides: S.overrides, medErrors: S.medErrors,
     registered: S.registered, triaged: S.triaged, offloads: S.offloads, transports: Object.assign({}, S.transports), ift: Object.assign({}, S.ift), iftRefused: S.iftRefused, airAbort: S.airAbort,
-    pitSeen: S.pitSeen, pitDc: S.pitDc, diverted: S.diverted, yellowMins: G.yellow.mins, redMins: G.red.mins,
+    pitSeen: S.pitSeen, pitDc: S.pitDc, diverted: S.diverted, yellowMins: G.dv.yellow.mins, redMins: G.dv.red.mins, divertMins: Object.fromEntries(Object.keys(DIVERTS).map(k => [k, G.dv[k].mins])),
+    outages: S.outLog.map(x => Object.assign({}, x)), outRight: S.outRight, outMiss: S.outMiss, divertExtra: S.divertExtra,
   };
 }
 
@@ -2080,6 +2165,10 @@ function botStep(o) {
     if (r) return place(p.id, r.id).ok;
     return p.loc === 'wall' && p.esi >= 4 ? toWaiting(p.id).ok : false;
   };
+  if (o.divert !== false) {
+    for (const x in G.out) { const k = OUTAGES[x].fix; if (outActive(x) && !G.dv[k].on) add(0.6, () => !G.dv[k].on && setDivert(k, true).ok); }
+    for (const k in DIVERTS) if (!DIVERTS[k].capacity && G.dv[k].on && !justified(k)) add(0.6, () => G.dv[k].on && setDivert(k, false).ok);
+  }
   for (const r of G.rooms) if (r.st === 'dirty' && !G.evsQ.includes(r.id)) add(4, () => r.st === 'dirty' && !G.evsQ.includes(r.id) && evsTap(r.id).ok);
   for (const p of active()) {
     if (p.bleed === 'mtp' && !p.bb && o.mtp !== false) add(1, () => !p.bb && activateMTP(p.id).ok);
@@ -2138,7 +2227,8 @@ const OC = {
   place, move, evsTap, assign, consult, discharge, requestTransfer, escalate, toggleStat,
   boxNotify, boxTake, boxDecide, chooseCard, sendBreak, toggleZone, setZoneClosed, callAgency, orderPizza, setYellow, setDivert, starsFor,
   setPit, activateMTP, releaseONeg, requestInterp, overrideRx,
-  register, triage, toWaiting, sendUp, bookIFT, IFT, emergent,
+  register, triage, toWaiting, sendUp, bookIFT, IFT, emergent, DIVERTS, OUTAGES, outActive, justified,
+  startOutage,
 };
 root.OC = OC;
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;

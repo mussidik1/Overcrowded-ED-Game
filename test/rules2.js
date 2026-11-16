@@ -91,7 +91,7 @@ function emsCount(on) {
   OC.newGame('hard', 909); clearCard();
   if (on) { OC.setDivert('yellow', true); OC.setDivert('red', true); }
   const s0 = OC.G.stats.arrived;
-  for (let i = 0; i < 2400; i++) { clearCard(); OC.G.mods.noDivert = -1e9; if (on) { OC.G.yellow.on = true; OC.G.red.on = true; } OC.step(0.1); }
+  for (let i = 0; i < 2400; i++) { clearCard(); OC.G.mods.noDivert = -1e9; if (on) { OC.G.dv.yellow.on = true; OC.G.dv.red.on = true; } OC.step(0.1); }
   return OC.G.stats.diverted;
 }
 assert(emsCount(true) > 3, 'Yellow and Red Alert divert ambulances');
@@ -204,4 +204,49 @@ if (tx) {
   assert(r2.ok, 'critical care transport booked');
   run(95, () => tx.loc === 'gone');
   assert(tx.loc === 'gone' && tx.outcome === 'tx', 'patient held the room until the critical care crew arrived and took report');
+}
+
+// 13. outages and the matching diversion
+const forceAlerts = (mins, fn) => { for (let i = 0; i < mins * 10; i++) { clearCard(); OC.G.nextArr.alert = Math.min(OC.G.nextArr.alert, OC.G.t + 2); OC.step(0.1); if (fn && fn()) return true; } return false; };
+G = fresh(1313);
+OC.startOutage('ct'); G.out.ct.until = 1e9;
+assert(OC.outActive('ct') && G.img.ct.down > G.t, 'CT outage takes the scanner down');
+const miss0 = G.stats.outMiss, care0 = G.care;
+forceAlerts(300, () => G.stats.outMiss > miss0);
+assert(G.stats.outMiss > miss0 && G.care < care0, 'a stroke or head-injury alert came in with CT down and no CT Divert: penalty');
+const r13 = OC.setDivert('ct', true);
+assert(r13.ok && G.dv.ct.on, 'CT Divert on: ' + r13.msg);
+const before13 = G.order.length, div13 = G.stats.diverted;
+forceAlerts(240);
+const ctHits = G.order.slice(before13).map(OC.pt).filter(p => p.alert === 'stroke' || (p.alert === 'trauma' && p.wk.includes('ct'))).length;
+assert(G.stats.diverted > div13 && ctHits <= 4, `on CT Divert, stroke and head-injury alerts go elsewhere (${G.stats.diverted - div13} diverted, ${ctHits} came anyway)`);
+G.out.ct.until = G.t;
+run(2);
+assert(!OC.outActive('ct') && !OC.justified('ct'), 'scanner fixed: CT Divert is no longer justified');
+const extra0 = G.stats.divertExtra;
+run(12);
+assert(G.stats.divertExtra > extra0, `staying on CT Divert after the fix costs extra (${G.stats.divertExtra - extra0} min)`);
+OC.setDivert('ct', false);
+
+G = fresh(1414);
+const right0 = G.stats.outRight;
+OC.startOutage('cath');
+run(3);
+OC.setDivert('stemi', true);
+assert(G.stats.outRight === right0 + 1 && G.stats.outLog[0].divertAt != null, 'STEMI Divert within minutes of the cath lab going down: credited');
+G = fresh(1515);
+OC.startOutage('cath'); G.out.cath.until = 1e9;
+let stemiTx = null;
+forceAlerts(600, () => { OC.botStep({ budget: 3, divert: false }); return (stemiTx = OC.active().find(p => p.alert === 'stemi' && p.dispo === 'transfer')); });
+assert(stemiTx && stemiTx.txTo === 'another PCI center', 'with the cath lab down, a STEMI that came anyway has to be transferred');
+
+G = fresh(1616);
+let labP = null;
+run(300, () => { OC.botStep({ budget: 3 }); return (labP = OC.active().find(p => p.work.lab && p.work.lab.st === 'run')); });
+if (labP) {
+  OC.startOutage('lab'); G.out.lab.until = G.t + 40;
+  run(30);
+  assert(labP.loc === 'gone' || labP.work.lab.st === 'run', 'with the lab down, results do not come back');
+  run(15);
+  assert(labP.loc === 'gone' || labP.work.lab.st === 'done', 'once the lab is fixed, results come back');
 }

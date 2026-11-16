@@ -295,6 +295,14 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .dv.red button { border-color: var(--bad); background: var(--bad); color: #fff; }
 .dv.on button { border-color: var(--ink); background: var(--paper); color: var(--ink); }
 .dv.yellow.on { border-color: #C99A0A; background: #FFF6D6; }
+.dv.ct button, .dv.stemi button, .dv.trauma button { border-color: var(--ink); background: var(--ink); color: #fff; }
+.dv.disaster button { border-color: #7E1422; background: #7E1422; color: #fff; }
+.dv.ct.on, .dv.stemi.on, .dv.trauma.on, .dv.disaster.on { border-color: var(--bad); background: #FDECEE; }
+.dv p i { color: var(--ink); font-style: italic; }
+.dv-out { display: grid; gap: 4px; margin: 4px 0 10px; padding: 10px 12px; border-radius: 10px; background: #2A0E14; color: #FFDCE1; }
+.dv-out b { color: #fff; font-size: 15px; }
+.ob.down { background: #2A0E14; color: #FFDCE1; font-weight: 700; }
+.hb.alarm { border-color: #FF9191; animation: blink .8s steps(2) infinite; }
 .dv.red.on { border-color: var(--bad); background: #FDECEE; }
 .sheet h4 { margin: 14px 0 6px; color: var(--ink-3); font: 700 12px/1 var(--ui); letter-spacing: .7px; text-transform: uppercase; }
 .slist { display: grid; gap: 6px; }
