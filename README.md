@@ -21,6 +21,8 @@ Along the way: nursing ratios, staff morale and breaks, call-outs and sick staff
 
 A shift takes about 30 minutes at 1x, with 2x to 4x for quiet stretches. It saves on your device so you can come back to it.
 
+![Title screen, a Box consult, a patient card, and the shift report](docs/screenshots/title-box-report.png)
+
 ## Box consult packs
 
 - **General** (default): common online medical control questions, not tied to one state.
