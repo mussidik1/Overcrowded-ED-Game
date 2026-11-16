@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B2230">
+<title>Overcrowded ED</title>
+<style>
+/*FONTS*/
+/*STYLE*/
+</style>
+</head>
+<body>
+<div class="ghosts" aria-hidden="true">
+  <span style="top:31%;left:4%;transform:rotate(-6deg)">rm 6 → 4W ✓</span>
+  <span style="top:52%;right:3%;transform:rotate(4deg)">call ortho!!</span>
+  <span style="top:71%;left:10%;transform:rotate(-3deg)">EVS x4112</span>
+  <span style="top:88%;right:12%;transform:rotate(-8deg)">NO hallway beds!!</span>
+</div>
+<div class="app">
+  <div class="top" id="top">
+    <header class="hud">
+      <div class="hud-top">
+        <div class="brand">Overcrowded<small>Charge RN</small></div>
+        <div class="clock" id="clock" aria-label="Clock">07:00</div>
+        <div class="hud-btns">
+          <button type="button" class="hb" id="btnYellow" data-act="yellow" aria-label="Divert status">Divert</button>
+          <button type="button" class="hb" id="btnSpeed" data-act="speed" aria-label="Game speed">1×</button>
+          <button type="button" class="hb" id="btnPause" data-act="pause" aria-label="Pause">II</button>
+        </div>
+      </div>
+      <div class="pills">
+        <button type="button" class="pill" id="pWait" data-act="pill" data-arg="wait"><b>—</b><span>Avg wait</span></button>
+        <button type="button" class="pill" id="pCare" data-act="pill" data-arg="care"><b>0</b><span>Pt mgmt</span></button>
+        <button type="button" class="pill" id="pStaff" data-act="pill" data-arg="staff"><b>—</b><span>Staff</span></button>
+        <button type="button" class="pill" id="pLwbs" data-act="pill" data-arg="lwbs"><b>0</b><span>LWBS</span></button>
+        <button type="button" class="pill" id="pWall" data-act="pill" data-arg="wall"><b>0</b><span>Wall</span></button>
+      </div>
+      <div class="shiftbar"><i id="shiftProg"></i></div>
+    </header>
+    <div class="boxbar" id="boxbar"></div>
+    <div class="objs" id="objs" hidden></div>
+    <nav class="zbar" id="zbar" aria-label="Jump to a pod"></nav>
+    <div class="selbar" id="selbar" hidden></div>
+  </div>
+  <div class="cols">
+    <main>
+      <section class="intake" id="intake" aria-label="Patients waiting for a bed">
+        <div class="istaff" id="istaff" aria-label="Intake staff"></div>
+        <div class="lane">
+          <div class="lane-h"><span class="lane-t">Ambulance bay</span><span class="lane-i" id="emsInfo"></span></div>
+          <div class="lane-row" id="laneEms"></div>
+        </div>
+        <div class="lane">
+          <button type="button" class="lane-h" data-act="zone" data-arg="triage"><span class="lane-t">Waiting room</span><span class="lane-i" id="waitInfo"></span></button>
+          <div class="lane-row" id="laneWait"></div>
+        </div>
+      </section>
+      <section class="board" id="board" aria-label="Bed board"></section>
+      <section class="logwrap"><h3>Radio log</h3><ol class="log" id="log"></ol></section>
+    </main>
+    <aside class="side" id="side" aria-label="Team"></aside>
+  </div>
+  <nav class="dock" id="dock" aria-label="Providers">
+    <div class="dock-prov" id="dockProv"></div>
+    <button type="button" class="dock-team" id="dockTeam" data-act="team">Team</button>
+  </nav>
+</div>
+<div class="sheet-wrap" id="sheetWrap" hidden><div class="sheet-bg" data-act="closeSheet"></div><div class="sheet" role="dialog" aria-modal="true"><button type="button" class="x sheet-x" data-act="closeSheet" aria-label="Close">✕</button><div class="sheet-body" id="sheet"></div></div></div>
+<div class="modal-wrap" id="modalWrap" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="screen" id="title"></div>
+<div class="screen" id="report" hidden></div>
+<script>
+/*ENGINE*/
+</script>
+<script>
+/*UI*/
+</script>
+</body>
+</html>
