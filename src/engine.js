@@ -1032,6 +1032,183 @@ function taskDone(s, k) {
   else if (k.type === 'pitdc') { if (p.loc === 'waiting') { G.stats.pitDc++; note(`${s.short} discharged ${p.name} from triage`); leave(p, 'dc'); } }
 }
 /* ---------- physician mode: the player writes the orders ---------- */
+// What the attending finds at the bedside, one line per case. Shown on the card after the exam.
+const EXAM = {
+  rash: 'Red, itchy patches where a new watch band sits. Lips and throat are not swollen.',
+  refill: 'Feels fine. Blood pressure a little high. No headache, no chest pain.',
+  otitis: 'Red, bulging eardrum. No swelling behind the ear.',
+  dental: 'Swollen gum beside a broken molar. Mouth opens fully. Swallows fine.',
+  strep: 'Red throat, white patches on the tonsils, tender neck glands. No cough.',
+  ankle: 'Swollen outer ankle, tender on the bone. Limps.',
+  lac: 'A 3 cm clean cut on the palm. Fingers move and feel normal.',
+  uti: 'Tender low over the bladder. No flank pain. No fever.',
+  gastro: 'Soft belly, mildly tender all over. Dry mouth. No guarding.',
+  appy: 'Tender in the right lower belly. Worse when you let go.',
+  chole: 'Tender under the right ribs. The breath catches when you press there.',
+  hipfx: 'Leg shortened and turned outward. Cannot lift it. Foot pulse is good.',
+  pna: 'Crackles at the right base. Breathing fast. Looks tired.',
+  copd: 'Wheezing, long breath out, neck muscles working. Drowsy.',
+  chf: 'Crackles halfway up both lungs. Swollen legs. Neck veins up.',
+  stone: 'Cannot hold still. Tender in the flank. Belly soft.',
+  dvt: 'One calf swollen, warm, and tender. Breathing is easy.',
+  migraine: 'Light hurts. Neck moves freely. Strength, speech, and vision normal. Feels like past migraines.',
+  tb: 'Thin. Crackles at the top of one lung. Needs an isolation room.',
+  bh: 'Tearful and cooperative. No injuries. Vital signs normal.',
+  etoh: 'Smells of alcohol. Slurred speech. Wakes to voice. No head injury found.',
+  od: 'Slow, shallow breathing. Pinpoint pupils. Wakes to a firm rub, then drifts off.',
+  cell: 'Red, hot, swollen shin with spreading edges. No pus pocket.',
+  syncope: 'Fainted after standing a long time and felt it coming. Heart and nerve exam normal.',
+  synchigh: 'Passed out with no warning. Heart sounds normal. Nerve exam normal.',
+  tia: 'Strength, speech, and face are normal now. The numbness lasted 20 minutes.',
+  dehyd: 'Dry mouth. Dizzy on standing, and the pulse jumps. Belly soft.',
+  cpmod: 'Pain free now. Lungs clear. Has diabetes and high blood pressure.',
+  cwp: 'Sharp pain, worse when you press on the chest wall. Lungs clear.',
+  nstemi: 'Pale and sweating. The pressure spreads to the left arm. Lungs clear.',
+  afib: 'Fast, irregular pulse. Lungs clear. Blood pressure holding.',
+  chb: 'Very slow pulse. Pale. Lightheaded sitting up. Lungs clear.',
+  gib: 'Pale. Fast pulse. Tender high in the middle of the belly.',
+  dka: 'Deep, fast breathing. Fruity breath. Very dry mouth.',
+  asthma: 'Wheezing on both sides. Speaks in short phrases. Chest muscles working.',
+  anaph: 'Hives, swollen lips, hoarse voice, wheezing.',
+  sepsisw: 'Hot and confused. Fast pulse. Tender over the bladder.',
+  strokew: 'One side of the face droops. Slurred speech. One arm drifts down.',
+  stemi: 'Gray, sweating, clutching the chest. Lungs clear.',
+  stroke: 'Right arm and leg do not move. Right face droops. Speech is hard to follow.',
+  lvo: 'Eyes pulled to one side. No speech. One side does not move.',
+  mvc: 'Pale, cold skin. Belly hard and tender on the left. Fast, weak pulse.',
+  tfall: 'Bruise over the temple. Getting sleepier. One pupil larger than the other.',
+  moto: 'Thigh bent, bone through the skin. Foot pulse weak. Pale.',
+  arrest: 'No pulse. CPR in progress.',
+  shock: 'Hot, mottled skin. Confused. Fast, weak pulse.',
+  rsv: 'Ribs pulling in, nose flaring, grunting. Feeding poorly.',
+  burn: 'Soot in the nose and mouth. Hoarse voice. Blistered burns on the arms and chest.',
+  mcired: 'Belly rigid, tender under the right ribs. Pale and cold.',
+  mciyel: 'Thigh swollen and bent. Skin intact. Foot pulse good.',
+  mcimin: 'Tender on the bones in the middle of the neck. Arms and legs strong.',
+  mcigrn: 'Shallow cuts on the forearm. Bruised shoulder that moves fully.',
+  mciwr: 'Swollen, tender wrist with a bend near the thumb side. Fingers move and feel normal.',
+};
+// Why the right order set is the right one, one line per case. Shown once the diagnosis is known and on the shift report.
+const ORD_WHY = {
+  rash: 'No tests. A contact rash needs a cream and an antihistamine.',
+  refill: 'Nothing to order. No symptoms: refill the prescription and discharge.',
+  otitis: 'No tests. You can see the infection. Treat it.',
+  dental: 'No tests. Antibiotic and pain control, then a dentist.',
+  strep: 'A rapid strep swab proves it. Then penicillin.',
+  ankle: 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.',
+  lac: 'No tests. Clean it and stitch it.',
+  uti: 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.',
+  gastro: 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.',
+  appy: 'Labs and a CT find the appendix. Pain control, then General Surgery.',
+  chole: 'Ultrasound is the first look at a gallbladder, not CT. Labs, pain control, General Surgery.',
+  hipfx: 'X-ray shows the break. Labs get the patient ready for surgery. Pain control, then Orthopedics.',
+  pna: 'Chest X-ray finds it. Labs show how sick. Oxygen and antibiotics.',
+  copd: 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP.',
+  chf: 'ECG looks for a heart attack as the cause. X-ray shows the fluid. BiPAP and a water pill.',
+  stone: 'Urine and a CT find the stone. Pain control and fluids.',
+  dvt: 'Ultrasound finds the clot. Labs check the kidneys before a blood thinner.',
+  migraine: 'No tests. A usual migraine with a normal nerve exam gets fluids and medication.',
+  tb: 'Chest X-ray and labs. Isolate first. Treatment starts upstairs.',
+  bh: 'Labs for medical clearance. Then Psychiatry.',
+  etoh: 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.',
+  od: 'Naloxone first. Labs after. Watch for the naloxone wearing off.',
+  cell: 'Labs show how sick. IV antibiotics. No scan without a pus pocket.',
+  syncope: 'Every faint gets an ECG. Both tests normal, with a warning beforehand: home.',
+  synchigh: 'Every faint gets an ECG. A new block with no warning is the heart until proven otherwise: observe.',
+  tia: 'CT rules out a bleed. ECG looks for A-fib. Observe: stroke risk is highest in the first two days.',
+  dehyd: 'Labs show the kidneys are dry. Fluids fix it.',
+  cpmod: 'ECG, troponin, chest X-ray, aspirin. The risk factors earn a second troponin in observation.',
+  cwp: 'ECG, troponin, chest X-ray, aspirin. All normal and low risk: home.',
+  nstemi: 'ECG and troponin make the diagnosis. Aspirin and a blood thinner. Cardiology.',
+  afib: 'ECG names the rhythm. Labs. Medication to slow the rate. Cardiology.',
+  chb: 'ECG shows the block. Labs check the potassium. Pace now. Cardiology.',
+  gib: 'Labs with a blood type. Fluids, then blood. GI for a scope.',
+  dka: 'Labs show the sugar and the acid. Fluids first, then insulin. ICU.',
+  asthma: 'No tests. Breathing treatments and steroids.',
+  anaph: 'No tests. Epinephrine first. Then the other medications.',
+  sepsisw: 'Labs with a lactate. Fluids and antibiotics inside the hour.',
+  strokew: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology.',
+  stroke: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology.',
+  lvo: 'CT finds the blocked artery. Clot-busting drug, then transfer to a center that removes clots.',
+  stemi: 'The ECG is the diagnosis. Aspirin. Cardiology and the cath lab. Do not wait for the troponin.',
+  mvc: 'Chest X-ray and a bedside ultrasound. Labs. Massive transfusion. CT maps the injury. Trauma surgery.',
+  tfall: 'Head CT finds the bleed. The INR shows the blood thinner. Reverse it. Trauma.',
+  moto: 'X-ray and labs. Early antibiotics for bone through skin. Blood. Trauma and the OR.',
+  arrest: 'No orders. Run the code.',
+  shock: 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids are not enough. ICU.',
+  rsv: 'A blood gas shows the baby is tiring. High-flow oxygen. Transfer to a children\'s hospital.',
+  burn: 'Secure the airway before it swells shut. Ventilator, fluids, pain control. Burn center.',
+  mcired: 'Chest X-ray and a bedside ultrasound. Labs. Massive transfusion. CT maps the injury. Trauma surgery.',
+  mciyel: 'X-ray and labs. Pain control and fluids. Orthopedics.',
+  mcimin: 'Tender on the neck bones means imaging. Both clean: pain control and home.',
+  mcigrn: 'No tests. Clean and close the cuts.',
+  mciwr: 'X-ray shows the break. Pain control, a splint, and home.',
+};
+// Test results in plain words. Shown after the result when "Plain words" is on.
+const FIND_PLAIN = {
+  'Rapid strep positive': 'strep bacteria found', 'No fracture': 'no broken bone', 'Urine: nitrite positive': 'bacteria in the urine',
+  'WBC 15.8': 'white cells high: infection or inflammation', 'Inflamed appendix': 'appendicitis',
+  'WBC 13.1, liver tests up': 'white cells high; bile is backing up', 'Gallstones, thick gallbladder wall': 'an inflamed gallbladder',
+  'Femoral neck fracture': 'a broken hip', 'Hgb 11.9': 'blood count a little low', 'WBC 17.2': 'white cells high: infection',
+  'Right lower lobe infiltrate': 'pneumonia low in the right lung', 'Hyperinflated, no pneumonia': 'over-full lungs, no infection',
+  'VBG pCO2 58': 'CO2 building up: not breathing enough out', 'Sinus tach, old Q waves': 'fast and regular; a scar from an old heart attack',
+  'Pulmonary edema': 'fluid in the lungs', 'BNP 2,400': 'heart strain marker very high', '4 mm ureteral stone': 'a small stone; most pass on their own',
+  'Femoral vein clot': 'a clot in the big thigh vein', 'Cavity in the upper lobe': 'a hole in the lung: classic for TB', 'WBC 11.4': 'white cells a little high',
+  'Medically cleared': 'no medical cause found', 'Ethanol 280, glucose normal': 'very drunk; sugar is fine', 'Fentanyl positive': 'an opioid, confirmed',
+  'WBC 14.0': 'white cells high: infection', 'Normal sinus rhythm': 'a normal heartbeat', 'New bundle branch block': 'a new fault in the heart\'s wiring',
+  'No acute findings': 'nothing new or dangerous', 'BUN 34, creatinine 1.4': 'the kidneys are dry', 'Nonspecific ST changes': 'not normal, not a clear heart attack',
+  'First troponin negative': 'no heart damage yet; it gets repeated', 'Troponin negative': 'no heart damage', 'ST depression V4–V6': 'heart muscle short of blood',
+  'Troponin elevated': 'heart muscle damage', 'A-fib, rate 152': 'a fast, irregular heartbeat', 'Third-degree heart block, rate 38': 'top and bottom of the heart out of step; very slow',
+  'Potassium 4.4, troponin negative': 'potassium normal; no heart damage', 'Hemoglobin 6.8': 'blood count dangerously low', 'Glucose 540, anion gap 26': 'sugar very high; acid in the blood',
+  'Lactate 3.1, urine positive': 'organs short of oxygen; infection in the urine', 'No bleed': 'no bleeding in the brain',
+  'Glucose 118': 'sugar is not the cause', 'Glucose 132': 'sugar is not the cause', 'Glucose 141': 'sugar is not the cause',
+  'ST elevation V1–V4': 'a heart attack on the front wall', 'Troponin pending': 'not back yet; do not wait for it',
+  'No bleed; CTA shows M1 occlusion': 'no bleeding; a big brain artery is blocked', 'No pneumothorax, FAST positive': 'lungs are up; blood in the belly',
+  'Hemoglobin 8.1': 'blood count low and falling', 'Hemoglobin 7.9': 'blood count low and falling', 'Grade IV splenic laceration': 'a deep tear in the spleen',
+  'Acute subdural hematoma': 'bleeding on the surface of the brain', 'INR 2.9': 'thin blood: it clots slowly', 'Open femur fracture': 'a broken thigh bone, through the skin',
+  'Hemoglobin 9.4': 'blood count low', 'Lactate 5.4': 'organs badly short of oxygen', 'VBG pCO2 61': 'CO2 building up: tiring out',
+  'Carboxyhemoglobin 6%': 'some carbon monoxide from the smoke', 'Grade IV liver laceration': 'a deep tear in the liver', 'Midshaft femur fracture': 'a broken thigh bone',
+  'Hemoglobin 11.2': 'blood count a little low', 'No acute injury': 'no injury seen', 'Distal radius fracture': 'a broken wrist',
+};
+// Radio calls in plain words: [what they are asking, the plain reason]. Same order as the calls in SCEN.
+const RADIO_PLAIN = {
+  national: [
+    ['Chest pain with a low blood pressure. They want a drug that lowers pressure.', 'The pressure is already too low. Nitroglycerin drops it further.'],
+    ['Chest pain. He took an erection drug yesterday. They want nitroglycerin.', 'The two drugs together can crash the blood pressure.'],
+    ['No heartbeat after 25 minutes of full effort. They ask to stop.', 'A flat line that long, with everything tried, does not come back.'],
+    ['A clear-headed adult with a hurt ankle does not want to go.', 'An adult who understands the risk can say no.'],
+    ['His sugar is dangerously low and he is confused. He says no.', 'A brain without sugar cannot make the decision. Fix the sugar first.'],
+    ['A child has seized for 10 minutes. No IV. They want a seizure drug up the nose.', 'A long seizure has to stop now. The nose works when there is no IV.'],
+    ['A broken thigh bone, still in severe pain. Vital signs fine. They want more pain medication.', 'Stable and still hurting: treat the pain.'],
+    ['Signs of a big stroke, 45 minutes old. They want to drive 12 more minutes to a center that removes clots.', 'A big clot needs a center that can pull it out. The extra minutes are worth it.'],
+    ['A dialysis patient missed two sessions. The heart tracing shows high potassium.', 'High potassium can stop the heart. Calcium shields it. Albuterol lowers the potassium.'],
+    ['A severe allergic reaction, no better after one epinephrine shot.', 'Still wheezing with a low pressure: give epinephrine again.'],
+    ['Drunk, with a head cut after a fall. He wants to go home.', 'Alcohol plus a head injury: he cannot judge the risk.'],
+    ['A very slow heart and a low pressure. The first drug failed. They want to pace the heart from outside.', 'Too slow to hold a pressure, and the drug failed: pace.'],
+    ['A very fast, regular heartbeat. Pressure fine. Simple maneuvers failed.', 'Adenosine resets this rhythm. It is the next step.'],
+    ['Heart failure with fluid in the lungs and a very high pressure.', 'A pressure mask and nitroglycerin push the fluid back and ease the heart.'],
+  ],
+  miemss: [
+    ['A broken thigh bone, still 9 out of 10 after two doses. Vital signs fine.', 'Stable and still hurting: approve the third dose.'],
+    ['Chest pain after three nitroglycerin doses. Pressure still high.', 'The pressure can take another dose, and the pain is still there.'],
+    ['Her pressure fell a lot after one nitroglycerin. They want a second.', 'A big drop after one dose warns of a bigger drop after the next.'],
+    ['Tearing chest pain into the back. The two arms have different pressures. Very high pressure.', 'This looks like a tear in the body\'s main artery. Lowering the pressure protects it.'],
+    ['A stroke patient whose pressure is still very high after two doses.', 'Still over the limit: approve the next dose.'],
+    ['A stroke patient with a low pressure. They want fluid.', 'A brain short of blood needs pressure. Give the fluid.'],
+    ['Wildly agitated, overheated, fighting restraints. One sedative given.', 'Heat plus a fight against restraints can kill. Sedate and cool.'],
+    ['She hit her head, passed out, and repeats herself. She wants to go home.', 'Repeating questions means her brain is not working right. She cannot refuse.'],
+    ['A 16-year-old with a hurt ankle. No parent can be reached.', 'A minor cannot refuse on his own.'],
+    ['A 4-year-old with a racing heart and poor color. The drug failed. They want to shock the rhythm.', 'Poor blood flow and a failed drug: shock.'],
+    ['His heart restarted after an arrest. The tracing shows a heart attack. They want a hospital with a cath lab.', 'A blocked artery likely caused the arrest. A cath lab opens it.'],
+    ['Heart failure, but the tracing shows a heart attack on the right side. They want nitroglycerin.', 'A right-sided heart attack needs its filling pressure. Nitroglycerin takes that away.'],
+    ['Tongue and lip swelling from a blood pressure pill. Epinephrine did not work.', 'This swelling is not an allergy, so epinephrine fails. TXA is the next option.'],
+    ['Severe alcohol withdrawal, still shaking and seeing things after three doses.', 'Untreated, this leads to seizures. Approve another dose.'],
+    ['A heart attack. The nearest place is a small ED with no cath lab.', 'A heart attack needs a cath lab. Drive the extra 13 minutes.'],
+    ['A diabetic child, sugar still low and still drowsy after one dose of sugar.', 'Still low and still drowsy: give sugar again.'],
+    ['A baby with croup: noisy breathing at rest, ribs pulling in.', 'Noisy breathing at rest means a tight airway. Epinephrine mist opens it.'],
+    ['Severe infection, pressure still low after a full fluid load. Lungs clear.', 'Clear lungs can take more fluid, and the pressure needs it.'],
+  ],
+};
 const DX_PLAIN = {
   'Contact dermatitis': 'A skin reaction to something touched', 'Medication refill': 'Ran out of a regular medicine', 'Dental abscess': 'A pocket of infection at a tooth', 'Strep throat': 'A bacterial throat infection',
   'Ankle sprain': 'Stretched ligaments, no break', 'Simple laceration': 'A cut that needs stitches', 'Urinary tract infection': 'A bladder infection', 'Gastroenteritis': 'A stomach bug',
@@ -1054,6 +1231,7 @@ const DX_PLAIN = {
   'Anaphylactic shock': 'An allergic reaction that has dropped the blood pressure', 'Septic shock (urinary source)': 'A bladder infection that has dropped the blood pressure', 'Acute ischemic stroke, getting worse': 'A brain clot, and more brain is being lost',
   'Femur fracture with hemorrhagic shock': 'A broken thigh bone, bleeding heavily', 'ROSC after cardiac arrest': 'The heart is beating again after it stopped', 'Resuscitation unsuccessful': 'The team could not restart the heart',
 };
+const WK_NAME = { ecg: 'ECG', lab: 'Labs', xr: 'X-ray', ct: 'CT', us: 'Ultrasound' };
 const NORMAL = { ecg: 'Normal sinus rhythm', lab: 'Normal', xr: 'No acute findings', ct: 'No acute findings', us: 'Normal' };
 const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU', or: 'the OR', cath: 'the cath lab', bh: 'psychiatric admission', transfer: 'a transfer', obs: 'observation' };
 // What the drug in "Medications" was, for each case that needs one.
@@ -1083,17 +1261,18 @@ function signOrders(pid, tests, treats) {
   const newR = (treats || []).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
   if (!newT.length && !newR.length && !(first && R.wk.every(k => p.wk.includes(k)) && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
   let pts = 0, extra = 0;
+  const xl = [];
   for (const k of newT) {
     p.wk.push(k);
-    if (R.wk.includes(k)) { pts += 2; S.ordRight++; } else { pts -= k === 'ct' ? 8 : 3; extra++; S.ordExtra++; if (!p.find[k]) p.find[k] = NORMAL[k]; }
+    if (R.wk.includes(k)) { pts += 2; S.ordRight++; } else { pts -= k === 'ct' ? 8 : 3; extra++; S.ordExtra++; xl.push(WK_NAME[k]); if (!p.find[k]) p.find[k] = NORMAL[k]; }
   }
   for (const k of newR) {
-    if (k === 'mtp') { const r = activateMTP(p.id); if (!r.ok && p.bleed !== 'mtp') { pts -= 3; extra++; S.ordExtra++; continue; } }
+    if (k === 'mtp') { const r = activateMTP(p.id); if (!r.ok && p.bleed !== 'mtp') { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); continue; } }
     p.tr.push(k);
     if (k === 'intub' && !p.tr.includes('vent')) p.tr.push('vent');
     if (R.tr.includes(k)) { pts += 3; S.ordRight++; }
     else if (k === 'o2' && vitalsOf(p).spo2 < 94) { /* a low sat gets oxygen: never wrong, even when something else will fix it */ }
-    else { pts -= 3; extra++; S.ordExtra++; (p.extraTr = p.extraTr || []).push(k); if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
+    else { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); (p.extraTr = p.extraTr || []).push(k); if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
   }
   let held = '';
   if (newR.includes('tnk') && R.tr.includes('tnk') && !p.tr.includes('bp') && !bpOkForLytic(p)) {   // the nurse will not push it over the limit
@@ -1105,6 +1284,11 @@ function signOrders(pid, tests, treats) {
     const miss = R.wk.filter(k => !p.wk.includes(k)).length + R.tr.filter(k => !p.tr.includes(k)).length;
     S.ordMiss += miss;
     if (!miss && !extra) { pts += 10; S.clean++; }
+    p.ordLog = { name: p.name, dx: p.dx, miss: R.wk.filter(k => !p.wk.includes(k)).map(k => WK_NAME[k]).concat(R.tr.filter(k => !p.tr.includes(k)).map(k => TREAT[k].label)), extra: xl.slice(), why: ORD_WHY[p.ck] || '' };
+    if (p.ordLog.miss.length || xl.length) (S.log = S.log || []).push(p.ordLog);
+  } else if (xl.length && p.ordLog) {
+    if (!p.ordLog.miss.length && !p.ordLog.extra.length) (S.log = S.log || []).push(p.ordLog);
+    p.ordLog.extra.push(...xl);
   }
   care(pts, 'orders', p);
   p.ord = 'signed';
@@ -1757,7 +1941,7 @@ function consult(pid, spec) {
   if (p.con !== spec) {
     if (mdMine(p) && !p.con) G.stats.md.dispoWrong++;
     m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-10, 'consult', p); G.stats.wrongSpec++; provHit(p, 3); sound('bad');
-    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? `Why is ${S.name.toLowerCase()} getting this call? Not ours.` : 'This patient does not need a consult. Send them home.'}"` };
+    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? `Why is ${S.name.toLowerCase()} getting this call? Not ours. Call ${SPECS[p.con].name}.` : 'This patient does not need a consult. Send them home.'}"` };
   }
   // EMS-activated STEMI, stroke, and trauma alerts can call their team on the field report alone
   const miss = (p.alertOn && ALERTS[p.alert] && ALERTS[p.alert].auto) ? [] : p.pre.filter(k => !(p.work[k] && p.work[k].st === 'done'));
@@ -3185,5 +3369,7 @@ const OC = {
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };
 root.OC = OC;
+for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } });
+Object.assign(OC, { EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && EXAM[p.ck]) || '', whyOf: p => (p && ORD_WHY[p.ck]) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);

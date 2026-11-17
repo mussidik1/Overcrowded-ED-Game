@@ -77,6 +77,8 @@ def run():
         ok(J(f"OC.pt('{pid}').ord") == 'need', 'exam done: orders needed')
         open_pt(pid)
         ok(page.locator('#sheet [data-act="ordT"]').count() >= 15, 'the order sheet lists tests and treatments')
+        ex = J(f"OC.examOf(OC.pt('{pid}'))")
+        ok(ex and ex in page.inner_text('#sheet .ph-cc'), f'the card shows what the exam found: {ex}')
         right = J(f"(() => {{ const p = OC.pt('{pid}'); return {{ wk: p.right.wk.filter(k => !p.wk.includes(k)), tr: p.right.tr.filter(k => !p.tr.includes(k)), dx: p.dx }}; }})()")
         for k in right['wk']: tap(f'#sheet [data-act="ordT"][data-arg="{pid}|t|{k}"]')
         for k in right['tr']: tap(f'#sheet [data-act="ordT"][data-arg="{pid}|r|{k}"]')
@@ -90,6 +92,12 @@ def run():
         # ---------- make the call ----------
         sim(240, f"(() => {{ const p = OC.pt('{pid}'); return p.dsp === 'mddecide' || p.dsp === 'decide' || !!p.mdPick || p.loc === 'gone'; }})()")
         st = J(f"(() => {{ const p = OC.pt('{pid}'); return {{ dsp: p.dsp, pick: p.mdPick || null, want: p.dispo, con: p.con || null, gray: p.gray ? p.gray.right : null, loc: p.loc }}; }})()")
+        if st['dsp'] == 'mddecide' and not st['gray']:
+            open_pt(pid)
+            why = J(f"OC.whyOf(OC.pt('{pid}'))")
+            ok(why and why in page.inner_text('#sheet'), 'with the diagnosis in, the card says why that workup was the right one')
+            pl = J(f"(() => {{ const p = OC.pt('{pid}'); return Object.values(p.find).map(f => OC.FIND_PLAIN[f]).filter(Boolean); }})()")
+            ok(all(x in page.inner_text('#sheet') for x in pl), f'results carry plain words: {pl}')
         if st['dsp'] in ('mddecide', 'decide'):
             open_pt(pid)
             page.screenshot(path=f'{OUT}/md_03_decide.png')

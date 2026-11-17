@@ -19,20 +19,31 @@ with sync_playwright() as pw:
     page.locator(f'[data-act="mode"][data-arg="{MODE}"]').tap(); page.wait_for_timeout(300)
     if LESSON:
         page.locator('#title [data-act="lessons"]').tap(); page.wait_for_timeout(400)
-        if page.locator('#sheet [data-act="lesson"]').count() != 6: errors.append('the Lessons list does not show six lessons')
+        if page.locator('#sheet [data-act="lesson"]').count() != 8: errors.append('the Lessons list does not show eight lessons')
         page.locator(f'#sheet [data-act="lesson"][data-arg="{LESSON}"]').tap(); page.wait_for_timeout(500)
         ok_start = J('OC.G.level') == 'train' and J('OC.G.mode') == 'md' and J('OCUI.coach().lesson') == LESSON and J('OC.active().length') == 0 and J('OCUI.U.mode') == MODE
         if not ok_start: errors.append(f'the {LESSON} lesson did not start as the attending on an empty board, leaving the title role alone')
+    elif os.environ.get('CHAPTER'):
+        # CHAPTER=2 starts at the second chapter, from the chapter list a returning player sees
+        ch = int(os.environ['CHAPTER']) - 1
+        J(f"localStorage.setItem('oc-ch-{MODE}-0', '1')"); page.goto(URL); page.wait_for_timeout(1000)
+        page.locator(f'[data-act="mode"][data-arg="{MODE}"]').tap(); page.wait_for_timeout(300)
+        page.locator('#title [data-act="chapters"]').tap(); page.wait_for_timeout(400)
+        want = 3 if MODE == 'md' else 4
+        if page.locator('#sheet [data-act="chapter"]').count() != want: errors.append(f'the chapter list does not show {want} chapters')
+        page.locator(f'#sheet [data-act="chapter"][data-arg="{ch}"]').tap(); page.wait_for_timeout(500)
+        c0 = J('OCUI.coach()')
+        if not (J('OC.G.level') == 'train' and J('OC.G.mode') == MODE and c0 and c0['ch'] == ch and J('OC.active().length') <= 2): errors.append(f'chapter {ch + 1} did not start at its own first step')   # its own patient may already be here
     else:
         page.locator('button.lvl[data-arg="train"]').tap(); page.wait_for_timeout(500)
         ok_start = J('OC.G.level') == 'train' and J('OC.G.mode') == MODE and J('OC.active().length') == 0
         if not ok_start: errors.append('Orientation did not start on an empty board')
-    last, same, taps, shots, words = -1, 0, 0, set(), []
+    last, same, taps, shots, words = None, 0, 0, set(), []
     for it in range(600):
         c = J('OCUI.coach()')
         if not c: errors.append('preceptor vanished'); break
-        if c['i'] != last:
-            log.append(f"{c['i'] + 1:>2}/{c['n']} {c['id']}"); last, same = c['i'], 0
+        if (c['i'], c.get('brk')) != last:
+            log.append(f"{c['i'] + 1:>2}/{c['n']} {c['id']}" + (f" (after chapter {c['brk']})" if c.get('brk') is not None else '')); last, same = (c['i'], c.get('brk')), 0
             if os.environ.get('TRACE'): print(log[-1], flush=True)
             # every prompt is drawn with its key words in bold: no stars or brackets left showing, and no card with nothing bold in it
             card = J("(() => { const p = document.querySelector('.coach-c p'); return p ? { t: p.innerText, b: p.querySelectorAll('b').length } : null; })()")
@@ -76,7 +87,7 @@ with sync_playwright() as pw:
         if missed: errors.append(f'following the {LESSON} lesson missed a time goal: {missed}')
         nxt = page.locator('[data-act="lessonNext"]')
         page.locator('[data-act="coachDone"]').first.tap(); page.wait_for_timeout(500)
-        if not (J("localStorage.getItem('oc-lesson-" + LESSON + "')") == '1' and page.is_visible('#title') and '1 of 6' in page.inner_text('#title [data-act="lessons"]')): errors.append('finishing the lesson did not mark it done on the title')
+        if not (J("localStorage.getItem('oc-lesson-" + LESSON + "')") == '1' and page.is_visible('#title') and '1 of 8' in page.inner_text('#title [data-act="lessons"]')): errors.append('finishing the lesson did not mark it done on the title')
         if J("localStorage.getItem('oc-trained-md')") or J("localStorage.getItem('oc-trained')"): errors.append('a lesson marked Orientation as done')
         print('goals:', goals)
     print('\n'.join(log))

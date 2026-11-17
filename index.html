@@ -528,7 +528,7 @@ body.mapmode .boxbar .bx-btn { height: 36px; }
 /* things that float over the floor: goals, the selection, toasts, the preceptor */
 body.mapmode .objs { position: fixed; z-index: 27; top: calc(var(--topH, 60px) + 5px); right: calc(var(--railR, 0px) + 5px); flex-direction: column; align-items: flex-end; gap: 3px; max-width: 46vw; padding: 0; overflow: visible; border: 0; background: transparent; pointer-events: none; }
 body.mapmode .objs > * { pointer-events: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
-body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 86px); bottom: calc(var(--dockH, 0px) + 6px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + (100vw - var(--railL, 0px) - var(--railR, 0px)) * .36); padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
+body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 131px); bottom: calc(var(--dockH, 0px) + 6px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + (100vw - var(--railL, 0px) - var(--railR, 0px)) * .36); padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
 body.mapmode .toasts { top: env(safe-area-inset-top); right: var(--tsR, 120px); bottom: auto; left: var(--tsL, 230px); display: grid; place-items: center; height: calc(var(--topH, 60px) - env(safe-area-inset-top)); padding: 2px 3px; gap: 0; }
 body.mapmode .toast { grid-area: 1 / 1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; width: 100%; max-width: 620px; max-height: 100%; padding: 4px 12px; border-radius: 9px; font-size: 14px; line-height: 1.22; text-align: center; box-shadow: 0 0 0 2px var(--frame), 0 2px 8px rgba(0, 0, 0, .35); }
 body.mapmode .coach { right: calc(var(--railR, 0px) + 10px); bottom: calc(var(--dockH, 70px) + 10px + env(safe-area-inset-bottom)); left: auto; width: min(420px, calc(100vw - 24px)); margin: 0; }
@@ -815,6 +815,24 @@ body.mapmode.ingame .needbtn.inrail .nb-n b { display: block; font-size: 19px; l
 /* list board: in a narrow room tile the name tag keeps its own width and the age and chips wrap under it (it used to be squeezed to a sliver) */
 .room .who { flex-wrap: wrap; row-gap: 2px; }
 .room .who b.pn { flex: 0 1 auto; min-width: 2.4em; }
+.ph-cc > div > span { color: #4F5A6B; }   /* card labels: darker (they were 3.5:1) */
+.hint.why { margin: 0 0 8px; color: var(--ink); font-weight: 500; }
+.hint.why .xtra { display: block; color: var(--bad); }
+.scen-p { margin: -2px 0 12px; padding: 8px 10px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: rgba(27, 34, 48, .05); font-size: 15px; line-height: 1.35; }
+.scen-c { color: var(--ink-2); font-size: 14px; line-height: 1.35; }
+.wsearch { position: sticky; top: 0; z-index: 1; padding: 4px 58px 8px 0; background: var(--paper); }   /* stops short of the close button, which stays on top */
+.wsearch input { width: 100%; height: 44px; padding: 0 12px; border: 1.5px solid rgba(27, 34, 48, .45); border-radius: 10px; background: #fff; color: var(--ink); font: 500 16px/1 var(--body); }
+.star-key { margin: 0 0 6px; color: var(--ink-2); font-size: 13.5px; text-align: center; }
+.star-key b { color: var(--ink); }
+.rep-more { margin: 12px 0 0; }
+.rep-more > summary { padding: 11px 12px; border: 1.5px solid rgba(27, 34, 48, .3); border-radius: 10px; font-weight: 700; cursor: pointer; }
+.rep-more[open] > summary { margin-bottom: 4px; }
+.ordlog { margin: 0; padding: 0; list-style: none; }
+.ordlog li { padding: 8px 0; border-top: 1px solid var(--line, #E3E0D8); font-size: 14.5px; line-height: 1.35; }
+.ordlog li > span { display: block; }
+.ordlog .ol-m, .ordlog .ol-x { color: var(--bad); font-weight: 600; }
+.ordlog .ol-w { color: var(--ink-2); }
+@media print { .rep-more > summary { display: none; } }
 .dxp { display: block; margin-top: 1px; color: var(--ink-2); font: 500 .86em/1.25 var(--body); }
 /* Lessons: the row on the title and the list of six */
 .lvl.lsn { border-color: #0D716E; }
@@ -901,7 +919,7 @@ body.ingame { touch-action: pan-x pan-y; }
   </div>
   <button type="button" class="needbtn" id="needBtn" data-act="needNext"></button>
   <nav class="rail-l" id="railL" aria-label="Intake staff"></nav>
-  <div class="mzoom" id="mzoom" aria-label="Zoom the floor plan"><button type="button" data-act="zoom" data-arg="in" aria-label="Zoom in">+</button><button type="button" data-act="zoom" data-arg="out" aria-label="Zoom out">−</button><button type="button" id="mzFit" data-act="zoom" data-arg="fit" aria-label="Show the whole floor" hidden>⤢</button></div>
+  <div class="mzoom" id="mzoom" aria-label="Zoom the floor plan"><button type="button" data-act="legend" aria-label="What the icons mean">?</button><button type="button" data-act="zoom" data-arg="in" aria-label="Zoom in">+</button><button type="button" data-act="zoom" data-arg="out" aria-label="Zoom out">−</button><button type="button" id="mzFit" data-act="zoom" data-arg="fit" aria-label="Show the whole floor" hidden>⤢</button></div>
   <nav class="dock" id="dock" aria-label="Providers">
     <div class="dock-prov" id="dockProv"></div>
     <button type="button" class="dock-team" id="dockTeam" data-act="team">Team</button>
@@ -1950,6 +1968,183 @@ function taskDone(s, k) {
   else if (k.type === 'pitdc') { if (p.loc === 'waiting') { G.stats.pitDc++; note(`${s.short} discharged ${p.name} from triage`); leave(p, 'dc'); } }
 }
 /* ---------- physician mode: the player writes the orders ---------- */
+// What the attending finds at the bedside, one line per case. Shown on the card after the exam.
+const EXAM = {
+  rash: 'Red, itchy patches where a new watch band sits. Lips and throat are not swollen.',
+  refill: 'Feels fine. Blood pressure a little high. No headache, no chest pain.',
+  otitis: 'Red, bulging eardrum. No swelling behind the ear.',
+  dental: 'Swollen gum beside a broken molar. Mouth opens fully. Swallows fine.',
+  strep: 'Red throat, white patches on the tonsils, tender neck glands. No cough.',
+  ankle: 'Swollen outer ankle, tender on the bone. Limps.',
+  lac: 'A 3 cm clean cut on the palm. Fingers move and feel normal.',
+  uti: 'Tender low over the bladder. No flank pain. No fever.',
+  gastro: 'Soft belly, mildly tender all over. Dry mouth. No guarding.',
+  appy: 'Tender in the right lower belly. Worse when you let go.',
+  chole: 'Tender under the right ribs. The breath catches when you press there.',
+  hipfx: 'Leg shortened and turned outward. Cannot lift it. Foot pulse is good.',
+  pna: 'Crackles at the right base. Breathing fast. Looks tired.',
+  copd: 'Wheezing, long breath out, neck muscles working. Drowsy.',
+  chf: 'Crackles halfway up both lungs. Swollen legs. Neck veins up.',
+  stone: 'Cannot hold still. Tender in the flank. Belly soft.',
+  dvt: 'One calf swollen, warm, and tender. Breathing is easy.',
+  migraine: 'Light hurts. Neck moves freely. Strength, speech, and vision normal. Feels like past migraines.',
+  tb: 'Thin. Crackles at the top of one lung. Needs an isolation room.',
+  bh: 'Tearful and cooperative. No injuries. Vital signs normal.',
+  etoh: 'Smells of alcohol. Slurred speech. Wakes to voice. No head injury found.',
+  od: 'Slow, shallow breathing. Pinpoint pupils. Wakes to a firm rub, then drifts off.',
+  cell: 'Red, hot, swollen shin with spreading edges. No pus pocket.',
+  syncope: 'Fainted after standing a long time and felt it coming. Heart and nerve exam normal.',
+  synchigh: 'Passed out with no warning. Heart sounds normal. Nerve exam normal.',
+  tia: 'Strength, speech, and face are normal now. The numbness lasted 20 minutes.',
+  dehyd: 'Dry mouth. Dizzy on standing, and the pulse jumps. Belly soft.',
+  cpmod: 'Pain free now. Lungs clear. Has diabetes and high blood pressure.',
+  cwp: 'Sharp pain, worse when you press on the chest wall. Lungs clear.',
+  nstemi: 'Pale and sweating. The pressure spreads to the left arm. Lungs clear.',
+  afib: 'Fast, irregular pulse. Lungs clear. Blood pressure holding.',
+  chb: 'Very slow pulse. Pale. Lightheaded sitting up. Lungs clear.',
+  gib: 'Pale. Fast pulse. Tender high in the middle of the belly.',
+  dka: 'Deep, fast breathing. Fruity breath. Very dry mouth.',
+  asthma: 'Wheezing on both sides. Speaks in short phrases. Chest muscles working.',
+  anaph: 'Hives, swollen lips, hoarse voice, wheezing.',
+  sepsisw: 'Hot and confused. Fast pulse. Tender over the bladder.',
+  strokew: 'One side of the face droops. Slurred speech. One arm drifts down.',
+  stemi: 'Gray, sweating, clutching the chest. Lungs clear.',
+  stroke: 'Right arm and leg do not move. Right face droops. Speech is hard to follow.',
+  lvo: 'Eyes pulled to one side. No speech. One side does not move.',
+  mvc: 'Pale, cold skin. Belly hard and tender on the left. Fast, weak pulse.',
+  tfall: 'Bruise over the temple. Getting sleepier. One pupil larger than the other.',
+  moto: 'Thigh bent, bone through the skin. Foot pulse weak. Pale.',
+  arrest: 'No pulse. CPR in progress.',
+  shock: 'Hot, mottled skin. Confused. Fast, weak pulse.',
+  rsv: 'Ribs pulling in, nose flaring, grunting. Feeding poorly.',
+  burn: 'Soot in the nose and mouth. Hoarse voice. Blistered burns on the arms and chest.',
+  mcired: 'Belly rigid, tender under the right ribs. Pale and cold.',
+  mciyel: 'Thigh swollen and bent. Skin intact. Foot pulse good.',
+  mcimin: 'Tender on the bones in the middle of the neck. Arms and legs strong.',
+  mcigrn: 'Shallow cuts on the forearm. Bruised shoulder that moves fully.',
+  mciwr: 'Swollen, tender wrist with a bend near the thumb side. Fingers move and feel normal.',
+};
+// Why the right order set is the right one, one line per case. Shown once the diagnosis is known and on the shift report.
+const ORD_WHY = {
+  rash: 'No tests. A contact rash needs a cream and an antihistamine.',
+  refill: 'Nothing to order. No symptoms: refill the prescription and discharge.',
+  otitis: 'No tests. You can see the infection. Treat it.',
+  dental: 'No tests. Antibiotic and pain control, then a dentist.',
+  strep: 'A rapid strep swab proves it. Then penicillin.',
+  ankle: 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.',
+  lac: 'No tests. Clean it and stitch it.',
+  uti: 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.',
+  gastro: 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.',
+  appy: 'Labs and a CT find the appendix. Pain control, then General Surgery.',
+  chole: 'Ultrasound is the first look at a gallbladder, not CT. Labs, pain control, General Surgery.',
+  hipfx: 'X-ray shows the break. Labs get the patient ready for surgery. Pain control, then Orthopedics.',
+  pna: 'Chest X-ray finds it. Labs show how sick. Oxygen and antibiotics.',
+  copd: 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP.',
+  chf: 'ECG looks for a heart attack as the cause. X-ray shows the fluid. BiPAP and a water pill.',
+  stone: 'Urine and a CT find the stone. Pain control and fluids.',
+  dvt: 'Ultrasound finds the clot. Labs check the kidneys before a blood thinner.',
+  migraine: 'No tests. A usual migraine with a normal nerve exam gets fluids and medication.',
+  tb: 'Chest X-ray and labs. Isolate first. Treatment starts upstairs.',
+  bh: 'Labs for medical clearance. Then Psychiatry.',
+  etoh: 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.',
+  od: 'Naloxone first. Labs after. Watch for the naloxone wearing off.',
+  cell: 'Labs show how sick. IV antibiotics. No scan without a pus pocket.',
+  syncope: 'Every faint gets an ECG. Both tests normal, with a warning beforehand: home.',
+  synchigh: 'Every faint gets an ECG. A new block with no warning is the heart until proven otherwise: observe.',
+  tia: 'CT rules out a bleed. ECG looks for A-fib. Observe: stroke risk is highest in the first two days.',
+  dehyd: 'Labs show the kidneys are dry. Fluids fix it.',
+  cpmod: 'ECG, troponin, chest X-ray, aspirin. The risk factors earn a second troponin in observation.',
+  cwp: 'ECG, troponin, chest X-ray, aspirin. All normal and low risk: home.',
+  nstemi: 'ECG and troponin make the diagnosis. Aspirin and a blood thinner. Cardiology.',
+  afib: 'ECG names the rhythm. Labs. Medication to slow the rate. Cardiology.',
+  chb: 'ECG shows the block. Labs check the potassium. Pace now. Cardiology.',
+  gib: 'Labs with a blood type. Fluids, then blood. GI for a scope.',
+  dka: 'Labs show the sugar and the acid. Fluids first, then insulin. ICU.',
+  asthma: 'No tests. Breathing treatments and steroids.',
+  anaph: 'No tests. Epinephrine first. Then the other medications.',
+  sepsisw: 'Labs with a lactate. Fluids and antibiotics inside the hour.',
+  strokew: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology.',
+  stroke: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology.',
+  lvo: 'CT finds the blocked artery. Clot-busting drug, then transfer to a center that removes clots.',
+  stemi: 'The ECG is the diagnosis. Aspirin. Cardiology and the cath lab. Do not wait for the troponin.',
+  mvc: 'Chest X-ray and a bedside ultrasound. Labs. Massive transfusion. CT maps the injury. Trauma surgery.',
+  tfall: 'Head CT finds the bleed. The INR shows the blood thinner. Reverse it. Trauma.',
+  moto: 'X-ray and labs. Early antibiotics for bone through skin. Blood. Trauma and the OR.',
+  arrest: 'No orders. Run the code.',
+  shock: 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids are not enough. ICU.',
+  rsv: 'A blood gas shows the baby is tiring. High-flow oxygen. Transfer to a children\'s hospital.',
+  burn: 'Secure the airway before it swells shut. Ventilator, fluids, pain control. Burn center.',
+  mcired: 'Chest X-ray and a bedside ultrasound. Labs. Massive transfusion. CT maps the injury. Trauma surgery.',
+  mciyel: 'X-ray and labs. Pain control and fluids. Orthopedics.',
+  mcimin: 'Tender on the neck bones means imaging. Both clean: pain control and home.',
+  mcigrn: 'No tests. Clean and close the cuts.',
+  mciwr: 'X-ray shows the break. Pain control, a splint, and home.',
+};
+// Test results in plain words. Shown after the result when "Plain words" is on.
+const FIND_PLAIN = {
+  'Rapid strep positive': 'strep bacteria found', 'No fracture': 'no broken bone', 'Urine: nitrite positive': 'bacteria in the urine',
+  'WBC 15.8': 'white cells high: infection or inflammation', 'Inflamed appendix': 'appendicitis',
+  'WBC 13.1, liver tests up': 'white cells high; bile is backing up', 'Gallstones, thick gallbladder wall': 'an inflamed gallbladder',
+  'Femoral neck fracture': 'a broken hip', 'Hgb 11.9': 'blood count a little low', 'WBC 17.2': 'white cells high: infection',
+  'Right lower lobe infiltrate': 'pneumonia low in the right lung', 'Hyperinflated, no pneumonia': 'over-full lungs, no infection',
+  'VBG pCO2 58': 'CO2 building up: not breathing enough out', 'Sinus tach, old Q waves': 'fast and regular; a scar from an old heart attack',
+  'Pulmonary edema': 'fluid in the lungs', 'BNP 2,400': 'heart strain marker very high', '4 mm ureteral stone': 'a small stone; most pass on their own',
+  'Femoral vein clot': 'a clot in the big thigh vein', 'Cavity in the upper lobe': 'a hole in the lung: classic for TB', 'WBC 11.4': 'white cells a little high',
+  'Medically cleared': 'no medical cause found', 'Ethanol 280, glucose normal': 'very drunk; sugar is fine', 'Fentanyl positive': 'an opioid, confirmed',
+  'WBC 14.0': 'white cells high: infection', 'Normal sinus rhythm': 'a normal heartbeat', 'New bundle branch block': 'a new fault in the heart\'s wiring',
+  'No acute findings': 'nothing new or dangerous', 'BUN 34, creatinine 1.4': 'the kidneys are dry', 'Nonspecific ST changes': 'not normal, not a clear heart attack',
+  'First troponin negative': 'no heart damage yet; it gets repeated', 'Troponin negative': 'no heart damage', 'ST depression V4–V6': 'heart muscle short of blood',
+  'Troponin elevated': 'heart muscle damage', 'A-fib, rate 152': 'a fast, irregular heartbeat', 'Third-degree heart block, rate 38': 'top and bottom of the heart out of step; very slow',
+  'Potassium 4.4, troponin negative': 'potassium normal; no heart damage', 'Hemoglobin 6.8': 'blood count dangerously low', 'Glucose 540, anion gap 26': 'sugar very high; acid in the blood',
+  'Lactate 3.1, urine positive': 'organs short of oxygen; infection in the urine', 'No bleed': 'no bleeding in the brain',
+  'Glucose 118': 'sugar is not the cause', 'Glucose 132': 'sugar is not the cause', 'Glucose 141': 'sugar is not the cause',
+  'ST elevation V1–V4': 'a heart attack on the front wall', 'Troponin pending': 'not back yet; do not wait for it',
+  'No bleed; CTA shows M1 occlusion': 'no bleeding; a big brain artery is blocked', 'No pneumothorax, FAST positive': 'lungs are up; blood in the belly',
+  'Hemoglobin 8.1': 'blood count low and falling', 'Hemoglobin 7.9': 'blood count low and falling', 'Grade IV splenic laceration': 'a deep tear in the spleen',
+  'Acute subdural hematoma': 'bleeding on the surface of the brain', 'INR 2.9': 'thin blood: it clots slowly', 'Open femur fracture': 'a broken thigh bone, through the skin',
+  'Hemoglobin 9.4': 'blood count low', 'Lactate 5.4': 'organs badly short of oxygen', 'VBG pCO2 61': 'CO2 building up: tiring out',
+  'Carboxyhemoglobin 6%': 'some carbon monoxide from the smoke', 'Grade IV liver laceration': 'a deep tear in the liver', 'Midshaft femur fracture': 'a broken thigh bone',
+  'Hemoglobin 11.2': 'blood count a little low', 'No acute injury': 'no injury seen', 'Distal radius fracture': 'a broken wrist',
+};
+// Radio calls in plain words: [what they are asking, the plain reason]. Same order as the calls in SCEN.
+const RADIO_PLAIN = {
+  national: [
+    ['Chest pain with a low blood pressure. They want a drug that lowers pressure.', 'The pressure is already too low. Nitroglycerin drops it further.'],
+    ['Chest pain. He took an erection drug yesterday. They want nitroglycerin.', 'The two drugs together can crash the blood pressure.'],
+    ['No heartbeat after 25 minutes of full effort. They ask to stop.', 'A flat line that long, with everything tried, does not come back.'],
+    ['A clear-headed adult with a hurt ankle does not want to go.', 'An adult who understands the risk can say no.'],
+    ['His sugar is dangerously low and he is confused. He says no.', 'A brain without sugar cannot make the decision. Fix the sugar first.'],
+    ['A child has seized for 10 minutes. No IV. They want a seizure drug up the nose.', 'A long seizure has to stop now. The nose works when there is no IV.'],
+    ['A broken thigh bone, still in severe pain. Vital signs fine. They want more pain medication.', 'Stable and still hurting: treat the pain.'],
+    ['Signs of a big stroke, 45 minutes old. They want to drive 12 more minutes to a center that removes clots.', 'A big clot needs a center that can pull it out. The extra minutes are worth it.'],
+    ['A dialysis patient missed two sessions. The heart tracing shows high potassium.', 'High potassium can stop the heart. Calcium shields it. Albuterol lowers the potassium.'],
+    ['A severe allergic reaction, no better after one epinephrine shot.', 'Still wheezing with a low pressure: give epinephrine again.'],
+    ['Drunk, with a head cut after a fall. He wants to go home.', 'Alcohol plus a head injury: he cannot judge the risk.'],
+    ['A very slow heart and a low pressure. The first drug failed. They want to pace the heart from outside.', 'Too slow to hold a pressure, and the drug failed: pace.'],
+    ['A very fast, regular heartbeat. Pressure fine. Simple maneuvers failed.', 'Adenosine resets this rhythm. It is the next step.'],
+    ['Heart failure with fluid in the lungs and a very high pressure.', 'A pressure mask and nitroglycerin push the fluid back and ease the heart.'],
+  ],
+  miemss: [
+    ['A broken thigh bone, still 9 out of 10 after two doses. Vital signs fine.', 'Stable and still hurting: approve the third dose.'],
+    ['Chest pain after three nitroglycerin doses. Pressure still high.', 'The pressure can take another dose, and the pain is still there.'],
+    ['Her pressure fell a lot after one nitroglycerin. They want a second.', 'A big drop after one dose warns of a bigger drop after the next.'],
+    ['Tearing chest pain into the back. The two arms have different pressures. Very high pressure.', 'This looks like a tear in the body\'s main artery. Lowering the pressure protects it.'],
+    ['A stroke patient whose pressure is still very high after two doses.', 'Still over the limit: approve the next dose.'],
+    ['A stroke patient with a low pressure. They want fluid.', 'A brain short of blood needs pressure. Give the fluid.'],
+    ['Wildly agitated, overheated, fighting restraints. One sedative given.', 'Heat plus a fight against restraints can kill. Sedate and cool.'],
+    ['She hit her head, passed out, and repeats herself. She wants to go home.', 'Repeating questions means her brain is not working right. She cannot refuse.'],
+    ['A 16-year-old with a hurt ankle. No parent can be reached.', 'A minor cannot refuse on his own.'],
+    ['A 4-year-old with a racing heart and poor color. The drug failed. They want to shock the rhythm.', 'Poor blood flow and a failed drug: shock.'],
+    ['His heart restarted after an arrest. The tracing shows a heart attack. They want a hospital with a cath lab.', 'A blocked artery likely caused the arrest. A cath lab opens it.'],
+    ['Heart failure, but the tracing shows a heart attack on the right side. They want nitroglycerin.', 'A right-sided heart attack needs its filling pressure. Nitroglycerin takes that away.'],
+    ['Tongue and lip swelling from a blood pressure pill. Epinephrine did not work.', 'This swelling is not an allergy, so epinephrine fails. TXA is the next option.'],
+    ['Severe alcohol withdrawal, still shaking and seeing things after three doses.', 'Untreated, this leads to seizures. Approve another dose.'],
+    ['A heart attack. The nearest place is a small ED with no cath lab.', 'A heart attack needs a cath lab. Drive the extra 13 minutes.'],
+    ['A diabetic child, sugar still low and still drowsy after one dose of sugar.', 'Still low and still drowsy: give sugar again.'],
+    ['A baby with croup: noisy breathing at rest, ribs pulling in.', 'Noisy breathing at rest means a tight airway. Epinephrine mist opens it.'],
+    ['Severe infection, pressure still low after a full fluid load. Lungs clear.', 'Clear lungs can take more fluid, and the pressure needs it.'],
+  ],
+};
 const DX_PLAIN = {
   'Contact dermatitis': 'A skin reaction to something touched', 'Medication refill': 'Ran out of a regular medicine', 'Dental abscess': 'A pocket of infection at a tooth', 'Strep throat': 'A bacterial throat infection',
   'Ankle sprain': 'Stretched ligaments, no break', 'Simple laceration': 'A cut that needs stitches', 'Urinary tract infection': 'A bladder infection', 'Gastroenteritis': 'A stomach bug',
@@ -1972,6 +2167,7 @@ const DX_PLAIN = {
   'Anaphylactic shock': 'An allergic reaction that has dropped the blood pressure', 'Septic shock (urinary source)': 'A bladder infection that has dropped the blood pressure', 'Acute ischemic stroke, getting worse': 'A brain clot, and more brain is being lost',
   'Femur fracture with hemorrhagic shock': 'A broken thigh bone, bleeding heavily', 'ROSC after cardiac arrest': 'The heart is beating again after it stopped', 'Resuscitation unsuccessful': 'The team could not restart the heart',
 };
+const WK_NAME = { ecg: 'ECG', lab: 'Labs', xr: 'X-ray', ct: 'CT', us: 'Ultrasound' };
 const NORMAL = { ecg: 'Normal sinus rhythm', lab: 'Normal', xr: 'No acute findings', ct: 'No acute findings', us: 'Normal' };
 const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU', or: 'the OR', cath: 'the cath lab', bh: 'psychiatric admission', transfer: 'a transfer', obs: 'observation' };
 // What the drug in "Medications" was, for each case that needs one.
@@ -2001,17 +2197,18 @@ function signOrders(pid, tests, treats) {
   const newR = (treats || []).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
   if (!newT.length && !newR.length && !(first && R.wk.every(k => p.wk.includes(k)) && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
   let pts = 0, extra = 0;
+  const xl = [];
   for (const k of newT) {
     p.wk.push(k);
-    if (R.wk.includes(k)) { pts += 2; S.ordRight++; } else { pts -= k === 'ct' ? 8 : 3; extra++; S.ordExtra++; if (!p.find[k]) p.find[k] = NORMAL[k]; }
+    if (R.wk.includes(k)) { pts += 2; S.ordRight++; } else { pts -= k === 'ct' ? 8 : 3; extra++; S.ordExtra++; xl.push(WK_NAME[k]); if (!p.find[k]) p.find[k] = NORMAL[k]; }
   }
   for (const k of newR) {
-    if (k === 'mtp') { const r = activateMTP(p.id); if (!r.ok && p.bleed !== 'mtp') { pts -= 3; extra++; S.ordExtra++; continue; } }
+    if (k === 'mtp') { const r = activateMTP(p.id); if (!r.ok && p.bleed !== 'mtp') { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); continue; } }
     p.tr.push(k);
     if (k === 'intub' && !p.tr.includes('vent')) p.tr.push('vent');
     if (R.tr.includes(k)) { pts += 3; S.ordRight++; }
     else if (k === 'o2' && vitalsOf(p).spo2 < 94) { /* a low sat gets oxygen: never wrong, even when something else will fix it */ }
-    else { pts -= 3; extra++; S.ordExtra++; (p.extraTr = p.extraTr || []).push(k); if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
+    else { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); (p.extraTr = p.extraTr || []).push(k); if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
   }
   let held = '';
   if (newR.includes('tnk') && R.tr.includes('tnk') && !p.tr.includes('bp') && !bpOkForLytic(p)) {   // the nurse will not push it over the limit
@@ -2023,6 +2220,11 @@ function signOrders(pid, tests, treats) {
     const miss = R.wk.filter(k => !p.wk.includes(k)).length + R.tr.filter(k => !p.tr.includes(k)).length;
     S.ordMiss += miss;
     if (!miss && !extra) { pts += 10; S.clean++; }
+    p.ordLog = { name: p.name, dx: p.dx, miss: R.wk.filter(k => !p.wk.includes(k)).map(k => WK_NAME[k]).concat(R.tr.filter(k => !p.tr.includes(k)).map(k => TREAT[k].label)), extra: xl.slice(), why: ORD_WHY[p.ck] || '' };
+    if (p.ordLog.miss.length || xl.length) (S.log = S.log || []).push(p.ordLog);
+  } else if (xl.length && p.ordLog) {
+    if (!p.ordLog.miss.length && !p.ordLog.extra.length) (S.log = S.log || []).push(p.ordLog);
+    p.ordLog.extra.push(...xl);
   }
   care(pts, 'orders', p);
   p.ord = 'signed';
@@ -2675,7 +2877,7 @@ function consult(pid, spec) {
   if (p.con !== spec) {
     if (mdMine(p) && !p.con) G.stats.md.dispoWrong++;
     m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-10, 'consult', p); G.stats.wrongSpec++; provHit(p, 3); sound('bad');
-    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? `Why is ${S.name.toLowerCase()} getting this call? Not ours.` : 'This patient does not need a consult. Send them home.'}"` };
+    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? `Why is ${S.name.toLowerCase()} getting this call? Not ours. Call ${SPECS[p.con].name}.` : 'This patient does not need a consult. Send them home.'}"` };
   }
   // EMS-activated STEMI, stroke, and trauma alerts can call their team on the field report alone
   const miss = (p.alertOn && ALERTS[p.alert] && ALERTS[p.alert].auto) ? [] : p.pre.filter(k => !(p.work[k] && p.work[k].st === 'done'));
@@ -4103,6 +4305,8 @@ const OC = {
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };
 root.OC = OC;
+for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } });
+Object.assign(OC, { EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && EXAM[p.ck]) || '', whyOf: p => (p && ORD_WHY[p.ck]) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -4169,6 +4373,7 @@ const MD = () => { const G = E.G; return !!(G && G.mode === 'md' && U.scene !== 
 const isMe = s => !!(s && MD() && s.id === E.G.me);
 const mine = p => !!(p && MD() && p.mine && p.prov === E.G.me);
 function head(title, sub) { return `<div class="sh-h"><div><h3>${title}</h3>${sub ? `<div class="sh-sub">${sub}</div>` : ''}</div></div>`; }
+const PLAIN = () => store('oc-plain') !== '0';   // plain words under results and radio calls; on unless switched off
 function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } return null; }
 
 /* ---------- sound (Web Audio beeps; only after a tap) ---------- */
@@ -4769,7 +4974,7 @@ function pathRows(p, G) {
     else if (w.st === 'todo') v = k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT (the nurse draws it if techs are tied up)' : 'Drawn once roomed') : k === 'ecg' ? 'Waiting for a PCT or nurse' : 'In line for the scanner';
     else if (w.st === 'doing') v = k === 'lab' ? 'Drawing now' : k === 'ecg' ? 'Doing it now' : 'Scanning now';
     else if (w.st === 'run') v = `Resulting in <span data-cd="${w.due}"></span>`;
-    else { v = `<b>${esc(p.find[k] || 'Resulted')}</b>`; st = 'ok'; }
+    else { const f = p.find[k] || 'Resulted', pl = PLAIN() && E.FIND_PLAIN[f]; v = `<b>${esc(f)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`; st = 'ok'; }
     rows.push(row(nm, v, st));
   }
   for (const k of p.tr) { if (unwritten && !p.treat[k]) continue; const [v, st] = treatText(p, k); rows.push(row(E.TREAT[k].label, v, st)); }
@@ -4858,6 +5063,7 @@ function ptSheet(G, p) {
   let h = `<div class="ph"><div class="ph-who"><span class="ph-em">${emoji(p)}</span><span><b>${esc(p.name)}</b>, ${E.ageSex(p)} ${esiChip(p)} ${alertTag(p)}${tagChip(p)}${langChip(p)}${p.ret ? ' <i class="rettag">72-hr return</i>' : ''}${p.vip ? ' <i class="vip">VIP</i>' : ''}${p.stat ? ' <i class="stat">Stat</i>' : ''}<br><span class="ph-sub">${esc(where(p))} · ${p.src === 'ems' ? esc(p.unit || 'EMS') : 'Walk-in'} · ${p.loc === 'enroute' ? `ETA <span data-cd="${p.eta}"></span>` : `in the ED <span data-el="${p.tArrive}"></span>`}</span></span></div></div>`;
   const kv = [['Complaint', esc(p.cc)], ['Vitals', vitalsHTML(p)]], dx = dxShown(p);
   if (dx) kv.push(['Diagnosis', `<b>${esc(dx)}</b>${E.DX_PLAIN[dx] ? `<small class="dxp">${esc(E.DX_PLAIN[dx])}</small>` : ''}`]); else if (p.alertOn && p.alert) kv.push(['Working', `${esc(E.ALERTS[p.alert].name)} alert`]);
+  if (p.ev === 'done' && E.examOf(p) && p.loc !== 'gone') kv.push(['Exam', esc(E.examOf(p))]);
   if (p.tag) kv.push(['Field tag', `${cap(p.tag)}: ${{ red: 'immediate', yellow: 'can wait a little', green: 'walking wounded' }[p.tag]}`]);
   if (p.lkwT != null && p.alertOn) kv.push(['Onset', `Last known well <b>${E.clock(p.lkwT)}</b> · the thrombolytic has to be in by ${E.clock(p.lkwT + E.LYTIC_WINDOW)}`]);
   if (p.iso) kv.push(['Isolation', 'Airborne. Room 8 or 16.']);
@@ -4935,7 +5141,7 @@ function ordersBlock(p, G, add) {
 }
 function mdDecideBlock(p) {
   const b = (k, l, sub) => `<button type="button" class="cbtn" data-act="mdd" data-arg="${p.id}|${k}"><b>${l}</b><small>${sub}</small></button>`;
-  return `<div class="prim"><div class="prim-l">Your call · ${esc(p.dx)}</div>${p.txGap && p.txGap.length ? `<p class="hint bad" style="margin:0">${gapMsg(p)}</p>` : ''}<div class="cgrid three">${b('home', 'Discharge home', 'Safe to go')}${b('consult', 'Admit: call a consult', 'Pick the service')}${b('transfer', 'Transfer', 'Care you lack')}</div></div>`;
+  return `<div class="prim"><div class="prim-l">Your call · ${esc(p.dx)}</div>${p.txGap && p.txGap.length ? `<p class="hint bad" style="margin:0">${gapMsg(p)}</p>` : E.whyOf(p) ? `<p class="hint why"><b>The workup:</b> ${esc(E.whyOf(p))}${p.ordLog && p.ordLog.extra.length ? ` <span class="xtra">Not needed: ${esc(p.ordLog.extra.join(', '))}.</span>` : ''}</p>` : ''}<div class="cgrid three">${b('home', 'Discharge home', 'Safe to go')}${b('consult', 'Admit: call a consult', 'Pick the service')}${b('transfer', 'Transfer', 'Care you lack')}</div></div>`;
 }
 const MOOD = ['🙂', '😐', '😠', '🤬'];
 function consultSheet(G, p) {
@@ -5224,7 +5430,10 @@ const GLOSS = [
   ]],
 ];
 function wordsHTML() {
-  return head('Words', 'Every short name in the game, in plain language.') + GLOSS.map(([g, list]) => `<div class="gl"><h4>${esc(g)}</h4><dl>${list.map(([t, d]) => `<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('')}</dl></div>`).join('');
+  const q = (U.wq || '').trim().toLowerCase(), hit = (t, d) => !q || (t + ' ' + d).toLowerCase().includes(q);
+  let n = 0;
+  const body = GLOSS.map(([g, list]) => { const k = list.filter(([t, d]) => hit(t, d)).length; n += k; return `<div class="gl"${k ? '' : ' hidden'}><h4>${esc(g)}</h4><dl>${list.map(([t, d]) => `<div${hit(t, d) ? '' : ' hidden'}><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('')}</dl></div>`; }).join('');
+  return head('Words', 'Every short name in the game, in plain language.') + `<div class="wsearch"><input type="search" id="wq" data-wq placeholder="Search the words" aria-label="Search the words" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(U.wq || '')}"></div><p class="hint wnone"${n ? ' hidden' : ''}>Nothing matches. Try a shorter word.</p>` + body + `<div class="wlink wplain"><button type="button" data-act="plain">Plain words under results and radio calls: ${PLAIN() ? 'on' : 'off'}</button></div>`;
 }
 /* What the floor plan's icons mean. */
 function legendHTML(md) {
@@ -5279,9 +5488,11 @@ function renderSheet(G) {
     else if (s.type === 'divert') h = divertSheet(G);
     else if (s.type === 'help') h = helpHTML();
     else if (s.type === 'words') h = wordsHTML();
+    else if (s.type === 'legend') h = head('What the floor shows', 'One icon on each room: what it needs next.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The number in the circle is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient.' : ''}</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
     if (!h) U.sheet = null;
   } else if (s && s.type === 'help') h = helpHTML();
   else if (s && s.type === 'words') h = wordsHTML();
+  else if (s && s.type === 'chapters') h = chaptersHTML();
   else if (s && s.type === 'lessons') h = lessonsHTML();
   if (h && TR() && s.type !== 'words' && !coachBeside()) h = coachHTML('in') + h;
   const key = h ? s.type + '|' + (s.pid || s.sid || s.z || '') : '';
@@ -5483,7 +5694,7 @@ const callStep = (key, pick, spec) => ({
 const STEPS_MD = [
   { id: 'hi', next: true, title: 'Welcome, Doctor', text: `I’m your **preceptor**: the senior doctor who trains you.\nYou are the **attending**: a fully trained emergency doctor in the **ED**, the emergency department.\nThe **charge nurse** runs beds and nurses. You **examine patients, write orders, and decide where each one goes**. You also answer the radio.\nTap what I light up. Nothing here counts.`},
   { id: 'words', next: true, title: 'The words', text: `Medicine loves short names: **ESI, DKA, CT, ICU**. I’ll explain each one as it comes up.\n**Words** has the whole list.`, spot: () => ['#coach [data-act="words"]'] },
-  { id: 'rack', next: true, title: 'Who needs you', text: () => (FP() ? 'Each room shows one **icon** for what it needs. A **blue stethoscope**: waiting for a doctor. Your own patients get a **gold corner**.' : 'Rooms marked **Needs a provider** are waiting for a doctor. Your patients show **YOU**.') + '\nThe lettered signs are **pods**: four rooms and one nurse.\nThe number in the circle is the **ESI**, Emergency Severity Index: how sick, from **1**, dying now, to **5**, minor.\nLeave someone too long and another doctor takes them.', spot: () => ['#zh-a, #mzh-a', '#zbar'] },
+  { id: 'rack', next: true, title: 'Who needs you', text: () => (FP() ? 'Each room shows one **icon** for what it needs. A **blue stethoscope**: waiting for a doctor. Your own patients get a **gold ring**.' : 'Rooms marked **Needs a provider** are waiting for a doctor. Your patients show **YOU**.') + '\nThe lettered signs are **pods**: four rooms and one nurse.\nThe number in the circle is the **ESI**, Emergency Severity Index: how sick, from **1**, dying now, to **5**, minor.\nLeave someone too long and another doctor takes them.', spot: () => ['#zh-a, #mzh-a', '#zbar'] },
   { id: 'you', next: true, title: 'Your line', text: () => `You are **Dr. Patel**, ${SIDE()}. Your button shows what you are doing and how many patients are waiting for you.\nThe others: another attending, and the **PAs and NPs**: physician assistants and nurse practitioners.`, spot: () => ['#dockProv [data-arg="md1"]', '#sideProv [data-arg="md1"]'] },
 
   { id: 'top', next: true, title: 'Your numbers', text: `**Wait**: minutes until a patient is examined.\n**Score**: your points.\n**Panel**: the patients who are yours.\n**To see**: patients in a room with no doctor yet.\n**To do**: your patients waiting on your orders or your decision.\nOn a small screen the last two read **See** and **Do**.`, spot: () => ['#top .hud'] },
@@ -5618,8 +5829,40 @@ const LESSONS = {
     { id: 'o5', title: 'Your call', text: `He is awake, walking, and breathing normally.\nTap **his room**, then **Discharge home**.`, ...callStep('pt', 'home') },
     { id: 'o6', final: true, title: 'Overdose: the short version', text: `**Looks like**: hard to wake, slow breathing, pinpoint pupils.\n**Order**: naloxone and labs. Oxygen if it is low.\n**Watch**: naloxone wears off first. He can slip back.\n**As charge nurse**: ESI 2. A room where his nurse can see him.` },
   ] },
+  belly: { name: 'Belly pain', blurb: 'Where it hurts picks the test: ultrasound, CT, or neither.', steps: [
+    { id: 'y0', next: true, title: 'Belly pain', text: `Where it hurts points to the organ. The organ picks the test.\n**Upper right, after meals**: the **gallbladder**, a small sac under the liver. **Ultrasound**.\n**Lower right**: the **appendix**. **CT**.\n**Flank, can’t hold still**: a **kidney stone**. **CT**.\n**Soft belly, vomiting**: a stomach bug. **Labs** only.` },
+    { id: 'y1', title: 'Pain after meals', text: `**Room 5**: [[Maria]], 44. Pain under her right ribs since dinner.\nTap **her room**, then **See this patient**.`,
+      setup: () => ({ pt: E.trainPatient('chole', 'room', { room: '5', name: 'Maria G.', age: 44, sex: 'F' }) }), ...seeStep('pt') },
+    { id: 'y2', wait: true, title: 'In the room', text: `She is tender **under the right ribs**. Her breath catches when you press there.\nThat points at the **gallbladder**.`, done: lExamined },
+    { id: 'y3', title: 'Gallbladder orders', text: `**Ultrasound**: shows gallstones and a swollen gallbladder wall. It is the first test here, **not CT**.\n**Labs**: infection and the liver.\n**Medications**: pain control.\nTap **her room**, **Labs**, **Ultrasound**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
+    { id: 'y4', wait: true, title: 'Results', text: `Ultrasound: **gallstones and a thick wall**. Her white cells are up.\nThat is an inflamed gallbladder: **cholecystitis**.`, done: lResulted },
+    { id: 'y5', title: 'Call surgery', text: `An inflamed gallbladder comes out. **General Surgery** takes her.\nTap **her room**, **Admit: call a consult**, then **General Surgery**.`, ...callStep('pt', 'consult', 'surg') },
+    { id: 'y6', final: true, title: 'Belly pain: the short version', text: `**Upper right, after meals**: labs and **ultrasound**. General Surgery.\n**Lower right**: labs and **CT**. General Surgery.\n**Flank pain**: labs and **CT**. Usually home.\n**Soft belly, vomiting**: labs and fluids. **No CT.**\n**As charge nurse**: most are ESI 3. A rigid belly does not wait.` },
+  ] },
+  falls: { name: 'Falls', blurb: 'The hip, the head, and the blood thinner.', steps: [
+    { id: 'f0', next: true, title: 'Falls', text: `A fall in an older adult hides three things.\n**The hip**: a leg that is **shorter and turned out** is broken until an X-ray says otherwise.\n**The head**: on a **blood thinner**, a small bump can bleed. That needs a **CT**.\n**The reason**: ask why they fell. A faint needs an **ECG**.` },
+    { id: 'f1', title: 'Fell, hip pain', text: `**Room 9**: [[Dorothy]], 81. She fell in her kitchen and could not get up.\nTap **her room**, then **See this patient**.`,
+      setup: () => ({ pt: E.trainPatient('hipfx', 'room', { room: '9', name: 'Dorothy K.', age: 81, sex: 'F' }) }), ...seeStep('pt') },
+    { id: 'f2', wait: true, title: 'In the room', text: `Her leg is **shorter and turned outward**. She can’t lift it.\nShe tripped on a rug. She did not hit her head.`, done: lExamined },
+    { id: 'f3', title: 'Hip orders', text: `**X-ray**: shows the break.\n**Labs**: she is headed for surgery, and the surgeon needs them.\n**Medications**: pain control. A broken hip hurts.\nTap **her room**, **X-ray**, **Labs**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'meds']]) },
+    { id: 'f4', wait: true, title: 'Results', text: `X-ray: a **femoral neck fracture**. The femur is the thigh bone, and its neck is the top, at the hip.\nA **broken hip**.`, done: lResulted },
+    { id: 'f5', title: 'Call Orthopedics', text: `**Orthopedics** are the bone surgeons. A broken hip is fixed in the operating room.\nTap **her room**, **Admit: call a consult**, then **Orthopedics**.`, ...callStep('pt', 'consult', 'ortho') },
+    { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head injury on a blood thinner**: **CT** and labs. Reverse the thinner if it bleeds. **Trauma**.\n**Twisted ankle, tender on the bone**: X-ray only.\n**As charge nurse**: a hip is ESI 3. A head injury on a blood thinner **does not wait**.` },
+  ] },
 };
 const LESSON_KEYS = Object.keys(LESSONS);
+/* Orientation comes in chapters. Each starts with its own patient, so a player can stop after one and come back to the next. */
+const CHAPTERS = { rn: [['hi', 'The basics'], ['w1', 'Ambulances and admissions'], ['t1', 'Alerts and the Box'], ['h1', 'A full department']], md: [['hi', 'The basics'], ['a1', 'Sicker patients'], ['r1', 'The radio and a stroke']] };
+const chMode = () => (g() && g().mode === 'md' ? 'md' : 'rn');
+const chKey = (mode, k) => `oc-ch-${mode}-${k}`;
+function chList(mode) { const L = mode === 'md' ? STEPS_MD : STEPS; return CHAPTERS[mode].map(([id, name], k, a) => { const at = L.findIndex(s => s.id === id), end = k + 1 < a.length ? L.findIndex(s => s.id === a[k + 1][0]) : L.length; return { k, name, at, n: end - at }; }); }
+function chOf(i) { if (lessonKey()) return null; const C = chList(chMode()); let c = C[0]; for (const x of C) if (i >= x.at) c = x; return Object.assign({ count: C.length }, c); }
+const chDone = (mode, k) => !!store(chKey(mode, k)) || !!store(mode === 'md' ? 'oc-trained-md' : 'oc-trained');
+function chaptersHTML() {
+  const mode = U.mode === 'md' ? 'md' : 'rn', C = chList(mode);
+  return head('Orientation', 'Four short chapters. Do the first, play a Quiet Tuesday, then come back for the rest.'.replace('Four', C.length === 3 ? 'Three' : 'Four'))
+    + `<div class="cgrid lsn">${C.map(c => `<button type="button" class="cbtn" data-act="chapter" data-arg="${c.k}"><b>${c.k + 1}. ${esc(c.name)}${chDone(mode, c.k) ? ' <i class="lsn-ok">✓</i>' : ''}</b><small>${c.n} steps</small></button>`).join('')}</div>`;
+}
 const lessonKey = () => { const t = g() && g().tr; return t && t.lesson && LESSONS[t.lesson] ? t.lesson : null; };
 const lessonDone = k => !!store('oc-lesson-' + k);
 function lessonsHTML() {
@@ -5634,12 +5877,14 @@ function coachWaitDone() { const s = coachStep(); return !!(s && s.wait && coach
 function coachAdvance() {
   const t = TR(); if (!t || t.step >= STEPS_NOW().length - 1) return;
   t.step++; t.t0 = g().t; U.coachKey = null; t.held = null;
+  const C = chOf(t.step); if (C && C.k > 0 && C.at === t.step) { t.brk = C.k; store(chKey(chMode(), C.k - 1), '1'); }   // a chapter just ended: stop and say so
   if (!STEPS_NOW()[t.step].keep) { U.sel = null; U.sheet = null; }   // a step that explains the open card leaves it open
 }
 function coachRun() {
   const t = TR();
   if (!t) { U.hold = false; U.ff = 0; return; }
   if (t.t0 == null) t.t0 = g().t;
+  if (t.brk != null) { U.hold = true; U.ff = 0; return; }   // between chapters nothing moves, and the next patient has not arrived
   for (let guard = 0; guard < 6; guard++) {
     const s = STEPS_NOW()[t.step];
     if (s.setup && !t.setup[s.id]) { t.setup[s.id] = 1; let ids = null; try { ids = s.setup(); } catch (e) { ids = null; } if (ids) Object.assign(t.ids, ids); }
@@ -5672,7 +5917,11 @@ function coachSkip() {
 }
 function coachHTML(where) {
   const t = TR(); if (!t) return '';
-  const s = coachStep(), n = STEPS_NOW().length;
+  const s = coachStep(), n = STEPS_NOW().length, C = chOf(t.step);
+  if (t.brk != null && C) {   // the card between two chapters
+    const prev = chList(chMode())[C.k - 1], first = C.k === 1;
+    return `<div class="coach-c ${where}"><div class="ck">Preceptor · chapter ${C.k} of ${C.count} done</div><h4>${esc(prev.name)}: done</h4><p>${fmt(first ? `That is enough to run a quiet shift. **Play a Quiet Tuesday** now, or keep going.\nNext chapter: **${C.name}**, ${C.n} steps. It will be on the menu.` : `Next chapter: **${C.name}**, ${C.n} steps.\nStop here and it will be on the menu.`)}</p><div class="cb"><button type="button" class="skip" data-act="coachExit">Menu</button>${first ? '<button type="button" data-act="coachNext">Keep going</button><button type="button" class="go" data-act="coachEasy">Play Quiet Tuesday</button>' : '<button type="button" data-act="coachEasy">Play Quiet Tuesday</button><button type="button" class="go" data-act="coachNext">Keep going</button>'}</div></div>`;
+  }
   const title = typeof s.title === 'function' ? s.title() : s.title;
   let text = ''; try { text = typeof s.text === 'function' ? s.text() : s.text; } catch (e) { text = ''; }
   const W = '<button type="button" class="skip" data-act="words">Words</button>';
@@ -5682,7 +5931,7 @@ function coachHTML(where) {
     : s.next || t.held === t.step ? '<button type="button" class="skip" data-act="coachExit">Exit</button>' + W + '<button type="button" class="go" data-act="coachNext">Got it</button>'
     : s.wait ? '<span class="cff">Fast-forwarding…</span>' + W + '<button type="button" class="skip" data-act="coachSkip">Skip ahead</button>'
     : '<button type="button" class="skip" data-act="coachExit">Exit</button>' + W + '<button type="button" class="skip" data-act="coachSkip">Do it for me</button>';
-  return `<div class="coach-c ${where}"><div class="ck">${lk ? esc(LESSONS[lk].name) : 'Preceptor'} · ${t.step + 1} of ${n}</div><h4>${esc(title)}</h4><p>${fmt(text)}</p><div class="cb">${btns}</div></div>`;
+  return `<div class="coach-c ${where}"><div class="ck">${lk ? `${esc(LESSONS[lk].name)} · ${t.step + 1} of ${n}` : `${C.k + 1}. ${esc(C.name)} · ${t.step - C.at + 1} of ${C.n}`}</div><h4>${esc(title)}</h4><p>${fmt(text)}</p><div class="cb">${btns}</div></div>`;
 }
 /* On a phone held sideways a card is a drawer on the right, and it is too short to hold the preceptor as well:
    what to tap would end up below the fold. So the preceptor stays outside it, on the left, and the card opens at its top. */
@@ -5696,7 +5945,7 @@ function renderCoach() {
   const h = t && !inner ? coachHTML('float') : '';
   setH(el, h); el.hidden = !h; el.classList.toggle('beside', beside);
   for (const x of document.querySelectorAll('.coach-spot')) x.classList.remove('coach-spot');
-  const s = t ? coachStep() : null;
+  const s = t && t.brk == null ? coachStep() : null;
   if (!s || !s.spot) { if (U.view === 'map') mapSpot([]); el.classList.remove('ctop'); return; }
   let sels = []; try { sels = s.spot().filter(Boolean); } catch (e) { sels = []; }
   const els = [];
@@ -5749,17 +5998,17 @@ function renderModal(G) {
     h = `<div class="mc-who">${esc(c.who)}</div><h3>${esc(c.title)}</h3><p>${fmt(c.text)}</p><div class="mc-ch">${c.choices.map(x => `<button type="button" data-act="card" data-arg="${x.k}" ${x.dis ? 'disabled' : ''}><b>${esc(x.label)}</b>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('')}</div>`;
   } else if (U.modal && U.modal.type === 'scen') {
     const m = U.modal;
-    h = `<div class="mc-who">The Box · ${esc(m.unit)} · ${esc(m.doc)} on the line${m.pack === 'miemss' ? ' · Maryland protocols' : ''}</div><h3>Medical direction</h3><p class="scen">${esc(m.sc.q)}</p><div class="mc-ch two"><button type="button" class="go" data-act="scen" data-arg="1"><b>Approve</b></button><button type="button" class="no" data-act="scen" data-arg="0"><b>Deny</b></button></div>`;
+    h = `<div class="mc-who">The Box · ${esc(m.unit)} · ${esc(m.doc)} on the line${m.pack === 'miemss' ? ' · Maryland protocols' : ''}</div><h3>Medical direction</h3><p class="scen">${esc(m.sc.q)}</p>${PLAIN() && m.sc.plain ? `<p class="scen-p"><b>In plain words:</b> ${esc(m.sc.plain)}</p>` : ''}<div class="mc-ch two"><button type="button" class="go" data-act="scen" data-arg="1"><b>Approve</b></button><button type="button" class="no" data-act="scen" data-arg="0"><b>Deny</b></button></div>`;
   } else if (U.modal && U.modal.type === 'result') {
     const r = U.modal.r;
-    h = `<div class="mc-res ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Correct' : 'Incorrect'}</div><h3>You ${r.approve ? 'approved' : 'denied'} it</h3><p>${esc(r.sc.why)}</p><div class="mc-ch"><button type="button" data-act="modalOk"><b>Back to the floor</b></button></div>`;
+    h = `<div class="mc-res ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Correct' : 'Incorrect'}</div><h3>You ${r.approve ? 'approved' : 'denied'} it</h3>${PLAIN() && r.sc.pwhy ? `<p><b>${esc(r.sc.pwhy)}</b></p><p class="scen-c">${esc(r.sc.why)}</p>` : `<p>${esc(r.sc.why)}</p>`}<div class="mc-ch"><button type="button" data-act="modalOk"><b>Back to the floor</b></button></div>`;
   } else if (U.modal && U.modal.type === 'first') {
     const md = MD(), lines = md
       ? ['A **blue stethoscope** is a patient waiting for a doctor. Tap the room, then **See this patient**.', 'After your exam, **write the orders**. When results are back, **make the call**: home, admit, or transfer.', '**Next** jumps to whatever is waiting on you.']
       : ['A **blue, pulsing icon** is waiting on you. **Gray** is waiting on someone else.', `**Next**${U.view === 'map' && U.rails ? ', bottom left,' : ''} jumps to the most urgent thing. **Red** means go now.`, 'A **card that stops the clock** is a decision. Every choice costs something.'];
     h = `<div class="mc-who">${esc(E.LEVELS[G.level].name)} · your first shift as ${md ? 'the attending' : 'charge nurse'}</div><h3>Three things to know</h3><ol class="first">${lines.map(x => `<li>${fmt(x)}</li>`).join('')}</ol><p class="hint" style="margin:-4px 0 10px">The pause button has How to play and what the words mean.</p><div class="mc-ch"><button type="button" class="go" data-act="modalOk"><b>Start the shift</b></button><button type="button" data-act="firstHelp"><b>How to play</b><small>The full guide</small></button>${store(trainedKey(md ? 'md' : 'rn')) ? '' : '<button type="button" data-act="firstTrain"><b>Do Orientation first</b><small>A preceptor walks you through it</small></button>'}</div>`;
   } else if (U.scene === 'game' && U.paused && !U.sheet) {
-    h = `<div class="mc-who">${lessonKey() ? 'Lesson: ' + esc(LESSONS[lessonKey()].name) : esc(E.LEVELS[G.level].name)}${G.scen && G.scen !== 'none' && E.SCENS[G.scen] ? ' · ' + esc(E.SCENS[G.scen].name) + ' scenario' : ''} · ${E.clock()}</div><h3>Paused</h3><p>The department waits for you. It will not wait long. Your shift is saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="words"><b>What the words mean</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="view"><b>${U.view === 'map' ? 'Switch to the list board' : 'Switch to the floor plan'}</b></button>${document.fullscreenEnabled ? `<button type="button" data-act="fullscreen"><b>${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</b></button>` : ''}<button type="button" data-act="restart"><b>${U.armR && performance.now() - U.armR < 3000 ? 'Tap again to restart' : 'Restart this shift'}</b></button><button type="button" data-act="menu"><b>Quit to menu</b></button></div>`;
+    h = `<div class="mc-who">${lessonKey() ? 'Lesson: ' + esc(LESSONS[lessonKey()].name) : esc(E.LEVELS[G.level].name)}${G.scen && G.scen !== 'none' && E.SCENS[G.scen] ? ' · ' + esc(E.SCENS[G.scen].name) + ' scenario' : ''} · ${E.clock()}</div><h3>Paused</h3><p>The department waits for you. It will not wait long. Your shift is saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="words"><b>What the words mean</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="plain"><b>Plain words: ${PLAIN() ? 'on' : 'off'}</b></button><button type="button" data-act="view"><b>${U.view === 'map' ? 'Switch to the list board' : 'Switch to the floor plan'}</b></button>${document.fullscreenEnabled ? `<button type="button" data-act="fullscreen"><b>${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</b></button>` : ''}<button type="button" data-act="restart"><b>${U.armR && performance.now() - U.armR < 3000 ? 'Tap again to restart' : 'Restart this shift'}</b></button><button type="button" data-act="menu"><b>Quit to menu</b></button></div>`;
   }
   if (h && TR()) h = coachHTML('in') + h;
   wrap.hidden = !h; morph(el, h);
@@ -5908,13 +6157,16 @@ const ACT = {
   view: v => { U.view = v === 'list' || v === 'map' ? v : U.view === 'map' ? 'list' : 'map'; store('oc-view', U.view); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   mode: m => { U.mode = m === 'md' ? 'md' : 'rn'; store('oc-mode', U.mode); setH($('#title'), titleHTML()); },
   scenario: k => { U.scen = E.SCENS[k] ? k : 'none'; store('oc-scen', U.scen); setH($('#title'), titleHTML()); },
-  print: () => { try { window.print(); } catch (e) { toast('Printing is not available here. Open the game in your browser to print.', 'info'); } },
-  coachNext: () => coachAdvance(),
+  print: () => { document.querySelectorAll('details.rep-more').forEach(d => { d.open = true; }); try { window.print(); } catch (e) { toast('Printing is not available here. Open the game in your browser to print.', 'info'); } },
+  coachNext: () => { const t = TR(); if (t && t.brk != null) { t.brk = null; t.t0 = g().t; U.coachKey = null; } else coachAdvance(); },
+  chapter: k => { start('train', null, +k || 0); },
+  chapters: () => { U.sheet = { type: 'chapters' }; },
   coachSkip: () => coachSkip(),
-  coachExit: () => { save(true); showTitle(); },
-  coachDone: () => { const k = lessonKey(); store(k ? 'oc-lesson-' + k : trainedKey(g().mode), '1'); store('oc-save', null); showTitle(); },
-  coachEasy: () => { store(trainedKey(g().mode), '1'); U.mode = g().mode || 'rn'; start('easy'); },
+  coachExit: () => { const t = TR(); if (t && t.brk != null) { store('oc-save', null); showTitle(); } else { save(true); showTitle(); } },   // between chapters there is nothing to resume: the next one is on the menu
+  coachDone: () => { const k = lessonKey(); if (!k) { const C = chOf(TR().step); if (C) store(chKey(chMode(), C.k), '1'); } store(k ? 'oc-lesson-' + k : trainedKey(g().mode), '1'); store('oc-save', null); showTitle(); },
+  coachEasy: () => { const t = TR(), s = coachStep(); if (!t || (t.brk == null && s && s.final)) store(trainedKey(g().mode), '1'); U.mode = g().mode || 'rn'; start('easy'); },
   lessons: () => { U.sheet = { type: 'lessons' }; },
+  legend: () => { U.sheet = U.sheet && U.sheet.type === 'legend' ? null : { type: 'legend' }; },
   lesson: k => { if (LESSONS[k]) start('train', k); },
   lessonNext: () => { const k = lessonKey(), nx = k ? LESSON_KEYS[LESSON_KEYS.indexOf(k) + 1] : null; if (k) store('oc-lesson-' + k, '1'); if (nx) start('train', nx); else showTitle(); },
   recheck: a => { const [pid, sid] = a.split('|'); res(E.recheck(pid, sid)); },
@@ -6010,6 +6262,7 @@ const ACT = {
   pause: () => { U.paused = !U.paused; if (U.paused) { save(true); hush(); } },
   resume: () => { U.paused = false; },
   speed: () => { U.speed = SPEEDS[(SPEEDS.indexOf(U.speed) + 1) % SPEEDS.length]; toast(`${U.speed}× speed`, 'info'); },
+  plain: () => { store('oc-plain', PLAIN() ? '0' : '1'); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   sound: () => { U.sound = !U.sound; store('oc-sound', U.sound ? '1' : '0'); if (U.sound) ensureAudio(); else hush(); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   help: () => { U.sheet = { type: 'help' }; },
   pack: k => { U.pack = k; store('oc-pack', k); setH($('#title'), titleHTML()); },
@@ -6064,9 +6317,10 @@ function titleHTML() {
   const fresh = !['easy', 'med', 'hard'].some(k => bestOf(k));
   const modes = `<div class="modes" role="group" aria-label="Your role"><button type="button" class="mode${md ? '' : ' on'}" data-act="mode" data-arg="rn" aria-pressed="${!md}"><b>Charge nurse</b><small>Run the board</small></button><button type="button" class="mode${md ? ' on' : ''}" data-act="mode" data-arg="md" aria-pressed="${md}"><b>Attending</b><small>See patients, write orders</small></button></div>`;
   const tb = md ? 'A senior attending walks you through patients, orders, results, the call, and the radio. Nothing counts.' : E.LEVELS.train.blurb;
-  const train = `<button type="button" class="lvl train" data-act="start" data-arg="train"><span class="dot" style="background:var(--accent)"></span><span><b>${E.LEVELS.train.name}</b><small>${tb}</small></span>${store(trainedKey(U.mode)) ? '<span class="best">Done ✓</span>' : fresh ? '<span class="best go">Start here</span>' : ''}</button>`;
+  const chM = md ? 'md' : 'rn', chN = chList(chM).length, chD = chList(chM).filter(c => chDone(chM, c.k)).length;   // once a chapter is done, the row opens the chapter list
+  const train = `<button type="button" class="lvl train" ${chD ? 'data-act="chapters"' : 'data-act="start" data-arg="train"'}><span class="dot" style="background:var(--accent)"></span><span><b>${E.LEVELS.train.name}</b><small>${tb}</small></span>${store(trainedKey(U.mode)) ? '<span class="best">Done ✓</span>' : chD ? `<span class="best">${chD} of ${chN}</span>` : fresh ? '<span class="best go">Start here</span>' : ''}</button>`;
   const nL = LESSON_KEYS.filter(lessonDone).length;
-  const lessons = `<button type="button" class="lvl lsn" data-act="lessons"><span class="dot" style="background:#0D716E"></span><span><b>Lessons</b><small>Six conditions, two minutes each.</small></span>${nL ? `<span class="best">${nL} of ${LESSON_KEYS.length} ✓</span>` : ''}</button>`;
+  const lessons = `<button type="button" class="lvl lsn" data-act="lessons"><span class="dot" style="background:#0D716E"></span><span><b>Lessons</b><small>Eight conditions, two minutes each.</small></span>${nL ? `<span class="best">${nL} of ${LESSON_KEYS.length} ✓</span>` : ''}</button>`;
   const lv = train + lessons + ['rush', 'easy', 'med', 'hard'].map(k => { const L = E.LEVELS[k], b = bestOf(k), st = b ? E.starsFor(b, k, U.mode) : 0; return `<button type="button" class="lvl" data-act="start" data-arg="${k}"><span class="dot" style="background:${DOT[k]}"></span><span><b>${L.name}</b><small>${md && BLURB_MD[k] ? BLURB_MD[k] : L.blurb}</small></span>${b ? `<span class="best">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>` : ''}</button>`; }).join('');
   const sv = readSave();
   const resume = sv ? `<button type="button" class="lvl resume" data-act="resumeSave"><span class="dot" style="background:var(--accent)"></span><span><b>Resume your shift</b><small>${sv.G.mode === 'md' ? 'Attending' : 'Charge nurse'}: ${sv.G.tr && LESSONS[sv.G.tr.lesson] ? 'Lesson: ' + esc(LESSONS[sv.G.tr.lesson].name) : esc(E.LEVELS[sv.lvl] ? E.LEVELS[sv.lvl].name : '')}, paused at ${E.clock(sv.G.t)}</small></span></button>` : '';
@@ -6084,7 +6338,7 @@ function showTitle() {
   const t = $('#title'); t.hidden = false; setH(t, titleHTML());
   render();
 }
-function start(lvl, lesson) {
+function start(lvl, lesson, chapter) {
   ensureAudio();
   if (!LESSONS[lesson]) lesson = null;
   U.lvl = lvl; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = false; U.speed = 1;
@@ -6092,6 +6346,7 @@ function start(lvl, lesson) {
   store('oc-save', null);
   E.newGame(lvl, lvl === 'train' ? 20261116 : (Math.random() * 2147483647) | 0, { pack: U.pack, mode: lesson ? 'md' : U.mode, scen: lesson ? 'none' : U.scen });
   if (lesson) g().tr.lesson = lesson;   // kept with the game, so a saved lesson resumes as that lesson
+  else if (lvl === 'train' && chapter > 0) { const C = chList(chMode())[chapter]; if (C) { g().tr.step = C.at; g().tr.need = 1; } }   // a later chapter: the Next button is already known
   $('#title').hidden = true; $('#report').hidden = true;
   U.coachKey = null;
   try { if (mapZoomed()) mapZoom(0); } catch (e) { /* the floor is not drawn yet */ }   // a new shift starts with the whole floor in view
@@ -6110,27 +6365,40 @@ function reportHTML(R, ledger, at) {
   const LED = { md: 'Patients you saw', orders: 'Orders', harm: 'Harm and untreated patients', dispo: 'Disposition calls', flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration <small>goals executives set, and requests you refused</small>', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood', transfer: 'Transfers', gray: 'Gray-zone calls', chair: 'Admitted patients in chairs', experience: 'Complaints' };
   const rows = Object.entries(led).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LED[k] || k}</td><td class="${v < 0 ? 'neg' : 'pos'}">${v > 0 ? '+' : ''}${Math.round(v)}</td></tr>`).join('');
   const t = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
-  return `<div class="card rep"><h2>${R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift report' : 'Shift report'}</h2><div class="stars" aria-label="${R.stars} of 3 stars">${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}</div><p class="verdict">${R.fail ? 'Staff satisfaction hit the floor and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
+  return `<div class="card rep"><h2>${R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift report' : 'Shift report'}</h2><div class="stars" aria-label="${R.stars} of 3 stars">${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}</div>${starLine(R)}<p class="verdict">${R.fail ? 'Staff satisfaction hit the floor and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
 <p class="rep-meta">${R.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${esc(L.name)}${R.scen && R.scen !== 'none' ? ' · ' + esc(E.SCENS[R.scen].name) : ''} · ${new Date(at || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · Name: <span class="rep-name">&nbsp;</span></p>
 <div class="rep-big"><div><b>${R.care}</b><span>${R.mode === 'md' ? 'Score' : 'Pt mgmt'}</span></div><div><b>${R.wait}m</b><span>Avg wait</span></div>${R.mode === 'md' && R.md ? `<div><b>${R.md.seen}</b><span>You saw</span></div>` : `<div><b>${R.sat}%</b><span>Staff sat</span></div>`}</div>
 ${mmHTML(R)}${mdReportHTML(R, t)}
 <h4>Where your points came from</h4><table class="ledger">${rows || t('Nothing yet', '0')}</table>
+<details class="rep-more"><summary>All the numbers</summary>
 ${metricsHTML(R, t)}
 ${R.mode === 'md' ? mdDeptHTML(R, t) : `<h4>Patients</h4><table>${t('Arrived this shift', R.seen)}${t('Discharged home', R.dc)}${t('Sent home from triage', R.pitDc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('Left against medical advice', R.ama)}${t('72-hour returns', R.returns)}${t(`Still in the ED at ${E.clock(E.LEVELS[R.level] ? E.LEVELS[R.level].shift : 720)}`, R.left)}</table>
 <h4>EMS and the Box</h4><table>${t('Average EMS wall time (arrival to hand-off)', R.wallAvg + 'm')}${t('EMS handed off to the waiting room', R.offloads)}${t('Units on the wall over 30 min', R.wallOver)}${t('Medical direction calls sent to a doctor', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Alert reports taken', `${R.boxN.ans} of ${R.boxN.ans + R.boxN.miss}`)}${t('Alert time goals met', `${R.goalsMet} of ${R.goalsMet + R.goalsMiss}`)}${t('Ambulances diverted', `${R.diverted} (${R.yellowMins}m yellow, ${R.redMins}m red)`)}</table>
 <h4>Outages and diversion</h4><table>${R.outages.length ? R.outages.map(o => t(`${esc(E.OUTAGES[o.k].name)} at ${E.clock(o.t0)}`, o.divertAt == null ? `No ${esc(E.DIVERTS[E.OUTAGES[o.k].fix].name)}${o.misses ? ` · ${o.misses} came anyway` : ''}` : `${esc(E.DIVERTS[E.OUTAGES[o.k].fix].short)} divert in ${Math.round(o.divertAt - o.t0)}m${o.misses ? ` · ${o.misses} came first` : ''}${o.after ? ` · ${o.after}m too long` : ''}`)).join('') : t('Nothing broke this shift', '')}${R.divertExtra ? t('Minutes on a specific divert with nothing broken', R.divertExtra) : ''}</table>
 <h4>Services</h4><table>${t('Interpreters requested', `${R.interp} for ${R.lep} patient${R.lep === 1 ? '' : 's'} who needed one`)}${t('Massive transfusions', `${R.mtp}${R.mtpWaste ? ` (${R.mtpWaste} not needed)` : ''}`)}${t('Patients who went into shock', R.shock)}${t('O-negative units used', R.oneg)}${t('Meds pulled on override', `${R.overrides} (${R.medErrors} errors)`)}${t('Seen by a provider in triage', R.pitSeen)}${t('Registered / triaged', `${R.registered} / ${R.triaged}`)}${t('Sent upstairs by transporter / tech', `${R.transports.tp} / ${R.transports.pct}`)}${t('Interfacility ambulances', `${R.ift.als} ALS · ${R.ift.cct} CCT · ${R.ift.air} air${R.iftRefused ? ` (${R.iftRefused} wrong level)` : ''}`)}</table>
 <h4>Team</h4><table>${t('Angry consultants', R.angry + R.wrongSpec)}${t('Nurse-minutes over ratio', R.ratioMin)}${t('Safety events', R.adverse)}${t('Agency nurses / mandates', `${R.agency} / ${R.mandates}`)}${R.staffH ? t('RN hours (staff / agency / mandated)', `${R.staffH.rn} / ${R.staffH.agency} / ${R.staffH.mandated}`) + t('RN hours per patient', R.staffH.rnPerVisit) + t('Attending / PA and NP hours', `${R.staffH.md} / ${R.staffH.app}`) : ''}</table>`}
+</details>
 <div class="rep-btns"><button type="button" class="big act" data-act="again">Run it back</button><button type="button" class="big" data-act="menu">Menu</button><button type="button" class="big wide" data-act="print">Print or save as PDF</button></div></div>`;
 }
 /* Morbidity and mortality: the three worst moments of the shift, and the decision behind each. */
 function mdDeptHTML(R, t) {
   return `<h4>The department</h4><table>${t('Arrived this shift', R.seen)}${t('Discharged home', R.dc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('72-hour returns', R.returns)}${t(`Still in the ED at ${E.clock(E.LEVELS[R.level] ? E.LEVELS[R.level].shift : 720)}`, R.left)}${t('Alert time goals met', `${R.goalsMet} of ${R.goalsMet + R.goalsMiss}`)}</table>`;
 }
+/* What each star takes, and how far the next one is. */
+function starLine(R) {
+  const s = ((R.mode === 'md' ? E.STARS_MD : E.STARS) || {})[R.level]; if (!s || R.fail) return '';
+  const f = n => Number(n).toLocaleString('en-US'), nx = s.find(v => R.care < v);
+  return `<p class="star-key">★ ${f(s[0])} · ★★ ${f(s[1])} · ★★★ ${f(s[2])} points. ${nx == null ? 'You cleared all three.' : `<b>${f(nx - R.care)} more</b> for the next star.`}</p>`;
+}
+/* Orders the attending missed or did not need, patient by patient, with the reason. */
+function ordLogHTML(m) {
+  const L = (m.log || []).filter(x => x && (x.miss.length || x.extra.length)); if (!L.length) return '';
+  return `<h4>Orders to review</h4><ul class="ordlog">${L.slice(0, 12).map(x => `<li><b>${esc(x.name)}</b> · ${esc(x.dx || '')}${x.miss.length ? `<span class="ol-m">Missed: ${esc(x.miss.join(', '))}</span>` : ''}${x.extra.length ? `<span class="ol-x">Not needed: ${esc(x.extra.join(', '))}</span>` : ''}${x.why ? `<span class="ol-w">${esc(x.why)}</span>` : ''}</li>`).join('')}</ul>${L.length > 12 ? `<p class="hint">And ${L.length - 12} more.</p>` : ''}`;
+}
 function mdReportHTML(R, t) {
   if (R.mode !== 'md' || !R.md) return '';
   const m = R.md;
-  return `<h4>Your patients</h4><table>${t('Patients you saw', m.seen)}${t('ESI 1 and 2 seen within 10 min of a room', m.fast)}${t('Orders right / extra / missed', `${m.ordRight} / ${m.ordExtra} / ${m.ordMiss}`)}${t('Clean order sets', m.clean)}${t('Workups you had to add to', m.gaps)}${t('Patients hurt by an order', m.harm)}${t('Patients who got worse untreated', m.untreated)}${t('Disposition calls right / wrong', `${m.dispoRight} / ${m.dispoWrong}`)}${t('Medical direction calls answered', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Medical direction calls right', `${R.boxC.right} of ${R.boxC.ans}`)}</table>`;
+  return ordLogHTML(m) + `<h4>Your patients</h4><table>${t('Patients you saw', m.seen)}${t('ESI 1 and 2 seen within 10 min of a room', m.fast)}${t('Orders right / extra / missed', `${m.ordRight} / ${m.ordExtra} / ${m.ordMiss}`)}${t('Clean order sets', m.clean)}${t('Workups you had to add to', m.gaps)}${t('Patients hurt by an order', m.harm)}${t('Patients who got worse untreated', m.untreated)}${t('Disposition calls right / wrong', `${m.dispoRight} / ${m.dispoWrong}`)}${t('Medical direction calls answered', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Medical direction calls right', `${R.boxC.right} of ${R.boxC.ans}`)}</table>`;
 }
 function mmHTML(R) {
   if (!R.mm) return '';
@@ -6188,6 +6456,13 @@ function bind() {
     if (el && U.mapDrag && performance.now() < U.mapDrag && el.closest('#map')) return;   // that was a drag across the floor plan, not a tap
     mapAct(el, e.clientX, e.clientY);
   });
+  document.addEventListener('input', e => {   // the Words search: hide what does not match, without redrawing the box being typed in
+    const el = e.target && e.target.matches && e.target.matches('input[data-wq]') ? e.target : null; if (!el) return;
+    U.wq = el.value; const q = el.value.trim().toLowerCase(); let n = 0;
+    const root = el.closest('.sheet, #sheet, .card') || document;
+    root.querySelectorAll('.gl').forEach(gl => { let k = 0; gl.querySelectorAll('dl > div').forEach(d => { const on = !q || d.textContent.toLowerCase().includes(q); d.hidden = !on; if (on) k++; }); gl.hidden = !k; n += k; });
+    const none = root.querySelector('.wnone'); if (none) none.hidden = !!n;
+  });
   document.addEventListener('change', e => {   // the scenario menu on a sideways phone
     const el = e.target && e.target.closest ? e.target.closest('select[data-pick]') : null;
     if (el && ACT[el.dataset.pick]) ACT[el.dataset.pick](el.value);
@@ -6235,14 +6510,16 @@ const RM = {};
 {
   const put = (id, x, y, w, h) => { RM[id] = { x, y, w, h }; };
   ['R1', 'R2', 'R3', 'R4'].forEach((id, i) => put(id, 256 + (i % 2) * 114, 44 + (i >> 1) * 142, 108, 136));
-  const pod = (ids, x0, y0) => ids.forEach((id, i) => put(id, x0 + (i % 2) * 106, y0 + (i >> 1) * 102, 100, 96));
-  pod(['1', '2', '3', '4'], 490, 44); pod(['5', '6', '7', '8'], 704, 44); pod(['9', '10', '11', '12'], 918, 44);
-  pod(['13', '14', '15', '16'], 490, 410); pod(['17', '18', '19', '20'], 704, 410); pod(['FT1', 'FT2', 'FT3', 'FT4'], 918, 410);
-  [['H1', 490], ['H2', 596], ['H3', 918], ['H4', 1024]].forEach(([id, x]) => put(id, x, 250, 100, 46));
+  // rooms 96 x 94 with 8 between them; 17 between pods, so four rooms read as one group
+  const pod = (ids, x0, y0) => ids.forEach((id, i) => put(id, x0 + (i % 2) * 104, y0 + (i >> 1) * 102, 96, 94));
+  pod(['1', '2', '3', '4'], 490, 44); pod(['5', '6', '7', '8'], 707, 44); pod(['9', '10', '11', '12'], 924, 44);
+  pod(['13', '14', '15', '16'], 490, 446); pod(['17', '18', '19', '20'], 707, 446); pod(['FT1', 'FT2', 'FT3', 'FT4'], 924, 446);
+  [['H1', 490], ['H2', 594], ['H3', 924], ['H4', 1028]].forEach(([id, x]) => put(id, x, 250, 96, 46));
   ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'].forEach((id, i) => put(id, 1160 + (i % 2) * 118, 278 + (i >> 1) * 60, 112, 56));
 }
 // Pod signs: where each zone's label sits (tap it to assign nurses).
-const ZSIGN = { resus: [256, 8, 222], a: [490, 8, 206], b: [704, 8, 206], c: [918, 8, 206], hall: [704, 254, 206], d: [490, 614, 206], e: [704, 614, 206], ft: [918, 614, 206], rp: [1160, 244, 230] };
+const ZSIGN = { resus: [256, 8, 222], a: [490, 8, 200], b: [707, 8, 200], c: [924, 8, 200], hall: [707, 254, 200], d: [490, 410, 200], e: [707, 410, 200], ft: [924, 410, 200], rp: [1160, 244, 230] };
+const ZRANGE = { a: '1–4', b: '5–8', c: '9–12', d: '13–16', e: '17–20' };   // which rooms a pod holds, on its sign
 const ZSHORTN = { resus: 'Resus', a: 'A', b: 'B', c: 'C', d: 'D', e: 'E', hall: 'Hall', ft: 'Fast', rp: 'Chairs' };
 const TAGC = { red: '#E0293F', yellow: '#F2C230', green: '#2FA35B' };   // field triage tags from a multiple-casualty call
 // One line is all a hallway bed or a chair has when zoomed in: the same thing, said shorter.
@@ -6363,7 +6640,7 @@ function ambSVG(o) {
 /* The building itself: outside, floors, walls, desks, furniture, signs. Drawn once. */
 function mapStatic() {
   const R = (x, y, w, h, f, a) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}"${a ? ' ' + a : ''}/>`;
-  const L = (x, y, t, fs, a) => `<text x="${x}" y="${y}" font-size="${fs || 14}" font-weight="700" fill="#7A8493" letter-spacing="1.2"${a ? ` text-anchor="${a}"` : ''}>${t}</text>`;
+  const L = (x, y, t, fs, a) => `<text x="${x}" y="${y}" font-size="${fs || 14}" font-weight="700" fill="#4F5A6B" letter-spacing="1"${a ? ` text-anchor="${a}"` : ''}>${t}</text>`;
   const tree = (x, y, r) => `<ellipse cx="${x + 5}" cy="${y + 7}" rx="${r}" ry="${r * 0.9}" fill="rgba(0,0,0,.14)"/><circle cx="${x}" cy="${y}" r="${r}" fill="#6F9A5B"/><circle cx="${x - r * 0.28}" cy="${y - r * 0.3}" r="${r * 0.52}" fill="#8AB673"/>`;
   const plant = (x, y) => `<circle cx="${x}" cy="${y}" r="9" fill="#B5835A"/><circle cx="${x}" cy="${y}" r="7.2" fill="#5E9A55"/><circle cx="${x - 2.5}" cy="${y - 2.5}" r="3.2" fill="#86BD77"/>`;
   const seat = (x, y) => `<rect x="${x - 11}" y="${y - 10}" width="22" height="21" rx="5" fill="#9AA6B4"/><rect x="${x - 11}" y="${y - 10}" width="22" height="6" rx="3" fill="#7F8C9B"/>`;
@@ -6392,21 +6669,24 @@ function mapStatic() {
   s += '<path d="M112 28 V316" stroke="#8FD0E8" stroke-width="5" stroke-dasharray="44 8"/><path d="M112 630 V696" stroke="#8FD0E8" stroke-width="5" stroke-dasharray="30 6"/>';
   s += W('M250 0 V298 M112 342 H196 M250 404 H438 M484 0 V244 M484 404 V712 M1143 0 V244 M1143 404 V652 M1180 236 H1400 M1180 488 H1400');
   s += '<path d="M484 652 H1143" stroke="#9AA3AF" stroke-width="2.5"/>';
-  // the wall: six stretcher spots
-  s += L(181, 27, 'THE WALL', 16, 'middle');
+  // a tray under each pod, sign included
+  for (const [x0, y0, hh] of [[490, 2, 240], [707, 2, 240], [924, 2, 240], [490, 406, 242], [707, 406, 242], [924, 406, 242]]) s += `<rect x="${x0 - 5}" y="${y0}" width="210" height="${hh}" rx="13" fill="#E6E0D2" stroke="#B5AD9B" stroke-width="2"/>`;
+  s += '<rect x="251" y="2" width="232" height="328" rx="13" fill="#D9E1EE" stroke="#A9B4C6" stroke-width="2"/>';
+  // the wall: six stretcher spots. Its label, the waiting room's, and the door's carry a count.
+  s += '<text id="mWallL" x="181" y="27" font-size="20" font-weight="700" fill="#4F5A6B" letter-spacing="1" text-anchor="middle">THE WALL</text>';
   for (let i = 0; i < 6; i++) s += `<rect x="150" y="${WALL_Y(i) - 16}" width="94" height="32" rx="6" fill="none" stroke="#C3C9D2" stroke-width="1.5" stroke-dasharray="5 5"/>`;
   s += `<g id="mWall" data-act="cluster" data-arg="wall" role="button" aria-label="The wall: ambulance crews waiting to hand over"><rect x="114" y="8" width="134" height="${WALL_Y(5) + 26 - 8}" fill="transparent"/></g>`;   // zoomed out, the stretchers are too small to pick: one tap opens the list
   // resus alcove: crash cart, supply cart
   s += '<rect x="262" y="384" width="26" height="16" rx="3" fill="#C8243A"/><rect x="262" y="389" width="26" height="3" fill="#F3D5D9"/><rect x="294" y="386" width="22" height="14" rx="3" fill="#AEB7C2"/>';
   // check-in desk, the line at the door, the front door
   s += '<rect x="122" y="374" width="120" height="20" rx="5" fill="#B98D5E"/><rect x="122" y="374" width="120" height="5" rx="2.5" fill="#D3AE82"/><rect x="142" y="380" width="16" height="10" rx="2" fill="#2F3A4A"/><rect x="196" y="380" width="16" height="10" rx="2" fill="#2F3A4A"/>';
-  s += '<g id="mDoor" data-act="cluster" data-arg="door" role="button" aria-label="The line at the door"><rect x="116" y="398" width="132" height="232" fill="transparent"/><path d="M130 664 H162 V434" fill="none" stroke="#C9B48F" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/></g>';
+  s += '<g id="mDoor" data-act="cluster" data-arg="door" role="button" aria-label="The line at the door"><rect x="116" y="398" width="132" height="232" fill="transparent"/><path d="M130 664 H162 V434" fill="none" stroke="#C9B48F" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/><text id="mDoorL" x="172" y="646" font-size="16" font-weight="700" fill="#4F5A6B" letter-spacing="1">DOOR</text></g>';
   s += R(115, 634, 26, 58, '#8C5A4A', 'rx="3"') + plant(232, 694) + '<rect x="156" y="688" width="46" height="19" rx="3" fill="#33507A"/><rect x="160" y="691" width="26" height="13" rx="2" fill="#9FC3EA"/>';
   // triage booth: two bays behind a curtain
   s += '<g data-act="zone" data-arg="triage" role="button" aria-label="Triage"><rect x="258" y="410" width="220" height="78" rx="7" fill="#F8F4EA" stroke="#C9BFA8" stroke-width="2"/><path d="M388 414 V484" stroke="#9CCFC8" stroke-width="3" stroke-dasharray="4 5" stroke-linecap="round"/>';
-  s += '<rect x="266" y="418" width="36" height="14" rx="3" fill="#C9A77C"/><rect x="270" y="421" width="12" height="8" rx="1.5" fill="#2F3A4A"/><rect x="396" y="418" width="14" height="14" rx="3" fill="#C9A77C"/>' + L(266, 481, 'TRIAGE', 13) + '</g>';
+  s += '<rect x="266" y="418" width="36" height="14" rx="3" fill="#C9A77C"/><rect x="270" y="421" width="12" height="8" rx="1.5" fill="#2F3A4A"/><rect x="396" y="418" width="14" height="14" rx="3" fill="#C9A77C"/>' + L(262, 482, 'TRIAGE', 15) + '</g>';
   // waiting room
-  s += `<g id="mWait" data-act="cluster" data-arg="wait" role="button" aria-label="Waiting room"><rect x="254" y="494" width="226" height="216" fill="transparent"/>${L(262, 511, 'WAITING', 13)}`;
+  s += `<g id="mWait" data-act="cluster" data-arg="wait" role="button" aria-label="Waiting room"><rect x="254" y="494" width="226" height="216" fill="transparent"/><text id="mWaitL" x="262" y="512" font-size="16" font-weight="700" fill="#4F5A6B" letter-spacing="1">WAITING</text>`;
   for (const [x, y] of WAIT_SEATS) s += seat(x, y);
   s += '<rect x="474.5" y="566" width="5" height="60" rx="2" fill="#1E2633"/><path class="tvglow" d="M474 566 l-14 -6 v72 l14 -6z" fill="rgba(143,208,240,.3)"/></g>';
   // nurses' station: a desk around the provider seats, with the Box on it
@@ -6415,10 +6695,10 @@ function mapStatic() {
   for (const [x, y] of PROV_SEATS) s += `<circle cx="${x}" cy="${y + 2}" r="9" fill="#5E6878" opacity=".3"/>`;
   s += '<g id="mBox" data-act="boxTap" role="button" aria-label="The Box"><rect x="706" y="334" width="30" height="34" fill="transparent"/><path d="M721 341 v-8" stroke="#2B3240" stroke-width="1.6" stroke-linecap="round"/><rect x="716.5" y="340" width="9" height="20" rx="2.5" fill="#C8243A"/><circle cx="721" cy="346" r="1.7" fill="#FFE07A"/></g>';
   // imaging, lab, pharmacy, elevators
-  s += '<rect x="500" y="660" width="58" height="46" rx="12" fill="#FFFFFF" stroke="#A9B2BE" stroke-width="2.5"/><circle cx="529" cy="683" r="14" fill="#DDE4EE" stroke="#A9B2BE" stroke-width="2.5"/><rect x="556" y="675" width="40" height="16" rx="5" fill="#C9D2DE" stroke="#A9B2BE" stroke-width="1.5"/>' + L(604, 689, 'CT', 15);
-  s += '<rect x="652" y="664" width="44" height="40" rx="5" fill="#FFFFFF" stroke="#A9B2BE" stroke-width="2.5"/><rect x="662" y="672" width="24" height="24" rx="3" fill="#2F3A4A" opacity=".75"/>' + L(704, 689, 'XR', 15);
-  s += '<rect x="752" y="658" width="76" height="20" rx="4" fill="#C9D2DE"/>' + ['#C8243A', '#8A6FB0', '#3B8E6E', '#E0A21A', '#3B74C4'].map((c, i) => `<rect x="${758 + i * 9}" y="661" width="5" height="13" rx="2.5" fill="${c}"/>`).join('') + '<rect x="806" y="660" width="18" height="15" rx="2" fill="#5E6878"/>' + L(752, 701, 'LAB', 15);
-  s += '<rect x="872" y="656" width="104" height="14" rx="3" fill="#CDB9DA"/>' + ['#F2F2F2', '#E7A2AB', '#A9D6B5', '#F1DA86', '#A9C3E8', '#F2F2F2', '#F2BE8F'].map((c, i) => `<rect x="${877 + i * 14}" y="658.5" width="10" height="9" rx="2" fill="${c}"/>`).join('') + L(984, 689, 'RX', 15);
+  s += '<rect x="500" y="660" width="58" height="46" rx="12" fill="#FFFFFF" stroke="#A9B2BE" stroke-width="2.5"/><circle cx="529" cy="683" r="14" fill="#DDE4EE" stroke="#A9B2BE" stroke-width="2.5"/><rect x="556" y="675" width="40" height="16" rx="5" fill="#C9D2DE" stroke="#A9B2BE" stroke-width="1.5"/>' + L(604, 690, 'CT', 19);
+  s += '<rect x="652" y="664" width="44" height="40" rx="5" fill="#FFFFFF" stroke="#A9B2BE" stroke-width="2.5"/><rect x="662" y="672" width="24" height="24" rx="3" fill="#2F3A4A" opacity=".75"/>' + L(704, 690, 'XR', 19);
+  s += '<rect x="752" y="658" width="76" height="20" rx="4" fill="#C9D2DE"/>' + ['#C8243A', '#8A6FB0', '#3B8E6E', '#E0A21A', '#3B74C4'].map((c, i) => `<rect x="${758 + i * 9}" y="661" width="5" height="13" rx="2.5" fill="${c}"/>`).join('') + '<rect x="806" y="660" width="18" height="15" rx="2" fill="#5E6878"/>' + L(752, 703, 'LAB', 19);
+  s += '<rect x="872" y="656" width="104" height="14" rx="3" fill="#CDB9DA"/>' + ['#F2F2F2', '#E7A2AB', '#A9D6B5', '#F1DA86', '#A9C3E8', '#F2F2F2', '#F2BE8F'].map((c, i) => `<rect x="${877 + i * 14}" y="658.5" width="10" height="9" rx="2" fill="${c}"/>`).join('') + L(984, 690, 'RX', 19);
   for (const x of [1030, 1086]) s += `<rect x="${x}" y="654" width="48" height="56" rx="3" fill="#B7BDC6" stroke="#8E96A1" stroke-width="1.5"/><path d="M${x + 24} 654 v56" stroke="#8E96A1" stroke-width="2"/><path d="M${x + 24} 660 l5 6 h-10z" fill="#5E6878"/>`;
   // break room: counter, coffee, fridge, vending, a table, a couch, a TV
   s += '<rect x="1156" y="5" width="156" height="20" rx="4" fill="#D5DAE1" stroke="#AEB6C0" stroke-width="1"/><ellipse cx="1184" cy="15" rx="10" ry="6" fill="#B8C2CE"/><rect x="1210" y="8" width="24" height="14" rx="2" fill="#4F5966"/><rect x="1212" y="10" width="14" height="10" rx="1" fill="#9FC3EA" opacity=".6"/>';
@@ -6427,9 +6707,9 @@ function mapStatic() {
   s += '<rect x="1194" y="72" width="124" height="82" rx="24" fill="#F3E8D2" opacity=".85"/><rect x="1214" y="92" width="84" height="42" rx="10" fill="#C9A77C" stroke="#A98456" stroke-width="1.5"/>';
   for (const [x, y] of BREAK_SEATS.slice(0, 6)) s += `<rect x="${x - 9}" y="${y - 7}" width="18" height="18" rx="5" fill="#8C6F4E" opacity=".45"/>`;
   s += '<rect x="1232" y="188" width="160" height="40" rx="10" fill="#7E8FA6"/><rect x="1232" y="214" width="160" height="14" rx="7" fill="#687A92"/><path d="M1286 192 v22 M1338 192 v22" stroke="#687A92" stroke-width="2"/>';
-  s += '<rect x="1146" y="84" width="5" height="56" rx="2" fill="#1E2633"/><path class="tvglow" d="M1151 84 l20 -8 v72 l-20 -8z" fill="rgba(143,208,240,.3)"/>' + L(1160, 50, 'BREAK ROOM', 14) + plant(1160, 222);
+  s += '<rect x="1146" y="84" width="5" height="56" rx="2" fill="#1E2633"/><path class="tvglow" d="M1151 84 l20 -8 v72 l-20 -8z" fill="rgba(143,208,240,.3)"/>' + L(1160, 52, 'BREAK ROOM', 18) + plant(1160, 222);
   // EVS and supply
-  s += L(1160, 512, 'EVS', 14) + '<rect x="1160" y="640" width="58" height="28" rx="5" fill="#E3C23B"/><circle cx="1178" cy="654" r="9" fill="#6FA8C9"/><path d="M1204 642 v-20" stroke="#8E6A43" stroke-width="3" stroke-linecap="round"/><rect x="1236" y="640" width="40" height="30" rx="6" fill="#C9D2DE"/><rect x="1241" y="645" width="30" height="20" rx="4" fill="#EEF1F5"/>';
+  s += L(1160, 514, 'EVS', 18) + '<rect x="1160" y="640" width="58" height="28" rx="5" fill="#E3C23B"/><circle cx="1178" cy="654" r="9" fill="#6FA8C9"/><path d="M1204 642 v-20" stroke="#8E6A43" stroke-width="3" stroke-linecap="round"/><rect x="1236" y="640" width="40" height="30" rx="6" fill="#C9D2DE"/><rect x="1241" y="645" width="30" height="20" rx="4" fill="#EEF1F5"/>';
   s += '<rect x="1372" y="498" width="22" height="206" rx="3" fill="#B7BDC6"/>' + [0, 1, 2, 3, 4, 5, 6].map(i => `<rect x="1375" y="${504 + i * 28}" width="16" height="21" rx="2" fill="${['#EEF1F5', '#A9C3E8', '#F1DA86', '#EEF1F5', '#A9D6B5', '#F2BE8F', '#EEF1F5'][i]}"/>`).join('');
   return s;
 }
@@ -6673,9 +6953,9 @@ function mapRender(G) {
     const over = (!ns.length && n > 0) || load > cap, full = ns.length && load === cap;
     const lt = ns.length ? `${fl(load)}/${cap}` : closed ? (z === 'ft' && G.t < 120 ? '09:00' : 'closed') : n ? 'no RN!' : 'no RN';
     const fg = over ? '#FFFFFF' : '#1B2230';
-    signs += `<g class="msign${over ? ' over' : ''}" id="mzh-${z}" data-act="zone" data-arg="${z}" transform="translate(${x} ${y})" role="button" aria-label="${esc(zn)}: ${ns.length ? esc(ns.map(s => s.short).join(' and ')) + `, load ${fl(load)} of ${cap}` : 'no nurse'}"><rect x="-3" y="${y > 560 ? -6 : -8}" width="${w + 6}" height="${y < 100 ? 58 : y > 560 ? 78 : 46}" fill="transparent"/>`
+    signs += `<g class="msign${over ? ' over' : ''}" id="mzh-${z}" data-act="zone" data-arg="${z}" transform="translate(${x} ${y})" role="button" aria-label="${esc(zn)}: ${ns.length ? esc(ns.map(s => s.short).join(' and ')) + `, load ${fl(load)} of ${cap}` : 'no nurse'}"><rect x="-3" y="${y > 400 ? -26 : -8}" width="${w + 6}" height="${y < 100 ? 58 : y > 400 ? 64 : 46}" fill="transparent"/>`
       + `<rect width="${w}" height="30" rx="15" fill="${over ? '#C8243A' : closed && !ns.length ? '#E6E8EB' : '#FFFFFF'}" stroke="${over ? '#C8243A' : full ? '#B76E00' : '#8E97A4'}" stroke-width="${full ? 2.4 : 1.6}"/>`
-      + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
+      + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}${ZRANGE[z] ? `<tspan dx="7" font-size="14" fill="${over ? '#FFE3E6' : '#5E6878'}">${ZRANGE[z]}</tspan>` : ''}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
       + `<text class="nearonly" x="12" y="20" font-size="14" font-weight="700" fill="${fg}">${esc(zn)} · ${ns.length ? esc(ns.map(s => s.short).join(' + ')) + ' ' : ''}${lt}</text></g>`;
   }
   setH(document.getElementById('mSigns'), signs);
@@ -6695,12 +6975,13 @@ function mapRender(G) {
     const fill = r.closed ? 'url(#closedP)' : dirty ? '#F1E7DA' : empty && r.st === 'cleaning' ? '#E3F0F0' : p ? '#FFFFFF' : '#E6F4EA';
     const words = String(ns ? ns.t : r.closed ? 'Closed' : r.st === 'dirty' ? (G.evsQ.indexOf(r.id) >= 0 ? 'EVS line #' + (G.evsQ.indexOf(r.id) + 1) : 'Dirty') : r.st === 'cleaning' ? 'Cleaning' : 'Clean');
     const plain = words.replace(/<[^>]+>/g, '');
-    let g = `<rect class="mr-f" width="${w}" height="${h}" rx="7" fill="${fill}" stroke="${p ? '#2B3240' : r.closed ? '#9AA3AF' : r.st === 'clean' ? '#5BA374' : '#9A8E7C'}" stroke-width="${p ? 2.6 : 1.8}"/>`;
+    const sw = p ? 4 : 3, hallE = kind === 'hall' && !p && !r.closed && r.st === 'clean';
+    let g = `<rect class="mr-f" x="${sw / 2}" y="${sw / 2}" width="${w - sw}" height="${h - sw}" rx="6" fill="${hallE ? 'rgba(255,255,255,.4)' : fill}" stroke="${p ? '#2B3240' : r.closed ? '#7F8A99' : hallE ? '#8A94A3' : r.st === 'clean' ? '#3F8F63' : '#8A7A62'}" stroke-width="${sw}"${hallE ? ' stroke-dasharray="7 5"' : ''}/>`;
     if (dirty) g += `<rect width="${w}" height="${h}" rx="7" fill="url(#dirt)"/>`;
     if (r.safe) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#9CC2E8" stroke-width="3" stroke-dasharray="2 5"/>`;
     if (r.iso) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#E0A21A" stroke-width="2.4" stroke-dasharray="7 5"/>`;
     if (p && p.arrest) g += `<rect class="codefl" width="${w}" height="${h}" rx="7" fill="#C8243A"/>`;
-    if (md && p && mine(p)) g += `<path d="M0 ${h - 24} V${h - 7} a7 7 0 0 0 7 7 H24Z" fill="#F2C230"/>`;
+    if (md && p && mine(p)) g += `<rect x="5.5" y="5.5" width="${w - 11}" height="${h - 11}" rx="4" fill="none" stroke="#F2C230" stroke-width="4.5"/><path d="M0 ${h - 30} V${h - 7} a7 7 0 0 0 7 7 H30Z" fill="#F2C230"/>`;
     const vt = p ? E.vitalsOf(p) : null, bp = p && !ARRIVE.has(p.id) ? p : null;   // bp: the patient once they are actually in the bed
     const mon = !bp ? 'off' : p.arrest ? 'flat' : crit || vt.s >= 1.25 ? 'bad' : 'ok', iv = !!(bp && p.tr && p.tr.length && !E.treatsDone(p));
     if (kind === 'chair') g += reclinerSVG(cx, h / 2 + 3, bp);
@@ -6714,8 +6995,8 @@ function mapRender(G) {
     }
     if (p && p.arrest) g += `<g class="beacon" transform="translate(${w - 13} ${h - 13})"><circle r="8" fill="#C8243A" stroke="#fff" stroke-width="1.2"/><path class="bspin" d="M0 0 L8 -3.4 A8.7 8.7 0 0 1 8 3.4Z" fill="#FFE3E6"/></g>`;
     // the info band: number, what it needs, ESI
-    const small = kind === 'hall' || kind === 'chair', idf = String(r.id).length > 2 ? 14 : small ? 15 : 19;
-    g += `<text x="5" y="${small ? 16 : 20}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(r.id)}</text>`;
+    const small = kind === 'hall' || kind === 'chair', idf = String(r.id).length > 2 ? 14.5 : small ? 15 : 22;
+    g += `<text x="6" y="${small ? 16.5 : String(r.id).length > 2 ? 20 : 23}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(r.id)}</text>`;
     if (esi) g += small ? `<circle cx="${w - 12}" cy="12" r="10" fill="var(--e${esi})"/><text x="${w - 12}" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`
       : `<circle cx="${w - 16}" cy="17" r="13" fill="var(--e${esi})"/><text x="${w - 16}" y="23" text-anchor="middle" font-size="17" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`;
     if (vt && vt.taken && !vt.arrest && vt.trend === 'worse' && vt.s >= 1.15) g += `<path d="M-6.5 -4 H6.5 L0 6.5Z" transform="translate(${small ? w - 27 : w - 33} ${small ? 23 : 31})" fill="#C8243A" stroke="#fff" stroke-width="1.4"/>`;   // vitals heading the wrong way
@@ -6748,7 +7029,7 @@ function mapRender(G) {
       const nfill = crit ? '#C8243A' : '#1B2230', tc = p.tag ? TAGC[p.tag] : null;
       const tagN = (x, y, tw, th, fs, cls) => { const mc = Math.max(3, Math.floor((tw - 6 - (tc ? 9 : 0)) / (fs * 0.54))), nm = p.name.length > mc ? p.name.slice(0, mc - 1) + '…' : p.name; return `<g class="mname ${cls}"><rect x="${R.x + x}" y="${R.y + y}" width="${tw}" height="${th}" rx="${Math.min(6, th / 2)}" fill="${nfill}"/>${tc ? `<rect x="${R.x + x + 2.5}" y="${R.y + y + 2.5}" width="8" height="${th - 5}" rx="2.5" fill="${tc}" stroke="#fff" stroke-width="1.1"/>` : ''}<text x="${R.x + x + tw / 2 + (tc ? 4.5 : 0)}" y="${R.y + y + th / 2 + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#FFFFFF">${esc(nm)}</text></g>`; };
       if (small) names += tagN(3, h - 19, w - 30, 17, 13, 'faronly') + tagN(26, 2, w - 52, 14, 11, 'nearonly');
-      else names += tagN(3, h - 23, w - 6, 20, 15.5, 'faronly') + tagN(5, h - 41 - (two ? lh : 0), w - 10, 17, 13, 'nearonly');
+      else names += tagN(3, h - 25, w - 6, 22, 16.5, 'faronly') + tagN(5, h - 41 - (two ? lh : 0), w - 10, 17, 13, 'nearonly');
     }
     setA(n, 'class', `mroom${selc}${crit ? ' crit' : ''}`);
     setA(n, 'aria-label', `${E.roomName(r.id)}${p ? `: ${p.name}, ${E.ageSex(p)}, ${p.cc}${esi ? `, ESI ${esi}` : ''}` : ''}. ${plain}`);
@@ -6807,6 +7088,8 @@ function mapRender(G) {
 
   // the wall: a crew and a stretcher in each spot, with how long they've held it
   const wall = act.filter(p => p.loc === 'wall').sort((a, b) => a.tArrive - b.tArrive), inside = wall.slice(0, 6), outside = wall.slice(6);
+  const lab = (id, t) => { const n = document.getElementById(id); if (n && n.textContent !== t) n.textContent = t; };
+  lab('mWallL', wall.length ? `THE WALL · ${wall.length}` : 'THE WALL'); lab('mWaitL', waiting.length ? `WAITING · ${waiting.length}` : 'WAITING'); lab('mDoorL', G.triageQ.length ? `DOOR · ${G.triageQ.length}` : 'DOOR');
   inside.forEach((p, i) => {
     const y = WALL_Y(i), esi = p.tri === 'done' ? ve(p) : 0, mins = Math.round(G.t - p.tArrive);
     by.set(p.id, [196, y + 4]);
@@ -6913,7 +7196,7 @@ function mapRender(G) {
 
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-window.OCUI = { U, render, start, showTitle, mapFocus, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: !!st.wait && t.held !== t.step, next: !!st.next || t.held === t.step, final: !!st.final, n: STEPS_NOW().length } : null; } };
+window.OCUI = { U, render, start, showTitle, mapFocus, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
 })();
 
 </script>

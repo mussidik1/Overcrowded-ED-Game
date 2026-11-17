@@ -10,14 +10,16 @@ const RM = {};
 {
   const put = (id, x, y, w, h) => { RM[id] = { x, y, w, h }; };
   ['R1', 'R2', 'R3', 'R4'].forEach((id, i) => put(id, 256 + (i % 2) * 114, 44 + (i >> 1) * 142, 108, 136));
-  const pod = (ids, x0, y0) => ids.forEach((id, i) => put(id, x0 + (i % 2) * 106, y0 + (i >> 1) * 102, 100, 96));
-  pod(['1', '2', '3', '4'], 490, 44); pod(['5', '6', '7', '8'], 704, 44); pod(['9', '10', '11', '12'], 918, 44);
-  pod(['13', '14', '15', '16'], 490, 410); pod(['17', '18', '19', '20'], 704, 410); pod(['FT1', 'FT2', 'FT3', 'FT4'], 918, 410);
-  [['H1', 490], ['H2', 596], ['H3', 918], ['H4', 1024]].forEach(([id, x]) => put(id, x, 250, 100, 46));
+  // rooms 96 x 94 with 8 between them; 17 between pods, so four rooms read as one group
+  const pod = (ids, x0, y0) => ids.forEach((id, i) => put(id, x0 + (i % 2) * 104, y0 + (i >> 1) * 102, 96, 94));
+  pod(['1', '2', '3', '4'], 490, 44); pod(['5', '6', '7', '8'], 707, 44); pod(['9', '10', '11', '12'], 924, 44);
+  pod(['13', '14', '15', '16'], 490, 446); pod(['17', '18', '19', '20'], 707, 446); pod(['FT1', 'FT2', 'FT3', 'FT4'], 924, 446);
+  [['H1', 490], ['H2', 594], ['H3', 924], ['H4', 1028]].forEach(([id, x]) => put(id, x, 250, 96, 46));
   ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'].forEach((id, i) => put(id, 1160 + (i % 2) * 118, 278 + (i >> 1) * 60, 112, 56));
 }
 // Pod signs: where each zone's label sits (tap it to assign nurses).
-const ZSIGN = { resus: [256, 8, 222], a: [490, 8, 206], b: [704, 8, 206], c: [918, 8, 206], hall: [704, 254, 206], d: [490, 614, 206], e: [704, 614, 206], ft: [918, 614, 206], rp: [1160, 244, 230] };
+const ZSIGN = { resus: [256, 8, 222], a: [490, 8, 200], b: [707, 8, 200], c: [924, 8, 200], hall: [707, 254, 200], d: [490, 410, 200], e: [707, 410, 200], ft: [924, 410, 200], rp: [1160, 244, 230] };
+const ZRANGE = { a: '1–4', b: '5–8', c: '9–12', d: '13–16', e: '17–20' };   // which rooms a pod holds, on its sign
 const ZSHORTN = { resus: 'Resus', a: 'A', b: 'B', c: 'C', d: 'D', e: 'E', hall: 'Hall', ft: 'Fast', rp: 'Chairs' };
 const TAGC = { red: '#E0293F', yellow: '#F2C230', green: '#2FA35B' };   // field triage tags from a multiple-casualty call
 // One line is all a hallway bed or a chair has when zoomed in: the same thing, said shorter.
@@ -138,7 +140,7 @@ function ambSVG(o) {
 /* The building itself: outside, floors, walls, desks, furniture, signs. Drawn once. */
 function mapStatic() {
   const R = (x, y, w, h, f, a) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}"${a ? ' ' + a : ''}/>`;
-  const L = (x, y, t, fs, a) => `<text x="${x}" y="${y}" font-size="${fs || 14}" font-weight="700" fill="#7A8493" letter-spacing="1.2"${a ? ` text-anchor="${a}"` : ''}>${t}</text>`;
+  const L = (x, y, t, fs, a) => `<text x="${x}" y="${y}" font-size="${fs || 14}" font-weight="700" fill="#4F5A6B" letter-spacing="1"${a ? ` text-anchor="${a}"` : ''}>${t}</text>`;
   const tree = (x, y, r) => `<ellipse cx="${x + 5}" cy="${y + 7}" rx="${r}" ry="${r * 0.9}" fill="rgba(0,0,0,.14)"/><circle cx="${x}" cy="${y}" r="${r}" fill="#6F9A5B"/><circle cx="${x - r * 0.28}" cy="${y - r * 0.3}" r="${r * 0.52}" fill="#8AB673"/>`;
   const plant = (x, y) => `<circle cx="${x}" cy="${y}" r="9" fill="#B5835A"/><circle cx="${x}" cy="${y}" r="7.2" fill="#5E9A55"/><circle cx="${x - 2.5}" cy="${y - 2.5}" r="3.2" fill="#86BD77"/>`;
   const seat = (x, y) => `<rect x="${x - 11}" y="${y - 10}" width="22" height="21" rx="5" fill="#9AA6B4"/><rect x="${x - 11}" y="${y - 10}" width="22" height="6" rx="3" fill="#7F8C9B"/>`;
@@ -167,21 +169,24 @@ function mapStatic() {
   s += '<path d="M112 28 V316" stroke="#8FD0E8" stroke-width="5" stroke-dasharray="44 8"/><path d="M112 630 V696" stroke="#8FD0E8" stroke-width="5" stroke-dasharray="30 6"/>';
   s += W('M250 0 V298 M112 342 H196 M250 404 H438 M484 0 V244 M484 404 V712 M1143 0 V244 M1143 404 V652 M1180 236 H1400 M1180 488 H1400');
   s += '<path d="M484 652 H1143" stroke="#9AA3AF" stroke-width="2.5"/>';
-  // the wall: six stretcher spots
-  s += L(181, 27, 'THE WALL', 16, 'middle');
+  // a tray under each pod, sign included
+  for (const [x0, y0, hh] of [[490, 2, 240], [707, 2, 240], [924, 2, 240], [490, 406, 242], [707, 406, 242], [924, 406, 242]]) s += `<rect x="${x0 - 5}" y="${y0}" width="210" height="${hh}" rx="13" fill="#E6E0D2" stroke="#B5AD9B" stroke-width="2"/>`;
+  s += '<rect x="251" y="2" width="232" height="328" rx="13" fill="#D9E1EE" stroke="#A9B4C6" stroke-width="2"/>';
+  // the wall: six stretcher spots. Its label, the waiting room's, and the door's carry a count.
+  s += '<text id="mWallL" x="181" y="27" font-size="20" font-weight="700" fill="#4F5A6B" letter-spacing="1" text-anchor="middle">THE WALL</text>';
   for (let i = 0; i < 6; i++) s += `<rect x="150" y="${WALL_Y(i) - 16}" width="94" height="32" rx="6" fill="none" stroke="#C3C9D2" stroke-width="1.5" stroke-dasharray="5 5"/>`;
   s += `<g id="mWall" data-act="cluster" data-arg="wall" role="button" aria-label="The wall: ambulance crews waiting to hand over"><rect x="114" y="8" width="134" height="${WALL_Y(5) + 26 - 8}" fill="transparent"/></g>`;   // zoomed out, the stretchers are too small to pick: one tap opens the list
   // resus alcove: crash cart, supply cart
   s += '<rect x="262" y="384" width="26" height="16" rx="3" fill="#C8243A"/><rect x="262" y="389" width="26" height="3" fill="#F3D5D9"/><rect x="294" y="386" width="22" height="14" rx="3" fill="#AEB7C2"/>';
   // check-in desk, the line at the door, the front door
   s += '<rect x="122" y="374" width="120" height="20" rx="5" fill="#B98D5E"/><rect x="122" y="374" width="120" height="5" rx="2.5" fill="#D3AE82"/><rect x="142" y="380" width="16" height="10" rx="2" fill="#2F3A4A"/><rect x="196" y="380" width="16" height="10" rx="2" fill="#2F3A4A"/>';
-  s += '<g id="mDoor" data-act="cluster" data-arg="door" role="button" aria-label="The line at the door"><rect x="116" y="398" width="132" height="232" fill="transparent"/><path d="M130 664 H162 V434" fill="none" stroke="#C9B48F" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/></g>';
+  s += '<g id="mDoor" data-act="cluster" data-arg="door" role="button" aria-label="The line at the door"><rect x="116" y="398" width="132" height="232" fill="transparent"/><path d="M130 664 H162 V434" fill="none" stroke="#C9B48F" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/><text id="mDoorL" x="172" y="646" font-size="16" font-weight="700" fill="#4F5A6B" letter-spacing="1">DOOR</text></g>';
   s += R(115, 634, 26, 58, '#8C5A4A', 'rx="3"') + plant(232, 694) + '<rect x="156" y="688" width="46" height="19" rx="3" fill="#33507A"/><rect x="160" y="691" width="26" height="13" rx="2" fill="#9FC3EA"/>';
   // triage booth: two bays behind a curtain
   s += '<g data-act="zone" data-arg="triage" role="button" aria-label="Triage"><rect x="258" y="410" width="220" height="78" rx="7" fill="#F8F4EA" stroke="#C9BFA8" stroke-width="2"/><path d="M388 414 V484" stroke="#9CCFC8" stroke-width="3" stroke-dasharray="4 5" stroke-linecap="round"/>';
-  s += '<rect x="266" y="418" width="36" height="14" rx="3" fill="#C9A77C"/><rect x="270" y="421" width="12" height="8" rx="1.5" fill="#2F3A4A"/><rect x="396" y="418" width="14" height="14" rx="3" fill="#C9A77C"/>' + L(266, 481, 'TRIAGE', 13) + '</g>';
+  s += '<rect x="266" y="418" width="36" height="14" rx="3" fill="#C9A77C"/><rect x="270" y="421" width="12" height="8" rx="1.5" fill="#2F3A4A"/><rect x="396" y="418" width="14" height="14" rx="3" fill="#C9A77C"/>' + L(262, 482, 'TRIAGE', 15) + '</g>';
   // waiting room
-  s += `<g id="mWait" data-act="cluster" data-arg="wait" role="button" aria-label="Waiting room"><rect x="254" y="494" width="226" height="216" fill="transparent"/>${L(262, 511, 'WAITING', 13)}`;
+  s += `<g id="mWait" data-act="cluster" data-arg="wait" role="button" aria-label="Waiting room"><rect x="254" y="494" width="226" height="216" fill="transparent"/><text id="mWaitL" x="262" y="512" font-size="16" font-weight="700" fill="#4F5A6B" letter-spacing="1">WAITING</text>`;
   for (const [x, y] of WAIT_SEATS) s += seat(x, y);
   s += '<rect x="474.5" y="566" width="5" height="60" rx="2" fill="#1E2633"/><path class="tvglow" d="M474 566 l-14 -6 v72 l14 -6z" fill="rgba(143,208,240,.3)"/></g>';
   // nurses' station: a desk around the provider seats, with the Box on it
@@ -190,10 +195,10 @@ function mapStatic() {
   for (const [x, y] of PROV_SEATS) s += `<circle cx="${x}" cy="${y + 2}" r="9" fill="#5E6878" opacity=".3"/>`;
   s += '<g id="mBox" data-act="boxTap" role="button" aria-label="The Box"><rect x="706" y="334" width="30" height="34" fill="transparent"/><path d="M721 341 v-8" stroke="#2B3240" stroke-width="1.6" stroke-linecap="round"/><rect x="716.5" y="340" width="9" height="20" rx="2.5" fill="#C8243A"/><circle cx="721" cy="346" r="1.7" fill="#FFE07A"/></g>';
   // imaging, lab, pharmacy, elevators
-  s += '<rect x="500" y="660" width="58" height="46" rx="12" fill="#FFFFFF" stroke="#A9B2BE" stroke-width="2.5"/><circle cx="529" cy="683" r="14" fill="#DDE4EE" stroke="#A9B2BE" stroke-width="2.5"/><rect x="556" y="675" width="40" height="16" rx="5" fill="#C9D2DE" stroke="#A9B2BE" stroke-width="1.5"/>' + L(604, 689, 'CT', 15);
-  s += '<rect x="652" y="664" width="44" height="40" rx="5" fill="#FFFFFF" stroke="#A9B2BE" stroke-width="2.5"/><rect x="662" y="672" width="24" height="24" rx="3" fill="#2F3A4A" opacity=".75"/>' + L(704, 689, 'XR', 15);
-  s += '<rect x="752" y="658" width="76" height="20" rx="4" fill="#C9D2DE"/>' + ['#C8243A', '#8A6FB0', '#3B8E6E', '#E0A21A', '#3B74C4'].map((c, i) => `<rect x="${758 + i * 9}" y="661" width="5" height="13" rx="2.5" fill="${c}"/>`).join('') + '<rect x="806" y="660" width="18" height="15" rx="2" fill="#5E6878"/>' + L(752, 701, 'LAB', 15);
-  s += '<rect x="872" y="656" width="104" height="14" rx="3" fill="#CDB9DA"/>' + ['#F2F2F2', '#E7A2AB', '#A9D6B5', '#F1DA86', '#A9C3E8', '#F2F2F2', '#F2BE8F'].map((c, i) => `<rect x="${877 + i * 14}" y="658.5" width="10" height="9" rx="2" fill="${c}"/>`).join('') + L(984, 689, 'RX', 15);
+  s += '<rect x="500" y="660" width="58" height="46" rx="12" fill="#FFFFFF" stroke="#A9B2BE" stroke-width="2.5"/><circle cx="529" cy="683" r="14" fill="#DDE4EE" stroke="#A9B2BE" stroke-width="2.5"/><rect x="556" y="675" width="40" height="16" rx="5" fill="#C9D2DE" stroke="#A9B2BE" stroke-width="1.5"/>' + L(604, 690, 'CT', 19);
+  s += '<rect x="652" y="664" width="44" height="40" rx="5" fill="#FFFFFF" stroke="#A9B2BE" stroke-width="2.5"/><rect x="662" y="672" width="24" height="24" rx="3" fill="#2F3A4A" opacity=".75"/>' + L(704, 690, 'XR', 19);
+  s += '<rect x="752" y="658" width="76" height="20" rx="4" fill="#C9D2DE"/>' + ['#C8243A', '#8A6FB0', '#3B8E6E', '#E0A21A', '#3B74C4'].map((c, i) => `<rect x="${758 + i * 9}" y="661" width="5" height="13" rx="2.5" fill="${c}"/>`).join('') + '<rect x="806" y="660" width="18" height="15" rx="2" fill="#5E6878"/>' + L(752, 703, 'LAB', 19);
+  s += '<rect x="872" y="656" width="104" height="14" rx="3" fill="#CDB9DA"/>' + ['#F2F2F2', '#E7A2AB', '#A9D6B5', '#F1DA86', '#A9C3E8', '#F2F2F2', '#F2BE8F'].map((c, i) => `<rect x="${877 + i * 14}" y="658.5" width="10" height="9" rx="2" fill="${c}"/>`).join('') + L(984, 690, 'RX', 19);
   for (const x of [1030, 1086]) s += `<rect x="${x}" y="654" width="48" height="56" rx="3" fill="#B7BDC6" stroke="#8E96A1" stroke-width="1.5"/><path d="M${x + 24} 654 v56" stroke="#8E96A1" stroke-width="2"/><path d="M${x + 24} 660 l5 6 h-10z" fill="#5E6878"/>`;
   // break room: counter, coffee, fridge, vending, a table, a couch, a TV
   s += '<rect x="1156" y="5" width="156" height="20" rx="4" fill="#D5DAE1" stroke="#AEB6C0" stroke-width="1"/><ellipse cx="1184" cy="15" rx="10" ry="6" fill="#B8C2CE"/><rect x="1210" y="8" width="24" height="14" rx="2" fill="#4F5966"/><rect x="1212" y="10" width="14" height="10" rx="1" fill="#9FC3EA" opacity=".6"/>';
@@ -202,9 +207,9 @@ function mapStatic() {
   s += '<rect x="1194" y="72" width="124" height="82" rx="24" fill="#F3E8D2" opacity=".85"/><rect x="1214" y="92" width="84" height="42" rx="10" fill="#C9A77C" stroke="#A98456" stroke-width="1.5"/>';
   for (const [x, y] of BREAK_SEATS.slice(0, 6)) s += `<rect x="${x - 9}" y="${y - 7}" width="18" height="18" rx="5" fill="#8C6F4E" opacity=".45"/>`;
   s += '<rect x="1232" y="188" width="160" height="40" rx="10" fill="#7E8FA6"/><rect x="1232" y="214" width="160" height="14" rx="7" fill="#687A92"/><path d="M1286 192 v22 M1338 192 v22" stroke="#687A92" stroke-width="2"/>';
-  s += '<rect x="1146" y="84" width="5" height="56" rx="2" fill="#1E2633"/><path class="tvglow" d="M1151 84 l20 -8 v72 l-20 -8z" fill="rgba(143,208,240,.3)"/>' + L(1160, 50, 'BREAK ROOM', 14) + plant(1160, 222);
+  s += '<rect x="1146" y="84" width="5" height="56" rx="2" fill="#1E2633"/><path class="tvglow" d="M1151 84 l20 -8 v72 l-20 -8z" fill="rgba(143,208,240,.3)"/>' + L(1160, 52, 'BREAK ROOM', 18) + plant(1160, 222);
   // EVS and supply
-  s += L(1160, 512, 'EVS', 14) + '<rect x="1160" y="640" width="58" height="28" rx="5" fill="#E3C23B"/><circle cx="1178" cy="654" r="9" fill="#6FA8C9"/><path d="M1204 642 v-20" stroke="#8E6A43" stroke-width="3" stroke-linecap="round"/><rect x="1236" y="640" width="40" height="30" rx="6" fill="#C9D2DE"/><rect x="1241" y="645" width="30" height="20" rx="4" fill="#EEF1F5"/>';
+  s += L(1160, 514, 'EVS', 18) + '<rect x="1160" y="640" width="58" height="28" rx="5" fill="#E3C23B"/><circle cx="1178" cy="654" r="9" fill="#6FA8C9"/><path d="M1204 642 v-20" stroke="#8E6A43" stroke-width="3" stroke-linecap="round"/><rect x="1236" y="640" width="40" height="30" rx="6" fill="#C9D2DE"/><rect x="1241" y="645" width="30" height="20" rx="4" fill="#EEF1F5"/>';
   s += '<rect x="1372" y="498" width="22" height="206" rx="3" fill="#B7BDC6"/>' + [0, 1, 2, 3, 4, 5, 6].map(i => `<rect x="1375" y="${504 + i * 28}" width="16" height="21" rx="2" fill="${['#EEF1F5', '#A9C3E8', '#F1DA86', '#EEF1F5', '#A9D6B5', '#F2BE8F', '#EEF1F5'][i]}"/>`).join('');
   return s;
 }
@@ -448,9 +453,9 @@ function mapRender(G) {
     const over = (!ns.length && n > 0) || load > cap, full = ns.length && load === cap;
     const lt = ns.length ? `${fl(load)}/${cap}` : closed ? (z === 'ft' && G.t < 120 ? '09:00' : 'closed') : n ? 'no RN!' : 'no RN';
     const fg = over ? '#FFFFFF' : '#1B2230';
-    signs += `<g class="msign${over ? ' over' : ''}" id="mzh-${z}" data-act="zone" data-arg="${z}" transform="translate(${x} ${y})" role="button" aria-label="${esc(zn)}: ${ns.length ? esc(ns.map(s => s.short).join(' and ')) + `, load ${fl(load)} of ${cap}` : 'no nurse'}"><rect x="-3" y="${y > 560 ? -6 : -8}" width="${w + 6}" height="${y < 100 ? 58 : y > 560 ? 78 : 46}" fill="transparent"/>`
+    signs += `<g class="msign${over ? ' over' : ''}" id="mzh-${z}" data-act="zone" data-arg="${z}" transform="translate(${x} ${y})" role="button" aria-label="${esc(zn)}: ${ns.length ? esc(ns.map(s => s.short).join(' and ')) + `, load ${fl(load)} of ${cap}` : 'no nurse'}"><rect x="-3" y="${y > 400 ? -26 : -8}" width="${w + 6}" height="${y < 100 ? 58 : y > 400 ? 64 : 46}" fill="transparent"/>`
       + `<rect width="${w}" height="30" rx="15" fill="${over ? '#C8243A' : closed && !ns.length ? '#E6E8EB' : '#FFFFFF'}" stroke="${over ? '#C8243A' : full ? '#B76E00' : '#8E97A4'}" stroke-width="${full ? 2.4 : 1.6}"/>`
-      + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
+      + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}${ZRANGE[z] ? `<tspan dx="7" font-size="14" fill="${over ? '#FFE3E6' : '#5E6878'}">${ZRANGE[z]}</tspan>` : ''}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
       + `<text class="nearonly" x="12" y="20" font-size="14" font-weight="700" fill="${fg}">${esc(zn)} · ${ns.length ? esc(ns.map(s => s.short).join(' + ')) + ' ' : ''}${lt}</text></g>`;
   }
   setH(document.getElementById('mSigns'), signs);
@@ -470,12 +475,13 @@ function mapRender(G) {
     const fill = r.closed ? 'url(#closedP)' : dirty ? '#F1E7DA' : empty && r.st === 'cleaning' ? '#E3F0F0' : p ? '#FFFFFF' : '#E6F4EA';
     const words = String(ns ? ns.t : r.closed ? 'Closed' : r.st === 'dirty' ? (G.evsQ.indexOf(r.id) >= 0 ? 'EVS line #' + (G.evsQ.indexOf(r.id) + 1) : 'Dirty') : r.st === 'cleaning' ? 'Cleaning' : 'Clean');
     const plain = words.replace(/<[^>]+>/g, '');
-    let g = `<rect class="mr-f" width="${w}" height="${h}" rx="7" fill="${fill}" stroke="${p ? '#2B3240' : r.closed ? '#9AA3AF' : r.st === 'clean' ? '#5BA374' : '#9A8E7C'}" stroke-width="${p ? 2.6 : 1.8}"/>`;
+    const sw = p ? 4 : 3, hallE = kind === 'hall' && !p && !r.closed && r.st === 'clean';
+    let g = `<rect class="mr-f" x="${sw / 2}" y="${sw / 2}" width="${w - sw}" height="${h - sw}" rx="6" fill="${hallE ? 'rgba(255,255,255,.4)' : fill}" stroke="${p ? '#2B3240' : r.closed ? '#7F8A99' : hallE ? '#8A94A3' : r.st === 'clean' ? '#3F8F63' : '#8A7A62'}" stroke-width="${sw}"${hallE ? ' stroke-dasharray="7 5"' : ''}/>`;
     if (dirty) g += `<rect width="${w}" height="${h}" rx="7" fill="url(#dirt)"/>`;
     if (r.safe) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#9CC2E8" stroke-width="3" stroke-dasharray="2 5"/>`;
     if (r.iso) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#E0A21A" stroke-width="2.4" stroke-dasharray="7 5"/>`;
     if (p && p.arrest) g += `<rect class="codefl" width="${w}" height="${h}" rx="7" fill="#C8243A"/>`;
-    if (md && p && mine(p)) g += `<path d="M0 ${h - 24} V${h - 7} a7 7 0 0 0 7 7 H24Z" fill="#F2C230"/>`;
+    if (md && p && mine(p)) g += `<rect x="5.5" y="5.5" width="${w - 11}" height="${h - 11}" rx="4" fill="none" stroke="#F2C230" stroke-width="4.5"/><path d="M0 ${h - 30} V${h - 7} a7 7 0 0 0 7 7 H30Z" fill="#F2C230"/>`;
     const vt = p ? E.vitalsOf(p) : null, bp = p && !ARRIVE.has(p.id) ? p : null;   // bp: the patient once they are actually in the bed
     const mon = !bp ? 'off' : p.arrest ? 'flat' : crit || vt.s >= 1.25 ? 'bad' : 'ok', iv = !!(bp && p.tr && p.tr.length && !E.treatsDone(p));
     if (kind === 'chair') g += reclinerSVG(cx, h / 2 + 3, bp);
@@ -489,8 +495,8 @@ function mapRender(G) {
     }
     if (p && p.arrest) g += `<g class="beacon" transform="translate(${w - 13} ${h - 13})"><circle r="8" fill="#C8243A" stroke="#fff" stroke-width="1.2"/><path class="bspin" d="M0 0 L8 -3.4 A8.7 8.7 0 0 1 8 3.4Z" fill="#FFE3E6"/></g>`;
     // the info band: number, what it needs, ESI
-    const small = kind === 'hall' || kind === 'chair', idf = String(r.id).length > 2 ? 14 : small ? 15 : 19;
-    g += `<text x="5" y="${small ? 16 : 20}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(r.id)}</text>`;
+    const small = kind === 'hall' || kind === 'chair', idf = String(r.id).length > 2 ? 14.5 : small ? 15 : 22;
+    g += `<text x="6" y="${small ? 16.5 : String(r.id).length > 2 ? 20 : 23}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(r.id)}</text>`;
     if (esi) g += small ? `<circle cx="${w - 12}" cy="12" r="10" fill="var(--e${esi})"/><text x="${w - 12}" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`
       : `<circle cx="${w - 16}" cy="17" r="13" fill="var(--e${esi})"/><text x="${w - 16}" y="23" text-anchor="middle" font-size="17" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`;
     if (vt && vt.taken && !vt.arrest && vt.trend === 'worse' && vt.s >= 1.15) g += `<path d="M-6.5 -4 H6.5 L0 6.5Z" transform="translate(${small ? w - 27 : w - 33} ${small ? 23 : 31})" fill="#C8243A" stroke="#fff" stroke-width="1.4"/>`;   // vitals heading the wrong way
@@ -523,7 +529,7 @@ function mapRender(G) {
       const nfill = crit ? '#C8243A' : '#1B2230', tc = p.tag ? TAGC[p.tag] : null;
       const tagN = (x, y, tw, th, fs, cls) => { const mc = Math.max(3, Math.floor((tw - 6 - (tc ? 9 : 0)) / (fs * 0.54))), nm = p.name.length > mc ? p.name.slice(0, mc - 1) + '…' : p.name; return `<g class="mname ${cls}"><rect x="${R.x + x}" y="${R.y + y}" width="${tw}" height="${th}" rx="${Math.min(6, th / 2)}" fill="${nfill}"/>${tc ? `<rect x="${R.x + x + 2.5}" y="${R.y + y + 2.5}" width="8" height="${th - 5}" rx="2.5" fill="${tc}" stroke="#fff" stroke-width="1.1"/>` : ''}<text x="${R.x + x + tw / 2 + (tc ? 4.5 : 0)}" y="${R.y + y + th / 2 + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#FFFFFF">${esc(nm)}</text></g>`; };
       if (small) names += tagN(3, h - 19, w - 30, 17, 13, 'faronly') + tagN(26, 2, w - 52, 14, 11, 'nearonly');
-      else names += tagN(3, h - 23, w - 6, 20, 15.5, 'faronly') + tagN(5, h - 41 - (two ? lh : 0), w - 10, 17, 13, 'nearonly');
+      else names += tagN(3, h - 25, w - 6, 22, 16.5, 'faronly') + tagN(5, h - 41 - (two ? lh : 0), w - 10, 17, 13, 'nearonly');
     }
     setA(n, 'class', `mroom${selc}${crit ? ' crit' : ''}`);
     setA(n, 'aria-label', `${E.roomName(r.id)}${p ? `: ${p.name}, ${E.ageSex(p)}, ${p.cc}${esi ? `, ESI ${esi}` : ''}` : ''}. ${plain}`);
@@ -582,6 +588,8 @@ function mapRender(G) {
 
   // the wall: a crew and a stretcher in each spot, with how long they've held it
   const wall = act.filter(p => p.loc === 'wall').sort((a, b) => a.tArrive - b.tArrive), inside = wall.slice(0, 6), outside = wall.slice(6);
+  const lab = (id, t) => { const n = document.getElementById(id); if (n && n.textContent !== t) n.textContent = t; };
+  lab('mWallL', wall.length ? `THE WALL · ${wall.length}` : 'THE WALL'); lab('mWaitL', waiting.length ? `WAITING · ${waiting.length}` : 'WAITING'); lab('mDoorL', G.triageQ.length ? `DOOR · ${G.triageQ.length}` : 'DOOR');
   inside.forEach((p, i) => {
     const y = WALL_Y(i), esi = p.tri === 'done' ? ve(p) : 0, mins = Math.round(G.t - p.tArrive);
     by.set(p.id, [196, y + 4]);

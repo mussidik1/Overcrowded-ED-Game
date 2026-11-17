@@ -38,7 +38,18 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 - **Charge nurse (67 steps):** the screen and your five scores, hallway beds, Fast Track, and the outlined rooms, a walk-in from registration to discharge, what the room icons mean and how to zoom in for words, the Next button, an ambulance patient through report, consult, admission, and transport, a trauma alert with massive transfusion, routing a medical-direction call to a doctor, a chest-pain call, chairs, waiting-room rechecks, an interpreter, breaks, a decision card, an equipment outage, a transfer, and the words you will hear on a real shift.
 - **Attending (37 steps):** your five numbers (Wait, Score, Panel, To see, To do), reading a card and its vital signs, strep throat (see, order, discharge), DKA (treat what you find, admit to the ICU), appendicitis (a thin workup, the missing CT, call surgery), a medical-direction call on the radio, and a stroke alert from last known well to door to needle, with what the thrombolytic is and the pressure limit for it. The radio call in Orientation is in plain words whichever call pack is picked.
 
-**Lessons: one condition, two minutes (v0.14).** Under Orientation on the title screen. Six short lessons, each one patient from arrival to disposition, played as the attending whichever role is picked: **stroke** (clot or bleed, the 185/110 limit, door to needle), **heart attack** (the ECG, a STEMI alert, door to balloon, and the chest pain that is not a STEMI), **sepsis** (fluids, antibiotics within the hour, a vasopressor, the ICU), **bleeding trauma** (shock, blood before he arrives, the OR), **trouble breathing** (wheezing, wet lungs, or infection, and what each needs), and **overdose** (naloxone, and why he is watched). Each explains every term it uses, lights up what to tap, meets its own time goals when followed, and ends with the short version and what the charge nurse does for that patient.
+**Learn in pieces, and see why (v0.15).** Twelve changes from the lay review and the screen audit.
+
+- **The floor reads at a glance.** Each pod sits on its own tray with 8 between rooms and 17 between pods. Room outlines are drawn inside the room and are twice as heavy. Labels are larger and darker. Each pod sign carries its room numbers (A 1–4). The wall, the waiting room, and the door carry a count. The D, E, and Fast Track signs sit above their rooms. Hallway beds are dashed boxes. The attending's own patients get a gold ring. A **?** button on the floor opens the legend.
+- **Orientation in chapters.** Charge nurse: The basics, Ambulances and admissions, Alerts and the Box, A full department. Attending: The basics, Sicker patients, The radio and a stroke. A card between chapters offers Quiet Tuesday. Once one chapter is done, the title row opens the chapter list.
+- **Eight lessons.** Belly pain (gallbladder: ultrasound, not CT) and Falls (the hip, the head, and the blood thinner) join the six.
+- **Exam findings.** After the exam the card shows what the provider found, one line for each of the 53 cases.
+- **What was missed, and why.** With the diagnosis in, the attending's card says why that workup was the right one and names any order that was not needed. The shift report lists each patient with missed and extra orders and the reason. The wrong consultant says who to call. Penalties are unchanged.
+- **Plain words, as a setting.** Results carry a plain line ("Hgb 11.9 · blood count a little low"). Each of the 32 radio calls has a plain line under it, and the answer leads with the plain reason. The clinical text stays. Switch it off in the pause menu or at the bottom of Words.
+- **Words has a search box.**
+- **The shift report** says what each star takes and how far the next one is, and folds the long tables under "All the numbers". Printing opens them.
+
+**Lessons: one condition, two minutes (v0.14).** Under Orientation on the title screen. Six short lessons (eight since v0.15), each one patient from arrival to disposition, played as the attending whichever role is picked: **stroke** (clot or bleed, the 185/110 limit, door to needle), **heart attack** (the ECG, a STEMI alert, door to balloon, and the chest pain that is not a STEMI), **sepsis** (fluids, antibiotics within the hour, a vasopressor, the ICU), **bleeding trauma** (shock, blood before he arrives, the OR), **trouble breathing** (wheezing, wet lungs, or infection, and what each needs), and **overdose** (naloxone, and why he is watched). Each explains every term it uses, lights up what to tap, meets its own time goals when followed, and ends with the short version and what the charge nurse does for that patient.
 
 **Short prompts, key words in bold (v0.13).** Every preceptor card, the first-shift card, and every decision card is written in short sentences, with the term being taught and the thing to tap in bold and one idea to a line. No card runs past 62 words; the longest used to be 94. A patient's name in a prompt wears the same dark name tag it wears on the floor. A card that only narrates waits long enough to be read before it moves on.
 
@@ -134,7 +145,7 @@ The build also writes `sw.js`, a small service worker that keeps a copy of the g
 ```sh
 npm install      # fonts used by the build
 npm run build    # writes index.html
-npm test         # rule checks (six suites, 281 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
+npm test         # rule checks (six suites, 290 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
 npm run sim      # simulated shifts at several player speeds
 npm run stress   # 188 shifts across every level and scenario: checks for stuck states and out-of-range vitals
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)
@@ -144,7 +155,8 @@ python3 test/finger_test.py  # Orientation the way a real finger plays it: peopl
 python3 test/offline_test.py # serves the folder, installs the service worker, cuts the network, and reloads
 python3 test/train_test.py   # plays the charge nurse Orientation on the floor plan, tapping only what the preceptor lights up
 MODE=md python3 test/train_test.py   # the same for the attending Orientation
-LESSON=stroke python3 test/train_test.py   # one lesson: stroke, heart, sepsis, bleed, breath, or od. Fails if following it misses a time goal
+LESSON=stroke python3 test/train_test.py   # one lesson: stroke, heart, sepsis, bleed, breath, od, belly, or falls. Fails if following it misses a time goal
+CHAPTER=2 python3 test/train_test.py       # start Orientation at a later chapter, from the chapter list
 VIEW=list python3 test/train_test.py # either Orientation on the list board
 ```
 

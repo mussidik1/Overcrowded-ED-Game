@@ -31,17 +31,17 @@ with sync_playwright() as pw:
         finger(bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2)
     page.goto(URL); J(f"() => localStorage.setItem('oc-view', '{VIEW}')"); page.goto(URL); page.wait_for_timeout(1200)
     tap_sel(f'[data-act="mode"][data-arg="{MODE}"]'); page.wait_for_timeout(400)
-    LESSON = os.environ.get('LESSON')   # one of the six lessons instead of Orientation
+    LESSON = os.environ.get('LESSON')   # one of the eight lessons instead of Orientation
     if LESSON: tap_sel('#title [data-act="lessons"]'); page.wait_for_timeout(500); tap_sel(f'#sheet [data-act="lesson"][data-arg="{LESSON}"]'); page.wait_for_timeout(700)
     else: tap_sel('button.lvl[data-arg="train"]'); page.wait_for_timeout(700)
     if J('OC.G.level') != 'train': errors.append('Orientation did not start')
-    last, tries, total_taps, slow = -1, 0, 0, []
+    last, tries, total_taps, slow = None, 0, 0, []
     for it in range(1400):
         c = J('OCUI.coach()')
         if not c: errors.append('preceptor vanished'); break
-        if c['i'] != last:
-            if last >= 0 and tries > 4: slow.append((log[-1], tries))
-            log.append(f"{c['i'] + 1:>2}/{c['n']} {c['id']}"); last, tries = c['i'], 0
+        if (c['i'], c.get('brk')) != last:
+            if last is not None and tries > 4: slow.append((log[-1], tries))
+            log.append(f"{c['i'] + 1:>2}/{c['n']} {c['id']}" + (f" (after chapter {c['brk']})" if c.get('brk') is not None else '')); last, tries = (c['i'], c.get('brk')), 0
             if os.environ.get('TRACE'): print(log[-1], flush=True)
         if c['final']: break
         if c['wait']: page.wait_for_timeout(300); continue
@@ -56,10 +56,10 @@ with sync_playwright() as pw:
         if not bb or bb['width'] < 1: page.wait_for_timeout(200); tries += 0.25; continue
         # a person aims near the middle of what is lit, not exactly at it
         x = bb['x'] + bb['width'] * (0.5 + (random.random() - 0.5) * 0.3); y = bb['y'] + bb['height'] * (0.5 + (random.random() - 0.5) * 0.3)
-        before = J("JSON.stringify([OCUI.coach().i, !!OCUI.U.sheet, OCUI.U.sheet && OCUI.U.sheet.type, JSON.stringify(OCUI.U.sel), document.querySelector('.coach-spot') ? document.querySelector('.coach-spot').outerHTML.slice(0, 60) : ''])")
+        before = J("JSON.stringify([OCUI.coach().i, OCUI.coach().brk, !!OCUI.U.sheet, OCUI.U.sheet && OCUI.U.sheet.type, JSON.stringify(OCUI.U.sel), document.querySelector('.coach-spot') ? document.querySelector('.coach-spot').outerHTML.slice(0, 60) : ''])")
         finger(x, y); total_taps += 1; tries += 1
         page.wait_for_timeout(PAUSE + int(random.random() * 250))
-        after = J("JSON.stringify([OCUI.coach().i, !!OCUI.U.sheet, OCUI.U.sheet && OCUI.U.sheet.type, JSON.stringify(OCUI.U.sel), document.querySelector('.coach-spot') ? document.querySelector('.coach-spot').outerHTML.slice(0, 60) : ''])")
+        after = J("JSON.stringify([OCUI.coach().i, OCUI.coach().brk, !!OCUI.U.sheet, OCUI.U.sheet && OCUI.U.sheet.type, JSON.stringify(OCUI.U.sel), document.querySelector('.coach-spot') ? document.querySelector('.coach-spot').outerHTML.slice(0, 60) : ''])")
         if after == before:
             where = J("(sel) => { const e = document.querySelector(sel); return e ? [(e.id || e.getAttribute('data-act') + ':' + e.getAttribute('data-arg')), !!e.closest('#map')] : ['none', false]; }", sel)
             log.append(f"    tap at {x:.0f},{y:.0f} did nothing ({'floor' if where[1] else 'button'}: {where[0]})")
@@ -70,7 +70,7 @@ with sync_playwright() as pw:
     # The floor does its own tap handling, so it must take every sliding tap. Ordinary buttons inside a scrolling card follow the browser: a slide there can start a scroll.
     if floor: errors.append(f'the floor ignored {len(floor)} sliding taps: ' + '; '.join(x.strip() for x in floor[:4]))
     if len(dead) - len(floor) > 12: errors.append(f'{len(dead) - len(floor)} taps on ordinary buttons did nothing')
-    print(f"{MODE} {VIEW} {W}x{H}, finger slides up to {DRIFT:.0f}px: {last + 1} steps, {total_taps} taps, floor ignored {len(floor)}, buttons ignored {len(dead) - len(floor)}")
+    print(f"{MODE} {VIEW} {W}x{H}, finger slides up to {DRIFT:.0f}px: {last[0] + 1} steps, {total_taps} taps, floor ignored {len(floor)}, buttons ignored {len(dead) - len(floor)}")
     if os.environ.get('SHOW'): print('\n'.join(log))
     b.close()
 print('ERRORS:' if errors else 'No errors.')

@@ -513,7 +513,7 @@ body.mapmode .boxbar .bx-btn { height: 36px; }
 /* things that float over the floor: goals, the selection, toasts, the preceptor */
 body.mapmode .objs { position: fixed; z-index: 27; top: calc(var(--topH, 60px) + 5px); right: calc(var(--railR, 0px) + 5px); flex-direction: column; align-items: flex-end; gap: 3px; max-width: 46vw; padding: 0; overflow: visible; border: 0; background: transparent; pointer-events: none; }
 body.mapmode .objs > * { pointer-events: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
-body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 86px); bottom: calc(var(--dockH, 0px) + 6px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + (100vw - var(--railL, 0px) - var(--railR, 0px)) * .36); padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
+body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 131px); bottom: calc(var(--dockH, 0px) + 6px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + (100vw - var(--railL, 0px) - var(--railR, 0px)) * .36); padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
 body.mapmode .toasts { top: env(safe-area-inset-top); right: var(--tsR, 120px); bottom: auto; left: var(--tsL, 230px); display: grid; place-items: center; height: calc(var(--topH, 60px) - env(safe-area-inset-top)); padding: 2px 3px; gap: 0; }
 body.mapmode .toast { grid-area: 1 / 1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; width: 100%; max-width: 620px; max-height: 100%; padding: 4px 12px; border-radius: 9px; font-size: 14px; line-height: 1.22; text-align: center; box-shadow: 0 0 0 2px var(--frame), 0 2px 8px rgba(0, 0, 0, .35); }
 body.mapmode .coach { right: calc(var(--railR, 0px) + 10px); bottom: calc(var(--dockH, 70px) + 10px + env(safe-area-inset-bottom)); left: auto; width: min(420px, calc(100vw - 24px)); margin: 0; }
@@ -800,6 +800,24 @@ body.mapmode.ingame .needbtn.inrail .nb-n b { display: block; font-size: 19px; l
 /* list board: in a narrow room tile the name tag keeps its own width and the age and chips wrap under it (it used to be squeezed to a sliver) */
 .room .who { flex-wrap: wrap; row-gap: 2px; }
 .room .who b.pn { flex: 0 1 auto; min-width: 2.4em; }
+.ph-cc > div > span { color: #4F5A6B; }   /* card labels: darker (they were 3.5:1) */
+.hint.why { margin: 0 0 8px; color: var(--ink); font-weight: 500; }
+.hint.why .xtra { display: block; color: var(--bad); }
+.scen-p { margin: -2px 0 12px; padding: 8px 10px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: rgba(27, 34, 48, .05); font-size: 15px; line-height: 1.35; }
+.scen-c { color: var(--ink-2); font-size: 14px; line-height: 1.35; }
+.wsearch { position: sticky; top: 0; z-index: 1; padding: 4px 58px 8px 0; background: var(--paper); }   /* stops short of the close button, which stays on top */
+.wsearch input { width: 100%; height: 44px; padding: 0 12px; border: 1.5px solid rgba(27, 34, 48, .45); border-radius: 10px; background: #fff; color: var(--ink); font: 500 16px/1 var(--body); }
+.star-key { margin: 0 0 6px; color: var(--ink-2); font-size: 13.5px; text-align: center; }
+.star-key b { color: var(--ink); }
+.rep-more { margin: 12px 0 0; }
+.rep-more > summary { padding: 11px 12px; border: 1.5px solid rgba(27, 34, 48, .3); border-radius: 10px; font-weight: 700; cursor: pointer; }
+.rep-more[open] > summary { margin-bottom: 4px; }
+.ordlog { margin: 0; padding: 0; list-style: none; }
+.ordlog li { padding: 8px 0; border-top: 1px solid var(--line, #E3E0D8); font-size: 14.5px; line-height: 1.35; }
+.ordlog li > span { display: block; }
+.ordlog .ol-m, .ordlog .ol-x { color: var(--bad); font-weight: 600; }
+.ordlog .ol-w { color: var(--ink-2); }
+@media print { .rep-more > summary { display: none; } }
 .dxp { display: block; margin-top: 1px; color: var(--ink-2); font: 500 .86em/1.25 var(--body); }
 /* Lessons: the row on the title and the list of six */
 .lvl.lsn { border-color: #0D716E; }

@@ -189,3 +189,24 @@ const texts = Object.values(seenCards);
 assert(texts.length >= 10 && texts.every(pairs), `every decision card's marks pair up (${texts.length} cards seen: ${Object.keys(seenCards).join(', ')})` + (texts.find(t => !pairs(t)) || ''));
 assert(texts.filter(t => /\*\*.+?\*\*|\[\[.+?\]\]/.test(t)).length >= texts.length - 1, 'decision cards put their key facts in bold');
 assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[[^\]]+\]\]/.test(seenCards[k])), 'a card about a patient opens with the name tag');
+
+// ---- v0.15: exam findings, order reasons, plain results, plain radio calls, and what was missed ----
+{
+  const ks = OC.CASES.map(c => c.k);
+  assert(ks.every(k => OC.EXAM[k] && OC.ORD_WHY[k]), 'every case has an exam finding and a reason for its orders');
+  const finds = new Set(); OC.CASES.forEach(c => Object.values(c.find || {}).forEach(v => finds.add(v)));
+  const bare = [...finds].filter(v => !OC.FIND_PLAIN[v]);
+  assert(bare.every(v => /^(Normal|Clear lungs|Mild dehydration|Kidney function normal|Blood in urine, no infection)$/.test(v)), 'every result that is not already plain has plain words: ' + bare.join('; '));
+  assert(Object.keys(OC.FIND_PLAIN).every(v => finds.has(v) || ['Normal sinus rhythm', 'No acute findings'].includes(v)), 'no plain line is left over for a result that no longer exists');
+  for (const k of ['national', 'miemss']) assert(OC.SCEN[k].every(s => s.plain && s.pwhy && s.plain.split(' ').length <= 24 && s.pwhy.split(' ').length <= 18), `every ${k} radio call has a short plain line and a short plain reason`);
+  OC.newGame('train', 77, { mode: 'md' });
+  const x = OC.trainPatient('chole', 'room', { room: '5' }), p = typeof x === 'string' ? OC.pt(x) : x;
+  OC.assign(OC.G.me, p.id); let n = 0; while (p.ord !== 'need' && n++ < 4000) OC.step(0.1);
+  assert(p.ev === 'done' && OC.examOf(p) === OC.EXAM.chole, 'the exam finding belongs to the patient once examined');
+  const r = OC.signOrders(p.id, ['lab', 'ct'], ['meds']);
+  assert(r.ok && p.ordLog && p.ordLog.miss.join() === 'Ultrasound' && p.ordLog.extra.join() === 'CT' && p.ordLog.why === OC.ORD_WHY.chole, 'signing records what was missed and what was not needed: missed ' + p.ordLog.miss + ', extra ' + p.ordLog.extra);
+  assert(OC.G.stats.md.log.length === 1 && OC.G.stats.md.log[0] === p.ordLog, 'and the shift keeps it for the report');
+  n = 0; while (p.dsp !== 'mddecide' && n++ < 20000) { OC.step(0.1); if (p.ord === 'signed' && p.txGap && p.txGap.length) OC.signOrders(p.id, ['us'], []); if (p.wkGap || (p.gap && p.gap.length)) OC.signOrders(p.id, ['us'], []); }
+  const w = OC.consult ? OC.consult(p.id, 'ortho') : null;
+  if (w) assert(!w.ok && /Call General Surgery\./.test(w.why), 'the wrong consultant says who to call: ' + w.why);
+}
