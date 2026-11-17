@@ -581,6 +581,9 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
   body.mapmode .coach-c p { font-size: 13px; line-height: 1.3; }
   body.mapmode .coach-c .cb { margin-top: 6px; }
   body.mapmode .coach-c .cb button { min-height: 32px; font-size: 13px; }
+  body.mapmode .coach-c .cb { gap: 5px; }   /* "Fast-forwarding…", Words, and Skip ahead on one row */
+  body.mapmode .coach-c .cb button.skip { padding: 0 4px; }
+  body.mapmode .coach-c .cb .cff { font-size: 12.5px; }
 }
 /* short, wide screens: cards slide in from the right so the floor stays in view */
 @media (max-height: 520px) and (orientation: landscape) {
@@ -792,6 +795,8 @@ body.mapmode.ingame .needbtn.inrail .nb-n b { display: block; font-size: 19px; l
 .wlink { margin: 2px 0 10px; }
 .wlink button { padding: 9px 12px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); color: var(--ink); font: 700 14.5px/1.1 var(--ui); }
 .coach-c .cb { flex-wrap: wrap; }
+.coach-c p b, .modal p b, ol.first b { font-weight: 700; }
+.coach-c p b.pn, .modal p b.pn { padding: 0 5px; line-height: 1.35; overflow: visible; vertical-align: baseline; }   /* in a sentence the tag sits on the text's baseline */
 /* A real phone: no double-tap zoom or pinch on the page during a shift (the floor has its own zoom), no text-selection bubble on a long press. */
 body.ingame { touch-action: pan-x pan-y; }
 .map, .map svg.floor { -webkit-touch-callout: none; }

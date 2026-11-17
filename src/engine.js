@@ -2369,7 +2369,7 @@ function staffTick() {
       staffGone(s, 'gone');
       toast(`${s.name}'s mandated hours are up. They went home.`, 'info');
       const unc = zs.filter(z => zoneNurses(z).length === 0 && zonePts(z));
-      if (unc.length && !G.card && !G.pre) coverageCard(unc[0], 'Coverage gap', `${s.name} went home. ${ZONE_NAME[unc[0]]} has patients and no nurse.`);
+      if (unc.length && !G.card && !G.pre) coverageCard(unc[0], 'Coverage gap', `**${s.name}** went home. **${ZONE_NAME[unc[0]]}** has patients and **no nurse**.`);
     }
   }
 }
@@ -2551,7 +2551,7 @@ function amaCard(p) {
   G.ev.lastAma = G.t;
   const pv = p.prov ? staff(p.prov) : null;
   const talker = pv && present(pv) && !pv.pit ? pv : G.staff.find(s => s.role === 'md' && s.st === 'on');
-  setCard('ama', 'Leaving against advice', `${roomName(p.room)} nurse`, `${p.name} (${ageSex(p)}, ${p.dxK && (!p.alertOn || p.ev === 'done') ? p.dx : p.cc}) is pulling out the IV and wants to leave: "${pick(AMA_LINES)}"${p.lang && p.interp !== 'on' ? ` They speak ${LANGS[p.lang]}, and nobody has an interpreter on.` : ''}`, [
+  setCard('ama', 'Leaving against advice', `${roomName(p.room)} nurse`, `[[${p.name}]] (${ageSex(p)}, ${p.dxK && (!p.alertOn || p.ev === 'done') ? p.dx : p.cc}) is pulling out the IV and wants to **leave**: "${pick(AMA_LINES)}"${p.lang && p.interp !== 'on' ? ` They speak **${LANGS[p.lang]}**. No interpreter is on.` : ''}`, [
     { k: 'talk', label: talker ? `${talker.name} goes to talk with them` : 'Get a provider to talk with them', sub: 'Usually works. Costs the provider about 5 min.', dis: !talker },
     { k: 'update', label: npo(p) ? 'Nurse update, a warm blanket, and an ETA' : 'Nurse update, a food tray, and an ETA', sub: 'Works about half the time' },
     { k: 'sign', label: 'Have them sign out AMA', sub: 'They leave now. High chance they come back sicker.' },
@@ -2610,7 +2610,7 @@ const EV = {
       if (!cands.length) return;
       const s = pick(cands), z = s.zones.find(x => x !== 'triage') || 'b', n = zonePts(z);
       staffGone(s, 'off');
-      coverageCard(z, 'Call-out', `${s.name} called out sick. ${ZONE_NAME[z]} has no nurse${n ? ` and ${n} patient${n > 1 ? 's' : ''}` : ''}.`);
+      coverageCard(z, 'Call-out', `**${s.name}** called out sick. **${ZONE_NAME[z]}** has **no nurse**${n ? ` and ${n} patient${n > 1 ? 's' : ''}` : ''}.`);
     },
   },
   cover: {
@@ -2647,20 +2647,20 @@ const EV = {
       staffGone(s, 'sick');
       if (s.role === 'rn') {
         const unc = zs.filter(z => zoneNurses(z).length === 0);
-        if (unc.length) coverageCard(unc[0], 'Sick call', `${s.name} is going home with ${why}. ${ZONE_NAME[unc[0]]} has no nurse.`);
+        if (unc.length) coverageCard(unc[0], 'Sick call', `**${s.name}** is going home with ${why}. **${ZONE_NAME[unc[0]]}** has **no nurse**.`);
         else toast(`${s.name} went home with ${why}`, 'bad');
       } else if (isProv(s)) {
-        setCard('provsick', 'Provider down', 'Charge RN', `${s.name} is going home with ${why}.${n ? ` ${n} patient${n > 1 ? 's' : ''} need a new provider.` : ''}`, [
+        setCard('provsick', 'Provider down', 'Charge RN', `**${s.name}** is going home with ${why}.${n ? ` **${n} patient${n > 1 ? 's' : ''}** need${n > 1 ? '' : 's'} a new provider.` : ''}`, [
           { k: 'backup', label: 'Call in the backup doc', sub: 'Dr. Novak arrives in about 60 min' },
           { k: 'absorb', label: 'Absorb it', sub: 'Your other providers pick up the slack. Morale drops.' },
         ]);
       } else if (s.role === 'rph') {
-        setCard('rphsick', 'No pharmacist', 'Pharmacy', `${s.name} is going home with ${why}. Nobody is verifying ED medications.`, [
+        setCard('rphsick', 'No pharmacist', 'Pharmacy', `**${s.name}**, your pharmacist, is going home with ${why}. **Nobody is verifying medication orders.**`, [
           { k: 'remote', label: 'Central pharmacy verifies remotely', sub: 'Slower: about twice as long per order' },
           { k: 'none', label: 'Go without', sub: 'Nurses pull meds on override. Faster, riskier.' },
         ]);
       } else {
-        setCard('helpsick', 'Staff down', 'House Supervisor', `${s.title} ${s.name} is going home with ${why}.`, [
+        setCard('helpsick', 'Staff down', 'House Supervisor', `${s.title} **${s.name}** is going home with ${why}.`, [
           { k: 'float', label: `Ask for a float ${s.title}`, sub: 'Arrives in about 50 min' },
           { k: 'none', label: 'Go without', sub: s.role === 'reg' ? 'One registrar for every patient' : s.role === 'tp' ? 'Your techs carry more transports' : s.role === 'evs' ? 'Rooms turn over slower' : s.role === 'rt' ? 'Breathing treatments wait longer' : 'ECGs, blood draws, and transports slow down' },
         ], { role: s.role });
@@ -2725,7 +2725,7 @@ const EV = {
       if (!cands.length) return;
       const p = cands.find(x => x.ck === 'etoh' || x.ck === 'bh') || pick(cands);
       const secFree = G.sec.busy < G.t;
-      setCard('agitated', 'Combative patient', 'Pod nurse', `${p.name} in ${roomName(p.room)} is yelling, pulling at the IV, and swinging at staff.`, [
+      setCard('agitated', 'Combative patient', 'Pod nurse', `[[${p.name}]] in **${roomName(p.room)}** is yelling, pulling at the IV, and **swinging at staff**.`, [
         { k: 'sec', label: 'Call security', sub: secFree ? 'Officer Reed responds and is busy for 20 min' : 'Security is tied up elsewhere', dis: !secFree },
         { k: 'talk', label: 'De-escalate it yourself', sub: 'Usually works. Not always.' },
         { k: 'wait', label: 'Let the nurse handle it', sub: 'Risky' },
@@ -2743,7 +2743,7 @@ const EV = {
   trainpick: {
     w: () => 0,
     fire() {
-      setCard('trainpick', 'A tech wants to leave early', 'Jules, tech', '"My son has a game tonight. Can I leave an hour early? It is quiet right now."', [
+      setCard('trainpick', 'A tech wants to leave early', 'Jules, tech', '"My son has a game tonight. Can I **leave an hour early**? It is quiet right now."', [
         { k: 'yes', label: 'Let her go', sub: 'The team is happier. You are a tech short for the last hour.' },
         { k: 'no', label: 'Ask her to stay', sub: 'You keep the tech. She is not happy about it.' },
       ]);
@@ -2753,7 +2753,7 @@ const EV = {
   mci: {
     w: () => (G.t > 60 && G.t < G.shift - 60 && !G.ev.used.mci) ? 0.6 : 0,
     fire() {
-      setCard('mci', 'Multiple-casualty incident', 'EMS communications', 'A bus rolled over on the highway with about 20 people on board. EMS is asking every hospital what it can take. Your share is 1 red tag, 1 yellow, and 4 greens, here in about 10 minutes.', [
+      setCard('mci', 'Multiple-casualty incident', 'EMS communications', 'A **bus rolled over** on the highway. About 20 people were on board. EMS is asking every hospital what it can take.\nYour share: **1 red tag, 1 yellow, and 4 greens**, here in about **10 minutes**.\nRed is critical. Yellow is serious. Green can walk.', [
         { k: 'call', label: 'Take all six and call in an extra RN', sub: 'She arrives in about 30 min and takes the hallway' },
         { k: 'ok', label: 'Take all six', sub: 'Clear a resus bay and start moving people out' },
         { k: 'green', label: 'Greens only', sub: 'The red and the yellow ride 15 minutes farther. Costs points.' },
@@ -2772,7 +2772,7 @@ const EV = {
       const c = { k: 'vip', cc: 'Dizzy spell', dx: 'Benign positional vertigo', esi: 4, age: [76, 82], sex: 'F', wk: ['lab'], tr: ['meds'], dispo: 'home', find: { lab: 'Normal' } };
       const p = makePatient(c, 'walk');
       p.name = 'Eleanor V.'; p.lang = null; p.loc = 'waiting'; p.tArrive = G.t; p.tTriage = G.t; p.reg = 'done'; p.tri = 'done'; onArrive(p); p.patience = 1e9;
-      setCard('vip', 'VIP in the lobby', 'Hospital CEO', `"The board chair's mother is in your waiting room with a dizzy spell. She's an ESI 4. I trust you'll take care of her. Personally."`, [
+      setCard('vip', 'VIP in the lobby', 'Hospital CEO', `"The **board chair's mother** is in your waiting room with a dizzy spell. She's an **ESI 4**. I trust you'll take care of her. Personally."`, [
         { k: 'room', label: 'Room her next', sub: 'The CEO is happy. Your staff will notice.' },
         { k: 'acuity', label: 'She waits her turn by acuity', sub: 'The CEO docks you points. Your staff respect it.' },
       ], { pid: p.id });
@@ -2786,7 +2786,7 @@ const EV = {
   admWait: {
     w: () => (G.t > 45 && waitingCount() >= 10 && !G.ev.used.admWait) ? 2.5 : 0,
     fire() {
-      setCard('admWait', 'Administrator on the floor', 'VP of Operations', `"${waitingCount()} people in the waiting room? I need that at 6 or fewer in 45 minutes. I'll be back."`, [
+      setCard('admWait', 'Administrator on the floor', 'VP of Operations', `"**${waitingCount()} people** in the waiting room? I need that at **6 or fewer in 45 minutes**. I'll be back."`, [
         { k: 'yes', label: 'On it', sub: 'Goal: waiting room at 6 or fewer within 45 min. A provider in triage helps.' },
         { k: 'no', label: '"Get me beds upstairs, then we\'ll talk."', sub: 'Staff love it. Admin docks you points.' },
       ]);
@@ -2796,7 +2796,7 @@ const EV = {
   tjc: {
     w: () => (G.t > 60 && G.t < G.shift - 90 && !G.ev.used.tjc) ? 0.7 : 0,
     fire() {
-      setCard('tjc', 'Accreditation tracer', 'Chief Nursing Officer', '"Accreditation surveyors walk the ED in 30 minutes. No patients in hallway beds while they are here. That\'s 45 minutes after they arrive."', [
+      setCard('tjc', 'Accreditation tracer', 'Chief Nursing Officer', '"Accreditation surveyors walk the ED in **30 minutes**. They stay 45. **No patients in hallway beds** while they are here."', [
         { k: 'ok', label: 'Clear the halls', sub: 'Goal: hallways empty in 30 min and kept empty for 45' },
       ]);
     },
@@ -2805,7 +2805,7 @@ const EV = {
   flex: {
     w: () => (G.t > 90 && G.t < 400 && !G.ev.used.flex && G.staff.filter(s => s.role === 'pct' && s.st === 'on').length >= 3) ? 0.6 : 0,
     fire() {
-      setCard('flex', 'Budget call', 'Chief Financial Officer', '"Our census projections say you are overstaffed on techs. Send one PCT home."', [
+      setCard('flex', 'Budget call', 'Chief Financial Officer', '"Our projections say you are overstaffed on techs. **Send one tech home.**"', [
         { k: 'send', label: 'Send a PCT home', sub: 'Admin gives you points. One fewer tech.' },
         { k: 'refuse', label: 'Refuse', sub: 'Admin docks you points' },
       ]);
@@ -2822,7 +2822,7 @@ const EV = {
     fire() {
       const p = inRooms().filter(x => G.t - x.tArrive > 150).sort((a, b) => a.tArrive - b.tArrive)[0];
       if (!p) return;
-      setCard('patExp', 'Family complaint', 'Patient Experience', `${p.name}'s daughter says nobody has updated them in hours (${roomName(p.room)}). She's filling out the survey right now.`, [
+      setCard('patExp', 'Family complaint', 'Patient Experience', `[[${p.name}]]'s daughter, in **${roomName(p.room)}**, says **nobody has updated them in hours**. She's filling out the survey right now.`, [
         { k: 'go', label: 'Send a PCT to update them with warm blankets', sub: 'Ties up a PCT for 6 min' },
         { k: 'no', label: 'Not now', sub: 'Survey scores drop' },
       ]);
@@ -2832,7 +2832,7 @@ const EV = {
   noDivert: {
     w: () => ((G.dv.yellow.on || G.dv.red.on || Object.keys(DIVERTS).some(k => G.dv[k].on && !DIVERTS[k].capacity && !justified(k))) && !G.ev.used.noDivert) ? 2 : 0,
     fire() {
-      setCard('noDivert', 'Divert pushback', 'VP of Operations', `"Who put us on ${Object.keys(DIVERTS).filter(k => G.dv[k].on).map(k => DIVERTS[k].name).join(' and ') || 'divert'}? EMS volume is our volume. Turn it off."`, [
+      setCard('noDivert', 'Divert pushback', 'VP of Operations', `"Who put us on **${Object.keys(DIVERTS).filter(k => G.dv[k].on).map(k => DIVERTS[k].name).join(' and ') || 'divert'}**? EMS volume is our volume. **Turn it off.**"`, [
         { k: 'off', label: 'Turn it off', sub: 'No divert for 90 min' },
         { k: 'keep', label: 'Keep it on', sub: 'Admin docks you points' },
       ]);
@@ -2842,7 +2842,7 @@ const EV = {
   survey: {
     w: () => (G.t > 30 && G.t < G.shift - 70 && !G.ev.used.survey) ? 0.7 : 0,
     fire() {
-      setCard('survey', 'Medical control audit', 'EMS medical director', 'The EMS medical director is listening to how your attendings handle the Box for the next hour. Consult points count double, good or bad.', [{ k: 'ok', label: 'Bring it on', sub: '' }]);
+      setCard('survey', 'Medical control audit', 'EMS medical director', 'The EMS medical director is listening to how your attendings handle the Box for the **next hour**. Medical direction calls **count double**, good or bad.', [{ k: 'ok', label: 'Bring it on', sub: '' }]);
     },
     pick() { G.mods.survey = G.t + 60; },
   },
@@ -3157,7 +3157,7 @@ const OC = {
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,
   ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, CRASH, needsTx, strokeSetup,
-  crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k]) fireEv(k); },
+  crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k] && EV[k].fire) fireEv(k); }, eventKeys: () => Object.keys(EV), eventReady: k => !!(EV[k] && EV[k].fire && EV[k].w && EV[k].w() > 0),
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };
 root.OC = OC;

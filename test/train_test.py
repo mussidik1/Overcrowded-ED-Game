@@ -20,13 +20,18 @@ with sync_playwright() as pw:
     page.locator('button.lvl[data-arg="train"]').tap(); page.wait_for_timeout(500)
     ok_start = J('OC.G.level') == 'train' and J('OC.G.mode') == MODE and J('OC.active().length') == 0
     if not ok_start: errors.append('Orientation did not start on an empty board')
-    last, same, taps, shots = -1, 0, 0, set()
+    last, same, taps, shots, words = -1, 0, 0, set(), []
     for it in range(600):
         c = J('OCUI.coach()')
         if not c: errors.append('preceptor vanished'); break
         if c['i'] != last:
             log.append(f"{c['i'] + 1:>2}/{c['n']} {c['id']}"); last, same = c['i'], 0
             if os.environ.get('TRACE'): print(log[-1], flush=True)
+            # every prompt is drawn with its key words in bold: no stars or brackets left showing, and no card with nothing bold in it
+            card = J("(() => { const p = document.querySelector('.coach-c p'); return p ? { t: p.innerText, b: p.querySelectorAll('b').length } : null; })()")
+            if card and ('**' in card['t'] or '[[' in card['t'] or ']]' in card['t']): errors.append(f"step {c['id']}: a formatting mark is showing: {card['t'][:80]}")
+            if card and not card['b'] and len(card['t'].split()) > 12: errors.append(f"step {c['id']}: nothing is bold in a {len(card['t'].split())}-word card")
+            if card: words.append(len(card['t'].split()))
             if c['id'] in ('m1', 'w6', 't2', 'g6', 'h1', 'r2', 'd1', 'j3', 'a3', 'b5', 'r1', 's4', 'end') and c['id'] not in shots:
                 shots.add(c['id']); page.wait_for_timeout(250); page.screenshot(path=f"{OUT}/train_{MODE}_{VIEW}_{c['id']}.png")
         else: same += 1
@@ -58,7 +63,8 @@ with sync_playwright() as pw:
     if not c or not c['final']: errors.append('did not reach the last step')
     page.screenshot(path=f'{OUT}/train_{MODE}_final.png')
     print('\n'.join(log))
-    print(f'taps: {taps}, game clock: {J("OC.clock()")}, care {J("Math.round(OC.G.care)")}')
+    print(f'taps: {taps}, game clock: {J("OC.clock()")}, care {J("Math.round(OC.G.care)")}, cards read {len(words)}, words {sum(words)}, longest {max(words or [0])}')
+    if words and max(words) > 70: errors.append(f'a preceptor card runs {max(words)} words: over 70')
     b.close()
 print('ERRORS:' if errors else 'No errors.')
 for e in errors[:30]: print(' ', e)

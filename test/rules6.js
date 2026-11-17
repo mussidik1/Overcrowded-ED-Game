@@ -143,7 +143,7 @@ assert(bl.arrest && bl.dx === 'Cardiac arrest' && !ok2.arrest, 'at two hours wit
 OC.newGame('med', 39, { scen: 'mci' }); G = OC.G;
 let card = null;
 for (let i = 0; i < 700 && !card; i++) { OC.step(0.1); if (G.card && G.card.eid === 'mci') card = G.card; else clearCard(); }
-assert(card && /1 red tag, 1 yellow, and 4 greens/.test(card.text) && card.choices.length === 3 && card.choices.some(c => c.k === 'green'), 'EMS asks what the hospital can take: ' + (card && card.text));
+assert(card && /1 red tag, 1 yellow, and 4 greens/.test(card.text) && /Red is critical/.test(card.text) && card.choices.length === 3 && card.choices.some(c => c.k === 'green'), 'EMS asks what the hospital can take: ' + (card && card.text));
 const t0 = G.t; OC.chooseCard('ok');
 const tagged = () => G.order.map(OC.pt).filter(p => p.tag);
 run(6, () => tagged().length >= 1);
@@ -173,3 +173,19 @@ r = OC.triage(w.id, tn.id);
 assert(r.ok && !/once registered/.test(r.msg), 'on the wall, the nurse takes report without waiting for registration: ' + r.msg);
 run(8, () => w.tri === 'done');
 assert(w.tri === 'done' && w.reg === 'none' && !OC.canPlace(w, OC.room('1')).ok, 'report is done first; registration is still needed before a bed');
+
+// 12. Decision cards: key facts are marked for bold, patients carry a name tag, and no mark is left unpaired
+OC.newGame('hard', 57, {}); G = OC.G;
+run(150, null, BOT);
+const seenCards = {};
+const pairs = t => (t.match(/\*\*/g) || []).length % 2 === 0 && (t.match(/\[\[/g) || []).length === (t.match(/\]\]/g) || []).length && !/\*\*\s*\*\*|\[\[\s*\]\]/.test(t);
+const grab = () => { if (G.card && !seenCards[G.card.eid]) seenCards[G.card.eid] = G.card.text; };
+for (let i = 0; i < 2400 && !G.over; i++) {   // four hours of a hard shift: take every card the shift deals, and deal each one that is ready
+  grab(); clearCard();
+  if (i % 20 === 0) for (const k of OC.eventKeys()) if (!seenCards[k] && !G.card && OC.eventReady(k)) { OC.fireEvent(k); grab(); clearCard(); }
+  OC.step(0.1); OC.botStep(BOT);
+}
+const texts = Object.values(seenCards);
+assert(texts.length >= 10 && texts.every(pairs), `every decision card's marks pair up (${texts.length} cards seen: ${Object.keys(seenCards).join(', ')})` + (texts.find(t => !pairs(t)) || ''));
+assert(texts.filter(t => /\*\*.+?\*\*|\[\[.+?\]\]/.test(t)).length >= texts.length - 1, 'decision cards put their key facts in bold');
+assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[[^\]]+\]\]/.test(seenCards[k])), 'a card about a patient opens with the name tag');

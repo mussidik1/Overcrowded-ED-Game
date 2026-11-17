@@ -36,7 +36,9 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 **No medical background needed.** Orientation is written for someone who has never worked in a hospital, and it teaches the real game, not an easier one. Every short name is explained in plain words the first time it comes up: ESI, EMS, RN, PCT, EVS, the Box, MTP, ECG, CT, HEART score, boarding, divert, and the rest. It shows how to read a room and a patient card, including what each vital sign is and what a normal number looks like. A **Words** button on every preceptor card, in How to play, and in the pause menu opens the whole list: about a hundred terms in plain language.
 
 - **Charge nurse (63 steps):** the screen and your five scores, a walk-in from registration to discharge, the Next button, an ambulance patient through report, consult, admission, and transport, a trauma alert with massive transfusion, routing a medical-direction call to a doctor, a chest-pain call, chairs, waiting-room rechecks, an interpreter, breaks, a decision card, an equipment outage, a transfer, and the words you will hear on a real shift.
-- **Attending (34 steps):** reading a card and its vital signs, strep throat (see, order, discharge), DKA (treat what you find, admit to the ICU), appendicitis (a thin workup, the missing CT, call surgery), a medical-direction call on the radio, and a stroke alert from last known well to door to needle, with the pressure limit for the thrombolytic.
+- **Attending (35 steps):** reading a card and its vital signs, strep throat (see, order, discharge), DKA (treat what you find, admit to the ICU), appendicitis (a thin workup, the missing CT, call surgery), a medical-direction call on the radio, and a stroke alert from last known well to door to needle, with what the thrombolytic is and the pressure limit for it.
+
+**Short prompts, key words in bold (v0.13).** Every preceptor card, the first-shift card, and every decision card is written in short sentences, with the term being taught and the thing to tap in bold and one idea to a line. The charge nurse Orientation is about a fifth shorter (2,363 words to about 1,900) and no card runs past 60 words; the longest used to be 94. A patient's name in a prompt wears the same dark name tag it wears on the floor. A card that only narrates waits long enough to be read before it moves on.
 
 On a phone held sideways the preceptor's card sits beside an open patient card, not inside it, so what you are told to tap is always on screen.
 
@@ -128,7 +130,7 @@ The build also writes `sw.js`, a small service worker that keeps a copy of the g
 ```sh
 npm install      # fonts used by the build
 npm run build    # writes index.html
-npm test         # rule checks (six suites, 278 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
+npm test         # rule checks (six suites, 281 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
 npm run sim      # simulated shifts at several player speeds
 npm run stress   # 188 shifts across every level and scenario: checks for stuck states and out-of-range vitals
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)
