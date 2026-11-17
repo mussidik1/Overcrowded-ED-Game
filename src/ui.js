@@ -124,19 +124,44 @@ function render() {
   if (brand && brand.textContent !== role) brand.textContent = role;
   document.body.classList.toggle('mapmode', U.view === 'map');
   document.body.classList.toggle('ingame', U.scene === 'game');
-  { const ist = $('#istaff'), dock = $('#dock'), intake = $('#intake');   // in the floor plan, registrars and triage nurses ride in the dock
-    if (ist && U.view === 'map' && ist.parentNode !== dock) dock.insertBefore(ist, dock.firstChild);
-    else if (ist && U.view !== 'map' && ist.parentNode !== intake) intake.insertBefore(ist, intake.firstChild); }
+  const rails = layoutMode();
+  document.body.classList.toggle('rails', rails);
+  { const ist = $('#istaff'), want = U.view !== 'map' ? $('#intake') : rails ? $('#railL') : $('#dock');   // in the floor plan, registrars and triage nurses ride in a rail or the dock
+    if (ist && want && ist.parentNode !== want) want.insertBefore(ist, want.firstChild); }
   renderHud(G); renderBox(G); renderObjs(G); renderSel(G); renderZoneBar(G); renderIntakeStaff(G); renderLanes(G); renderBoard(G); if (U.view === 'map') mapRender(G); renderDock(G); renderSide(G); renderLog(G);
   coachRun();
   renderSheet(G); renderModal(G);
   live(G);
   renderCoach();
   const top = $('#top'); if (top) document.documentElement.style.setProperty('--topH', top.offsetHeight + 'px');
-  const dock = $('#dock'); if (dock) document.documentElement.style.setProperty('--dockH', (getComputedStyle(dock).display !== 'none' ? dock.offsetHeight : 0) + 'px');
-  const sb = $('#selbar'); if (sb) document.documentElement.style.setProperty('--selH', (U.view === 'map' && !sb.hidden ? sb.offsetHeight : 0) + 'px');
+  const dock = $('#dock'), rl = $('#railL'), rs = document.documentElement.style, shown = e => !!e && getComputedStyle(e).display !== 'none';
+  rs.setProperty('--dockH', (!rails && shown(dock) ? dock.offsetHeight : 0) + 'px');
+  rs.setProperty('--railR', (rails && shown(dock) ? dock.offsetWidth : 0) + 'px');
+  rs.setProperty('--railL', (rails && shown(rl) ? rl.offsetWidth : 0) + 'px');
+  const sb = $('#selbar'); if (sb) rs.setProperty('--selH', (U.view === 'map' && !sb.hidden ? sb.offsetHeight + 8 : 0) + 'px');
+  const zf = $('#mzFit'); if (zf && U.view === 'map') { const z = mapZoomed(); if (zf.hidden === z) zf.hidden = !z; }
 }
-function pill(id, val, cls, lbl) { const el = document.getElementById(id); setC(el, 'pill ' + (cls || '')); const b = el.querySelector('b'); if (b.textContent !== val) b.textContent = val; const sp = el.querySelector('span'); if (lbl && sp && sp.textContent !== lbl) sp.textContent = lbl; }
+/* Side rails on short, wide screens (a phone held sideways); a dock along the bottom otherwise. Whichever leaves the floor bigger. */
+function layoutMode() {
+  if (U.view !== 'map') return false;
+  const W = window.innerWidth, H = window.innerHeight, key = W + 'x' + H + (MD() ? 'm' : 'r');
+  if (U.layKey === key) return U.rails;
+  const sp = $('#safe'), cs = sp ? getComputedStyle(sp) : null, il = cs ? parseFloat(cs.paddingLeft) || 0 : 0, ir = cs ? parseFloat(cs.paddingRight) || 0 : 0;
+  const big = H > 520, top = big ? (W >= 1000 ? 54 : 104) : 40, lw = MD() ? 0 : big ? 86 : 58, rw = big ? 132 : 80, dockH = big ? 76 : 56;
+  const sR = Math.min((W - il - ir - lw - rw) / MW, (H - top) / MH), sD = Math.min(W / MW, (H - top - dockH) / MH);
+  U.layKey = key; U.rails = sR > sD * (big ? 1.02 : 0.95);   // on a phone, rails unless the dock is clearly better
+  const slack = U.rails ? Math.max(0, Math.min(90, W - il - ir - lw - rw - (MW + 14) * sR)) : 0;   // a screen wider than the floor: give the room to the rails
+  document.body.style.setProperty('--rlw', (lw + Math.round(slack * (lw ? 0.4 : 0))) + 'px');
+  document.body.style.setProperty('--rrw', (rw + Math.round(slack * (lw ? 0.6 : 1))) + 'px');
+  return U.rails;
+}
+const PSHORT = { 'Avg wait': 'Wait', 'Pt mgmt': 'Mgmt', 'To see': 'See', 'To do': 'Do' };
+function pill(id, val, cls, lbl) {
+  const el = document.getElementById(id); setC(el, 'pill ' + (cls || ''));
+  const b = el.querySelector('b'); if (b.textContent !== val) b.textContent = val;
+  const sp = el.querySelector('span'); if (lbl && sp && sp.textContent !== lbl) sp.textContent = lbl;
+  if (sp) { const sh = PSHORT[sp.textContent] || sp.textContent; if (sp.dataset.s !== sh) sp.dataset.s = sh; }
+}
 function renderHud(G) {
   const c = E.clock(); if ($('#clock').textContent !== c) $('#clock').textContent = c;
   const w = E.avgWait();
@@ -172,16 +197,17 @@ function renderBox(G) {
     h = `<span class="bx-led"></span><span class="bx-name">The Box</span><span class="bx-idle">Quiet${n ? ` · consults answered ${S.ans}/${n}` : ''}${G.mods.survey > G.t ? ' · audit underway' : ''}</span>`;
   } else if (c.kind === 'notify') {
     const p = E.pt(c.pid); cls += ' notify';
-    h = `<span class="bx-led"></span><span class="bx-main"><span class="bx-name">The Box · ${esc(E.ALERTS[p.alert].name)} alert</span><span class="bx-txt">${esc(c.unit)}: ${p.age}${p.sex}, ${esc(p.cc)} · ETA <span data-cd="${p.eta}"></span>${MD() ? ' · charge nurse taking it' : ''}</span><i class="bx-bar"><i data-bar="${c.t0},${c.t0 + c.ring}"></i></i></span>${hold ? `<span class="bx-hold">+${hold}</span>` : ''}${MD() ? '' : '<button type="button" class="bx-btn" data-act="boxAnswer">Take report</button>'}`;
+    h = `<span class="bx-led"></span><span class="bx-main"><span class="bx-name">The Box · ${esc(E.ALERTS[p.alert].name)} alert</span><span class="bx-txt">${esc(c.unit)}: ${p.age}${p.sex}, ${esc(p.cc)} · ETA <span data-cd="${p.eta}"></span>${MD() ? ' · charge nurse taking it' : ''}</span><span class="bx-short">${esc(E.ALERTS[p.alert].name)} alert · ETA <span data-cd="${p.eta}"></span></span><i class="bx-bar"><i data-bar="${c.t0},${c.t0 + c.ring}"></i></i></span>${hold ? `<span class="bx-hold">+${hold}</span>` : ''}${MD() ? '' : '<button type="button" class="bx-btn" data-act="boxAnswer">Take report</button>'}`;
   } else if (c.taken) {
     cls += ' consult';
     const d = E.staff(c.taken);
-    h = `<span class="bx-led"></span><span class="bx-main"><span class="bx-name">The Box · Medical direction</span><span class="bx-txt">${isMe(d) ? 'You are' : esc(d ? d.name : 'An attending') + ' is'} on the line with ${esc(c.unit)}</span></span>${hold ? `<span class="bx-hold">+${hold}</span>` : ''}`;
+    h = `<span class="bx-led"></span><span class="bx-main"><span class="bx-name">The Box · Medical direction</span><span class="bx-txt">${isMe(d) ? 'You are' : esc(d ? d.name : 'An attending') + ' is'} on the line with ${esc(c.unit)}</span><span class="bx-short">${isMe(d) ? 'You are' : esc(d ? d.short : 'A doctor') + ' is'} on the line</span></span>${hold ? `<span class="bx-hold">+${hold}</span>` : ''}`;
   } else {
     cls += ' consult';
-    h = `<span class="bx-led"></span><span class="bx-main"><span class="bx-name">The Box · Medical direction</span><span class="bx-txt">${esc(c.unit)} needs ${MD() ? 'you' : 'an attending'} on the line</span><i class="bx-bar"><i data-bar="${c.t0},${c.t0 + c.ring}"></i></i></span>${hold ? `<span class="bx-hold">+${hold}</span>` : ''}<button type="button" class="bx-btn" data-act="boxAnswer">${MD() ? 'Answer' : 'Find a doctor'}</button>`;
+    h = `<span class="bx-led"></span><span class="bx-main"><span class="bx-name">The Box · Medical direction</span><span class="bx-txt">${esc(c.unit)} needs ${MD() ? 'you' : 'an attending'} on the line</span><span class="bx-short">${esc(c.unit)} needs ${MD() ? 'you' : 'a doctor'}</span><i class="bx-bar"><i data-bar="${c.t0},${c.t0 + c.ring}"></i></i></span>${hold ? `<span class="bx-hold">+${hold}</span>` : ''}<button type="button" class="bx-btn" data-act="boxAnswer">${MD() ? 'Answer' : 'Find a doctor'}</button>`;
   }
   setC(el, cls); setH(el, h);
+  document.body.classList.toggle('boxring', !!(c && !c.taken));
   if (c && U.scene === 'game') {
     if (U.ringId !== c.id) { U.ringId = c.id; U.ringT = G.t; }
     else if (G.t - U.ringT > 2 && !isPaused()) { U.ringT = G.t; sfx('ring2'); }
@@ -222,14 +248,15 @@ function renderSel(G) {
   const s = U.sel, el = $('#selbar'); let h = '';
   if (s && s.type === 'prov') {
     const st = E.staff(s.sid);
-    h = `<span><b>${esc(st.name)}</b> selected. Tap patients who need a provider.</span><button type="button" data-act="selInfo">Queue</button><button type="button" data-act="selCancel">Done</button>`;
+    h = `<span><b>${esc(st.name)}</b>${U.view === 'map' ? ': tap who to see.' : ' selected. Tap patients who need a provider.'}</span><button type="button" data-act="selInfo">Queue</button><button type="button" data-act="selCancel">Done</button>`;
   } else if (s && (s.type === 'reg' || s.type === 'tri')) {
     const st = E.staff(s.sid);
-    h = `<span><b>${esc(st.name)}</b> ${s.type === 'reg' ? 'is registering. Tap patients who need it: a quick registration at the door, the full one at the bedside.' : 'is triaging. Tap patients at the door who need triage.'}</span><button type="button" data-act="selCancel">Done</button>`;
+    const fp = U.view === 'map';
+    h = `<span><b>${esc(st.name)}</b> ${s.type === 'reg' ? (fp ? 'registers: tap the door, the wall, or a room.' : 'is registering. Tap patients who need it: a quick registration at the door, the full one at the bedside.') : fp ? 'triages: tap the door or a crew on the wall.' : 'is triaging. Tap patients at the door who need triage.'}</span><button type="button" data-act="selCancel">Done</button>`;
   } else if (s) {
     const p = E.pt(s.pid);
     const wr = s.type === 'pt' && p.loc === 'wall' && ve(p) >= 3 && !p.alertOn && intakeDone(p);
-    h = `<span>${s.type === 'move' ? 'Moving' : 'Bedding'} ${emoji(p)} <b>${p.age}${p.sex}</b> ${esiChip(p)} ${esc(p.cc)}. Tap a green room.</span>${wr ? `<button type="button" data-act="toWait" data-arg="${p.id}">Waiting room</button>` : ''}<button type="button" data-act="selInfo">Details</button><button type="button" data-act="selCancel">Cancel</button>`;
+    h = `<span>${s.type === 'move' ? 'Moving' : 'Bedding'} ${U.view === 'map' ? '' : emoji(p) + ' '}<b>${p.age}${p.sex}</b> ${esiChip(p)}${U.view === 'map' ? ':' : ' ' + esc(p.cc) + '.'} ${U.view === 'map' ? 'tap' : 'Tap'} a green room.</span>${wr ? `<button type="button" data-act="toWait" data-arg="${p.id}">Waiting room</button>` : ''}<button type="button" data-act="selInfo">Details</button><button type="button" data-act="selCancel">Cancel</button>`;
   }
   setH(el, h); el.hidden = !h;
   document.body.classList.toggle('selon', !!h);
@@ -316,49 +343,50 @@ function treatReason(p) {
   return 'Treatment underway';
 }
 const LEAVING = ['dc', 'dcing', 'toproc', 'iftwait', 'iftreport', 'xportq', 'family', 'morgue', 'morguing'];
+/* What a room needs next: t = words, c = tone, i = the icon the floor plan shows. */
 function nextStep(p, r, G) {
   const pv = p.prov ? E.staff(p.prov) : null, nm = pv ? (isMe(pv) ? 'You' : esc(pv.short)) : '';
   if (mine(p) && !p.arrest) {
-    if (p.ev === 'q') return { t: 'In your line', c: 'n-wait' };
-    if (p.ev === 'doing') return { t: 'You are in the room', c: 'n-wait' };
-    if (p.ord === 'need') return { t: 'Write orders', c: 'n-act fl' };
-    if (p.ord === 'more') return { t: 'Add to the workup', c: 'n-act fl' };
-    if (p.dsp === 'mddecide' || p.dsp === 'decide') return { t: 'Your call', c: 'n-act fl' };
-    if (p.txGap && p.txGap.length && !LEAVING.includes(p.dsp)) return { t: 'Not improving', c: 'n-bad fl' };
+    if (p.ev === 'q') return { t: 'In your line', c: 'n-wait', i: 'steth' };
+    if (p.ev === 'doing') return { t: 'You are in the room', c: 'n-wait', i: 'steth' };
+    if (p.ord === 'need') return { t: 'Write orders', c: 'n-act fl', i: 'orders' };
+    if (p.ord === 'more') return { t: 'Add to the workup', c: 'n-act fl', i: 'orders' };
+    if (p.dsp === 'mddecide' || p.dsp === 'decide') return { t: 'Your call', c: 'n-act fl', i: 'decide' };
+    if (p.txGap && p.txGap.length && !LEAVING.includes(p.dsp)) return { t: 'Not improving', c: 'n-bad fl', i: 'alert' };
   }
-  if (p.arrest) return p.ev === 'doing' ? { t: 'Code in progress', c: 'n-code' } : p.ev === 'q' ? { t: 'Code: ' + nm, c: 'n-code' } : { t: MD() ? 'CODE: run it' : 'CODE: send an MD', c: 'n-code fl' };
-  if (p.bleed === 'mtp' && !p.bb && p.dsp === 'none') return { t: p.shock ? 'SHOCK: activate MTP' : 'Bleeding: activate MTP', c: 'n-bad fl' };
-  if (!E.zoneNurses(r.z).length && !(E.isBoarder(p) && hasHold())) return { t: 'No nurse!', c: 'n-bad fl' };
-  if (p.sitter && !r.safe && !p.sitBy) return { t: 'Needs a sitter', c: 'n-bad fl' };
+  if (p.arrest) return p.ev === 'doing' ? { t: 'Code in progress', c: 'n-code', i: 'code' } : p.ev === 'q' ? { t: 'Code: ' + nm, c: 'n-code', i: 'code' } : { t: MD() ? 'CODE: run it' : 'CODE: send an MD', c: 'n-code fl', i: 'code' };
+  if (p.bleed === 'mtp' && !p.bb && p.dsp === 'none') return { t: p.shock ? 'SHOCK: activate MTP' : 'Bleeding: activate MTP', c: 'n-bad fl', i: 'blood' };
+  if (!E.zoneNurses(r.z).length && !(E.isBoarder(p) && hasHold())) return { t: 'No nurse!', c: 'n-bad fl', i: 'nurse' };
+  if (p.sitter && !r.safe && !p.sitBy) return { t: 'Needs a sitter', c: 'n-bad fl', i: 'eye' };
   switch (p.dsp) {
-    case 'ready': return { t: 'Ready: discharge', c: 'n-go fl' };
-    case 'dc': case 'dcing': return { t: 'Discharge teaching', c: 'n-go' };
-    case 'readytx': return { t: 'Request transfer', c: 'n-act fl' };
-    case 'txcall': return { t: 'Transfer center…', c: 'n-wait' };
-    case 'decide': return { t: `${esc(p.gray.short || 'Risk')} ${p.gray.score}: your call`, c: 'n-act fl' };
-    case 'board': return p.obsWait ? { t: 'Obs unit full', c: 'n-board' } : { t: `${p.dispo === 'obs' ? 'Obs' : 'Admitted'} · bed <span data-cd="${p.due}"></span>`, c: 'n-board' };
-    case 'callrep': return { t: G.mods.noReport > G.t ? 'Floor won\'t take report' : 'Bed ready: nurse calls report', c: 'n-board' };
-    case 'reporting': return { t: 'Calling report', c: 'n-board' };
-    case 'bedready': return { t: 'Bed ready: send up', c: 'n-act fl' };
-    case 'xportq': { const s = E.staff(p.xBy); return { t: `${s ? esc(s.short) : 'Transport'} taking them up`, c: 'n-board' }; }
-    case 'txok': return { t: 'Accepted: book ambulance', c: 'n-act fl' };
-    case 'iftwait': return { t: `${E.IFT[p.iftLevel].short} crew <span data-cd="${p.due}"></span>`, c: 'n-wait' };
-    case 'iftreport': return p.crewWait != null && !E.treatsDone(p) ? { t: 'Crew waiting on treatment', c: 'n-warn' } : { t: 'Crew taking report', c: 'n-wait' };
-    case 'toproc': return { t: p.dispo === 'cath' ? 'To the cath lab' : 'To the OR', c: 'n-go' };
-    case 'family': return { t: 'Family at bedside', c: 'n-wait' };
-    case 'morgue': case 'morguing': return { t: 'Morgue transport', c: 'n-wait' };
+    case 'ready': return { t: 'Ready: discharge', c: 'n-go fl', i: 'home' };
+    case 'dc': case 'dcing': return { t: 'Discharge teaching', c: 'n-go', i: 'home' };
+    case 'readytx': return { t: 'Request transfer', c: 'n-act fl', i: 'amb' };
+    case 'txcall': return { t: 'Transfer center…', c: 'n-wait', i: 'amb' };
+    case 'decide': return { t: `${esc(p.gray.short || 'Risk')} ${p.gray.score}: your call`, c: 'n-act fl', i: 'decide' };
+    case 'board': return p.obsWait ? { t: 'Obs unit full', c: 'n-board', i: 'bed' } : { t: `${p.dispo === 'obs' ? 'Obs' : 'Admitted'} · bed <span data-cd="${p.due}"></span>`, c: 'n-board', i: 'bed' };
+    case 'callrep': return { t: G.mods.noReport > G.t ? 'Floor won\'t take report' : 'Bed ready: nurse calls report', c: 'n-board', i: 'talk' };
+    case 'reporting': return { t: 'Calling report', c: 'n-board', i: 'talk' };
+    case 'bedready': return { t: 'Bed ready: send up', c: 'n-act fl', i: 'up' };
+    case 'xportq': { const s = E.staff(p.xBy); return { t: `${s ? esc(s.short) : 'Transport'} taking them up`, c: 'n-board', i: 'up' }; }
+    case 'txok': return { t: 'Accepted: book ambulance', c: 'n-act fl', i: 'amb' };
+    case 'iftwait': return { t: `${E.IFT[p.iftLevel].short} crew <span data-cd="${p.due}"></span>`, c: 'n-wait', i: 'amb' };
+    case 'iftreport': return p.crewWait != null && !E.treatsDone(p) ? { t: 'Crew waiting on treatment', c: 'n-warn', i: 'amb' } : { t: 'Crew taking report', c: 'n-wait', i: 'amb' };
+    case 'toproc': return { t: p.dispo === 'cath' ? 'To the cath lab' : 'To the OR', c: 'n-go', i: 'up' };
+    case 'family': return { t: 'Family at bedside', c: 'n-wait', i: 'heart' };
+    case 'morgue': case 'morguing': return { t: 'Morgue transport', c: 'n-wait', i: 'wait' };
   }
-  if (E.needsProv(p)) return p.ev === 'none' ? { t: `Needs a provider · <span data-el="${p.tNeed != null ? Math.max(p.tNeed, p.tRoom) : p.tRoom}"></span>`, c: 'n-act fl' } : { t: 'Needs a provider (recheck)', c: 'n-act fl' };
-  if (p.reg !== 'done') return p.reg === 'none' ? { t: 'Needs registration', c: 'n-act fl' } : p.reg === 'quick' ? { t: 'Needs full registration', c: 'n-warn' } : { t: 'Registering', c: 'n-wait' };
-  if (p.ev === 'q') { const i = pv ? pv.q.findIndex(k => k.pid === p.id) : -1; return { t: `${nm} · ${i >= 0 ? '#' + (i + 1) + ' in line' : 'queued'}`, c: 'n-wait' }; }
-  if (p.ev === 'doing') return { t: `${nm} in the room`, c: 'n-wait' };
-  if (p.con && p.consult.st === 'none' && p.dxK) return { t: 'Call a consult', c: 'n-act fl' };
-  if (p.consult.st === 'req') return { t: `${E.SPECS[p.consult.spec].short} <span data-cd="${p.consult.due}"></span>`, c: 'n-wait' };
-  if (p.re === 'q' || p.re === 'doing') return { t: `${nm} rechecking`, c: 'n-wait' };
-  if (p.cosign === 'need' || p.cosign === 'wait') return { t: 'Attending co-sign', c: 'n-wait' };
-  if (!p.dxK || (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done'))) return { t: 'Workup pending', c: 'n-wait' };
-  if (!E.treatsDone(p)) { const why = treatReason(p); return { t: why, c: /pharmacy|RT/.test(why) ? 'n-warn' : 'n-wait' }; }
-  return { t: 'Wrapping up', c: 'n-wait' };
+  if (E.needsProv(p)) return p.ev === 'none' ? { t: `Needs a provider · <span data-el="${p.tNeed != null ? Math.max(p.tNeed, p.tRoom) : p.tRoom}"></span>`, c: 'n-act fl', i: 'steth' } : { t: 'Needs a provider (recheck)', c: 'n-act fl', i: 'steth' };
+  if (p.reg !== 'done') return p.reg === 'none' ? { t: 'Needs registration', c: 'n-act fl', i: 'card' } : p.reg === 'quick' ? { t: 'Needs full registration', c: 'n-warn', i: 'card' } : { t: 'Registering', c: 'n-wait', i: 'card' };
+  if (p.ev === 'q') { const i = pv ? pv.q.findIndex(k => k.pid === p.id) : -1; return { t: `${nm} · ${i >= 0 ? '#' + (i + 1) + ' in line' : 'queued'}`, c: 'n-wait', i: 'steth' }; }
+  if (p.ev === 'doing') return { t: `${nm} in the room`, c: 'n-wait', i: 'steth' };
+  if (p.con && p.consult.st === 'none' && p.dxK) return { t: 'Call a consult', c: 'n-act fl', i: 'phone' };
+  if (p.consult.st === 'req') return { t: `${E.SPECS[p.consult.spec].short} <span data-cd="${p.consult.due}"></span>`, c: 'n-wait', i: 'phone' };
+  if (p.re === 'q' || p.re === 'doing') return { t: `${nm} rechecking`, c: 'n-wait', i: 'steth' };
+  if (p.cosign === 'need' || p.cosign === 'wait') return { t: 'Attending co-sign', c: 'n-wait', i: 'pen' };
+  if (!p.dxK || (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done'))) return { t: 'Workup pending', c: 'n-wait', i: 'flask' };
+  if (!E.treatsDone(p)) { const why = treatReason(p); return { t: why, c: /pharmacy|RT/.test(why) ? 'n-warn' : 'n-wait', i: 'pill' }; }
+  return { t: 'Wrapping up', c: 'n-wait', i: 'wait' };
 }
 function tagsHTML(p) {
   const keys = p.wk.slice(); if (p.work.ecg && !keys.includes('ecg')) keys.unshift('ecg');
@@ -597,7 +625,7 @@ function intakeBlock(p, G, mtpBtn) {
   if (E.emergent(p)) h += `<button type="button" class="big bad" data-act="placeSel" data-arg="${p.id}">Straight to a room</button><p class="hint" style="margin:0">Critical: skip the line. The nurse triages at the bedside. Register them before they leave the ED.</p>`;
   if (p.reg === 'none') h += `<div class="prim-l">${E.emergent(p) ? '' : '1 · '}Register</div><div class="pgrid">${regButtons(p, G)}</div>`;
   if (p.tri === 'none' && !E.emergent(p)) h += `<div class="prim-l">2 · ${p.loc === 'wall' ? `Take report from ${esc(p.unit)} and triage` : 'Triage'}</div><div class="pgrid">${triButtons(p, G)}</div>`;
-  if (p.reg !== 'none' && (p.tri !== 'none' || E.emergent(p)) && !E.emergent(p)) h += '<p class="hint" style="margin:0">Intake is underway. Tap the patient again when they show READY FOR A BED.</p>';
+  if (p.reg !== 'none' && (p.tri !== 'none' || E.emergent(p)) && !E.emergent(p)) h += `<p class="hint" style="margin:0">Intake is underway. Tap the patient again when they show ${U.view === 'map' ? 'a green check' : 'READY FOR A BED'}.</p>`;
   return h + '</div>';
 }
 function upButtons(p, G) {
@@ -751,19 +779,29 @@ function staffSheet(G, s) {
 }
 function zoneSheet(G, z) {
   const zn = E.ZONE_NAME[z], hold = z === 'hold', load = hold ? E.holdLoad() : E.zoneLoad(z, hasHold()), cap = E.zoneNurses(z).length * (hold ? 5 : 4);
-  let h = head(hold ? 'Hold nurse' : `${zn} nurses`, z === 'triage' ? `${G.triageQ.length} in the triage line` : hold ? `${plural(E.holds().length, 'admitted patient')} in ED beds` : `${plural(E.zonePts(z), 'patient')} · load ${fl(load)} of ${cap}`);
   const why = z === 'triage' ? 'Whoever covers Triage triages walk-ins and does waiting-room rechecks. New grads can\'t triage. To put a provider in triage, open a provider from the Team list.'
     : hold ? 'A hold nurse takes every admitted patient still in the ED, wherever they are, at inpatient ratios (5 points). Pod nurses stop counting those patients, and the hold nurse calls report to the floors.'
     : z === 'rp' ? 'Chairs hold patients a provider has already seen who are waiting on results or a ride. They barely count against a nurse, and they free real beds.'
     : `Each nurse handles 4 points: ESI 3 to 5 count 1, ESI 2 counts 2, ESI 1 counts 4, and an active resuscitation counts 6.${z === 'resus' ? ' Two at once needs a third nurse. New grads can\'t take Resus.' : ''} Over that, safety and morale slip.`;
-  h += `<p class="hint">${why} Tap a nurse to add or remove them.</p><div class="zgrid">`;
+  let nurses = `<p class="hint">${why} Tap a nurse to add or remove them.</p><div class="zgrid">`;
   for (const s of G.staff.filter(x => x.role === 'rn' && ['on', 'break', 'away', 'pending'].includes(x.st))) {
-    h += `<button type="button" class="zbtn ${s.zones.includes(z) ? 'on' : ''}" data-act="zt" data-arg="${s.id}|${z}"><b>${esc(s.short)}${SKILL[s.skill] ? ` <i class="stag sk-${s.skill}">${SKILL[s.skill]}</i>` : ''}</b><small>${s.zones.length ? s.zones.map(x => E.ZONE_NAME[x]).join(' + ') : 'Resource (any pod)'}${s.st !== 'on' ? ' · ' + stLabel(s) : ''}<br><span data-load="${s.id}"></span></small></button>`;
+    nurses += `<button type="button" class="zbtn ${s.zones.includes(z) ? 'on' : ''}" data-act="zt" data-arg="${s.id}|${z}"><b>${esc(s.short)}${SKILL[s.skill] ? ` <i class="stag sk-${s.skill}">${SKILL[s.skill]}</i>` : ''}</b><small>${s.zones.length ? s.zones.map(x => E.ZONE_NAME[x]).join(' + ') : 'Resource (any pod)'}${s.st !== 'on' ? ' · ' + stLabel(s) : ''}<br><span data-load="${s.id}"></span></small></button>`;
   }
-  h += '</div>';
+  nurses += '</div>';
+  if (z === 'triage') {   // the front of the house: pick a person here when the floor plan is zoomed out
+    const door = G.triageQ.map(E.pt).filter(Boolean), wait = E.active().filter(p => p.loc === 'waiting').sort((a, b) => ve(a) - ve(b) || a.tArrive - b.tArrive);
+    const magB = p => `<button type="button" class="${magCls(p, G)}" data-act="pt" data-arg="${p.id}" aria-label="${p.age}${p.sex}, ${esc(p.cc)}">${magHTML(p)}</button>`;
+    let h = head('Waiting room', `${wait.length} waiting · ${door.length} at the door`);
+    h += `<div><h4>At the door</h4><div class="mag-list">${door.map(magB).join('') || '<p class="hint" style="margin:0">Nobody at the door.</p>'}</div></div>`;
+    h += `<div><h4>Waiting room</h4><div class="mag-list">${wait.map(magB).join('') || '<p class="hint" style="margin:0">Nobody is waiting.</p>'}</div></div>`;
+    if (MD()) return h + '<p class="hint">The charge nurse runs intake. Tap a patient to open their card.</p>';
+    const ago = G.t - G.wrUpdate, n = wait.length + door.length;
+    h += `<div class="sh-acts"><button type="button" class="hl" data-act="updWait" ${ago < 30 || !n ? 'disabled' : ''}>${!n ? 'Nobody is waiting' : ago < 30 ? `You walked the room ${fm(ago)} ago` : `Walk the waiting room and update ${n} ${n > 1 ? 'people' : 'person'}`}</button></div><p class="hint">An honest update buys patience: people stay about 20 minutes longer before they walk out.</p>`;
+    return h + `<div><h4>Triage nurses</h4>${nurses}</div>`;
+  }
+  let h = head(hold ? 'Hold nurse' : `${zn} nurses`, hold ? `${plural(E.holds().length, 'admitted patient')} in ED beds` : `${plural(E.zonePts(z), 'patient')} · load ${fl(load)} of ${cap}`) + nurses;
   if (hold) h += `<div class="sh-acts"><button type="button" data-act="agency" data-arg="hold" ${G.mods.noAgency ? 'disabled' : ''}>Call an agency RN for holds (~40 min)</button></div>`;
-  if (z === 'triage') { const ago = G.t - G.wrUpdate, n = E.active().filter(p => p.loc === 'waiting' || p.loc === 'triage').length; h += `<div class="sh-acts"><button type="button" class="hl" data-act="updWait" ${ago < 30 || !n ? 'disabled' : ''}>${!n ? 'Nobody is waiting' : ago < 30 ? `You walked the room ${fm(ago)} ago` : `Walk the waiting room and update ${n} ${n > 1 ? 'people' : 'person'}`}</button></div><p class="hint">An honest update buys patience: people stay about 20 minutes longer before they walk out.</p>`; }
-  else if (z !== 'triage') {
+  else {
     const closed = G.rooms.some(r => r.z === z && r.closed);
     h += `<div class="sh-acts">${closed ? `<button type="button" data-act="zopen" data-arg="${z}">Reopen ${zn}</button>` : `<button type="button" data-act="zclose" data-arg="${z}" ${E.zonePts(z) ? 'disabled' : ''}>Close ${zn}</button>`}<button type="button" data-act="agency" data-arg="${z}" ${G.mods.noAgency ? 'disabled' : ''}>Call an agency RN (~40 min)</button></div>`;
   }
@@ -793,14 +831,20 @@ function divertSheet(G) {
   h += `<div class="dv fcp"><b>Full-capacity protocol</b><p><i>The ED is packed and admitted patients are holding its beds.</i> Up to 4 admitted floor patients go to inpatient hallway beds now. Their nurses still call report. Once every 4 hours; the hospitalists won't love it.</p><button type="button" data-act="fcp" ${ready ? '' : 'disabled'}>${ready ? 'Run the full-capacity protocol' : `Available at ${E.clock(G.fcp.last + 240)}`}</button></div>`;
   return h + '<p class="hint">A diversion that matches what broke costs little, and going on it fast earns points. Lift it as soon as the fix is in. Diverting when nothing is broken, or staying on after the fix, costs a lot and draws calls from administration and the EMS system.</p>';
 }
+/* What the floor plan's icons mean. */
+function legendHTML(md) {
+  const rows = md ? [['steth', 'act fl', 'Waiting for a doctor'], ['orders', 'act fl', 'Write orders'], ['decide', 'act fl', 'Your call to make'], ['alert', 'bad fl', 'Not improving'], ['code', 'code fl', 'Code'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['phone', 'wait', 'Consultant on the way'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['bed', 'board', 'Admitted, waiting for a bed']]
+    : [['steth', 'act fl', 'Needs a provider'], ['phone', 'act fl', 'Call a consult'], ['decide', 'act fl', 'Your call: home, obs, admit'], ['home', 'go fl', 'Ready to discharge'], ['up', 'act fl', 'Bed ready: send them up'], ['amb', 'act fl', 'Transfer: request or book'], ['card', 'act fl', 'Needs registration'], ['alert', 'bad fl', 'Trouble in the room'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['code', 'code fl', 'Code'], ['bed', 'board', 'Admitted, waiting for a bed'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['broom', 'dirty fl', 'Dirty: tap to send EVS'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']];
+  return `<p class="hint" style="margin-bottom:4px">Each room shows one icon for what it needs. Filled, pulsing icons need you. Gray ones are waiting on someone else. Pinch to zoom in and the icons turn into words.</p><div class="lgd">${rows.map(([k, c, t]) => `<span>${icoInline(k, c.replace(' fl', ''))}${t}</span>`).join('')}</div>`;
+}
 function helpHTML() {
   if ((U.scene === 'game' && MD()) || (U.scene !== 'game' && U.mode === 'md')) return helpMD();
   const fp = U.view === 'map';
-  return head('How to run the board', 'You are the charge nurse from 07:00 to 19:00. Keep patients moving, staff upright, and the Box answered.') + `<ol class="help">
-<li><b>Intake.</b> Patients come in two doors: EMS and walk-in. Every one needs a quick registration and triage, and you direct both. Tap a registrar or triage nurse ${fp ? 'at the bottom left' : 'in the intake row'}, then tap patients; or tap a patient for options. EMS crews wait on the wall to give report until a nurse triages them. Walk-ins go to the waiting room after triage. Alerts and crashing patients can go straight to a room. Full registration happens later at the bedside, and nobody leaves the ED until it's done.</li>
+  return head('How to run the board', 'You are the charge nurse from 07:00 to 19:00. Keep patients moving, staff upright, and the Box answered.') + (fp ? legendHTML(false) : '') + `<ol class="help">
+<li><b>Intake.</b> Patients come in two doors: EMS and walk-in. Every one needs a quick registration and triage, and you direct both. Tap a registrar or triage nurse ${fp ? (U.rails ? 'on the left' : 'at the bottom left') : 'in the intake row'}, then tap patients; or tap a patient for options. EMS crews wait on the wall to give report until a nurse triages them. Walk-ins go to the waiting room after triage. Alerts and crashing patients can go straight to a room. Full registration happens later at the bedside, and nobody leaves the ED until it's done.</li>
 <li><b>The waiting room.</b> Triage isn't perfect: now and then someone is sicker than their ESI says. Have the triage nurse recheck people who have waited a while. Walk the waiting room (tap ${fp ? 'the waiting room' : 'the lane header'}) and update people on the wait; fewer walk out.</li>
 <li><b>Bed patients.</b> Tap a patient ${fp ? 'on the wall with a green check' : 'marked READY FOR A BED'}, or one in the waiting room, then a green room. EMS patients who are ESI 3 to 5 can be handed off to the waiting room instead. ESI 1 goes to Resus. Fast Track opens at 09:00 and takes ESI 4 and 5. Airborne isolation needs Room 8 or 16. Rooms 19 and 20 are safe rooms for behavioral health. The six chairs are for patients a provider has seen who are waiting on results or a ride: move them out of a bed to free it.</li>
-<li><b>Get them seen.</b> Nobody sees a provider until you assign one. Tap a provider at the bottom, then tap every patient you want them to take. PAs and NPs take ESI 2 to 5; an attending co-signs their ESI 2 patients. Intubations need an attending and an RT. A provider with a long line makes more mistakes. Station a provider in triage from their card to work the waiting room.</li>
+<li><b>Get them seen.</b> Nobody sees a provider until you assign one. Tap a provider ${SIDE()}, then tap every patient you want them to take. PAs and NPs take ESI 2 to 5; an attending co-signs their ESI 2 patients. Intubations need an attending and an RT. A provider with a long line makes more mistakes. Station a provider in triage from their card to work the waiting room.</li>
 <li><b>Gray-zone calls.</b> Chest pain, fainting, and TIA patients come back with a risk score. You decide: home, observation, or admit. Too cautious wastes beds; too bold brings people back.</li>
 <li><b>Answer the Box.</b> Take alert reports so the team is ready. When a medic needs medical direction, find an attending fast: tap Find a doctor and pick one who is not in a code. The doctor gives the orders.</li>
 <li><b>Consult at the right time.</b> Results show up on the patient card. Call the right service once the results they need are back, or they get angry and slow.</li>
@@ -814,8 +858,8 @@ function helpHTML() {
 </ol>`;
 }
 function helpMD() {
-  return head('How to work a shift', 'You are an attending from 07:00 to 19:00. The charge nurse runs the board. You run the medicine.') + `<ol class="help">
-<li><b>Pick up patients.</b> Rooms marked Needs a provider are waiting for a doctor. Tap one, then See this patient. See the sickest first. Anyone you leave too long goes to another provider.</li>
+  return head('How to work a shift', 'You are an attending from 07:00 to 19:00. The charge nurse runs the board. You run the medicine.') + (U.view === 'map' ? legendHTML(true) : '') + `<ol class="help">
+<li><b>Pick up patients.</b> ${U.view === 'map' ? 'Rooms with a blue stethoscope' : 'Rooms marked Needs a provider'} are waiting for a doctor. Tap one, then See this patient. See the sickest first. Anyone you leave too long goes to another provider.</li>
 <li><b>Write orders.</b> After the exam, pick tests and treatment, then Sign. Order what they need and nothing extra: extra tests cost time and points, a CT costs radiation, and some treatments hurt people who don't need them.</li>
 <li><b>Close the gaps.</b> If the workup can't make the diagnosis, you'll hear that something is missing. Add it. If a patient isn't improving, they need a treatment you didn't order.</li>
 <li><b>Make the call.</b> When the diagnosis is in, send them home, call the right consultant to admit them, or transfer them. Consultants want their results back before you call. Chest pain, fainting, and TIA come with a risk score for home, observation, or admit.</li>
@@ -849,6 +893,12 @@ function renderSheet(G) {
 const TR = () => { const G = g(); return G && G.train && G.tr && U.scene === 'game' ? G.tr : null; };
 const tid = k => { const t = TR(); return t && t.ids[k] ? E.pt(t.ids[k]) : null; };
 const mag = id => `[data-act="pt"][data-arg="${id}"]`;
+const mapFar = () => U.view === 'map' && CAM.far;
+const ptSpot = p => {   // zoomed out, people at the door and in the waiting room are picked from a list
+  if (p && mapFar() && (p.loc === 'waiting' || p.loc === 'triage')) return sheetIs('zone', 'triage') ? [`#sheet ${mag(p.id)}`] : [p.loc === 'waiting' ? '#mWait' : '#mDoor'];
+  return [mag(p.id)];
+};
+const SIDE = () => (U.view === 'map' && U.rails ? 'on the right' : 'at the bottom');
 const roomSel = p => (p && p.room ? `#room-${p.room}, #mroom-${p.room}` : '');
 const provSel = sid => `#dockProv [data-arg="${sid}"], #sideProv [data-arg="${sid}"]`;
 const onSheet = p => !!(p && U.sheet && U.sheet.type === 'pt' && U.sheet.pid === p.id);
@@ -859,23 +909,23 @@ function firstRoom(p, want) {
   return (ok.find(r => r.id === want) || ok[0] || {}).id;
 }
 const regStep = (key, sid) => ({
-  spot: () => { const p = tid(key); if (onSheet(p)) return [`#sheet [data-act="regAssign"][data-arg$="|${sid}"]`]; return U.sel && U.sel.type === 'reg' ? [mag(p.id)] : [`#istaff [data-act="regSel"][data-arg="${sid}"]`]; },
+  spot: () => { const p = tid(key); if (onSheet(p)) return [`#sheet [data-act="regAssign"][data-arg$="|${sid}"]`]; return U.sel && U.sel.type === 'reg' ? ptSpot(p) : [`#istaff [data-act="regSel"][data-arg="${sid}"]`]; },
   done: () => tid(key).reg !== 'none',
   auto: () => E.register(tid(key).id, sid),
 });
 const triStep = (key, sid) => ({
-  spot: () => { const p = tid(key); if (onSheet(p)) return [`#sheet [data-act="triAssign"][data-arg$="|${sid}"]`]; return U.sel && U.sel.type === 'tri' ? [mag(p.id)] : [`#istaff [data-act="triSel"][data-arg="${sid}"]`]; },
+  spot: () => { const p = tid(key); if (onSheet(p)) return [`#sheet [data-act="triAssign"][data-arg$="|${sid}"]`]; return U.sel && U.sel.type === 'tri' ? ptSpot(p) : [`#istaff [data-act="triSel"][data-arg="${sid}"]`]; },
   done: () => tid(key).tri !== 'none',
   auto: () => E.triage(tid(key).id, sid),
 });
 const intakeStep = (key, rsid, tsid) => ({
-  spot: () => { const p = tid(key); if (!onSheet(p)) return [mag(p.id)]; return p.reg === 'none' ? [`#sheet [data-act="regAssign"][data-arg$="|${rsid}"]`] : [`#sheet [data-act="triAssign"][data-arg$="|${tsid}"]`]; },
+  spot: () => { const p = tid(key); if (!onSheet(p)) return ptSpot(p); return p.reg === 'none' ? [`#sheet [data-act="regAssign"][data-arg$="|${rsid}"]`] : [`#sheet [data-act="triAssign"][data-arg$="|${tsid}"]`]; },
   done: () => { const p = tid(key); return p.reg !== 'none' && p.tri !== 'none'; },
   auto: () => { const p = tid(key); if (p.reg === 'none') E.register(p.id, rsid); if (p.tri === 'none') E.triage(p.id, tsid); },
 });
 const FP = () => U.view === 'map';   // words that differ between the floor plan and the list board
 const bedStep = (key, rid) => ({
-  spot: () => { const p = tid(key); return selPt(p) ? [`#room-${rid}, #mroom-${rid}`] : [mag(p.id)]; },
+  spot: () => { const p = tid(key); return selPt(p) ? [`#room-${rid}, #mroom-${rid}`] : ptSpot(p); },
   done: () => ['room', 'gone'].includes(tid(key).loc),
   auto: () => { const p = tid(key); return E.place(p.id, firstRoom(p, rid)); },
 });
@@ -888,16 +938,16 @@ const roomAct = (key, sel) => ({ spot: () => { const p = tid(key); return onShee
 const STEPS = [
   { id: 'hi', next: true, title: 'Welcome to Orientation', text: "I'm your preceptor. We'll take one patient at a time, and I'll light up what to tap. The clock only runs when we're waiting on something. Nothing here counts against you." },
   { id: 'top', next: true, title: 'The top of the board', text: 'The clock and your five scores sit up top, next to Divert. Under them is the Box, your EMS radio, and a bar that jumps to each pod.', spot: () => ['#top .hud', '#boxbar'] },
-  { id: 'intake', next: true, title: 'Intake', text: 'Registrars are green. Your triage nurse is purple. New patients land in the Ambulance bay or the Waiting room.', spot: () => ['#istaff', '#intake .lane', '#mWait', '#mAmb', '#mPts'] },
-  { id: 'pods', next: true, title: 'Pods and providers', text: () => `Each pod has four rooms and a nurse, and the ${FP() ? 'sign over the pod' : 'header'} shows the nurse’s load. Your providers wait at the bottom. Nobody sees a patient until you send one.`, spot: () => ['#zh-a, #mzh-a', '#dockProv', '#sideProv'] },
+  { id: 'intake', next: true, title: 'Intake', text: 'Registrars are green. Your triage nurse is purple. New patients land in the Ambulance bay or the Waiting room.', spot: () => ['#istaff', '#intake .lane', '#mWait', '#mDoor'] },
+  { id: 'pods', next: true, title: 'Pods and providers', text: () => `Each pod has four rooms and a nurse, and the ${FP() ? 'sign over the pod' : 'header'} shows the nurse’s load. Your providers wait ${SIDE()}. Nobody sees a patient until you send one.`, spot: () => ['#zh-a, #mzh-a', '#dockProv', '#sideProv'] },
 
   { id: 'm1', title: 'A walk-in', text: 'Maria, 34, has burning when she pees. Everyone starts with a quick registration: name and date of birth. Tap Tasha, then tap Maria.',
     setup: () => ({ maria: E.trainPatient('uti', 'walk', { name: 'Maria L.', age: 34 }) }), ...regStep('maria', 'reg1') },
   { id: 'm2', wait: true, title: 'Registering', text: 'Tasha takes about two minutes. Full registration happens later at the bedside, and nobody leaves the ED until it is done.', done: () => E.regQuick(tid('maria')) },
   { id: 'm3', title: 'Triage', text: 'Now triage. Tap Bea, then tap Maria.', ...triStep('maria', 'rnT') },
   { id: 'm4', wait: true, title: 'Triaging', text: 'Triage sets the ESI, from 1 (dying) to 5 (can wait). Walk-ins go to the waiting room after triage.', done: () => tid('maria').tri === 'done' },
-  { id: 'm5', title: 'Give her a bed', text: 'Maria is ESI 4. Tap her in the waiting room, then tap Room 1. Green rooms are open.', ...bedStep('maria', '1') },
-  { id: 'm6', title: 'Send a provider', text: () => `Nobody sees a provider until you send one. Tap Rivera at the bottom, then tap ${E.roomName(tid('maria').room || '1')}.`, ...provStep('maria', 'pa1') },
+  { id: 'm5', title: 'Give her a bed', text: () => `Maria is ESI 4. ${mapFar() ? 'Tap the waiting room and pick her from the list' : 'Tap her in the waiting room'}, then tap Room 1. Green rooms are open.`, ...bedStep('maria', '1') },
+  { id: 'm6', title: 'Send a provider', text: () => `Nobody sees a provider until you send one. Tap Rivera ${SIDE()}, then tap ${E.roomName(tid('maria').room || '1')}.`, ...provStep('maria', 'pa1') },
   { id: 'm7', wait: true, title: 'Workup', text: 'Rivera examines her and orders a urine test. A tech collects it and the lab runs it. The tags on her room show what is pending.', done: () => tid('maria').dxK || tid('maria').loc === 'gone' },
   { id: 'm8', wait: true, title: 'Treatment', text: 'The pharmacist checks the antibiotic, then her nurse gives it. Registration finishes her paperwork at the bedside.', done: () => tid('maria').dsp !== 'none' || tid('maria').loc === 'gone' },
   { id: 'm9', title: 'Discharge', text: 'She is ready to go home. Tap her room, then Discharge home.', ...roomAct('maria', '[data-act="dc"]'),
@@ -958,7 +1008,7 @@ const STEPS = [
     spot: () => (sheetIs('zone', 'triage') ? ['#sheet [data-act="updWait"]'] : ['.lane-h[data-arg="triage"], #mWait']),
     done: () => g().wrUpdate > -1e8, auto: () => E.updateWaiting() },
   { id: 'r2', title: 'Recheck', text: 'Triage called Victor ESI 3. Look at his heart rate. Rechecks catch people who are sicker than their triage. Tap Victor, then Details, then Bea under Recheck vitals.',
-    spot: () => { const p = tid('victor'); if (onSheet(p)) return ['#sheet [data-act="recheck"][data-arg$="|rnT"]']; return selPt(p) ? ['#selbar [data-act="selInfo"]'] : [mag(p.id)]; },
+    spot: () => { const p = tid('victor'); if (onSheet(p)) return ['#sheet [data-act="recheck"][data-arg$="|rnT"]']; return selPt(p) ? ['#selbar [data-act="selInfo"]'] : ptSpot(p); },
     done: () => { const p = tid('victor'), b = E.staff('rnT'); return p.esiT == null || b.tq.some(k => k.pid === p.id && k.kind === 'recheck') || !!(b.task && b.task.kind === 'recheck' && b.task.pid === p.id); },
     auto: () => E.recheck(tid('victor').id, 'rnT') },
   { id: 'r3', wait: true, title: 'Rechecking', text: 'Bea redoes his vitals.', done: () => tid('victor').esiT == null },
@@ -1010,8 +1060,8 @@ const callStep = (key, pick, spec) => ({
 });
 const STEPS_MD = [
   { id: 'hi', next: true, title: 'Welcome, Doctor', text: "You're the attending. The charge nurse runs the board: intake, beds, nurses, EVS. You see patients, write orders, make the call, and answer the radio when a medic needs medical direction. The clock only runs when we're waiting. Nothing counts." },
-  { id: 'rack', next: true, title: 'Your board', text: 'Rooms marked Needs a provider are waiting for a doctor. Your patients show YOU. Leave someone too long and another provider picks them up.', spot: () => ['#zh-a, #mzh-a', '#zbar'] },
-  { id: 'you', next: true, title: 'Your line', text: 'You are Dr. Patel, at the bottom. Your tile shows what you are doing now and how many patients are in your line.', spot: () => ['#dockProv [data-arg="md1"]', '#sideProv [data-arg="md1"]'] },
+  { id: 'rack', next: true, title: 'Your board', text: () => (FP() ? 'A blue stethoscope on a room means it is waiting for a doctor. Your own patients get a gold corner.' : 'Rooms marked Needs a provider are waiting for a doctor. Your patients show YOU.') + ' Leave someone too long and another provider picks them up.', spot: () => ['#zh-a, #mzh-a', '#zbar'] },
+  { id: 'you', next: true, title: 'Your line', text: () => `You are Dr. Patel, ${SIDE()}. Your tile shows what you are doing now and how many patients are in your line.`, spot: () => ['#dockProv [data-arg="md1"]', '#sideProv [data-arg="md1"]'] },
 
   { id: 'j1', title: 'Sore throat', text: 'Room 1: Jordan, 22, sore throat and fever. Tap his room, then See this patient.',
     setup: () => ({ jordan: E.trainPatient('strep', 'room', { room: '1', name: 'Jordan P.', age: 22, sex: 'M' }) }), ...seeStep('jordan') },
@@ -1104,21 +1154,19 @@ function renderCoach() {
   const h = t && !inner ? coachHTML('float') : '';
   setH(el, h); el.hidden = !h;
   for (const x of document.querySelectorAll('.coach-spot')) x.classList.remove('coach-spot');
-  if (!t) return;
-  const s = coachStep(); if (!s || !s.spot) return;
+  const s = t ? coachStep() : null;
+  if (!s || !s.spot) { if (U.view === 'map') mapSpot([]); return; }
   let sels = []; try { sels = s.spot().filter(Boolean); } catch (e) { sels = []; }
   const els = [];
   for (const q of sels) for (const x of document.querySelectorAll(q)) if (x.offsetParent !== null || getComputedStyle(x).position === 'fixed') els.push(x);
   for (const x of els) x.classList.add('coach-spot');
+  if (U.view === 'map') mapSpot(els);
   const key = t.step + '|' + sels.join(',');
   if (key === U.coachKey || !els.length) return;
   U.coachKey = key;
   const x = els[0];
-  if (x.closest('#map')) {   // the card moves to the side away from what it points at, then the camera brings the target into the clear
-    const m = $('#map').getBoundingClientRect(), r = x.getBoundingClientRect();
-    el.classList.toggle('cleft', (r.left + r.right) / 2 > m.left + m.width / 2);
-    mapFocus(x);
-  }
+  if (U.view === 'map' && !x.closest('#sheet, #modal')) coachDodge(el, x);
+  if (x.closest('#map')) mapFocus(x);   // zoomed in: the camera brings the target into the clear
   else if (x.closest('.sheet-body, .modal, .dock, .top, .side')) x.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   else {
     const r = x.getBoundingClientRect(), top = ($('#top') || { offsetHeight: 0 }).offsetHeight;
@@ -1137,6 +1185,14 @@ function mapAct(el, cx, cy) {
   if (fn) { fn(el.dataset.arg, el); render(); }
 }
 
+/* On the floor plan the preceptor's card keeps off what it points at: the far side first, then the other end of the screen. */
+function coachDodge(el, x) {
+  const r = x.getBoundingClientRect(), left = (r.left + r.right) / 2 > window.innerWidth / 2;
+  const hits = () => { const c = el.getBoundingClientRect(); return !!c.width && !(r.right < c.left - 6 || r.left > c.right + 6 || r.bottom < c.top - 6 || r.top > c.bottom + 6); };
+  for (const [l, alt] of [[left, false], [!left, false], [left, true], [!left, true]]) { el.classList.toggle('cleft', l); el.classList.toggle('calt', alt); if (!hits()) return; }
+  el.classList.toggle('cleft', left); el.classList.remove('calt');
+}
+
 /* ---------- modals (these pause the shift) ---------- */
 function renderModal(G) {
   const wrap = $('#modalWrap'), el = $('#modal');
@@ -1151,7 +1207,7 @@ function renderModal(G) {
     const r = U.modal.r;
     h = `<div class="mc-res ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Correct' : 'Incorrect'}</div><h3>You ${r.approve ? 'approved' : 'denied'} it</h3><p>${esc(r.sc.why)}</p><div class="mc-ch"><button type="button" data-act="modalOk"><b>Back to the floor</b></button></div>`;
   } else if (U.scene === 'game' && U.paused && !U.sheet) {
-    h = `<div class="mc-who">${esc(E.LEVELS[G.level].name)} · ${E.clock()}</div><h3>Paused</h3><p>The department waits for you. It will not wait long. Your shift is saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="view"><b>${U.view === 'map' ? 'Switch to the list board' : 'Switch to the floor plan'}</b></button><button type="button" data-act="restart"><b>${U.armR && performance.now() - U.armR < 3000 ? 'Tap again to restart' : 'Restart this shift'}</b></button><button type="button" data-act="menu"><b>Quit to menu</b></button></div>`;
+    h = `<div class="mc-who">${esc(E.LEVELS[G.level].name)} · ${E.clock()}</div><h3>Paused</h3><p>The department waits for you. It will not wait long. Your shift is saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="view"><b>${U.view === 'map' ? 'Switch to the list board' : 'Switch to the floor plan'}</b></button>${document.fullscreenEnabled ? `<button type="button" data-act="fullscreen"><b>${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</b></button>` : ''}<button type="button" data-act="restart"><b>${U.armR && performance.now() - U.armR < 3000 ? 'Tap again to restart' : 'Restart this shift'}</b></button><button type="button" data-act="menu"><b>Quit to menu</b></button></div>`;
   }
   if (h && TR()) h = coachHTML('in') + h;
   wrap.hidden = !h; morph(el, h);
@@ -1218,6 +1274,7 @@ function tapPt(id) {
   if (s && s.type === 'pt' && s.pid === id) { U.sel = null; return; }
   if (!intakeDone(p) && !E.emergent(p)) { U.sel = null; U.sheet = { type: 'pt', pid: id }; return; }
   U.sel = { type: 'pt', pid: id };
+  if (U.sheet && U.sheet.type === 'zone') U.sheet = null;   // picked from the waiting room list: now tap a room
 }
 function jump(z) {
   const el = z === 'intake' ? $('#intake') : document.getElementById('zone-' + z);
@@ -1255,7 +1312,26 @@ const ACT = {
   sendUp: a => { const [pid, sid] = a.split('|'); res(E.sendUp(pid, sid), true); },
   ift: a => { const [pid, k] = a.split('|'); res(E.bookIFT(pid, k), true); },
   prov: id => { const s = E.staff(id); if (MD() || (s && s.pit)) { U.sheet = { type: 'staff', sid: id }; return; } U.sel = U.sel && U.sel.type === 'prov' && U.sel.sid === id ? null : { type: 'prov', sid: id }; },
-  zone: z => { if (MD()) { toast('The charge nurse runs nursing assignments.', 'info'); return; } U.sheet = { type: 'zone', z }; },
+  zone: z => { if (MD() && z !== 'triage') { toast('The charge nurse runs nursing assignments.', 'info'); return; } U.sheet = { type: 'zone', z }; },
+  cluster: k => {   // the line at the door, or the waiting room
+    const G = g(), s = U.sel;
+    if (k === 'door' && s && (s.type === 'reg' || s.type === 'tri') && !MD()) {   // send them to the next person in line who needs it
+      for (const p of G.triageQ.map(E.pt).filter(Boolean)) {
+        const out = s.type === 'reg' ? (p.reg === 'none' ? E.register(p.id, s.sid) : { ok: false }) : (p.tri === 'none' ? E.triage(p.id, s.sid) : { ok: false });
+        if (out.ok) { sfx('tap'); return; }
+      }
+      toast(s.type === 'reg' ? 'Nobody at the door needs registering' : 'Nobody at the door needs triage', 'info'); return;
+    }
+    U.sheet = { type: 'zone', z: 'triage' };
+  },
+  zoom: k => { mapZoom(k === 'in' ? 1.5 : k === 'out' ? 1 / 1.5 : 0); },
+  boxTap: () => { const b = $('#boxbar .bx-btn'); if (b && ACT[b.dataset.act]) ACT[b.dataset.act](b.dataset.arg, b); else toast(g().box.cur ? 'A doctor is on the line with the medic' : 'The Box is quiet', 'info'); },
+  fullscreen: () => {
+    const d = document, el = d.documentElement;
+    if (d.fullscreenElement) { d.exitFullscreen(); return; }
+    if (!el.requestFullscreen) { toast('Full screen is not available in this browser', 'info'); return; }
+    el.requestFullscreen({ navigationUI: 'hide' }).then(() => { if (U.view === 'map' && screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); }).catch(() => toast('Full screen is not available here', 'info'));
+  },
   team: () => { U.sheet = { type: 'team' }; },
   staffOpen: id => { U.sheet = { type: 'staff', sid: id }; },
   closeSheet: () => { U.sheet = null; },
@@ -1344,6 +1420,7 @@ const DOT = { easy: 'var(--e4)', med: 'var(--e3)', hard: 'var(--e1)' };
 const BLURB_MD = { easy: 'Fewer patients, fewer radio calls. Learn the orders.', med: 'A normal busy day. The radio keeps ringing.', hard: 'Sicker patients, all at once. Good luck.' };
 function bestOf(l, mode) { return +(store('oc-best-' + ((mode || U.mode) === 'md' ? 'md-' : '') + l) || 0); }
 const trainedKey = mode => (mode === 'md' ? 'oc-trained-md' : 'oc-trained');
+const IOS_TIP = /iPhone|iPod/.test(navigator.userAgent) && !navigator.standalone && !document.fullscreenEnabled;
 function titleHTML() {
   const md = U.mode === 'md';
   const fresh = !['easy', 'med', 'hard'].some(k => bestOf(k));
@@ -1354,7 +1431,7 @@ function titleHTML() {
   const sv = readSave();
   const resume = sv ? `<button type="button" class="lvl resume" data-act="resumeSave"><span class="dot" style="background:var(--accent)"></span><span><b>Resume your shift</b><small>${sv.G.mode === 'md' ? 'Attending' : 'Charge nurse'}: ${esc(E.LEVELS[sv.lvl] ? E.LEVELS[sv.lvl].name : '')}, paused at ${E.clock(sv.G.t)}</small></span></button>` : '';
   const packs = Object.entries(E.PACKS).map(([k, P]) => `<button type="button" class="seg${U.pack === k ? ' on' : ''}" data-act="pack" data-arg="${k}" aria-pressed="${U.pack === k}">${esc(P.name)}</button>`).join('');
-  return `<div class="card"><div class="t-kicker">An ED shift survival game</div><h1 class="t-brand">Overcrowded</h1><svg class="t-under" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 6 L297 6" stroke="#C8243A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>${modes}<p class="t-sub">${md ? "You're an attending in a 32-bed ED, 07:00 to 19:00. The charge nurse runs the board. You see patients, write the orders, make the calls, and answer the radio when a medic needs medical direction." : "You're the charge nurse for a 32-bed ED, 07:00 to 19:00. Five pods, a resus team, a radio that won't stop ringing, and an administrator who just walked in."}</p><div class="levels">${resume}${lv}</div>${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}<div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="view">${U.view === 'map' ? 'Board: floor plan' : 'Board: list'}</button><button type="button" data-act="sound">Sound: ${U.sound ? 'on' : 'off'}</button></div></div>`;
+  return `<div class="card"><div class="t-kicker">An ED shift survival game</div><h1 class="t-brand">Overcrowded</h1><svg class="t-under" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 6 L297 6" stroke="#C8243A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>${modes}<p class="t-sub">${md ? "You're an attending in a 32-bed ED, 07:00 to 19:00. The charge nurse runs the board. You see patients, write the orders, make the calls, and answer the radio when a medic needs medical direction." : "You're the charge nurse for a 32-bed ED, 07:00 to 19:00. Five pods, a resus team, a radio that won't stop ringing, and an administrator who just walked in."}</p><div class="levels">${resume}${lv}</div>${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}<div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="view">${U.view === 'map' ? 'Board: floor plan' : 'Board: list'}</button><button type="button" data-act="sound">Sound: ${U.sound ? 'on' : 'off'}</button>${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? `<button type="button" data-act="fullscreen">${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
 }
 function clearToasts() { const b = $('#toasts'); if (b) b.innerHTML = ''; }
 function showTitle() {
@@ -1456,6 +1533,8 @@ function bind() {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { if (U.sel) U.sel = null; else if (U.sheet) U.sheet = null; render(); }
   });
+  document.addEventListener('fullscreenchange', () => { if (U.scene === 'title') setH($('#title'), titleHTML()); else render(); });
+  window.addEventListener('resize', () => { U.layKey = null; if (U.scene === 'game') render(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && U.scene === 'game') { U.paused = true; save(true); render(); } });
   window.addEventListener('pagehide', () => save(true));
 }
@@ -1465,6 +1544,10 @@ function boot(data) {
   const pk = store('oc-pack'); if (pk && E.PACKS[pk]) U.pack = pk;
   if (store('oc-mode') === 'md') U.mode = 'md';
   if (store('oc-view') === 'list') U.view = 'list';
+  if (/^https?:$/.test(location.protocol) && window.top === window.self) {   // on the web (not inside another page): a home-screen icon and a full-screen app
+    const link = (rel, href) => { const l = document.createElement('link'); l.rel = rel; l.href = href; document.head.appendChild(l); };
+    link('manifest', 'manifest.webmanifest'); link('apple-touch-icon', 'apple-touch-icon.png'); link('icon', 'icons/icon-192.png');
+  }
   buildBoard(); bind();
   for (const [id, txt] of [['laneEms', 'No ambulances waiting'], ['laneWait', 'Waiting room is empty']]) $('#' + id).dataset.empty = txt;
   if (data.G && data.G.v === 5 && data.G.running && !data.G.over) {
@@ -1478,5 +1561,5 @@ function boot(data) {
 /*MAP*/
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-window.OCUI = { U, render, start, showTitle, mapFocus, coach: () => { const t = TR(), st = coachStep(); return t && st ? { i: t.step, id: st.id, wait: !!st.wait, next: !!st.next, final: !!st.final, n: STEPS_NOW().length } : null; } };
+window.OCUI = { U, render, start, showTitle, mapFocus, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { i: t.step, id: st.id, wait: !!st.wait, next: !!st.next, final: !!st.final, n: STEPS_NOW().length } : null; } };
 })();

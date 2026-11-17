@@ -11,11 +11,15 @@ A 32-bed emergency department, 07:00 to 19:00. Patients come in by ambulance and
 
 The department is drawn from above: a bed in every room, chairs in the waiting room and the results area, a nurses' station, a break room, and the ambulance bay outside. Everyone on shift is a person on the floor. Nurses stand by their pods, providers sit at the station, techs, EVS, and transport go where the work is, and staff on break sit in the break room. EMS crews hold the wall with their patients until a nurse takes report. When the wall is full, the next ambulances back up in the driveway, each with its wait time.
 
-Tap people, rooms, and pod signs the way you'd tap tiles on a list. Drag to move around; pinch or scroll to zoom. On a phone, hold it sideways. The list board is still there if you want it: switch on the title screen or in the pause menu.
+**It fits a phone held sideways.** The whole department is on screen at once, with no dragging. Scores run along a slim strip on top, registrars and the triage nurse sit on a rail at the left, and providers sit on a rail at the right. Each room shows one icon for what it needs: a blue stethoscope for "needs a provider," a phone for "call a consult," a broom for a dirty room. Filled, pulsing icons need you. Gray ones are waiting on someone else. Pinch (or use the + button) to zoom in and the icons turn into words, with name tags on the staff. Zoomed out, tap the waiting room or the line at the door to pick a person from a list.
+
+On a laptop the same floor shows the words all the time, with the staff in a dock along the bottom. The list board is still there if you want it: switch on the title screen or in the pause menu.
+
+**Full screen.** On Android, tap Full screen on the title screen or in the pause menu. On an iPhone, add the page to your Home Screen (Share, then Add to Home Screen) and open it from there.
 
 ![The floor plan on a laptop: rooms, the wall, ambulances backed up outside, the station, the break room](docs/screenshots/floor-plan.png)
 
-![The floor plan on a phone held sideways](docs/screenshots/floor-plan-phone.png)
+![The whole floor on a phone held sideways, with icons on the rooms](docs/screenshots/floor-plan-phone.png)
 
 **New here? Start with Orientation.** Each role has its own. It lights up what to tap, holds the clock until you act, and fast-forwards through the waiting. Nothing counts against you.
 
@@ -82,7 +86,7 @@ npm run sim      # simulated shifts at several player speeds
 npm run stress   # 60 shifts, checks for stuck states
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)
 python3 test/md_ui_test.py   # the attending: see, order, decide, the radio, the report
-python3 test/map_test.py     # the floor plan: taps on the floor, panning, ambulances backing up, turning the phone
+python3 test/map_test.py     # the floor plan on a sideways phone: fits without dragging, rails, icons, taps, zoom, ambulances backing up
 python3 test/train_test.py   # plays the charge nurse Orientation on the floor plan, tapping only what the preceptor lights up
 MODE=md python3 test/train_test.py   # the same for the attending Orientation
 VIEW=list python3 test/train_test.py # either Orientation on the list board
