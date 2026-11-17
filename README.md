@@ -38,6 +38,20 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 - **Charge nurse (67 steps):** the screen and your five scores, hallway beds, Fast Track, and the outlined rooms, a walk-in from registration to discharge, what the room icons mean and how to zoom in for words, the Next button, an ambulance patient through report, consult, admission, and transport, a trauma alert with massive transfusion, routing a medical-direction call to a doctor, a chest-pain call, chairs, waiting-room rechecks, an interpreter, breaks, a decision card, an equipment outage, a transfer, and the words you will hear on a real shift.
 - **Attending (37 steps):** your five numbers (Wait, Score, Panel, To see, To do), reading a card and its vital signs, strep throat (see, order, discharge), DKA (treat what you find, admit to the ICU), appendicitis (a thin workup, the missing CT, call surgery), a medical-direction call on the radio, and a stroke alert from last known well to door to needle, with what the thrombolytic is and the pressure limit for it. The radio call in Orientation is in plain words whichever call pack is picked.
 
+**What six reviewers found (v0.16).** Three lay players and three clinicians (an emergency physician, an EMS physician, an ED charge nurse) reviewed v0.15. This release builds their clinical fixes and the feedback they asked for.
+
+- **Trauma.** A bleeding patient in shock is no longer scored for a CT. X-ray, a bedside ultrasound, labs, blood, and the OR. The Bleeding lesson says so.
+- **DKA.** The labs show the potassium, and insulin waits for it.
+- **A watch before going home.** A treated overdose is watched two hours, an asthma attack one, anaphylaxis four. The card says until when and why. The charge nurse can move the patient to a chair, or discharge early and own the risk. Every 72-hour return is listed on the shift report with what would have prevented it.
+- **Reasonable orders.** An order can now be reasonable: not required, not counted against you. An ECG in a stroke or a hip fracture, antibiotics for a gallbladder or an appendix, a dose of the usual pill for a refill, and a few more.
+- **Triage levels.** Overdose, complete heart block, and the airway burn are ESI 1. Behavioral health is ESI 2. An overdose may take any monitored room. A neck injury gets a CT, not an X-ray and a CT.
+- **Lessons match the scoring.** Heart (chest X-ray when it is not a STEMI), Belly, Falls, and Breathing. Reason lines explain every scored order and name the drug behind Medications.
+- **Say what happened.** With Plain words on, an incomplete workup names what is still needed. The call sits above the order buttons. A wrong consult stays on the card and in the log. The bar says why no room will take a patient. The attending's report lists radio calls missed or answered wrong.
+- **Radio.** Every plain line ends with what the crew is asking for. Refusal calls ask "Can he refuse?" with buttons "He may refuse" and "No: transport". Four calls were corrected (angioedema, sepsis, a right-sided heart attack, a seizing child).
+- **The first shift.** The first tap in Orientation is card 4, not card 9. The card after chapter 1 says what a Quiet Tuesday will add.
+- Full Moon Friday takes 2,000 points for three stars (was 2,200): the watch periods hold rooms longer.
+- The build stops if a script does not parse.
+
 **Learn in pieces, and see why (v0.15).** Twelve changes from the lay review and the screen audit.
 
 - **The floor reads at a glance.** Each pod sits on its own tray with 8 between rooms and 17 between pods. Room outlines are drawn inside the room and are twice as heavy. Labels are larger and darker. Each pod sign carries its room numbers (A 1–4). The wall, the waiting room, and the door carry a count. The D, E, and Fast Track signs sit above their rooms. Hallway beds are dashed boxes. The attending's own patients get a gold ring. A **?** button on the floor opens the legend.
@@ -145,7 +159,7 @@ The build also writes `sw.js`, a small service worker that keeps a copy of the g
 ```sh
 npm install      # fonts used by the build
 npm run build    # writes index.html
-npm test         # rule checks (six suites, 290 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
+npm test         # rule checks (six suites, 303 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
 npm run sim      # simulated shifts at several player speeds
 npm run stress   # 188 shifts across every level and scenario: checks for stuck states and out-of-range vitals
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)

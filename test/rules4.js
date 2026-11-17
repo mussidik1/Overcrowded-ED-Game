@@ -97,7 +97,7 @@ let n = 0; while (!G.over && n++ < 20000) { OC.step(0.1); if (n % 20 === 0) OC.m
 const R = G.report;
 assert(R.mode === 'md' && R.md.seen >= 30 && R.md.harm === 0, `a steady attending sees ${R.md.seen} patients and hurts no one`);
 assert(R.care >= 1300 && OC.starsFor(R.care, 'med', 'md') >= 2, `and earns ${R.care} points, ${OC.starsFor(R.care, 'med', 'md')} stars`);
-assert(OC.STARS_MD && OC.starsFor(2100, 'hard', 'md') === 3 && OC.starsFor(2100, 'hard', 'rn') === 2, 'physician stars have their own scale');
+assert(OC.STARS_MD && OC.starsFor(1500, 'easy', 'md') === 2 && OC.starsFor(1500, 'easy', 'rn') === 3 && OC.starsFor(2000, 'hard', 'rn') === 3, 'physician stars have their own scale, and Full Moon Friday takes 2,000 for three');
 
 // 9. Save and resume keeps the role
 const snap = JSON.parse(JSON.stringify(G));

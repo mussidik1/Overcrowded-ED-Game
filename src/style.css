@@ -803,6 +803,11 @@ body.mapmode.ingame .needbtn.inrail .nb-n b { display: block; font-size: 19px; l
 .ph-cc > div > span { color: #4F5A6B; }   /* card labels: darker (they were 3.5:1) */
 .hint.why { margin: 0 0 8px; color: var(--ink); font-weight: 500; }
 .hint.why .xtra { display: block; color: var(--bad); }
+.hint.why .fine { display: block; color: var(--ink-2); }
+.hintb { display: block; margin-top: 2px; color: var(--ink); text-transform: none; letter-spacing: 0; }
+.dxp.bad { color: var(--bad); font-weight: 600; }
+.sel-why { color: #FFD9A0; }
+.ordlog .ol-f { color: var(--ink-2); }
 .scen-p { margin: -2px 0 12px; padding: 8px 10px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: rgba(27, 34, 48, .05); font-size: 15px; line-height: 1.35; }
 .scen-c { color: var(--ink-2); font-size: 14px; line-height: 1.35; }
 .wsearch { position: sticky; top: 0; z-index: 1; padding: 4px 58px 8px 0; background: var(--paper); }   /* stops short of the close button, which stays on top */

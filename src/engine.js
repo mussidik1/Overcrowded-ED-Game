@@ -188,7 +188,7 @@ const LANG_W = [['es', 0.065], ['ht', 0.012], ['zh', 0.012], ['ar', 0.012], ['vi
 /* src: w = walk-in, e = EMS, b = both, a = EMS alert, m = mass casualty only */
 const CASES = [
   { k: 'rash', cc: 'Itchy rash', dx: 'Contact dermatitis', esi: 5, src: 'w', age: [6, 55], wt: 4, wk: [], tr: ['meds'], dispo: 'home' },
-  { k: 'refill', cc: 'Out of blood pressure meds', dx: 'Medication refill', esi: 5, src: 'w', age: [40, 80], wt: 3, wk: [], tr: [], dispo: 'home' },
+  { k: 'refill', cc: 'Out of blood pressure meds', dx: 'Medication refill', esi: 5, src: 'w', age: [40, 80], wt: 3, wk: [], tr: [], dispo: 'home', ok: ['meds'] },
   { k: 'otitis', cc: 'Ear pain', dx: 'Ear infection', esi: 5, src: 'w', age: [1, 9], wt: 3, wk: [], tr: ['meds'], dispo: 'home' },
   { k: 'dental', cc: 'Toothache', dx: 'Dental abscess', esi: 5, src: 'w', age: [18, 60], wt: 2, wk: [], tr: ['meds'], dispo: 'home' },
   { k: 'strep', cc: 'Sore throat', dx: 'Strep throat', esi: 4, src: 'w', age: [5, 40], wt: 4, wk: ['lab'], tr: ['meds'], dispo: 'home', find: { lab: 'Rapid strep positive' } },
@@ -196,50 +196,50 @@ const CASES = [
   { k: 'lac', cc: 'Cut hand', dx: 'Simple laceration', esi: 4, src: 'b', age: [16, 70], wt: 4, wk: [], tr: ['repair'], dispo: 'home' },
   { k: 'uti', cc: 'Burning with urination', dx: 'Urinary tract infection', esi: 4, src: 'w', age: [18, 70], sex: 'F', wt: 4, wk: ['lab'], tr: ['meds'], dispo: 'home', find: { lab: 'Urine: nitrite positive' } },
   { k: 'gastro', cc: 'Belly pain, vomiting', dx: 'Gastroenteritis', esi: 3, src: 'b', age: [18, 60], wt: 5, wk: ['lab'], tr: ['fluids', 'meds'], dispo: 'home', find: { lab: 'Mild dehydration' } },
-  { k: 'appy', cc: 'Belly pain', dx: 'Appendicitis', esi: 3, src: 'w', age: [12, 45], wt: 3, wk: ['lab', 'ct'], tr: ['meds'], con: 'surg', pre: ['lab', 'ct'], dispo: 'or', find: { lab: 'WBC 15.8', ct: 'Inflamed appendix' } },
-  { k: 'chole', cc: 'Belly pain after meals', dx: 'Cholecystitis', esi: 3, src: 'b', age: [30, 70], sex: 'F', wt: 3, wk: ['lab', 'us'], tr: ['meds'], con: 'surg', pre: ['lab', 'us'], dispo: 'admit', find: { lab: 'WBC 13.1, liver tests up', us: 'Gallstones, thick gallbladder wall' } },
-  { k: 'hipfx', cc: 'Fell, hip pain', dx: 'Hip fracture', esi: 3, src: 'e', age: [70, 95], wt: 5, wk: ['xr', 'lab'], tr: ['meds'], con: 'ortho', pre: ['xr'], dispo: 'admit', find: { xr: 'Femoral neck fracture', lab: 'Hgb 11.9' } },
+  { k: 'appy', cc: 'Belly pain', dx: 'Appendicitis', esi: 3, src: 'w', age: [12, 45], wt: 3, wk: ['lab', 'ct'], tr: ['meds'], con: 'surg', pre: ['lab', 'ct'], dispo: 'or', find: { lab: 'WBC 15.8', ct: 'Inflamed appendix' }, ok: ['abx'] },
+  { k: 'chole', cc: 'Belly pain after meals', dx: 'Cholecystitis', esi: 3, src: 'b', age: [30, 70], sex: 'F', wt: 3, wk: ['lab', 'us'], tr: ['meds'], con: 'surg', pre: ['lab', 'us'], dispo: 'admit', find: { lab: 'WBC 13.1, liver tests up', us: 'Gallstones, thick gallbladder wall' }, ok: ['abx'] },
+  { k: 'hipfx', cc: 'Fell, hip pain', dx: 'Hip fracture', esi: 3, src: 'e', age: [70, 95], wt: 5, wk: ['xr', 'lab'], tr: ['meds'], con: 'ortho', pre: ['xr'], dispo: 'admit', find: { xr: 'Femoral neck fracture', lab: 'Hgb 11.9' }, ok: ['ecg'] },
   { k: 'pna', cc: 'Cough and fever', dx: 'Pneumonia', esi: 3, src: 'b', age: [50, 90], wt: 4, wk: ['lab', 'xr'], tr: ['o2', 'abx'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', find: { lab: 'WBC 17.2', xr: 'Right lower lobe infiltrate' } },
-  { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 2, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 90%, RR 24, wheezing', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' } },
+  { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 2, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 90%, RR 24, wheezing', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' }, ok: ['meds'] },
   { k: 'chf', cc: "Short of breath, can't lie flat", dx: 'Heart failure flare', esi: 2, src: 'e', age: [60, 90], wt: 3, wk: ['ecg', 'xr', 'lab'], tr: ['bipap', 'meds'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 91%, BP 178/102', find: { ecg: 'Sinus tach, old Q waves', xr: 'Pulmonary edema', lab: 'BNP 2,400' } },
   { k: 'stone', cc: 'Flank pain', dx: 'Kidney stone', esi: 3, src: 'w', age: [25, 60], wt: 4, wk: ['lab', 'ct'], tr: ['meds', 'fluids'], dispo: 'home', find: { lab: 'Blood in urine, no infection', ct: '4 mm ureteral stone' } },
   { k: 'dvt', cc: 'Swollen leg', dx: 'Deep vein thrombosis', esi: 3, src: 'w', age: [30, 80], wt: 3, wk: ['us', 'lab'], tr: ['meds'], dispo: 'home', find: { us: 'Femoral vein clot', lab: 'Kidney function normal' } },
   { k: 'migraine', cc: 'Worst headache this month', dx: 'Migraine', esi: 3, src: 'w', age: [18, 50], sex: 'F', wt: 3, wk: [], tr: ['fluids', 'meds'], dispo: 'home' },
   { k: 'tb', cc: 'Cough, night sweats', dx: 'Suspected tuberculosis', esi: 3, src: 'w', age: [25, 70], wt: 1.2, wk: ['xr', 'lab'], tr: [], con: 'hosp', pre: ['xr', 'lab'], dispo: 'admit', iso: 'air', find: { xr: 'Cavity in the upper lobe', lab: 'WBC 11.4' } },
-  { k: 'bh', cc: 'Behavioral health crisis', dx: 'Behavioral health emergency', esi: 3, src: 'b', age: [16, 60], wt: 2.5, wk: ['lab'], tr: [], con: 'psych', pre: ['lab'], dispo: 'bh', sitter: true, find: { lab: 'Medically cleared' } },
+  { k: 'bh', cc: 'Behavioral health crisis', dx: 'Behavioral health emergency', esi: 2, src: 'b', age: [16, 60], wt: 2.5, wk: ['lab'], tr: [], con: 'psych', pre: ['lab'], dispo: 'bh', sitter: true, find: { lab: 'Labs normal' } },
   { k: 'etoh', cc: 'Intoxicated, found on a bench', dx: 'Alcohol intoxication', esi: 3, src: 'e', age: [25, 65], sex: 'M', wt: 3, wk: ['lab'], tr: ['fluids'], dispo: 'home', ama: 2, find: { lab: 'Ethanol 280, glucose normal' } },
-  { k: 'od', cc: 'Found unresponsive, pinpoint pupils', dx: 'Opioid overdose', esi: 2, src: 'e', age: [18, 55], wt: 2, wk: ['lab'], tr: ['nalox'], dispo: 'home', ama: 4, vit: 'RR 10, SpO2 91%, drowsy after naloxone in the field', find: { lab: 'Fentanyl positive' } },
+  { k: 'od', cc: 'Found unresponsive, pinpoint pupils', dx: 'Opioid overdose', esi: 1, src: 'e', age: [18, 55], wt: 2, wk: ['lab'], tr: ['nalox'], dispo: 'home', ama: 4, vit: 'RR 10, SpO2 91%, drowsy after naloxone in the field', find: { lab: 'Fentanyl positive' }, watch: 120, anyRoom: true },
   { k: 'cell', cc: 'Red, hot leg', dx: 'Cellulitis', esi: 3, src: 'w', age: [30, 80], wt: 3, wk: ['lab'], tr: ['abx'], con: 'hosp', pre: ['lab'], dispo: 'admit', find: { lab: 'WBC 14.0' } },
   { k: 'syncope', cc: 'Passed out', dx: 'Syncope, low risk', esi: 3, src: 'b', age: [16, 70], wt: 3, wk: ['ecg', 'lab'], tr: [], dispo: 'home', gray: 'syncope', find: { ecg: 'Normal sinus rhythm', lab: 'Normal' } },
   { k: 'synchigh', cc: 'Passed out sitting down', dx: 'Syncope, high risk', esi: 2, src: 'b', age: [60, 90], wt: 1.5, wk: ['ecg', 'lab'], tr: [], dispo: 'obs', gray: 'syncope', find: { ecg: 'New bundle branch block', lab: 'Normal' } },
-  { k: 'tia', cc: 'Arm went numb, now fine', dx: 'Transient ischemic attack', esi: 3, src: 'w', age: [55, 88], wt: 1.5, wk: ['ct', 'lab', 'ecg'], tr: [], dispo: 'obs', gray: 'tia', find: { ct: 'No acute findings', lab: 'Normal', ecg: 'Normal sinus rhythm' } },
+  { k: 'tia', cc: 'Arm went numb, now fine', dx: 'Transient ischemic attack', esi: 3, src: 'w', age: [55, 88], wt: 1.5, wk: ['ct', 'lab', 'ecg'], tr: [], dispo: 'obs', gray: 'tia', find: { ct: 'No acute findings', lab: 'Normal', ecg: 'Normal sinus rhythm' }, ok: ['meds'] },
   { k: 'dehyd', cc: 'Weak and dizzy', dx: 'Dehydration', esi: 3, src: 'e', age: [65, 95], wt: 3, wk: ['lab'], tr: ['fluids'], dispo: 'home', find: { lab: 'BUN 34, creatinine 1.4' } },
   { k: 'cpmod', cc: 'Chest pressure on and off', dx: 'Chest pain, moderate risk', esi: 2, src: 'b', age: [45, 75], wt: 2.5, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'obs', ecg10: true, gray: 'chest', find: { ecg: 'Nonspecific ST changes', lab: 'First troponin negative', xr: 'Clear lungs' } },
   { k: 'cwp', cc: 'Chest pain', dx: 'Chest pain, low risk', esi: 2, src: 'b', age: [25, 60], wt: 4, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'home', ecg10: true, gray: 'chest', find: { ecg: 'Normal sinus rhythm', lab: 'Troponin negative', xr: 'Clear lungs' } },
-  { k: 'nstemi', cc: 'Chest pain', dx: 'NSTEMI (heart attack)', esi: 2, src: 'b', age: [50, 85], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', ecg10: true, find: { ecg: 'ST depression V4–V6', lab: 'Troponin elevated' } },
+  { k: 'nstemi', cc: 'Chest pain', dx: 'NSTEMI (heart attack)', esi: 2, src: 'b', age: [50, 85], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', ecg10: true, find: { ecg: 'ST depression V4–V6', lab: 'Troponin elevated' }, ok: ['xr'] },
   { k: 'afib', cc: 'Racing heart', dx: 'A-fib with rapid rate', esi: 2, src: 'b', age: [55, 90], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', vit: 'HR 152, BP 118/76', find: { ecg: 'A-fib, rate 152', lab: 'Troponin negative' } },
-  { k: 'chb', cc: 'Dizzy, nearly passed out', dx: 'Complete heart block', esi: 2, src: 'b', age: [60, 90], wt: 1.2, wk: ['ecg', 'lab'], tr: ['pace'], con: 'cards', pre: ['ecg'], dispo: 'icu', ecg10: true, vit: 'HR 38, BP 102/60, lightheaded', find: { ecg: 'Third-degree heart block, rate 38', lab: 'Potassium 4.4, troponin negative' } },
+  { k: 'chb', cc: 'Dizzy, nearly passed out', dx: 'Complete heart block', esi: 1, src: 'b', age: [60, 90], wt: 1.2, wk: ['ecg', 'lab'], tr: ['pace'], con: 'cards', pre: ['ecg'], dispo: 'icu', ecg10: true, vit: 'HR 38, BP 102/60, lightheaded', find: { ecg: 'Third-degree heart block, rate 38', lab: 'Potassium 4.4, troponin negative' } },
   { k: 'gib', cc: 'Vomiting blood', dx: 'Upper GI bleed', esi: 2, src: 'b', age: [40, 85], wt: 2, wk: ['lab'], tr: ['fluids', 'blood'], con: 'gi', pre: ['lab'], dispo: 'admit', bleed: 'prbc', vit: 'HR 122, BP 92/58', find: { lab: 'Hemoglobin 6.8' } },
-  { k: 'dka', cc: 'Vomiting, sugar very high', dx: 'Diabetic ketoacidosis', esi: 2, src: 'b', age: [16, 45], wt: 1.5, wk: ['lab'], tr: ['fluids', 'insulin'], con: 'icu', pre: ['lab'], dispo: 'icu', find: { lab: 'Glucose 540, anion gap 26' } },
-  { k: 'asthma', cc: 'Wheezing', dx: 'Asthma attack', esi: 2, src: 'w', age: [5, 30], wt: 3, wk: [], tr: ['nebs', 'meds'], dispo: 'home', vit: 'SpO2 91%, can speak 3 words' },
-  { k: 'anaph', cc: 'Throat tight after eating shrimp', dx: 'Anaphylaxis', esi: 2, src: 'b', age: [12, 60], wt: 1.5, wk: [], tr: ['epi', 'meds'], dispo: 'home', vit: 'Hives, wheeze, BP 96/60' },
-  { k: 'sepsisw', cc: 'Fever and confusion', dx: 'Sepsis (urinary source)', esi: 2, src: 'w', age: [65, 92], wt: 1.2, wk: ['lab'], tr: ['fluids', 'abx'], con: 'hosp', pre: ['lab'], need: ['lab'], dispo: 'admit', alert: 'sepsis', vit: 'Temp 102.9, HR 118, BP 98/60', find: { lab: 'Lactate 3.1, urine positive' } },
-  { k: 'strokew', cc: 'Face droop, slurred speech', dx: 'Acute ischemic stroke', esi: 2, src: 'w', age: [55, 88], wt: 1, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], dispo: 'icu', alert: 'stroke', find: { ct: 'No bleed', lab: 'Glucose 118' } },
+  { k: 'dka', cc: 'Vomiting, sugar very high', dx: 'Diabetic ketoacidosis', esi: 2, src: 'b', age: [16, 45], wt: 1.5, wk: ['lab'], tr: ['fluids', 'insulin'], con: 'icu', pre: ['lab'], dispo: 'icu', ok: ['ecg'], find: { lab: 'Glucose 540, anion gap 26, potassium 4.8', ecg: 'Sinus tachycardia, T waves normal' } },
+  { k: 'asthma', cc: 'Wheezing', dx: 'Asthma attack', esi: 2, src: 'w', age: [5, 30], wt: 3, wk: [], tr: ['nebs', 'meds'], dispo: 'home', vit: 'SpO2 91%, can speak 3 words', watch: 60 },
+  { k: 'anaph', cc: 'Throat tight after eating shrimp', dx: 'Anaphylaxis', esi: 2, src: 'b', age: [12, 60], wt: 1.5, wk: [], tr: ['epi', 'meds'], dispo: 'home', vit: 'Hives, wheeze, BP 96/60', watch: 240 },
+  { k: 'sepsisw', cc: 'Fever and confusion', dx: 'Sepsis (urinary source)', esi: 2, src: 'w', age: [65, 92], wt: 1.2, wk: ['lab'], tr: ['fluids', 'abx'], con: 'hosp', pre: ['lab'], need: ['lab'], dispo: 'admit', alert: 'sepsis', vit: 'Temp 102.9, HR 118, BP 98/60', find: { lab: 'Lactate 3.1, urine positive' }, ok: ['xr'] },
+  { k: 'strokew', cc: 'Face droop, slurred speech', dx: 'Acute ischemic stroke', esi: 2, src: 'w', age: [55, 88], wt: 1, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], dispo: 'icu', alert: 'stroke', find: { ct: 'No bleed', lab: 'Glucose 118' }, ok: ['ecg'] },
   // EMS alerts: they ring the Box first
   { k: 'stemi', cc: 'Crushing chest pain', dx: 'Anterior STEMI', esi: 1, src: 'a', age: [45, 80], wt: 3, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg'], need: ['ecg'], dispo: 'cath', alert: 'stemi', ecg10: true, vit: 'HR 98, BP 142/88, sweating', find: { ecg: 'ST elevation V1–V4', lab: 'Troponin pending' } },
-  { k: 'stroke', cc: "Can't move right side", dx: 'Acute ischemic stroke', esi: 2, src: 'a', age: [55, 90], wt: 2, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], dispo: 'icu', alert: 'stroke', find: { ct: 'No bleed', lab: 'Glucose 132' } },
-  { k: 'lvo', cc: "Can't speak, eyes deviated", dx: 'Large vessel occlusion stroke', esi: 1, src: 'a', age: [55, 90], wt: 1.2, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], ift: 'cct', dispo: 'transfer', alert: 'stroke', txTo: 'the comprehensive stroke center', find: { ct: 'No bleed; CTA shows M1 occlusion', lab: 'Glucose 141' } },
-  { k: 'mvc', cc: 'Rollover crash, no seat belt', dx: 'Splenic laceration, hemorrhagic shock', esi: 1, src: 'a', age: [17, 45], wt: 2.2, wk: ['xr', 'lab', 'ct'], tr: ['mtp'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'mtp', vit: 'HR 134, BP 78/40, pale', find: { xr: 'No pneumothorax, FAST positive', lab: 'Hemoglobin 8.1', ct: 'Grade IV splenic laceration' } },
+  { k: 'stroke', cc: "Can't move right side", dx: 'Acute ischemic stroke', esi: 2, src: 'a', age: [55, 90], wt: 2, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], dispo: 'icu', alert: 'stroke', find: { ct: 'No bleed', lab: 'Glucose 132' }, ok: ['ecg'] },
+  { k: 'lvo', cc: "Can't speak, eyes deviated", dx: 'Large vessel occlusion stroke', esi: 1, src: 'a', age: [55, 90], wt: 1.2, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], ift: 'cct', dispo: 'transfer', alert: 'stroke', txTo: 'the comprehensive stroke center', find: { ct: 'No bleed; CTA shows M1 occlusion', lab: 'Glucose 141' }, ok: ['ecg'] },
+  { k: 'mvc', cc: 'Rollover crash, no seat belt', dx: 'Splenic laceration, hemorrhagic shock', esi: 1, src: 'a', age: [17, 45], wt: 2.2, wk: ['xr', 'lab'], tr: ['mtp'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'mtp', vit: 'HR 134, BP 78/40, pale', find: { xr: 'No pneumothorax, FAST positive', lab: 'Hemoglobin 8.1', ct: 'Grade IV splenic laceration' } },
   { k: 'tfall', cc: 'Fell down stairs, on a blood thinner', dx: 'Subdural hematoma', esi: 1, src: 'a', age: [70, 95], wt: 2, wk: ['ct', 'lab'], tr: ['reverse'], con: 'trauma', pre: [], need: ['ct'], dispo: 'icu', alert: 'trauma', vit: 'GCS 12, BP 168/92', find: { ct: 'Acute subdural hematoma', lab: 'INR 2.9' } },
-  { k: 'moto', cc: 'Motorcycle crash, leg deformity', dx: 'Open femur fracture', esi: 1, src: 'a', age: [18, 55], wt: 1.2, wk: ['xr', 'lab'], tr: ['abx', 'blood'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'prbc', vit: 'HR 118, BP 102/64', find: { xr: 'Open femur fracture', lab: 'Hemoglobin 9.4' } },
+  { k: 'moto', cc: 'Motorcycle crash, leg deformity', dx: 'Open femur fracture', esi: 1, src: 'a', age: [18, 55], wt: 1.2, wk: ['xr', 'lab'], tr: ['abx', 'blood'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'prbc', vit: 'HR 118, BP 102/64', find: { xr: 'Open femur fracture', lab: 'Hemoglobin 9.4' }, ok: ['meds'] },
   { k: 'arrest', cc: 'Cardiac arrest, CPR in progress', dx: 'Cardiac arrest', esi: 1, src: 'a', age: [45, 85], wt: 1.3, wk: [], tr: [], dispo: 'code', alert: 'arrest', arrest: true, vit: 'Pulseless, VF on the monitor' },
-  { k: 'shock', cc: 'Fever, BP 74/40', dx: 'Septic shock', esi: 1, src: 'a', age: [60, 90], wt: 1.8, wk: ['lab'], tr: ['o2', 'fluids', 'abx', 'pressor'], con: 'icu', pre: ['lab'], need: ['lab'], dispo: 'icu', alert: 'sepsis', vit: 'HR 128, BP 74/40, mottled', find: { lab: 'Lactate 5.4' } },
+  { k: 'shock', cc: 'Fever, BP 74/40', dx: 'Septic shock', esi: 1, src: 'a', age: [60, 90], wt: 1.8, wk: ['lab'], tr: ['o2', 'fluids', 'abx', 'pressor'], con: 'icu', pre: ['lab'], need: ['lab'], dispo: 'icu', alert: 'sepsis', vit: 'HR 128, BP 74/40, mottled', find: { lab: 'Lactate 5.4' }, ok: ['xr'] },
   { k: 'rsv', cc: 'Infant breathing hard', dx: 'RSV, tiring out', esi: 2, src: 'a', age: [0, 1], wt: 0.8, wk: ['lab'], tr: ['hfnc'], ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'peds', txTo: 'the pediatric ICU', vit: 'HR 168, RR 66, ribs pulling in, SpO2 91%', find: { lab: 'VBG pCO2 61' } },
-  { k: 'burn', cc: 'House fire, burns to arms and chest', dx: 'Partial-thickness burns, 25%, airway injury', esi: 2, src: 'a', age: [20, 70], wt: 0.6, wk: ['lab'], tr: ['intub', 'vent', 'fluids', 'meds'], vit: 'Hoarse voice, soot in the mouth, HR 112', ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'burn', txTo: 'the burn center', find: { lab: 'Carboxyhemoglobin 6%' } },
+  { k: 'burn', cc: 'House fire, burns to arms and chest', dx: 'Partial-thickness burns, 25%, airway injury', esi: 1, src: 'a', age: [20, 70], wt: 0.6, wk: ['lab'], tr: ['intub', 'vent', 'fluids', 'meds'], vit: 'Hoarse voice, soot in the mouth, HR 112', ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'burn', txTo: 'the burn center', find: { lab: 'Carboxyhemoglobin 6%' } },
   // mass casualty: the field's triage tag comes with each patient. Red is immediate, yellow can wait a little, green is walking wounded.
-  { k: 'mcired', cc: 'Bus crash: pinned under a seat, belly rigid', dx: 'Liver laceration, hemorrhagic shock', esi: 1, src: 'm', age: [20, 60], wt: 1, wk: ['xr', 'lab', 'ct'], tr: ['mtp'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'mtp', tag: 'red', vit: 'HR 136, BP 80/44, pale', find: { xr: 'No pneumothorax, FAST positive', lab: 'Hemoglobin 7.9', ct: 'Grade IV liver laceration' } },
+  { k: 'mcired', cc: 'Bus crash: pinned under a seat, belly rigid', dx: 'Liver laceration, hemorrhagic shock', esi: 1, src: 'm', age: [20, 60], wt: 1, wk: ['xr', 'lab'], tr: ['mtp'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'mtp', tag: 'red', vit: 'HR 136, BP 80/44, pale', find: { xr: 'No pneumothorax, FAST positive', lab: 'Hemoglobin 7.9', ct: 'Grade IV liver laceration' } },
   { k: 'mciyel', cc: 'Bus crash: thigh deformity, cannot walk', dx: 'Closed femur fracture', esi: 2, src: 'm', age: [18, 70], wt: 1, wk: ['xr', 'lab'], tr: ['meds', 'fluids'], con: 'ortho', pre: ['xr'], dispo: 'admit', tag: 'yellow', vit: 'HR 112, BP 112/70', find: { xr: 'Midshaft femur fracture', lab: 'Hemoglobin 11.2' } },
-  { k: 'mcimin', cc: 'Bus crash: neck pain, walked off the bus', dx: 'Neck strain', esi: 3, src: 'm', age: [18, 70], wt: 1, wk: ['xr', 'ct'], tr: ['meds'], dispo: 'home', tag: 'green', find: { xr: 'No fracture', ct: 'No acute injury' } },
+  { k: 'mcimin', cc: 'Bus crash: neck pain, walked off the bus', dx: 'Neck strain', esi: 3, src: 'm', age: [18, 70], wt: 1, wk: ['ct'], ok: ['xr'], tr: ['meds'], dispo: 'home', tag: 'green', find: { xr: 'No fracture', ct: 'No acute injury' } },
   { k: 'mcigrn', cc: 'Bus crash: cuts and bruises', dx: 'Minor injuries', esi: 4, src: 'm', age: [10, 70], wt: 1, wk: [], tr: ['repair'], dispo: 'home', tag: 'green' },
   { k: 'mciwr', cc: 'Bus crash: wrist pain', dx: 'Wrist fracture', esi: 4, src: 'm', age: [12, 70], wt: 1, wk: ['xr'], tr: ['meds'], dispo: 'home', tag: 'green', find: { xr: 'Distal radius fracture' } },
 ];
@@ -250,14 +250,14 @@ const SCEN = {
     { q: '64M with crushing chest pain. BP 84/52, HR 58. Requesting nitroglycerin.', a: false, why: 'A systolic BP under 90 is a contraindication to nitroglycerin. Treat the hypotension and consider right-sided involvement.' },
     { q: '58M with chest pain, BP 150/90. He took tadalafil (Cialis) yesterday. Requesting nitroglycerin.', a: false, why: 'Tadalafil within 48 hours plus a nitrate can drop the pressure hard. No nitro.' },
     { q: '81F, unwitnessed arrest. Asystole after 25 minutes of full ALS care, no ROSC, no reversible cause found. Requesting termination of resuscitation.', a: true, why: 'Prolonged asystole after full ALS efforts with no ROSC generally meets termination criteria under protocol.' },
-    { q: '34M, alert and oriented, GCS 15, ankle injury. Understands the risks and wants to refuse transport. Accept the refusal?', a: true, why: 'An adult with decision-making capacity who understands the risks can refuse. Document it and tell him to call back.' },
-    { q: '52M diabetic, glucose 38, confused. Refusing treatment and transport. Accept the refusal?', a: false, why: 'Hypoglycemia takes away capacity. Treat the sugar, then reassess whether he can refuse.' },
-    { q: '6-year-old, seizing for 10 minutes, no IV access. Requesting intranasal midazolam.', a: true, why: 'Status epilepticus needs a benzodiazepine now. Intranasal or IM is right when there is no IV.' },
+    { q: '34M, alert and oriented, GCS 15, ankle injury. Understands the risks and wants to refuse transport. Can he refuse?', a: true, why: 'An adult with decision-making capacity who understands the risks can refuse. Document it and tell him to call back.' },
+    { q: '52M diabetic, glucose 38, confused. Refusing treatment and transport. Can he refuse?', a: false, why: 'Hypoglycemia takes away capacity. Treat the sugar, then reassess whether he can refuse.' },
+    { q: '6-year-old, still seizing 5 minutes after intranasal midazolam, no IV access. Requesting a second dose.', a: true, why: 'Status epilepticus has to be stopped. A second benzodiazepine dose is right when the first fails. Watch the breathing.' },
     { q: '40F with a femur fracture. BP 128/80, pain still 9/10 after one dose of fentanyl. Requesting a repeat dose.', a: true, why: 'Stable vital signs and ongoing severe pain: repeat analgesia is appropriate.' },
     { q: '70M with facial droop and aphasia, last known well 45 minutes ago, positive LVO screen. Requesting to bypass to the comprehensive stroke center (+12 min).', a: true, why: 'A suspected large vessel occlusion inside the window does better at a center that can pull the clot.' },
     { q: '66M on dialysis, missed two sessions. Peaked T waves, HR 44. Requesting calcium and albuterol.', a: true, why: 'Suspected hyperkalemia with ECG changes: calcium protects the heart, albuterol shifts potassium into cells.' },
     { q: '25F in anaphylaxis, still wheezing and hypotensive 5 minutes after IM epinephrine. Requesting a repeat dose.', a: true, why: 'Repeat IM epinephrine every 5 to 15 minutes for anaphylaxis that persists.' },
-    { q: '45M, intoxicated, GCS 14, scalp laceration after a fall. Wants to refuse. Accept the refusal?', a: false, why: 'Intoxication plus a head injury makes capacity doubtful. Transport is the safer call.' },
+    { q: '45M, intoxicated, GCS 14, scalp laceration after a fall. Wants to refuse. Can he refuse?', a: false, why: 'Intoxication plus a head injury makes capacity doubtful. Transport is the safer call.' },
     { q: '60M, HR 34, BP 70/40, no response to atropine. Requesting transcutaneous pacing.', a: true, why: 'Unstable bradycardia that atropine did not fix: pace (or start a chronotropic drip).' },
     { q: '30F in stable SVT at 210, vagal maneuvers failed. Requesting adenosine.', a: true, why: 'Stable narrow-complex SVT after failed vagal maneuvers: adenosine is the next step.' },
     { q: '72M with CHF, crackles to the shoulders, SpO2 84%, BP 190/110. Requesting CPAP and nitroglycerin.', a: true, why: 'Hypertensive pulmonary edema: CPAP plus nitrates take the load off the heart and lungs.' },
@@ -265,22 +265,22 @@ const SCEN = {
   miemss: [
     { q: '40F with a femur fracture. BP 132/84, HR 104, SpO2 98%. Pain still 9/10 after two doses of fentanyl. Requesting a third dose.', a: true, why: 'Pain Management 4.13-A: doses after the second need consultation. Vitals are stable and pain is uncontrolled, so a third dose is reasonable.' },
     { q: '62M with chest pain and no STEMI on the 12-lead. Three nitroglycerin doses given (1.2 mg). BP 154/92, pain still 6/10. Requesting a fourth dose.', a: true, why: 'Chest Pain 3.9: nitroglycerin beyond 3 doses or 1.2 mg requires consultation. Pressure is good and the pain persists.' },
-    { q: '70F with chest pain. BP fell from 150/90 to 118/70 after the first nitroglycerin. Requesting a second dose.', a: false, why: 'Chest Pain 3.9: a drop of more than 20 mmHg after a dose requires consultation before more. A drop that size says she is preload dependent. Hold the nitro.' },
+    { q: '70F with chest pain. BP fell from 150/90 to 118/70 after the first nitroglycerin. HR 88, pain now 4/10. Requesting a second dose.', a: false, why: 'Chest Pain 3.9: a drop of more than 20 mmHg after a dose requires consultation before more. A drop that size says she is preload dependent. Hold the nitro.' },
     { q: '58M with tearing chest pain into his back. BP 228/124 in the right arm, 182/100 in the left. Requesting labetalol and a blood pressure target.', a: true, why: 'New in 2026 (Chest Pain 3.9, Labetalol 11.25): for a suspected aortic syndrome with SBP 220 or more and DBP 120 or more, labetalol dosing and the BP target come from consultation.' },
     { q: '74F, Stroke Alert. BP still 232/126 after two 10 mg doses of labetalol. Requesting the 20 mg dose.', a: true, why: 'Stroke 4.17 and Labetalol 11.25: the third dose (20 mg) needs consultation. Pressure is still at or above 220/120, and the total maximum is 80 mg.' },
-    { q: '81M, Stroke Alert, BP 84/50. Requesting a fluid bolus on the way to the stroke center.', a: true, why: 'Stroke 4.17: a hypotensive stroke patient requires consultation. A brain at risk needs perfusion pressure, so treat the hypotension.' },
+    { q: '81M, Stroke Alert, BP 84/50. Requesting a fluid bolus on the way to the stroke center.', a: true, why: 'Stroke 4.17: a hypotensive stroke patient requires consultation. A brain at risk needs perfusion pressure, so treat the hypotension, and look for a cause other than stroke.' },
     { q: '28M with severe agitation, temp 104°F, HR 150, fighting restraints. One dose of droperidol already given. Requesting midazolam.', a: true, why: 'Agitation 4.2-A: additional sedative doses require consultation. Hyperthermia plus a struggle against restraints risks sudden death. Sedate and cool him.' },
-    { q: '47F hit her head and passed out briefly. She keeps asking the same questions and wants to refuse transport. Accept the refusal?', a: false, why: 'Patient-Initiated Refusal 2.6: she is not fully oriented, so she lacks capacity, and head injury with loss of consciousness is a shaded high-risk answer. She cannot refuse. Transport.' },
-    { q: '16-year-old with an ankle injury at a skate park. No parent or guardian can be reached. He wants to refuse. Accept the refusal?', a: false, why: 'Patient-Initiated Refusal 2.6: a minor with no authorized decision maker cannot refuse. Keep trying the guardian and transport.' },
+    { q: '47F hit her head and passed out briefly. She keeps asking the same questions and wants to refuse transport. Can she refuse?', a: false, why: 'Patient-Initiated Refusal 2.6: she is not fully oriented, so she lacks capacity, and head injury with loss of consciousness is a high-risk finding on the refusal form. She cannot refuse. Transport.' },
+    { q: '16-year-old with an ankle injury at a skate park. No parent or guardian can be reached. He wants to refuse. Can he refuse?', a: false, why: 'Patient-Initiated Refusal 2.6: a minor with no authorized decision maker cannot refuse. Keep trying the guardian and transport.' },
     { q: '4-year-old in narrow-complex tachycardia at 260, mottled, adenosine failed. Requesting synchronized cardioversion.', a: true, why: 'Pediatric Tachycardia 3.3-P: cardioversion for narrow-complex tachycardia in a child requires consultation. Poor perfusion after failed adenosine means cardiovert.' },
     { q: '64M with ROSC after a VF arrest. BP 96/60, 12-lead shows a STEMI. Requesting the cardiac interventional center (+10 min).', a: true, why: 'Post-ROSC 3.5-A: every post-arrest patient requires consultation. ROSC with a STEMI belongs at a cardiac interventional center if transport is safe.' },
-    { q: '70F with CHF, SpO2 86% on CPAP, BP 170/96. The 12-lead shows inferior ST elevation, plus ST elevation in V4R. Requesting nitroglycerin.', a: false, why: 'CHF 6.3-A: with an inferior MI, consult before nitroglycerin. ST elevation in V4R means right ventricular involvement, and nitrates can drop her pressure hard.' },
-    { q: '66F on lisinopril with tongue and lip swelling and a changing voice, no hives. Epinephrine did not help. Requesting TXA.', a: true, why: 'New in 2026 (Angioedema 4.8-A): epinephrine and TXA are given after medical consultation. ACE-inhibitor angioedema is bradykinin-driven, which is why epinephrine often fails.' },
+    { q: '70F with CHF, SpO2 90% on CPAP, BP 112/70. The 12-lead shows inferior ST elevation, plus ST elevation in V4R. Requesting nitroglycerin.', a: false, why: 'CHF 6.3-A: with an inferior MI, consult before nitroglycerin. ST elevation in V4R means right ventricular involvement, and nitrates can drop her pressure hard.' },
+    { q: '66F on lisinopril with tongue and lip swelling and a changing voice, no hives. Epinephrine did not help. Requesting TXA.', a: true, why: 'New in 2026 (Angioedema 4.8-A): epinephrine and TXA are given after medical consultation. ACE-inhibitor angioedema is bradykinin-driven, which is why epinephrine often fails. A changing voice means the airway is closing: do not delay transport.' },
     { q: '52M in severe alcohol withdrawal, tremulous and hallucinating after three IV doses of midazolam. Requesting a fourth.', a: true, why: 'Alcohol Withdrawal 4.3: midazolam beyond three IV doses requires consultation. Untreated severe withdrawal can seize or progress to delirium tremens.' },
     { q: '50M with chest pain and ST elevation, Priority 1. The closest facility is a freestanding ED 5 minutes away; the PCI center is 18 minutes. Requesting the freestanding ED.', a: false, why: 'Freestanding Medical Facility 2.5: Priority 1 and 2 transports there require base station consultation. A STEMI needs a cardiac interventional center, not a freestanding ED.' },
     { q: '6-year-old with diabetes, glucose 52 and still drowsy after one dose of D10. Requesting a second dose.', a: true, why: 'Pediatric Hypoglycemia 4.10: a second D10 dose requires consultation. Still under 70 and symptomatic: give it.' },
     { q: '9-month-old with croup, stridor at rest, and retractions. Requesting nebulized epinephrine.', a: true, why: 'Croup 6.4: nebulized epinephrine dosing for a child under 1 year requires consultation. Stridor at rest is the indication.' },
-    { q: '78F with sepsis, BP 82/44 after 30 mL/kg of LR, lungs clear. Requesting more fluid.', a: true, why: 'Sepsis 4.15-A: fluid beyond 30 mL/kg may be approved by online consultation. Clear lungs and persistent hypotension: give more, and be ready for the epinephrine infusion.' },
+    { q: '78F with sepsis, BP 82/44 after 30 mL/kg of LR, lungs clear. Requesting more fluid.', a: true, why: 'Sepsis 4.15-A: fluid beyond 30 mL/kg may be approved by online consultation. Approve a bolus and start the epinephrine infusion: hypotension after 30 mL/kg is septic shock.' },
   ],
 };
 const PACKS = {
@@ -495,7 +495,7 @@ const VDOOR = { 1: { hr: 124, sbp: 94, dbp: 56, rr: 24, spo2: 95 }, 2: { hr: 104
 const VCASE = {
   refill: { sbp: 164, dbp: 98 }, otitis: { temp: 101.3 }, strep: { temp: 101.5, hr: 100 }, uti: { temp: 99.8 },
   gastro: { hr: 106, sbp: 108, dbp: 66, spo2: 98 }, appy: { temp: 100.6, hr: 102 }, chole: { temp: 100.4, hr: 98 }, hipfx: { hr: 96, sbp: 148, dbp: 86 },
-  pna: { temp: 101.6, hr: 98, rr: 20, spo2: 92.6 }, copd: { hr: 98 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
+  pna: { temp: 101.6, hr: 98, rr: 24, spo2: 92.6 }, copd: { hr: 98 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
   migraine: { sbp: 140, dbp: 86 }, tb: { temp: 100.8, spo2: 95 }, bh: { hr: 98 }, etoh: { hr: 104 }, cell: { temp: 100.9 },
   syncope: { hr: 62, sbp: 108, dbp: 64, spo2: 98 }, tia: { hr: 80, sbp: 172, dbp: 96 }, dehyd: { hr: 104, sbp: 106, dbp: 64 }, mcimin: { hr: 100, sbp: 138, dbp: 84 }, mcigrn: { hr: 98 }, mciwr: { hr: 96, sbp: 134, dbp: 82 }, mcired: { rr: 28, spo2: 94 }, mciyel: { rr: 20 },
   chf: { hr: 108, rr: 26 }, od: { hr: 64, sbp: 104, dbp: 62 }, synchigh: { hr: 70, sbp: 124, dbp: 74, rr: 16, spo2: 97 }, chb: { rr: 18, spo2: 97 },
@@ -623,7 +623,7 @@ function makePatient(c, src) {
   const age = randi(c.age[0], c.age[1]);
   const p = {
     id: 'p' + (G.nid++), ck: c.k, name: genName(sex, age), age, sex, src,
-    cc: c.cc, dx: c.dx, esi: c.esi, alert: c.alert || null, alertOn: false,
+    cc: c.cc, dx: c.dx, esi: c.esi, alert: c.alert || null, alertOn: false, anyRoom: !!c.anyRoom,   // anyRoom: an ESI 1 who needs one drug now, not a resus bay (an overdose)
     wk: c.wk.slice(), tr: c.tr.slice(), con: c.con || null, pre: (c.pre || []).slice(), need: c.need ? c.need.slice() : null,
     dispo: c.dispo, find: Object.assign({}, c.find || {}), iso: c.iso || null, sitter: !!c.sitter, txTo: c.txTo || null,
     arrest: !!c.arrest, ecg10: !!c.ecg10, vit: c.vit || null, bleed: c.bleed || null, amaMul: c.ama || 1, tag: c.tag || null,
@@ -810,12 +810,12 @@ function canPlace(p, r) {
   if (r.pid) return { ok: false, why: `${roomName(r.id)} is occupied` };
   if (r.st === 'dirty') return { ok: false, why: `${roomName(r.id)} is dirty. Tap it to send EVS.` };
   if (r.st === 'cleaning') return { ok: false, why: `EVS is still cleaning ${roomName(r.id)}` };
-  if (p.esi === 1 && r.kind !== 'resus') return { ok: false, why: 'ESI 1 needs a resus bay' };
+  if (p.esi === 1 && r.kind !== 'resus' && !p.anyRoom && !(p.dsp === 'watch' || p.dsp === 'ready' || p.dsp === 'dc')) return { ok: false, why: 'ESI 1 needs a resus bay' };   // once treated and only being watched, they can step down
   if (p.iso === 'air' && !r.iso) return { ok: false, why: 'Airborne isolation needs Room 8 or 16 (negative pressure)' };
   if (r.kind === 'chair') {
     if (p.iso || p.sitter) return { ok: false, why: 'Isolation and safety patients need a room' };
     if (isBoarder(p) || p.dsp === 'decide') return { ok: false, why: 'Admitted patients need a bed, not a chair' };
-    const leaving = p.dsp === 'ready' || p.dsp === 'dc';
+    const leaving = p.dsp === 'ready' || p.dsp === 'dc' || p.dsp === 'watch';
     if (vEsi(p) <= 2 && !leaving) return { ok: false, why: 'Chairs are for ESI 3 to 5, or patients being discharged' };
     if (!(p.ev === 'done' || p.pitSeen || leaving)) return { ok: false, why: 'Chairs are for patients a provider has already seen' };
   }
@@ -1045,18 +1045,18 @@ const EXAM = {
   gastro: 'Soft belly, mildly tender all over. Dry mouth. No guarding.',
   appy: 'Tender in the right lower belly. Worse when you let go.',
   chole: 'Tender under the right ribs. The breath catches when you press there.',
-  hipfx: 'Leg shortened and turned outward. Cannot lift it. Foot pulse is good.',
+  hipfx: 'Leg shortened and turned outward. Cannot lift it. Foot pulse is good. Tripped on a rug. Did not pass out.',
   pna: 'Crackles at the right base. Breathing fast. Looks tired.',
   copd: 'Wheezing, long breath out, neck muscles working. Drowsy.',
   chf: 'Crackles halfway up both lungs. Swollen legs. Neck veins up.',
   stone: 'Cannot hold still. Tender in the flank. Belly soft.',
   dvt: 'One calf swollen, warm, and tender. Breathing is easy.',
   migraine: 'Light hurts. Neck moves freely. Strength, speech, and vision normal. Feels like past migraines.',
-  tb: 'Thin. Crackles at the top of one lung. Needs an isolation room.',
+  tb: 'Thin. Crackles at the top of one lung. Blood-streaked sputum.',
   bh: 'Tearful and cooperative. No injuries. Vital signs normal.',
   etoh: 'Smells of alcohol. Slurred speech. Wakes to voice. No head injury found.',
   od: 'Slow, shallow breathing. Pinpoint pupils. Wakes to a firm rub, then drifts off.',
-  cell: 'Red, hot, swollen shin with spreading edges. No pus pocket.',
+  cell: 'Red, hot, swollen shin with spreading edges. Fever. Three days of pills failed. No pus pocket.',
   syncope: 'Fainted after standing a long time and felt it coming. Heart and nerve exam normal.',
   synchigh: 'Passed out with no warning. Heart sounds normal. Nerve exam normal.',
   tia: 'Strength, speech, and face are normal now. The numbness lasted 20 minutes.',
@@ -1090,76 +1090,76 @@ const EXAM = {
 };
 // Why the right order set is the right one, one line per case. Shown once the diagnosis is known and on the shift report.
 const ORD_WHY = {
-  rash: 'No tests. A contact rash needs a cream and an antihistamine.',
-  refill: 'Nothing to order. No symptoms: refill the prescription and discharge.',
-  otitis: 'No tests. You can see the infection. Treat it.',
-  dental: 'No tests. Antibiotic and pain control, then a dentist.',
+  rash: 'No tests. A contact rash gets a steroid cream and an antihistamine.',
+  refill: 'Nothing to order. No symptoms: the refill is written at discharge.',
+  otitis: 'No tests. You can see the infection. Amoxicillin.',
+  dental: 'No tests. An antibiotic and pain control, then a dentist.',
   strep: 'A rapid strep swab proves it. Then penicillin.',
   ankle: 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.',
   lac: 'No tests. Clean it and stitch it.',
   uti: 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.',
   gastro: 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.',
-  appy: 'Labs and a CT find the appendix. Pain control, then General Surgery.',
-  chole: 'Ultrasound is the first look at a gallbladder, not CT. Labs, pain control, General Surgery.',
-  hipfx: 'X-ray shows the break. Labs get the patient ready for surgery. Pain control, then Orthopedics.',
-  pna: 'Chest X-ray finds it. Labs show how sick. Oxygen and antibiotics.',
-  copd: 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP.',
-  chf: 'ECG looks for a heart attack as the cause. X-ray shows the fluid. BiPAP and a water pill.',
-  stone: 'Urine and a CT find the stone. Pain control and fluids.',
-  dvt: 'Ultrasound finds the clot. Labs check the kidneys before a blood thinner.',
+  appy: 'Labs and a CT find the appendix. Pain control, then General Surgery. Antibiotics are reasonable.',
+  chole: 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.',
+  hipfx: 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.',
+  pna: 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.',
+  copd: 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP. A steroid is reasonable.',
+  chf: 'ECG looks for a heart attack as the cause. X-ray shows the fluid. Labs check the heart and kidneys. BiPAP, nitroglycerin, and a water pill.',
+  stone: 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.',
+  dvt: 'Ultrasound finds the clot. Labs check the kidneys. Then a blood thinner.',
   migraine: 'No tests. A usual migraine with a normal nerve exam gets fluids and medication.',
   tb: 'Chest X-ray and labs. Isolate first. Treatment starts upstairs.',
-  bh: 'Labs for medical clearance. Then Psychiatry.',
+  bh: 'Labs look for a medical cause. Then Psychiatry.',
   etoh: 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.',
-  od: 'Naloxone first. Labs after. Watch for the naloxone wearing off.',
-  cell: 'Labs show how sick. IV antibiotics. No scan without a pus pocket.',
-  syncope: 'Every faint gets an ECG. Both tests normal, with a warning beforehand: home.',
-  synchigh: 'Every faint gets an ECG. A new block with no warning is the heart until proven otherwise: observe.',
-  tia: 'CT rules out a bleed. ECG looks for A-fib. Observe: stroke risk is highest in the first two days.',
+  od: 'Naloxone first. Labs after. Then watch: naloxone wears off before the opioid does.',
+  cell: 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.',
+  syncope: 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.',
+  synchigh: 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.',
+  tia: 'CT rules out a bleed. ECG looks for A-fib. Labs check the sugar. Observe: stroke risk is highest in the first two days. Aspirin is reasonable.',
   dehyd: 'Labs show the kidneys are dry. Fluids fix it.',
-  cpmod: 'ECG, troponin, chest X-ray, aspirin. The risk factors earn a second troponin in observation.',
-  cwp: 'ECG, troponin, chest X-ray, aspirin. All normal and low risk: home.',
-  nstemi: 'ECG and troponin make the diagnosis. Aspirin and a blood thinner. Cardiology.',
-  afib: 'ECG names the rhythm. Labs. Medication to slow the rate. Cardiology.',
+  cpmod: 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.',
+  cwp: 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.',
+  nstemi: 'ECG and troponin make the diagnosis. Aspirin and heparin. Cardiology. A chest X-ray is reasonable.',
+  afib: 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.',
   chb: 'ECG shows the block. Labs check the potassium. Pace now. Cardiology.',
   gib: 'Labs with a blood type. Fluids, then blood. GI for a scope.',
-  dka: 'Labs show the sugar and the acid. Fluids first, then insulin. ICU.',
-  asthma: 'No tests. Breathing treatments and steroids.',
-  anaph: 'No tests. Epinephrine first. Then the other medications.',
+  dka: 'Labs show the sugar, the acid, and the potassium. Fluids first. Insulin once the potassium is known. ICU.',
+  asthma: 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.',
+  anaph: 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.',
   sepsisw: 'Labs with a lactate. Fluids and antibiotics inside the hour.',
-  strokew: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology.',
-  stroke: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology.',
-  lvo: 'CT finds the blocked artery. Clot-busting drug, then transfer to a center that removes clots.',
-  stemi: 'The ECG is the diagnosis. Aspirin. Cardiology and the cath lab. Do not wait for the troponin.',
-  mvc: 'Chest X-ray and a bedside ultrasound. Labs. Massive transfusion. CT maps the injury. Trauma surgery.',
-  tfall: 'Head CT finds the bleed. The INR shows the blood thinner. Reverse it. Trauma.',
-  moto: 'X-ray and labs. Early antibiotics for bone through skin. Blood. Trauma and the OR.',
+  strokew: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology. An ECG is reasonable.',
+  stroke: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology. An ECG is reasonable.',
+  lvo: 'CT rules out a bleed, and a CT angiogram finds the blocked artery. Glucose rules out a mimic. Clot-busting drug, then transfer to a center that removes clots.',
+  stemi: 'The ECG is the diagnosis. Labs go, but do not wait for the troponin. Aspirin and heparin. Cardiology and the cath lab.',
+  mvc: 'X-ray and a bedside ultrasound look for blood in the chest and belly. Labs with a blood type. Massive transfusion. CT only if blood brings the pressure up. If it stays down: straight to the OR.',
+  tfall: 'Head CT finds the bleed. Labs with an INR show the blood thinner. Reverse it. Trauma.',
+  moto: 'X-ray shows the break. Labs with a blood type. Early antibiotics for bone through skin. Blood. Trauma and the OR.',
   arrest: 'No orders. Run the code.',
   shock: 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids are not enough. ICU.',
   rsv: 'A blood gas shows the baby is tiring. High-flow oxygen. Transfer to a children\'s hospital.',
-  burn: 'Secure the airway before it swells shut. Ventilator, fluids, pain control. Burn center.',
-  mcired: 'Chest X-ray and a bedside ultrasound. Labs. Massive transfusion. CT maps the injury. Trauma surgery.',
-  mciyel: 'X-ray and labs. Pain control and fluids. Orthopedics.',
-  mcimin: 'Tender on the neck bones means imaging. Both clean: pain control and home.',
+  burn: 'Secure the airway before it swells shut: intubate, then the ventilator. Labs check for carbon monoxide. Fluids and pain control. Burn center.',
+  mcired: 'X-ray and a bedside ultrasound look for blood in the chest and belly. Labs with a blood type. Massive transfusion. CT only if blood brings the pressure up. If it stays down: straight to the OR.',
+  mciyel: 'X-ray shows the break. Labs get the patient ready for surgery. Pain control and fluids. Orthopedics.',
+  mcimin: 'Tender on the neck bones means a CT. Clean: pain control and home.',
   mcigrn: 'No tests. Clean and close the cuts.',
-  mciwr: 'X-ray shows the break. Pain control, a splint, and home.',
+  mciwr: 'X-ray shows the break. A splint, pain control, and home.',
 };
 // Test results in plain words. Shown after the result when "Plain words" is on.
 const FIND_PLAIN = {
   'Rapid strep positive': 'strep bacteria found', 'No fracture': 'no broken bone', 'Urine: nitrite positive': 'bacteria in the urine',
   'WBC 15.8': 'white cells high: infection or inflammation', 'Inflamed appendix': 'appendicitis',
-  'WBC 13.1, liver tests up': 'white cells high; bile is backing up', 'Gallstones, thick gallbladder wall': 'an inflamed gallbladder',
+  'WBC 13.1, liver tests up': 'white cells high; the liver is irritated', 'Gallstones, thick gallbladder wall': 'an inflamed gallbladder',
   'Femoral neck fracture': 'a broken hip', 'Hgb 11.9': 'blood count a little low', 'WBC 17.2': 'white cells high: infection',
   'Right lower lobe infiltrate': 'pneumonia low in the right lung', 'Hyperinflated, no pneumonia': 'over-full lungs, no infection',
   'VBG pCO2 58': 'CO2 building up: not breathing enough out', 'Sinus tach, old Q waves': 'fast and regular; a scar from an old heart attack',
   'Pulmonary edema': 'fluid in the lungs', 'BNP 2,400': 'heart strain marker very high', '4 mm ureteral stone': 'a small stone; most pass on their own',
   'Femoral vein clot': 'a clot in the big thigh vein', 'Cavity in the upper lobe': 'a hole in the lung: classic for TB', 'WBC 11.4': 'white cells a little high',
-  'Medically cleared': 'no medical cause found', 'Ethanol 280, glucose normal': 'very drunk; sugar is fine', 'Fentanyl positive': 'an opioid, confirmed',
+  'Labs normal': 'no medical cause found', 'Ethanol 280, glucose normal': 'very drunk; sugar is fine', 'Fentanyl positive': 'an opioid, confirmed',
   'WBC 14.0': 'white cells high: infection', 'Normal sinus rhythm': 'a normal heartbeat', 'New bundle branch block': 'a new fault in the heart\'s wiring',
   'No acute findings': 'nothing new or dangerous', 'BUN 34, creatinine 1.4': 'the kidneys are dry', 'Nonspecific ST changes': 'not normal, not a clear heart attack',
-  'First troponin negative': 'no heart damage yet; it gets repeated', 'Troponin negative': 'no heart damage', 'ST depression V4–V6': 'heart muscle short of blood',
+  'First troponin negative': 'no heart damage yet; it gets repeated', 'Troponin negative': 'no heart damage so far', 'ST depression V4–V6': 'heart muscle short of blood',
   'Troponin elevated': 'heart muscle damage', 'A-fib, rate 152': 'a fast, irregular heartbeat', 'Third-degree heart block, rate 38': 'top and bottom of the heart out of step; very slow',
-  'Potassium 4.4, troponin negative': 'potassium normal; no heart damage', 'Hemoglobin 6.8': 'blood count dangerously low', 'Glucose 540, anion gap 26': 'sugar very high; acid in the blood',
+  'Potassium 4.4, troponin negative': 'potassium normal; no heart damage', 'Hemoglobin 6.8': 'blood count dangerously low', 'Glucose 540, anion gap 26, potassium 4.8': 'sugar very high; acid in the blood; potassium safe for insulin', 'Sinus tachycardia, T waves normal': 'fast and regular; no sign of high potassium',
   'Lactate 3.1, urine positive': 'organs short of oxygen; infection in the urine', 'No bleed': 'no bleeding in the brain',
   'Glucose 118': 'sugar is not the cause', 'Glucose 132': 'sugar is not the cause', 'Glucose 141': 'sugar is not the cause',
   'ST elevation V1–V4': 'a heart attack on the front wall', 'Troponin pending': 'not back yet; do not wait for it',
@@ -1175,38 +1175,38 @@ const RADIO_PLAIN = {
   national: [
     ['Chest pain with a low blood pressure. They want a drug that lowers pressure.', 'The pressure is already too low. Nitroglycerin drops it further.'],
     ['Chest pain. He took an erection drug yesterday. They want nitroglycerin.', 'The two drugs together can crash the blood pressure.'],
-    ['No heartbeat after 25 minutes of full effort. They ask to stop.', 'A flat line that long, with everything tried, does not come back.'],
-    ['A clear-headed adult with a hurt ankle does not want to go.', 'An adult who understands the risk can say no.'],
-    ['His sugar is dangerously low and he is confused. He says no.', 'A brain without sugar cannot make the decision. Fix the sugar first.'],
-    ['A child has seized for 10 minutes. No IV. They want a seizure drug up the nose.', 'A long seizure has to stop now. The nose works when there is no IV.'],
+    ['No heartbeat after 25 minutes of full effort. They ask to stop.', 'A flat line that long, with everything tried, almost never comes back.'],
+    ['A clear-headed adult with a hurt ankle does not want to go. They ask if he can refuse.', 'An adult who understands the risk can say no.'],
+    ['His sugar is dangerously low and he is confused. He says no. They ask if he can refuse.', 'A brain without sugar cannot make the decision. Fix the sugar first.'],
+    ['A child is still seizing after one dose up the nose. No IV. They want a second dose.', 'A seizure this long has to stop. Repeat the dose and watch the breathing.'],
     ['A broken thigh bone, still in severe pain. Vital signs fine. They want more pain medication.', 'Stable and still hurting: treat the pain.'],
     ['Signs of a big stroke, 45 minutes old. They want to drive 12 more minutes to a center that removes clots.', 'A big clot needs a center that can pull it out. The extra minutes are worth it.'],
-    ['A dialysis patient missed two sessions. The heart tracing shows high potassium.', 'High potassium can stop the heart. Calcium shields it. Albuterol lowers the potassium.'],
-    ['A severe allergic reaction, no better after one epinephrine shot.', 'Still wheezing with a low pressure: give epinephrine again.'],
-    ['Drunk, with a head cut after a fall. He wants to go home.', 'Alcohol plus a head injury: he cannot judge the risk.'],
+    ['A dialysis patient missed two sessions. The heart tracing shows high potassium. They want two drugs for it.', 'High potassium can stop the heart. Calcium shields it. Albuterol lowers the potassium.'],
+    ['A severe allergic reaction. Still wheezing, pressure still low, 5 minutes after an epinephrine shot. They want a second shot.', 'Still wheezing with a low pressure: give epinephrine again.'],
+    ['Drunk, with a head cut after a fall. He wants to go home. They ask if he can refuse.', 'Alcohol plus a head injury: he cannot judge the risk.'],
     ['A very slow heart and a low pressure. The first drug failed. They want to pace the heart from outside.', 'Too slow to hold a pressure, and the drug failed: pace.'],
-    ['A very fast, regular heartbeat. Pressure fine. Simple maneuvers failed.', 'Adenosine resets this rhythm. It is the next step.'],
-    ['Heart failure with fluid in the lungs and a very high pressure.', 'A pressure mask and nitroglycerin push the fluid back and ease the heart.'],
+    ['A very fast, regular heartbeat. Pressure fine. Simple maneuvers failed. They want the drug that resets it.', 'Adenosine resets this rhythm. It is the next step.'],
+    ['Heart failure with fluid in the lungs and a very high pressure. They want a pressure mask and nitroglycerin, which lowers pressure.', 'A pressure mask and nitroglycerin push the fluid back and ease the heart.'],
   ],
   miemss: [
-    ['A broken thigh bone, still 9 out of 10 after two doses. Vital signs fine.', 'Stable and still hurting: approve the third dose.'],
-    ['Chest pain after three nitroglycerin doses. Pressure still high.', 'The pressure can take another dose, and the pain is still there.'],
+    ['A broken thigh bone, still 9 out of 10 after two doses. Vital signs fine. They want a third dose.', 'Stable and still hurting: approve the third dose.'],
+    ['Chest pain after three nitroglycerin doses. Pressure still high. They want a fourth.', 'The pressure can take another dose, and the pain is still there.'],
     ['Her pressure fell a lot after one nitroglycerin. They want a second.', 'A big drop after one dose warns of a bigger drop after the next.'],
-    ['Tearing chest pain into the back. The two arms have different pressures. Very high pressure.', 'This looks like a tear in the body\'s main artery. Lowering the pressure protects it.'],
-    ['A stroke patient whose pressure is still very high after two doses.', 'Still over the limit: approve the next dose.'],
+    ['Tearing chest pain into the back. The two arms have different pressures. Very high pressure. They want a drug to lower it.', 'This looks like a tear in the body\'s main artery. Lowering the pressure protects it.'],
+    ['A stroke patient whose pressure is still very high after two doses. They want the next dose.', 'Still over the limit: approve the dose. The aim is a little lower, not normal.'],
     ['A stroke patient with a low pressure. They want fluid.', 'A brain short of blood needs pressure. Give the fluid.'],
-    ['Wildly agitated, overheated, fighting restraints. One sedative given.', 'Heat plus a fight against restraints can kill. Sedate and cool.'],
-    ['She hit her head, passed out, and repeats herself. She wants to go home.', 'Repeating questions means her brain is not working right. She cannot refuse.'],
-    ['A 16-year-old with a hurt ankle. No parent can be reached.', 'A minor cannot refuse on his own.'],
+    ['Wildly agitated, overheated, fighting restraints. One sedative given. They want a second kind.', 'Heat plus a fight against restraints can kill. Sedate, cool, and watch his breathing.'],
+    ['She hit her head, passed out, and repeats herself. She wants to go home. They ask if she can refuse.', 'Repeating questions means her brain is not working right. She cannot refuse.'],
+    ['A 16-year-old with a hurt ankle. No parent can be reached. They ask if he can refuse.', 'A minor cannot refuse on his own.'],
     ['A 4-year-old with a racing heart and poor color. The drug failed. They want to shock the rhythm.', 'Poor blood flow and a failed drug: shock.'],
     ['His heart restarted after an arrest. The tracing shows a heart attack. They want a hospital with a cath lab.', 'A blocked artery likely caused the arrest. A cath lab opens it.'],
     ['Heart failure, but the tracing shows a heart attack on the right side. They want nitroglycerin.', 'A right-sided heart attack needs its filling pressure. Nitroglycerin takes that away.'],
-    ['Tongue and lip swelling from a blood pressure pill. Epinephrine did not work.', 'This swelling is not an allergy, so epinephrine fails. TXA is the next option.'],
-    ['Severe alcohol withdrawal, still shaking and seeing things after three doses.', 'Untreated, this leads to seizures. Approve another dose.'],
-    ['A heart attack. The nearest place is a small ED with no cath lab.', 'A heart attack needs a cath lab. Drive the extra 13 minutes.'],
-    ['A diabetic child, sugar still low and still drowsy after one dose of sugar.', 'Still low and still drowsy: give sugar again.'],
-    ['A baby with croup: noisy breathing at rest, ribs pulling in.', 'Noisy breathing at rest means a tight airway. Epinephrine mist opens it.'],
-    ['Severe infection, pressure still low after a full fluid load. Lungs clear.', 'Clear lungs can take more fluid, and the pressure needs it.'],
+    ['Tongue and lip swelling from a blood pressure pill, and her voice is changing. Epinephrine did not work. They want TXA.', 'This swelling is not an allergy, so epinephrine often fails. TXA may help. Watch the airway.'],
+    ['Severe alcohol withdrawal, still shaking and seeing things after three doses. They want a fourth.', 'Untreated, this leads to seizures. Approve another dose.'],
+    ['A heart attack. The crew wants the nearest place, a small ED with no cath lab.', 'A heart attack needs a cath lab. Drive the extra 13 minutes.'],
+    ['A diabetic child, sugar still low and still drowsy after one dose of sugar. They want a second dose.', 'Still low and still drowsy: give sugar again.'],
+    ['A baby with croup: noisy breathing at rest, ribs pulling in. They want epinephrine mist.', 'Noisy breathing at rest means a tight airway. Epinephrine mist opens it.'],
+    ['Severe infection, pressure still low after a full fluid load. Lungs clear. They want more fluid.', 'Clear lungs can take one more bolus. A pressure this low also needs a pressor.'],
   ],
 };
 const DX_PLAIN = {
@@ -1220,7 +1220,7 @@ const DX_PLAIN = {
   'Dehydration': 'Low on fluids', 'Chest pain, moderate risk': 'No heart attack found yet, but not in the clear', 'Chest pain, low risk': 'Not the heart, as far as the tests can tell',
   'NSTEMI (heart attack)': 'A heart attack with the artery partly blocked', 'A-fib with rapid rate': 'An irregular, racing heartbeat', 'Complete heart block': 'The heart’s wiring has failed. It beats too slowly',
   'Upper GI bleed': 'Bleeding in the stomach or gullet', 'Diabetic ketoacidosis': 'No insulin, so the blood turns acid', 'Asthma attack': 'Airways squeezed tight', 'Anaphylaxis': 'A severe allergic reaction',
-  'Sepsis (urinary source)': 'A bladder infection that is overwhelming the body', 'Acute ischemic stroke': 'A clot blocking a blood vessel in the brain', 'Anterior STEMI': 'A heart attack: an artery fully blocked',
+  'Sepsis (urinary source)': 'A urine infection, and the body is overreacting to it', 'Acute ischemic stroke': 'A clot blocking a blood vessel in the brain', 'Anterior STEMI': 'A heart attack: an artery fully blocked',
   'Large vessel occlusion stroke': 'A clot in a main brain artery. Some centers can pull it out', 'Splenic laceration, hemorrhagic shock': 'A torn spleen, bleeding into the belly',
   'Subdural hematoma': 'Bleeding between the skull and the brain', 'Open femur fracture': 'A broken thigh bone, through the skin', 'Cardiac arrest': 'The heart has stopped', 'Septic shock': 'An infection that has dropped the blood pressure',
   'RSV, tiring out': 'A virus clogging a baby’s small airways', 'Partial-thickness burns, 25%, airway injury': 'Deep burns over a quarter of the body, and a burned airway',
@@ -1235,7 +1235,7 @@ const WK_NAME = { ecg: 'ECG', lab: 'Labs', xr: 'X-ray', ct: 'CT', us: 'Ultrasoun
 const NORMAL = { ecg: 'Normal sinus rhythm', lab: 'Normal', xr: 'No acute findings', ct: 'No acute findings', us: 'Normal' };
 const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU', or: 'the OR', cath: 'the cath lab', bh: 'psychiatric admission', transfer: 'a transfer', obs: 'observation' };
 // What the drug in "Medications" was, for each case that needs one.
-const RX = { rash: 'an antihistamine and steroid cream', otitis: 'amoxicillin', dental: 'an antibiotic and pain control', strep: 'penicillin', ankle: 'ibuprofen', uti: 'an antibiotic for the UTI',
+const RX = { refill: 'a dose of the usual pill', tia: 'aspirin', copd: 'a steroid', moto: 'pain control', rash: 'an antihistamine and steroid cream', otitis: 'amoxicillin', dental: 'an antibiotic and pain control', strep: 'penicillin', ankle: 'ibuprofen', uti: 'an antibiotic for the UTI',
   gastro: 'ondansetron', appy: 'pain control', chole: 'pain control', hipfx: 'pain control', chf: 'nitroglycerin and a diuretic', stone: 'ketorolac', dvt: 'an anticoagulant', migraine: 'prochlorperazine and diphenhydramine',
   cwp: 'ibuprofen', cpmod: 'aspirin', nstemi: 'aspirin and heparin', afib: 'diltiazem', asthma: 'a steroid', anaph: 'an antihistamine and a steroid', stemi: 'aspirin and heparin', burn: 'pain control', mcimin: 'pain control', mciyel: 'pain control', mciwr: 'a splint and pain control', vip: 'meclizine' };
 const rxName = p => RX[p.ck] || 'symptom treatment';
@@ -1246,12 +1246,15 @@ const HARM = { tnk: [0.5, 50, 'bled after a thrombolytic they did not need'], in
   pressor: [0.25, 15, 'had a dangerous spike in blood pressure from a vasopressor they did not need'], reverse: [0.15, 20, 'had a clot from a reversal agent they did not need'],
   bp: [0.25, 12, 'dropped their blood pressure on a drug they did not need'], pace: [0.2, 8, 'was paced without needing it'] };
 function awaitOrders(p) {
-  if (!p.right) p.right = { wk: p.wk.slice(), tr: p.tr.filter(k => k !== 'vent') };
+  if (!p.right) p.right = { wk: p.wk.slice(), tr: p.tr.filter(k => k !== 'vent'), ok: ((CASES.find(c => c.k === p.ck) || {}).ok || []).slice() };
   p.wk = p.wk.filter(k => p.work[k]);          // anything triage already started stays (an ECG for chest pain)
   p.tr = p.tr.filter(k => p.treat[k] || (k === 'mtp' && p.bb && p.bb.mtp));
   p.ord = 'need';
   if (!G.pre) note(`${label(p)}: you've seen them. Write orders.`);
 }
+/* What the right order set still lacks, by the names on the order sheet. Medications names its drug. */
+const trName = (p, k) => (k === 'meds' ? `Medications (${rxName(p)})` : TREAT[k].label);
+function missNow(p, testsOnly) { const R = p.right; return R ? R.wk.filter(k => !p.wk.includes(k)).map(k => WK_NAME[k]).concat(testsOnly ? [] : R.tr.filter(k => !p.tr.includes(k)).map(k => trName(p, k))) : []; }
 function signOrders(pid, tests, treats) {
   const p = pt(pid);
   if (!p || !mdMine(p)) return { ok: false, why: 'That is not your patient' };
@@ -1261,10 +1264,10 @@ function signOrders(pid, tests, treats) {
   const newR = (treats || []).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
   if (!newT.length && !newR.length && !(first && R.wk.every(k => p.wk.includes(k)) && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
   let pts = 0, extra = 0;
-  const xl = [];
+  const xl = [], fl = [], OKL = R.ok || [];   // fl: reasonable orders. Not required, not counted against you.
   for (const k of newT) {
     p.wk.push(k);
-    if (R.wk.includes(k)) { pts += 2; S.ordRight++; } else { pts -= k === 'ct' ? 8 : 3; extra++; S.ordExtra++; xl.push(WK_NAME[k]); if (!p.find[k]) p.find[k] = NORMAL[k]; }
+    if (R.wk.includes(k)) { pts += 2; S.ordRight++; } else if (OKL.includes(k)) { fl.push(WK_NAME[k]); if (!p.find[k]) p.find[k] = NORMAL[k]; } else { pts -= k === 'ct' ? 8 : 3; extra++; S.ordExtra++; xl.push(WK_NAME[k]); if (!p.find[k]) p.find[k] = NORMAL[k]; }
   }
   for (const k of newR) {
     if (k === 'mtp') { const r = activateMTP(p.id); if (!r.ok && p.bleed !== 'mtp') { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); continue; } }
@@ -1272,6 +1275,7 @@ function signOrders(pid, tests, treats) {
     if (k === 'intub' && !p.tr.includes('vent')) p.tr.push('vent');
     if (R.tr.includes(k)) { pts += 3; S.ordRight++; }
     else if (k === 'o2' && vitalsOf(p).spo2 < 94) { /* a low sat gets oxygen: never wrong, even when something else will fix it */ }
+    else if (OKL.includes(k)) { fl.push(trName(p, k)); }
     else { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); (p.extraTr = p.extraTr || []).push(k); if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
   }
   let held = '';
@@ -1284,11 +1288,12 @@ function signOrders(pid, tests, treats) {
     const miss = R.wk.filter(k => !p.wk.includes(k)).length + R.tr.filter(k => !p.tr.includes(k)).length;
     S.ordMiss += miss;
     if (!miss && !extra) { pts += 10; S.clean++; }
-    p.ordLog = { name: p.name, dx: p.dx, miss: R.wk.filter(k => !p.wk.includes(k)).map(k => WK_NAME[k]).concat(R.tr.filter(k => !p.tr.includes(k)).map(k => TREAT[k].label)), extra: xl.slice(), why: ORD_WHY[p.ck] || '' };
+    p.ordLog = { name: p.name, dx: p.dx, miss: missNow(p), extra: xl.slice(), fine: fl.slice(), why: ORD_WHY[p.ck] || '' };
     if (p.ordLog.miss.length || xl.length) (S.log = S.log || []).push(p.ordLog);
-  } else if (xl.length && p.ordLog) {
-    if (!p.ordLog.miss.length && !p.ordLog.extra.length) (S.log = S.log || []).push(p.ordLog);
-    p.ordLog.extra.push(...xl);
+  } else if (p.ordLog) {
+    if (xl.length && !p.ordLog.miss.length && !p.ordLog.extra.length) (S.log = S.log || []).push(p.ordLog);
+    p.ordLog.extra.push(...xl); p.ordLog.fine.push(...fl);
+    p.ordLog.miss = missNow(p);   // what is still missing, for the hint and the report
   }
   care(pts, 'orders', p);
   p.ord = 'signed';
@@ -1941,7 +1946,7 @@ function consult(pid, spec) {
   if (p.con !== spec) {
     if (mdMine(p) && !p.con) G.stats.md.dispoWrong++;
     m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-10, 'consult', p); G.stats.wrongSpec++; provHit(p, 3); sound('bad');
-    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? `Why is ${S.name.toLowerCase()} getting this call? Not ours. Call ${SPECS[p.con].name}.` : 'This patient does not need a consult. Send them home.'}"` };
+    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? (p.conNote = `${S.name} declined. Try ${SPECS[p.con].name}.`, note(`${S.name} declined ${label(p)}: not theirs. Try ${SPECS[p.con].name}.`, 'bad'), `Why is ${S.name.toLowerCase()} getting this call? Not ours. Call ${SPECS[p.con].name}.`) : 'This patient does not need a consult. Send them home.'}"` };
   }
   // EMS-activated STEMI, stroke, and trauma alerts can call their team on the field report alone
   const miss = (p.alertOn && ALERTS[p.alert] && ALERTS[p.alert].auto) ? [] : p.pre.filter(k => !(p.work[k] && p.work[k].st === 'done'));
@@ -2060,7 +2065,11 @@ function checkDispo(p) {
 }
 function setDispo(p) {
   const L = LEVELS[G.level];
-  if (p.dispo === 'home') p.dsp = 'ready';
+  if (p.dispo === 'home') {
+    const w = !G.train && !p.ret && (CASES.find(c => c.k === p.ck) || {}).watch;
+    if (w && !p.watched) { p.dsp = 'watch'; p.due = G.t + w; p.watchFor = w; p.watched = true; note(`${label(p)} is treated. Watch until ${clock(p.due)} before they go home.`); }
+    else p.dsp = 'ready';
+  }
   else if (p.dispo === 'transfer') p.dsp = 'readytx';
   else if (p.dispo === 'obs') obsAdmit(p);
   else if (p.dispo === 'admit' || p.dispo === 'icu' || p.dispo === 'bh') {
@@ -2133,12 +2142,14 @@ function dspTimers(p) {
       leave(p, 'tx');
     }
   }
+  else if (p.dsp === 'watch' && G.t >= p.due) { p.dsp = 'ready'; note(`${label(p)} has been watched long enough. Ready to go home.`); }
   else if (p.dsp === 'family' && G.t >= p.due) { p.dsp = 'morgue'; p.tReady = G.t; }
   else if (p.dsp === 'morgue' && G.t - (p.tReady || G.t) > 20) leave(p, 'expired');
 }
 function discharge(pid) {
   const p = pt(pid); if (!p) return { ok: false, why: 'No patient' };
-  if (p.dsp !== 'ready') return { ok: false, why: p.dispo === 'home' ? 'Not ready yet. Workup or treatment is still pending.' : 'This patient is not going home' };
+  if (p.dsp === 'watch') p.earlyDc = { left: Math.max(1, Math.round(p.due - G.t)), why: WATCH_WHY[p.ck] || 'they were still being watched' };   // the player may send them early; the risk is theirs
+  else if (p.dsp !== 'ready') return { ok: false, why: p.dispo === 'home' ? 'Not ready yet. Workup or treatment is still pending.' : 'This patient is not going home' };
   p.dsp = 'dc';
   return { ok: true, msg: `Discharge started for ${label(p)}. The nurse will do the teaching.` };
 }
@@ -2196,6 +2207,7 @@ function leave(p, outcome) {
   if (outcome === 'dc' || outcome === 'lwbs' || outcome === 'ama') bounceRoll(p, outcome, wasLoc);
 }
 
+const WATCH_WHY = { od: 'naloxone wears off before the opioid does', asthma: 'wheezing can come back as the treatment wears off', anaph: 'the reaction can come back hours later' };
 /* ---------- 72-hour returns ---------- */
 function bounceRoll(p, outcome, wasLoc) {
   if (p.ret || G.train || (G.mode === 'md' && !p.mine)) return;
@@ -2208,6 +2220,7 @@ function bounceRoll(p, outcome, wasLoc) {
     if (p.gray) add(p.grayUnder ? 0.3 : 0.02, p.grayUnder ? `Sent home with a ${p.gray.band}-risk ${p.gray.tool}` : why);
     if (p.missedDx) add(0.35, `Missed on the first visit: ${p.missedDx.by} had ${p.missedDx.n} patients in line`);
     if (p.wrongHome) add(0.6, `Sent home when they needed ${DISPO_NAME[p.wrongHome] || 'admission'}`);
+    if (p.earlyDc) add(0.6, `Sent home ${p.earlyDc.left} min early: ${p.earlyDc.why}`);
     if (p.txGap && p.txGap.length) add(0.3, `Went home without ${p.txGap.map(k => TREAT[k].label.toLowerCase()).join(' or ')}`);
   }
   if (!chance(c)) return;
@@ -2225,6 +2238,7 @@ function returnVisit(orig) {
   if (p.src === 'ems') { p.unit = unitName(); p.loc = 'wall'; } else { p.loc = 'triage'; G.triageQ.push(p.id); }
   onArrive(p);
   G.stats.returns++; care(-20, 'returns', orig);
+  (G.stats.returnList = G.stats.returnList || []).push({ name: orig.name, dx: orig.dx, why: orig.retWhy || 'Discharged' });
   mm(35, `${orig.name} came back within 72 hours, sicker`, orig.retWhy || 'Discharged', !!orig.mine);
   toast(`72-hour return: ${p.name} is back and sicker (${orig.outcome === 'ama' ? 'left against advice' : orig.outcome === 'lwbs' ? 'left without being seen' : 'discharged'} earlier)`, 'bad');
   sound('bad');
@@ -2238,8 +2252,8 @@ function weight(p) {
   const r = p.room ? room(p.room) : null;
   if (r && r.kind === 'chair') return 0.1;
   const boarding = isBoarder(p);
-  if (p.esi === 1) return boarding ? 2 : activeResus(p) ? 6 : 4;
-  if (p.esi === 2) return (p.dsp === 'ready' || p.dsp === 'dc' || p.dsp === 'dcing' || (boarding && p.dispo !== 'icu')) ? 1 : 2;
+  if (p.esi === 1) return (p.dsp === 'watch' || p.dsp === 'ready' || p.dsp === 'dc' || p.dsp === 'dcing') ? 1 : boarding ? 2 : activeResus(p) ? 6 : 4;   // treated and only being watched: light work
+  if (p.esi === 2) return (p.dsp === 'ready' || p.dsp === 'watch' || p.dsp === 'dc' || p.dsp === 'dcing' || (boarding && p.dispo !== 'icu')) ? 1 : 2;
   return 1;
 }
 function holdNurses() { return G.staff.filter(s => s.role === 'rn' && s.st === 'on' && s.zones.includes('hold')); }
@@ -2381,11 +2395,11 @@ function minuteTick() {
   for (const p of active()) {
     if (p.loc === 'triage') {
       if (p.esi >= 3 && p.tri !== 'doing' && t - p.tArrive > p.patience * 0.8) { toast(`${p.name} left before triage after ${Math.round(t - p.tArrive)} min`, 'bad'); mm(22, `${p.name} left before triage after ${Math.round(t - p.tArrive)} min`, p.reg === 'none' ? 'Nobody registered them' : 'No nurse got to their triage'); leave(p, 'lwbs'); continue; }
-      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tArrive > 20 && chance(0.012) && !p.gray) crash(p);   // a gray-zone patient (sent home or to obs on a risk score) does not crash
+      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tArrive > 20 && chance(0.012) && !p.gray && p.ck !== 'bh') crash(p);   // a gray-zone patient (sent home or to obs on a risk score) does not crash
     }
     if (p.loc === 'waiting') {
       if (p.esi >= 3 && t - p.tTriage > p.patience && !p.pitDcQ) { toast(`${p.name} (ESI ${vEsi(p)}) left without being seen after ${Math.round(t - p.tArrive)} min`, 'bad'); mm(25, `${p.name} (ESI ${vEsi(p)}) left without being seen after ${Math.round(t - p.tArrive)} min`, crowdWhy()); leave(p, 'lwbs'); continue; }
-      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tTriage > 30 && chance(0.012) && !p.gray) crash(p);
+      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tTriage > 30 && chance(0.012) && !p.gray && p.ck !== 'bh') crash(p);
     }
     if (p.crash && !p.arrest && p.loc !== 'room' && t - p.tCrash > 15) waitingArrest(p);
     hemorrhageTick(p);
@@ -2663,7 +2677,8 @@ function missBox() {
   if (!c) return;
   if (c.kind === 'notify') { const p = pt(c.pid); if (p) missNotify(p); return; }
   G.stats.boxC.miss++; care(-30 * surveyMul(), 'box');
-  toast(`Missed consult. ${c.unit} rolled to another hospital's physician.`, 'bad'); sound('bad');
+  (G.stats.radioLog = G.stats.radioLog || []).push({ q: scenOf(c).plain || scenOf(c).q, miss: true, a: scenOf(c).a, why: scenOf(c).pwhy || scenOf(c).why, btn: scenOf(c).btn || null });
+  toast(`Missed radio call. ${c.unit} rolled to another hospital's physician.`, 'bad'); sound('bad');
   G.ev.missedC++; if (G.ev.missedC >= 2) G.ev.regionDue = true;
 }
 function missNotify(p) {
@@ -2693,6 +2708,7 @@ function boxTake(sid) {
 function boxDecide(approve) {
   const c = G.box.cur; if (!c || !c.taken || G.mode !== 'md') return null;   // the charge nurse routes the call; the doctor decides
   const sc = scenOf(c), ok = !!approve === sc.a, mul = surveyMul();
+  if (!ok && c.sc !== 'train') (G.stats.radioLog = G.stats.radioLog || []).push({ q: sc.plain || sc.q, miss: false, a: sc.a, why: sc.pwhy || sc.why, btn: sc.btn || null });
   G.box.cur = null; G.stats.boxC.ans++;
   if (ok) { G.stats.boxC.right++; care(20 * mul, 'box'); } else { G.stats.boxC.wrong++; care(-15 * mul, 'box'); }
   note(`Box: ${c.unit} ${approve ? 'approved' : 'denied'} (${ok ? 'correct' : 'incorrect'})`, ok ? 'good' : 'bad');
@@ -3162,7 +3178,7 @@ function staffHours() {
   const seen = G.order.filter(id => G.pts[id].tArrive >= 0 && G.pts[id].loc !== 'enroute' && G.pts[id].loc !== 'new').length || 1;
   return { rn, agency, mandated, md: h('md'), app: h('app'), pct: h('pct'), rt: h('rt'), rnPerVisit: Math.round(100 * (rn + agency + mandated) / seen) / 100 };
 }
-const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200, 2200], train: [300, 800, 1400], rush: [100, 240, 340] };
+const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200, 2000], train: [300, 800, 1400], rush: [100, 240, 340] };
 const STARS_MD = { easy: [600, 1200, 1800], med: [600, 1300, 2000], hard: [600, 1300, 2000], train: [300, 800, 1400], rush: [120, 240, 310] };
 function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' ? STARS_MD : STARS)[level || (G && G.level) || 'med']; return c >= s[2] ? 3 : c >= s[1] ? 2 : c >= s[0] ? 1 : 0; }
 function endShift(reason) {
@@ -3177,7 +3193,7 @@ function endShift(reason) {
     level: G.level, scen: G.scen || 'none', pack: G.pack, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
     stars: G.fail ? 0 : starsFor(G.care, G.level),
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama, expired: S.expired,
-    returns: S.returns + S.returnsLate, left: active().length,
+    returns: S.returns + S.returnsLate, returnList: (S.returnList || []).slice(), radioLog: (S.radioLog || []).slice(), left: active().length,
     wallAvg: walls.length ? Math.round(walls.reduce((a, b) => a + b, 0) / walls.length) : 0,
     wallMax: walls.length ? Math.round(Math.max(...walls)) : 0, wallOver: walls.filter(w => w > 30).length,
     boxC: Object.assign({}, S.boxC), boxN: Object.assign({}, S.boxN), goalsMet: S.goals.met, goalsMiss: S.goals.miss,
@@ -3202,7 +3218,8 @@ function botRoom(p) {
   for (const r of G.rooms) {
     if (r.kind === 'chair' || !canPlace(p, r).ok) continue;
     let sc;
-    if (e === 1) sc = r.kind === 'resus' ? 0 : 99;
+    if (e === 1 && p.anyRoom) sc = { main: 0, resus: 1, hall: 99, ft: 99 }[r.kind];
+    else if (e === 1) sc = r.kind === 'resus' ? 0 : 99;
     else if (e >= 4) sc = { ft: 0, main: 2, hall: 3, resus: 8 }[r.kind];
     else if (e === 3) sc = { main: 0, hall: 3, resus: 6, ft: 99 }[r.kind];
     else sc = { main: 0, resus: 2, hall: 99, ft: 99 }[r.kind];
@@ -3295,7 +3312,7 @@ function botStep(o) {
   if (o.updates !== false && waitingCount() >= 4 && G.t - G.wrUpdate >= 30) add(8.8, () => updateWaiting().ok);
   if (o.chairs !== false && waitingCount() >= 3) {
     const free = G.rooms.find(r => r.kind === 'chair' && !r.pid && !r.closed);
-    const c = free && inRooms().filter(p => { const r = roomOf(p); return r.kind !== 'chair' && r.kind !== 'resus' && !p.gray && (p.dsp === 'ready' || (p.dsp === 'none' && p.ev === 'done' && p.dispo === 'home')) && canPlace(p, free).ok; }).sort((a, b) => a.tRoom - b.tRoom)[0];
+    const c = free && inRooms().filter(p => { const r = roomOf(p); return r.kind !== 'chair' && (r.kind !== 'resus' || p.dsp === 'watch') && !p.gray && (p.dsp === 'ready' || p.dsp === 'watch' || (p.dsp === 'none' && p.ev === 'done' && p.dispo === 'home')) && canPlace(p, free).ok; }).sort((a, b) => (b.dsp === 'watch') - (a.dsp === 'watch') || a.tRoom - b.tRoom)[0];   // a patient being watched frees a room (and a resus bay) first
     if (c) add(5.2, () => !free.pid && move(c.id, free.id).ok);
   }
   for (const p of holds()) {
@@ -3369,7 +3386,12 @@ const OC = {
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };
 root.OC = OC;
-for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } });
-Object.assign(OC, { EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && EXAM[p.ck]) || '', whyOf: p => (p && ORD_WHY[p.ck]) || '' });
+// What the two buttons say when Approve and Deny would read oddly: [yes, no], by call number (from 0).
+const RADIO_BTN = {
+  national: { 2: ['Stop', 'Keep going'], 3: ['He may refuse', 'No: transport'], 4: ['He may refuse', 'No: transport'], 7: ['Stroke center', 'Closest hospital'], 10: ['He may refuse', 'No: transport'] },
+  miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
+};
+for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
+Object.assign(OC, { WATCH_WHY, missNow, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && EXAM[p.ck]) || '', whyOf: p => (p && ORD_WHY[p.ck]) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);

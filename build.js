@@ -10,6 +10,11 @@ const fonts = [
   font('Cardo', 'cardo/files/cardo-latin-700-normal.woff2', 700),
   font('Cardo', 'cardo/files/cardo-latin-400-italic.woff2', 400, 'italic'),
 ].join('\n');
+// A script that does not parse would ship as a blank page, so stop here if one does not.
+const vm = require('vm');
+for (const [name, code] of [['engine.js', src('engine.js')], ['ui.js + map.js', src('ui.js').replace('/*MAP*/', () => src('map.js'))]]) {
+  try { new vm.Script(code, { filename: name }); } catch (e) { console.error(`build stopped: ${name} does not parse: ${e.message}`); process.exit(1); }
+}
 const html = src('index.template.html')
   .replace('/*FONTS*/', () => fonts).replace('/*STYLE*/', () => src('style.css'))
   .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js').replace('/*MAP*/', () => src('map.js')));

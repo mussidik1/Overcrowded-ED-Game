@@ -335,7 +335,9 @@ function renderSel(G) {
   } else if (s) {
     const p = E.pt(s.pid);
     const wr = s.type === 'pt' && p.loc === 'wall' && ve(p) >= 3 && !p.alertOn && intakeDone(p);
-    h = `<span>${s.type === 'move' ? 'Moving' : 'Bedding'} ${U.view === 'map' ? '' : emoji(p) + ' '}<b>${esc(p.name)}</b>${U.view === 'map' ? '' : `, ${E.ageSex(p)}`} ${esiChip(p)}${U.view === 'map' ? ':' : ' ' + esc(p.cc) + '.'} ${U.view === 'map' ? 'tap' : 'Tap'} a green room.</span>${wr ? `<button type="button" data-act="toWait" data-arg="${p.id}">Waiting room</button>` : ''}<button type="button" data-act="selInfo">Card</button><button type="button" data-act="selCancel">Cancel</button>`;
+    let why = s.why || '';
+    if (!why) { const open = G.rooms.filter(r => r.kind !== 'chair' && !r.pid && !r.closed && r.st === 'clean'); if (open.length && !open.some(r => E.canPlace(p, r).ok)) why = E.canPlace(p, open[0]).why; }
+    h = `<span>${s.type === 'move' ? 'Moving' : 'Bedding'} ${U.view === 'map' ? '' : emoji(p) + ' '}<b>${esc(p.name)}</b>${U.view === 'map' ? '' : `, ${E.ageSex(p)}`} ${esiChip(p)}${U.view === 'map' ? ':' : ' ' + esc(p.cc) + '.'} ${why ? `<b class="sel-why">${esc(why)}.</b>` : `${U.view === 'map' ? 'tap' : 'Tap'} a green room.`}</span>${wr ? `<button type="button" data-act="toWait" data-arg="${p.id}">Waiting room</button>` : ''}<button type="button" data-act="selInfo">Card</button><button type="button" data-act="selCancel">Cancel</button>`;
   }
   setH(el, h); el.hidden = !h;
   document.body.classList.toggle('selon', !!h);
@@ -440,6 +442,7 @@ function nextStep(p, r, G) {
   if (p.sitter && !r.safe && !p.sitBy) return { t: 'Needs a sitter', c: 'n-bad fl', i: 'eye' };
   switch (p.dsp) {
     case 'ready': return { t: 'Ready: discharge', c: 'n-go fl', i: 'home' };
+    case 'watch': return { t: `Watch until ${E.clock(p.due)}`, c: 'n-wait', i: 'wait' };
     case 'dc': case 'dcing': return { t: 'Discharge teaching', c: 'n-go', i: 'home' };
     case 'readytx': return { t: 'Request transfer', c: 'n-act fl', i: 'amb' };
     case 'txcall': return { t: 'Transfer center…', c: 'n-wait', i: 'amb' };
@@ -610,7 +613,7 @@ function dispoText(p) {
   if (p.dsp === 'decide') return `Your call: home, observation, or admit (${esc(p.gray.tool)} ${p.gray.score})`;
   if (p.dsp === 'board' && p.obsWait) return 'Going to observation. The obs unit is full; next obs discharge frees a bed.';
   if (p.dsp === 'mddecide') return 'Your call: discharge, admit, or transfer';
-  const m = { callrep: G0().mods.noReport > G0().t ? 'Bed assigned. The floor is in shift change and won\'t take report yet.' : 'Bed assigned. Their nurse is calling report to the floor.', reporting: 'Their nurse is on the phone giving report', ready: 'Ready to go home', dc: 'Discharge teaching (nurse)', dcing: 'Discharge teaching (nurse)', readytx: `Transfer to ${p.txTo}`, txcall: 'Transfer center is calling', txok: `${cap(p.txTo)} accepted. Book an interfacility ambulance.`, iftwait: `${p.iftLevel ? E.IFT[p.iftLevel].name : 'Ambulance'} arrives in <span data-cd="${p.due}"></span>`, iftreport: 'Interfacility crew taking report at the bedside', board: `${p.dispo === 'obs' ? 'Going to the observation unit' : `Admitted to ${{ admit: p.gray || p.con === 'cards' ? 'a monitored bed' : 'the floor', icu: 'the ICU', bh: 'the psych unit' }[p.dispo]}`} · bed in <span data-cd="${p.due}"></span>`, bedready: 'Bed ready upstairs. Send them with a transporter or a tech.', xportq: 'Transport is on the way to the room', toproc: p.dispo === 'cath' ? 'Going to the cath lab' : 'Going to the OR', family: 'Family at the bedside', morgue: 'Waiting for transport', morguing: 'Transport underway' };
+  const m = { callrep: G0().mods.noReport > G0().t ? 'Bed assigned. The floor is in shift change and won\'t take report yet.' : 'Bed assigned. Their nurse is calling report to the floor.', reporting: 'Their nurse is on the phone giving report', ready: 'Ready to go home', watch: `Treated. Being watched until ${E.clock(p.due)}: ${E.WATCH_WHY[p.ck] || 'not safe to go yet'}.`, dc: 'Discharge teaching (nurse)', dcing: 'Discharge teaching (nurse)', readytx: `Transfer to ${p.txTo}`, txcall: 'Transfer center is calling', txok: `${cap(p.txTo)} accepted. Book an interfacility ambulance.`, iftwait: `${p.iftLevel ? E.IFT[p.iftLevel].name : 'Ambulance'} arrives in <span data-cd="${p.due}"></span>`, iftreport: 'Interfacility crew taking report at the bedside', board: `${p.dispo === 'obs' ? 'Going to the observation unit' : `Admitted to ${{ admit: p.gray || p.con === 'cards' ? 'a monitored bed' : 'the floor', icu: 'the ICU', bh: 'the psych unit' }[p.dispo]}`} · bed in <span data-cd="${p.due}"></span>`, bedready: 'Bed ready upstairs. Send them with a transporter or a tech.', xportq: 'Transport is on the way to the room', toproc: p.dispo === 'cath' ? 'Going to the cath lab' : 'Going to the OR', family: 'Family at the bedside', morgue: 'Waiting for transport', morguing: 'Transport underway' };
   return m[p.dsp] || 'Not decided yet';
 }
 function bloodText(p, k) {
@@ -621,7 +624,7 @@ function bloodText(p, k) {
 function treatText(p, k) {
   const it = p.treat[k], T = E.TREAT[k];
   if (!it) return (k === 'mtp' || k === 'blood') ? bloodText(p, k) : ['Ordered after the provider sees them', 'idle'];
-  if (it.st === 'done') return [k === 'mtp' ? 'Running. Pressure is coming up.' : 'Given', 'ok'];
+  if (it.st === 'done') return [k === 'mtp' ? 'Running. Pressure is coming up.' : k === 'meds' && p.ck && E.rxName ? `Given: ${esc(E.rxName(p))}` : 'Given', 'ok'];
   if (it.st === 'doing') return ['Underway', 'wait'];
   if (it.st === 'verify') return ['Waiting on pharmacist verification', 'warn'];
   if (it.st === 'q') return ['In the provider\'s line', 'wait'];
@@ -660,7 +663,7 @@ function pathRows(p, G) {
     else if (w.st === 'todo') v = k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT (the nurse draws it if techs are tied up)' : 'Drawn once roomed') : k === 'ecg' ? 'Waiting for a PCT or nurse' : 'In line for the scanner';
     else if (w.st === 'doing') v = k === 'lab' ? 'Drawing now' : k === 'ecg' ? 'Doing it now' : 'Scanning now';
     else if (w.st === 'run') v = `Resulting in <span data-cd="${w.due}"></span>`;
-    else { const f = p.find[k] || 'Resulted', pl = PLAIN() && E.FIND_PLAIN[f]; v = `<b>${esc(f)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`; st = 'ok'; }
+    else { const f = p.find[k] || 'Resulted', pl = PLAIN() && (E.FIND_PLAIN[f] || (/^Normal sinus rhythm/.test(f) ? 'a normal heartbeat' : /^Sinus tachycardia, rate/.test(f) ? 'a fast, regular heartbeat' : /^Sinus bradycardia/.test(f) ? 'a slow, regular heartbeat' : '')); v = `<b>${esc(f)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`; st = 'ok'; }
     rows.push(row(nm, v, st));
   }
   for (const k of p.tr) { if (unwritten && !p.treat[k]) continue; const [v, st] = treatText(p, k); rows.push(row(E.TREAT[k].label, v, st)); }
@@ -669,6 +672,7 @@ function pathRows(p, G) {
   if (cs.st === 'none') { if (MD() && (mine(p) || !p.prov) && !p.alertOn) cv = p.dxK && p.ev === 'done' ? 'Your call' : 'Unknown until the workup is back'; else if (p.dxK && p.con) { cv = 'Needed. Pick the right service.'; cst = 'need'; } else if (p.dxK && p.loc === 'room' && !p.arrest) cv = 'Not needed'; else cv = 'Unknown until the workup is back'; }
   else if (cs.st === 'req') cv = `${E.SPECS[cs.spec].doc} (${E.SPECS[cs.spec].name}) coming in <span data-cd="${cs.due}"></span>`;
   else { cv = `${E.SPECS[cs.spec].doc} (${E.SPECS[cs.spec].name}) at the bedside`; cst = 'ok'; }
+  if (p.conNote && cs.st === 'none') { cv += `<small class="dxp bad">${esc(p.conNote)}</small>`; }
   rows.push(row('Consult', cv, cst));
   rows.push(row('Plan', dispoText(p), p.dsp === 'none' ? 'idle' : 'ok'));
   return rows.join('');
@@ -685,6 +689,7 @@ function primary(p, G) {
   if (p.loc !== 'room') return '';
   if (mtpBtn) return `<div class="prim">${mtpBtn}</div>`;
   if (p.dsp === 'ready') return `<div class="prim"><button type="button" class="big go" data-act="dc" data-arg="${p.id}">Discharge home</button></div>`;
+  if (p.dsp === 'watch') return `<p class="hint">Not safe to go until <b>${E.clock(p.due)}</b>. A chair frees this room while they wait.</p><div class="prim"><button type="button" class="big" data-act="dc" data-arg="${p.id}">Discharge early (risky)</button></div>`;
   if (p.dsp === 'readytx') return `<div class="prim"><button type="button" class="big act" data-act="tx" data-arg="${p.id}">Request transfer to ${esc(p.txTo)}</button></div>`;
   if (p.dsp === 'decide') return grayBlock(p);
   if (p.dsp === 'board') return p.obsWait ? '<p class="hint">The obs unit is full. The next obs discharge frees a bed for them.</p>' : `<div class="prim"><button type="button" class="big" data-act="esc" data-arg="${p.id}" ${G.house.esc ? '' : 'disabled'}>Push the House Supervisor for a bed (${G.house.esc} left)</button></div>`;
@@ -699,7 +704,7 @@ function primary(p, G) {
 }
 function grayBlock(p) {
   const g = p.gray, b = (k, l, sub) => `<button type="button" class="cbtn" data-act="gray" data-arg="${p.id}|${k}"><b>${l}</b><small>${sub}</small></button>`;
-  return `<div class="prim"><div class="prim-l">Your call · ${esc(g.tool)} ${g.score}</div><p class="hint" style="margin:0">${esc(GRAY_GUIDE[g.tool] || '')}</p><div class="cgrid three">${b('home', 'Home', 'Frees the bed now')}${b('obs', 'Observation', `Obs unit ${E.G.obsUnit.filled}/${E.G.obsUnit.cap} full`)}${b('admit', 'Admit', 'Takes an inpatient bed')}</div></div>`;
+  return `<div class="prim"><div class="prim-l">Your call · ${esc(g.tool)} ${g.score}</div><p class="hint" style="margin:0">${esc(GRAY_GUIDE[g.tool] || '')}</p>${MD() && mine(p) && p.txGap && p.txGap.length ? `<p class="hint bad" style="margin:0">${gapMsg(p)}</p>` : ''}<div class="cgrid three">${b('home', 'Home', 'Frees the bed now')}${b('obs', 'Observation', `Obs unit ${E.G.obsUnit.filled}/${E.G.obsUnit.cap} full`)}${b('admit', 'Admit', 'Takes an inpatient bed')}</div></div>`;
 }
 function recheckBlock(p, G) {
   const ns = G.staff.filter(s => s.role === 'rn' && s.st === 'on' && s.skill !== 'new' && (s.zones.includes('triage') || !s.zones.length));
@@ -748,7 +753,9 @@ function ptSheet(G, p) {
   if (p.loc === 'gone') return head(esc(p.name), 'No longer in the department') + `<p class="hint">${esc({ dc: 'Discharged home.', obs: 'Went to the observation unit.', admit: 'Went upstairs.', icu: 'Went to the ICU.', bh: 'Went to the psych unit.', or: 'Went to the OR.', cath: 'Went to the cath lab.', tx: 'Transferred out.', lwbs: 'Left without being seen.', ama: 'Left against medical advice.', expired: 'Died in the department.' }[p.outcome] || 'Left.')}</p>`;
   let h = `<div class="ph"><div class="ph-who"><span class="ph-em">${emoji(p)}</span><span><b>${esc(p.name)}</b>, ${E.ageSex(p)} ${esiChip(p)} ${alertTag(p)}${tagChip(p)}${langChip(p)}${p.ret ? ' <i class="rettag">72-hr return</i>' : ''}${p.vip ? ' <i class="vip">VIP</i>' : ''}${p.stat ? ' <i class="stat">Stat</i>' : ''}<br><span class="ph-sub">${esc(where(p))} · ${p.src === 'ems' ? esc(p.unit || 'EMS') : 'Walk-in'} · ${p.loc === 'enroute' ? `ETA <span data-cd="${p.eta}"></span>` : `in the ED <span data-el="${p.tArrive}"></span>`}</span></span></div></div>`;
   const kv = [['Complaint', esc(p.cc)], ['Vitals', vitalsHTML(p)]], dx = dxShown(p);
-  if (dx) kv.push(['Diagnosis', `<b>${esc(dx)}</b>${E.DX_PLAIN[dx] ? `<small class="dxp">${esc(E.DX_PLAIN[dx])}</small>` : ''}`]); else if (p.alertOn && p.alert) kv.push(['Working', `${esc(E.ALERTS[p.alert].name)} alert`]);
+  const ctBack = p.work && p.work.ct && p.work.ct.st === 'done';
+  if (dx && p.alert === 'stroke' && !ctBack && !p.ret) kv.push(['Diagnosis', `<b>Stroke</b><small class="dxp">Clot or bleed: not known until the CT.</small>`]);
+  else if (dx) kv.push(['Diagnosis', `<b>${esc(dx)}</b>${E.DX_PLAIN[dx] ? `<small class="dxp">${esc(E.DX_PLAIN[dx])}</small>` : ''}`]); else if (p.alertOn && p.alert) kv.push(['Working', `${esc(E.ALERTS[p.alert].name)} alert`]);
   if (p.ev === 'done' && E.examOf(p) && p.loc !== 'gone') kv.push(['Exam', esc(E.examOf(p))]);
   if (p.tag) kv.push(['Field tag', `${cap(p.tag)}: ${{ red: 'immediate', yellow: 'can wait a little', green: 'walking wounded' }[p.tag]}`]);
   if (p.lkwT != null && p.alertOn) kv.push(['Onset', `Last known well <b>${E.clock(p.lkwT)}</b> · the thrombolytic has to be in by ${E.clock(p.lkwT + E.LYTIC_WINDOW)}`]);
@@ -800,7 +807,7 @@ function mdPrimary(p, G) {
   if (p.ord === 'need' || p.ord === 'more') return mtpBtn + ordersBlock(p, G);
   if (p.dsp === 'mddecide' || p.dsp === 'decide') {
     const call = p.dsp === 'mddecide' ? mdDecideBlock(p) : grayBlock(p);
-    if ((p.txGap && p.txGap.length) || U.ordOpen === p.id) return ordersBlock(p, G, true) + call;
+    if ((p.txGap && p.txGap.length) || U.ordOpen === p.id) return call + ordersBlock(p, G, true);   // the call first: it used to sit under 24 order buttons
     return call + `<div class="prim"><button type="button" class="big" data-act="ordOpen" data-arg="${p.id}">Add orders</button></div>`;
   }
   let h = mtpBtn ? `<div class="prim">${mtpBtn}</div>` : '';
@@ -811,7 +818,10 @@ function mdPrimary(p, G) {
   }
   return h;
 }
-const gapMsg = p => (E.vitalsOf(p).trend === 'better' ? 'Better, but something they need is still not ordered.' : 'Not improving. Something they need is not ordered.');
+const gapMsg = p => (E.vitalsOf(p).trend === 'better' ? 'Better, but something they need is still not ordered.' : 'Not improving. Something they need is not ordered.') + gapHint(p);
+/* With Plain words on, a gap names what is still needed. The points are already gone; this is the lesson.
+   While the workup is open it names the tests only: naming the drug would give the diagnosis away. */
+function gapHint(p) { const m = PLAIN() ? E.missNow(p, p.ord === 'more') : []; return m.length ? ` <b class="hintb">Still needed: ${esc(m.join(', '))}.</b>` : ''; }
 const lyticHeld = p => !!(p.treat.tnk && p.treat.tnk.st === 'wait' && !p.treat.bp && p.alert === 'stroke' && !E.bpOkForLytic(p));
 function ordersBlock(p, G, add) {
   if (!U.ord || U.ord.pid !== p.id) U.ord = { pid: p.id, tests: [], treats: [] };
@@ -821,13 +831,13 @@ function ordersBlock(p, G, add) {
     return `<button type="button" class="och${done ? ' done' : on ? ' on' : ''}" data-act="ordT" data-arg="${p.id}|${kind}|${key}" ${done ? 'disabled' : ''} aria-pressed="${on}"><b>${lbl}</b>${done ? '<small>Ordered</small>' : sub ? `<small>${sub}</small>` : ''}</button>`;
   };
   const n = o.tests.length + o.treats.length, need = p.ord === 'need';
-  const title = p.ord === 'more' ? 'The workup is not complete. Add what is missing.' : add ? 'Add orders' : 'Write orders';
+  const title = p.ord === 'more' ? `The workup is not complete. Add what is missing.${gapHint(p)}` : add ? 'Add orders' : 'Write orders';
   const lbl = n ? `Sign ${n} order${n > 1 ? 's' : ''}` : need ? 'Sign with no orders' : 'Pick orders to add';
   return `<div class="prim"><div class="prim-l">${title}</div><div class="ogrid">${ORDER_TESTS.map(([k, l, sub]) => chip('t', k, l, sub)).join('')}</div><div class="prim-l">Treatment</div><div class="ogrid">${ORDER_TX.map(([k, l, sub]) => chip('r', k, l, sub)).join('')}</div><button type="button" class="big act" data-act="sign" data-arg="${p.id}" ${n || need ? '' : 'disabled'}>${lbl}</button><p class="hint" style="margin:0">Order what they need and nothing extra. Extra tests cost time, and some treatments hurt people who don't need them.</p></div>`;
 }
 function mdDecideBlock(p) {
   const b = (k, l, sub) => `<button type="button" class="cbtn" data-act="mdd" data-arg="${p.id}|${k}"><b>${l}</b><small>${sub}</small></button>`;
-  return `<div class="prim"><div class="prim-l">Your call · ${esc(p.dx)}</div>${p.txGap && p.txGap.length ? `<p class="hint bad" style="margin:0">${gapMsg(p)}</p>` : E.whyOf(p) ? `<p class="hint why"><b>The workup:</b> ${esc(E.whyOf(p))}${p.ordLog && p.ordLog.extra.length ? ` <span class="xtra">Not needed: ${esc(p.ordLog.extra.join(', '))}.</span>` : ''}</p>` : ''}<div class="cgrid three">${b('home', 'Discharge home', 'Safe to go')}${b('consult', 'Admit: call a consult', 'Pick the service')}${b('transfer', 'Transfer', 'Care you lack')}</div></div>`;
+  return `<div class="prim"><div class="prim-l">Your call · ${esc(p.dx)}</div>${p.txGap && p.txGap.length ? `<p class="hint bad" style="margin:0">${gapMsg(p)}</p>` : E.whyOf(p) ? `<p class="hint why"><b>The workup:</b> ${esc(E.whyOf(p))}${p.ordLog && p.ordLog.extra.length ? ` <span class="xtra">Not needed: ${esc(p.ordLog.extra.join(', '))}.</span>` : ''}${p.ordLog && p.ordLog.fine && p.ordLog.fine.length ? ` <span class="fine">Also reasonable: ${esc(p.ordLog.fine.join(', '))}.</span>` : ''}</p>` : ''}<div class="cgrid three">${b('home', 'Discharge home', 'No admission needed')}${b('consult', 'Admit: call a consult', 'Pick the service')}${b('transfer', 'Transfer', 'Care you lack')}</div></div>`;
 }
 const MOOD = ['🙂', '😐', '😠', '🤬'];
 function consultSheet(G, p) {
@@ -1002,7 +1012,7 @@ const GLOSS = [
   ]],
   ['How sick', [
     ['Triage', 'Sorting patients by how sick they are, not by who came first.'],
-    ['ESI', 'Emergency Severity Index, the triage level. 1: dying now. 2: high risk, should not wait. 3: stable, needs several tests or treatments. 4: needs one. 5: needs none.'],
+    ['ESI', 'Emergency Severity Index, the triage level. 1: needs a life-saving action now. 2: high risk, should not wait. 3: stable, needs several tests or treatments. 4: needs one. 5: needs none.'],
     ['Vitals', 'Vital signs: heart rate, blood pressure, breathing rate, oxygen level, and temperature. A number in red is out of range.'],
     ['HR', 'Heart rate, in beats a minute. An adult at rest runs 60 to 100.'],
     ['BP', 'Blood pressure, written as two numbers, about 120/80. A top number under 90 is dangerous.'],
@@ -1026,6 +1036,9 @@ const GLOSS = [
   ['Tests', [
     ['Workup', 'The set of tests that finds out what is wrong.'],
     ['Labs', 'Blood and urine tests.'],
+    ['Flank', 'The side of the back, over the kidney.'],
+    ['Guarding', 'Belly muscles that tighten when pressed. A sign of something serious inside.'],
+    ['Crackles', 'A wet, crackling sound in the lungs: fluid or infection.'],
     ['ECG', 'Electrocardiogram. A tracing of the heart’s electrical activity. It can show a heart attack.'],
     ['X-ray', 'A picture of the bones or the chest.'],
     ['CT', 'A scanner that takes detailed pictures inside the body. It finds bleeding in the head, appendicitis, and much else.'],
@@ -1049,6 +1062,8 @@ const GLOSS = [
     ['O-negative', 'The blood type that can be given to anyone, before their own type is known.'],
     ['Thrombolytic', 'A drug that dissolves the clot in a stroke. It only works in the first few hours.'],
     ['Naloxone', 'The drug that reverses an opioid overdose.'],
+    ['Aspirin', 'Keeps a clot in a heart artery from growing. Given for chest pain that may be the heart. It is inside the Medications order.'],
+    ['Analgesia', 'Pain control.'],
     ['Epinephrine', 'Adrenaline. The treatment for a severe allergic reaction.'],
     ['Insulin drip', 'Insulin given steadily into a vein, for dangerously high blood sugar.'],
     ['Nebulizer', 'A mist of medicine to breathe in, for asthma and COPD.'],
@@ -1064,7 +1079,9 @@ const GLOSS = [
   ]],
   ['Diagnoses', [
     ['UTI', 'Urinary tract infection.'],
-    ['Sepsis', 'An infection overwhelming the body. Antibiotics are due within the hour.'],
+    ['Sepsis', 'The body’s reaction to an infection, out of control. Antibiotics are due within the hour.'],
+    ['Hemorrhage', 'Bleeding, usually heavy.'],
+    ['Hypotensive', 'With a low blood pressure.'],
     ['STEMI', 'The kind of heart attack that needs a blocked artery opened in the cath lab right away.'],
     ['Stroke, LVO', 'A blocked or burst blood vessel in the brain. An LVO, large-vessel occlusion, is a big clot that may need to be pulled out.'],
     ['TIA', 'A stroke that clears up on its own within minutes. A warning sign.'],
@@ -1092,8 +1109,9 @@ const GLOSS = [
     ['Offload', 'Moving an ambulance patient off the crew’s stretcher into your bed or waiting room.'],
     ['Transfer', 'Sending the patient to another hospital that has what they need.'],
     ['ALS, critical care transport', 'Ambulances for a transfer. ALS, advanced life support, has paramedics. Critical care transport adds a nurse and ICU equipment.'],
-    ['AMA', 'Against medical advice. A patient who leaves before care is finished.'],
+    ['AMA', 'Against medical advice. A patient who chooses to leave after hearing the risks.'],
     ['72-hour return', 'A patient who was sent home and comes back within three days, sicker.'],
+    ['Watch', 'A set time in the ED after treatment, before going home. Naloxone and epinephrine wear off; the problem can come back.'],
     ['Co-sign', 'An attending reviews a PA’s or NP’s patient and signs off.'],
     ['Medical direction', 'A doctor giving orders by radio to a paramedic in the field. Only an attending can.'],
     ['Capacity', 'Being able to understand a decision and its risks. An adult with capacity may refuse care. Someone confused, drunk, or head-injured may not have it.'],
@@ -1112,6 +1130,9 @@ const GLOSS = [
     ['Isolation', 'A room with special airflow, for infections that spread through the air. Rooms 8 and 16: orange dashes on the floor plan, ISO on the list board.'],
     ['Safe room, sitter', 'For a patient who might hurt themselves: a room with nothing dangerous in it (blue dots on the floor plan), or a staff member who stays with them.'],
     ['Multiple-casualty incident', 'One event with more patients than a normal day brings, such as a bus crash. EMS asks each hospital how many it can take.'],
+    ['Bed huddle', 'A short meeting with the hospital to find beds upstairs.'],
+    ['Saturated', 'Full. No more patients can be taken safely.'],
+    ['Swing shift', 'Staff who start late in the morning and stay into the evening.'],
     ['M&M', 'Morbidity and mortality review. Going over what went wrong, to learn from it.'],
   ]],
 ];
@@ -1240,36 +1261,36 @@ const far = (a, b) => (mapFar() ? a : b);   // zoomed out on the floor plan, peo
 const STEPS = [
   { id: 'hi', next: true, title: 'Welcome to Orientation', text: `I’m your **preceptor**: the nurse who trains you.\nThis is the **ED**, the emergency department. You are the **charge nurse**. You decide **who gets which bed, nurse, and doctor**.\nTap what I **light up**. Nothing here counts.`},
   { id: 'words', next: true, title: 'The words', text: `Hospitals love short names: **ESI, EMS, RN, EVS**. I’ll explain each one as it comes up.\n**Words** has the whole list.`, spot: () => ['#coach [data-act="words"]'] },
-  { id: 'top', next: true, title: 'The clock and your scores', text: `The shift runs **07:00 to 19:00**. Your five scores:\n**Wait**: minutes until a patient is examined.\n**Mgmt**: patient management. Points for moving patients safely.\n**Staff**: team morale.\n**LWBS**: Left Without Being Seen. They gave up and walked out.\n**Wall**: ambulance crews stuck waiting.\n**1×** is the speed. **II** pauses.`, spot: () => ['#top .hud'] },
-  { id: 'box', next: true, title: 'The Box and Divert', text: `**The Box** is the radio ambulance crews call on. Crews are **EMS**: emergency medical services.\n**Divert** sends ambulances to another hospital when you can’t take patients.`, spot: () => ['#boxbar', '#btnYellow'] },
   { id: 'intake', next: true, title: 'The front door', text: () => `Patients come two ways.\n**Walk-ins** line up at the door.\n**Ambulance crews** wait ${FP() ? 'at the wall' : 'in the Ambulance bay'}.\n**Registrars**, in green, take names. The **triage nurse**, in purple, decides how sick each one is.`, spot: () => ['#istaff', '#intake .lane', '#mWait', '#mDoor'] },
-  { id: 'pods', next: true, title: 'Rooms, pods, and nurses', text: () => `A **pod** is four rooms and one **RN**: registered nurse.\nThe ${FP() ? 'sign over the pod' : 'pod header'} shows her **load**. **3/4** is three points of work out of a safe four. Sicker patients count more.`, spot: () => ['#zh-a, #mzh-a'] },
-  { id: 'rest', next: true, title: 'The rest of the floor', text: () => `**H1 to H4** are **hallway beds**, for when the rooms are full.\n**Fast** is **Fast Track**: four rooms for minor problems, open from 09:00.\n**Chairs** are for patients who only need to wait for results.\n${FP() ? '**Orange dashes**' : '**ISO**'}: an isolation room, for infections that spread through the air. ${FP() ? '**Blue dots**' : '**Safe**'}: a safe room, for a patient who might hurt themselves.`, spot: () => ['#zh-hall, #mzh-hall', '#zh-ft, #mzh-ft', '#zh-rp, #mzh-rp'] },
-  { id: 'provs', next: true, title: 'Providers', text: () => `A **provider** examines patients and writes **orders**: which tests and treatments to give.\n**Attendings**, dark blue: fully trained emergency doctors.\n**PAs and NPs**, teal: physician assistants and nurse practitioners.\nThey wait ${SIDE()}. Nobody is examined until you send one.`, spot: () => ['#dockProv', '#sideProv'] },
-
   { id: 'm1', title: 'A walk-in', text: () => `[[Maria]], 34, walked in. It burns when she urinates.\nFirst: **quick registration**. Name and birth date, so tests go to the right person.\nTap **Tasha**, a registrar. Then tap ${far('**the line at the door**', '[[Maria]]')}.`,
     setup: () => ({ maria: E.trainPatient('uti', 'walk', { name: 'Maria L.', age: 34 }) }), ...regStep('maria', 'reg1') },
   { id: 'm2', wait: true, title: 'Registering', text: `Two minutes. The rest of the paperwork happens later, **in her room**. Nobody leaves the ED until it is done.`, done: () => E.regQuick(tid('maria')) },
   { id: 'm3', title: 'Triage', text: () => `Next: **triage**. Sorting by how sick, not by who came first. A nurse checks her pulse, pressure, and temperature, and asks what is wrong.\nTap **Bea**, your triage nurse. Then tap ${far('**the line at the door**', '[[Maria]]')}.`, ...triStep('maria', 'rnT') },
-  { id: 'm4', wait: true, title: 'Her ESI', text: `Triage gives a number, the **ESI**: Emergency Severity Index.\n**1** dying right now.\n**2** high risk, should not wait.\n**3** can wait, needs several tests.\n**4** needs one test or treatment.\n**5** needs none.\nAfter triage, walk-ins sit in the waiting room.`, done: () => tid('maria').tri === 'done' },
-  { id: 'm5', title: 'Give her a bed', text: () => `Maria is **ESI 4**: not an emergency.\n${far('Tap **the waiting room**, pick [[Maria]]', 'Tap [[Maria]] in the waiting room')}, then tap **Room 1**. Green rooms are clean and open.`, ...bedStep('maria', '1') },
+  { id: 'm4', wait: true, title: 'Her ESI', text: `Triage gives a number, the **ESI**: Emergency Severity Index.\n**1** needs a life-saving action right now.\n**2** high risk, should not wait.\n**3** can wait, needs several tests.\n**4** needs one test or treatment.\n**5** needs none.\nAfter triage, walk-ins sit in the waiting room.`, done: () => tid('maria').tri === 'done' },
+  { id: 'pods', next: true, title: 'Rooms, pods, and nurses', text: () => `A **pod** is four rooms and one **RN**: registered nurse.\nThe ${FP() ? 'sign over the pod' : 'pod header'} shows her **load**. **3/4** is three points of work out of a safe four. Sicker patients count more.`, spot: () => ['#zh-a, #mzh-a'] },
+  { id: 'm5', title: 'Give her a bed', text: () => `Maria is **ESI 4**: stable, and she needs one test.\n${far('Tap **the waiting room**, pick [[Maria]]', 'Tap [[Maria]] in the waiting room')}, then tap **Room 1**. Green rooms are clean and open.`, ...bedStep('maria', '1') },
   { id: 'm5a', title: 'Read the room', text: () => `${E.roomName(tid('maria').room || '1')} shows **her name**, her **ESI** in the circle, and ${FP() ? 'one **icon** for what it needs next. The blue stethoscope: she needs a provider' : 'what it needs next'}.\nTap **the room** to open her card.`,
     spot: () => [roomSel(tid('maria'))], done: () => onSheet(tid('maria')) || tid('maria').loc === 'gone', auto: () => { U.sel = null; U.sheet = { type: 'pt', pid: tid('maria').id }; } },
   { id: 'm5b', next: true, keep: true, title: 'Her vital signs', text: `**Vitals** are the body’s basic numbers. Normal for an adult:\n**HR** heart rate: 60 to 100.\n**BP** blood pressure: about 120/80.\n**RR** breaths a minute: 12 to 20.\n**SpO2** oxygen in the blood: 95% or more.\n**Temp**: 100.4 or more is a fever.\n**Red** is out of range. The tag says **worse, improving, or steady**. Hers are fine.`, spot: () => ['#sheet .ph-cc'] },
+  { id: 'provs', next: true, title: 'Providers', text: () => `A **provider** examines patients and writes **orders**: which tests and treatments to give.\n**Attendings**, dark blue: fully trained emergency doctors.\n**PAs and NPs**, teal: physician assistants and nurse practitioners.\nThey wait ${SIDE()}. Nobody is examined until you send one.`, spot: () => ['#dockProv', '#sideProv'] },
+
   { id: 'm6', title: 'Send a provider', text: () => `Nobody is examined until you send a provider.\nTap **Rivera**, a PA, ${SIDE()}. Then tap **${E.roomName(tid('maria').room || '1')}**.`, ...provStep('maria', 'pa1') },
   { id: 'ic1', next: true, title: 'Blue or gray', text: () => (FP() ? `Her icon turned **gray**: someone is with her, so she is not waiting on you.\n**Blue and pulsing** needs you. **Gray** is waiting on someone else.\nLater you will see a **house**: ready to go home. A **purple bed**: admitted, waiting for a bed upstairs. A **broom**: dirty.` : `The words on her room turned **gray**: someone is with her, so she is not waiting on you.\n**Blue** needs you. **Gray** is waiting on someone else. **Green** is ready to go. **Purple** is admitted, waiting for a bed upstairs.`), spot: () => [roomSel(tid('maria'))] },
   { id: 'ic2', title: 'Zoom in', text: `**+** zooms in, and the icons turn into **words**.\nTap **+** until they do.`, spot: () => ['#mzoom [data-arg="in"]'], done: () => !FP() || !CAM.far, auto: () => { for (let i = 0; i < 4 && CAM.far; i++) mapZoom(1.5); } },
   { id: 'ic3', title: 'The whole floor', text: `Now each room says what it needs in **words**. Zoomed in, you see less of the floor. Drag to move around.\nTap **⤢** to see the whole floor again.`, spot: () => ['#mzFit'], done: () => !FP() || !mapZoomed(), auto: () => mapZoom(0) },
   { id: 'm7', wait: true, title: 'The workup', text: `Rivera orders a urine test. Tests that find what is wrong are the **workup**.\nA **tech** collects the sample. Techs are **PCTs**, patient care technicians: the nurses’ extra hands.`, done: () => tid('maria').dxK || tid('maria').loc === 'gone' },
+  { id: 'rest', next: true, title: 'The rest of the floor', text: () => `**H1 to H4** are **hallway beds**, for when the rooms are full.\n**Fast** is **Fast Track**: four rooms for minor problems, open from 09:00.\n**Chairs** are for patients who only need to wait for results.\n${FP() ? '**Orange dashes**' : '**ISO**'}: an isolation room, for infections that spread through the air. ${FP() ? '**Blue dots**' : '**Safe**'}: a safe room, for a patient who might hurt themselves.`, spot: () => ['#zh-hall, #mzh-hall', '#zh-ft, #mzh-ft', '#zh-rp, #mzh-rp'] },
   { id: 'm8', wait: true, title: 'Treatment', text: `The test shows a **UTI**: a urinary tract infection.\nThe **pharmacist** checks the antibiotic order. Then her nurse gives it. A registrar finishes her paperwork at the bedside.`, done: () => tid('maria').dsp !== 'none' || tid('maria').loc === 'gone' },
   { id: 'm9', title: 'Discharge', text: `She can go home. That is a **discharge**.\nTap **her room**, then **Discharge home**.`, ...roomAct('maria', '[data-act="dc"]'),
     done: () => ['dc', 'dcing'].includes(tid('maria').dsp) || tid('maria').loc === 'gone', auto: () => E.discharge(tid('maria').id) },
   { id: 'm10', wait: true, title: 'Discharge teaching', text: `Her nurse goes over the plan: how to take the antibiotic, and the **warning signs** that mean come back.`, setup: () => ({ room1: tid('maria').room || '1' }), done: () => tid('maria').loc === 'gone' },
+  { id: 'top', next: true, title: 'The clock and your scores', text: `The shift runs **07:00 to 19:00**. Your five scores:\n**Wait**: minutes until a patient is examined.\n**Mgmt**: patient management. Points for moving patients safely.\n**Staff**: team morale.\n**LWBS**: Left Without Being Seen. They gave up and walked out.\n**Wall**: ambulance crews stuck waiting.\n**1×** is the speed. **II** pauses.`, spot: () => ['#top .hud'] },
   { id: 'n1', title: 'What needs you', text: () => `${E.roomName(TR().ids.room1)} is **dirty** until you send someone.\nYou won’t spot everything yourself. The **Next** button, ${FP() ? (U.rails ? 'at the bottom left' : 'in the corner of the floor') : 'in the bottom right corner'}, counts what is waiting on you and goes to the most urgent.\nTap **Next**.`,
     setup: () => { TR().need = 1; return null; }, spot: () => ['#needBtn'], done: () => (TR().nx || 0) >= 1 || E.room(TR().ids.room1).st !== 'dirty' || g().evsQ.includes(TR().ids.room1), auto: () => { TR().nx = 1; } },
   { id: 'm11', title: 'Clean the room', text: () => `It took you to ${E.roomName(TR().ids.room1)}.\n**EVS** is environmental services: the housekeepers. Nothing gets cleaned until you send them.\nTap **the dirty room**.`, spot: () => [`#room-${TR().ids.room1}, #mroom-${TR().ids.room1}`],
     done: () => { const r = E.room(TR().ids.room1); return r.st !== 'dirty' || g().evsQ.includes(r.id); }, auto: () => E.evsTap(TR().ids.room1) },
 
+  { id: 'box', next: true, title: 'The Box and Divert', text: `**The Box** is the radio ambulance crews call on. Crews are **EMS**: emergency medical services.\n**Divert** sends ambulances to another hospital when you can’t take patients.`, spot: () => ['#boxbar', '#btnYellow'] },
   { id: 'w1', title: 'An ambulance', text: () => `**Medic 7**, an ambulance crew, brought [[Walter]], 82. He fell at home.\nA crew can’t leave until a nurse takes **report**: the hand-off of what happened. They wait at the wall.\n${far('Tap **the wall**, then [[Walter]]', 'Tap [[Walter]]')}. On his card pick **Bea** to take report, then **Miguel** to register him. Report comes first.`,
     setup: () => ({ walter: E.trainPatient('hipfx', 'ems', { name: 'Walter K.', age: 82, sex: 'M', unit: 'Medic 7' }) }), ...intakeStep('walter', 'reg2', 'rnT') },
   { id: 'w2', wait: true, title: 'Taking report', text: `Every minute on the wall is a crew that can’t answer the next 911 call. Keep it **under 30 minutes**.`, done: () => tid('walter').tri === 'done' && E.regQuick(tid('walter')) },
@@ -1295,7 +1316,7 @@ const STEPS = [
   { id: 't6', title: 'Pull a second nurse', text: () => `A patient this sick takes more than one nurse. **Casey** is your **resource nurse**: no pod of her own, so she goes where the work is.\nTap the **Resus ${FP() ? 'sign' : 'header'}**, then add **Casey**.`,
     spot: () => (sheetIs('zone', 'resus') ? ['#sheet [data-act="zt"][data-arg="rnX|resus"]'] : ['#zh-resus, #mzh-resus']),
     done: () => E.staff('rnX').zones.includes('resus'), auto: () => E.toggleZone('rnX', 'resus') },
-  { id: 't7', wait: true, title: 'To the OR', text: `A tech runs the cooler over. His nurse starts the blood. The surgeon takes him to the **OR**, the operating room.\nWithout blood in the first 15 minutes: **shock**. Too little blood reaching his organs.`, done: () => tid('trauma').loc === 'gone' },
+  { id: 't7', wait: true, title: 'To the OR', text: `A tech runs the cooler over. His nurse starts the blood. The surgeon takes him to the **OR**, the operating room.\nHe is already in **shock**: too little blood reaching his organs. Blood in the first 15 minutes gets him to the OR alive.`, done: () => tid('trauma').loc === 'gone' },
 
   { id: 'c1', title: 'Medical direction', text: `The Box again. A paramedic on a call needs a **doctor’s orders**, like permission to give a drug. That is **medical direction**. Only an attending can give it.\nTap **Find a doctor**, then **Dr. Patel**.`,
     setup: () => { E.trainConsult(); return null; },
@@ -1398,8 +1419,8 @@ const STEPS_MD = [
   { id: 'a1', title: 'Vomiting, sugar very high', text: `**Room 5**: [[Aisha]], 24. **ESI 2**: high risk, should not wait. She is vomiting, and her blood sugar is very high.\nTap **her room**, then **See this patient**.`,
     setup: () => ({ aisha: E.trainPatient('dka', 'room', { room: '5', name: 'Aisha K.', age: 24, sex: 'F' }) }), ...seeStep('aisha') },
   { id: 'a2', wait: true, title: 'In the room', text: `Her breath smells **fruity**. She is breathing **fast and deep**. Her mouth is dry.`, done: () => tid('aisha').ord === 'need' },
-  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**, diabetic ketoacidosis. **Insulin** is the hormone that lets the body use sugar. Without it, the body burns fat and the blood turns acid.\nShe needs **labs** to prove it, **IV fluids** (salt water into a vein), and an **insulin drip** (steady insulin into a vein).\nTap **her room**, **Labs**, **IV fluids**, **Insulin drip**, then **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin']]) },
-  { id: 'a4', wait: true, title: 'Results', text: `**Glucose**, her blood sugar: **540**. Normal is about 100.\n**Anion gap 26**: acid in the blood. Normal is under 12.\nThat is DKA. The pharmacist checks the insulin order, and her nurse starts the drip.`, done: () => tid('aisha').dsp === 'mddecide' || !!tid('aisha').mdPick },
+  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**, diabetic ketoacidosis. **Insulin** is the hormone that lets the body use sugar. Without it, the body burns fat and the blood turns acid.\nShe needs **labs** to prove it and to check her **potassium**, **IV fluids** (salt water into a vein), and an **insulin drip** (steady insulin into a vein).\nTap **her room**, **Labs**, **IV fluids**, **Insulin drip**, then **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin']]) },
+  { id: 'a4', wait: true, title: 'Results', text: `**Glucose**, her blood sugar: **540**. Normal is about 100.\n**Anion gap 26**: acid in the blood. Normal is under 12.\n**Potassium 4.8**: safe for insulin. Insulin drives potassium out of the blood, so a low one is fixed first.\nThat is DKA. Her nurse starts the drip.`, done: () => tid('aisha').dsp === 'mddecide' || !!tid('aisha').mdPick },
   { id: 'a5', title: 'Admit her', text: `A patient on an insulin drip is checked every hour, so she goes to the **ICU**: the intensive care unit.\nTo admit a patient you call a **consult**: the specialists who take over her care.\nTap **her room**, **Admit: call a consult**, then **Critical Care**: the ICU team.`, ...callStep('aisha', 'consult', 'icu') },
   { id: 'a6', wait: true, title: 'Admitted', text: `Critical Care comes down and **admits** her. The charge nurse handles the bed upstairs and the transport.`, done: () => E.isBoarder(tid('aisha')) || tid('aisha').loc === 'gone' },
 
@@ -1412,7 +1433,7 @@ const STEPS_MD = [
   { id: 'b6', wait: true, title: 'CT', text: `The CT shows an inflamed appendix: **appendicitis**.`, done: () => tid('sam').dsp === 'mddecide' || !!tid('sam').mdPick },
   { id: 'b7', title: 'Call surgery', text: `Appendicitis is fixed in the **OR**, the operating room.\nTap **his room**, **Admit: call a consult**, then **General Surgery**: the belly surgeons.\nCall before the results are back, and the consultant gets angry and slow.`, ...callStep('sam', 'consult', 'surg') },
 
-  { id: 'r1', title: 'The radio', text: `The **radio**, which staff call **the Box**, is ringing. An ambulance crew needs a **doctor’s orders**. That is **medical direction**. Only you can give it.\nTap **Answer** and read the call. **Approve** if it is safe. **Deny** if it could hurt the patient.\nThe rule for this one: an adult who is thinking clearly **may refuse** care.`,
+  { id: 'r1', title: 'The radio', text: `The **radio**, which staff call **the Box**, is ringing. An ambulance crew needs a **doctor’s orders**. That is **medical direction**. Only you can give it.\nTap **Answer** and read the call. **Approve** if it is right for this patient. **Deny** if it could hurt them or they need something else.\nThe rule for this one: an adult who is thinking clearly **may refuse** care.`,
     setup: () => { E.trainConsult(); return null; },
     spot: () => { if (U.modal && U.modal.type === 'scen') return ['#modal [data-act="scen"]']; if (U.modal && U.modal.type === 'result') return ['#modal [data-act="modalOk"]']; return ['#boxbar .bx-btn']; },
     done: () => g().stats.boxC.ans >= 1 && !U.modal,
@@ -1465,11 +1486,11 @@ const LESSONS = {
     { id: 'h3', wait: true, title: 'In the room', text: `He is gray and sweating. The pressure in his chest runs down his left arm.\nA tech repeated the ECG at the door. The goal is **door to ECG in 10 minutes**.`, done: lExamined },
     { id: 'h4', title: 'Heart attack orders', text: `The **ECG** is done, so it shows as ordered.\n**Labs**: one of them is **troponin**, which rises when heart muscle is damaged.\n**Medications**: aspirin and a blood thinner, so the clot stops growing.\nTap **his room**, **Labs**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'meds']]) },
     { id: 'h5', wait: true, title: 'Door to balloon', text: `Cardiology takes him to the cath lab.\nThe goal is **door to balloon in 90 minutes**: from his arrival to the artery reopened.`, done: lLeft },
-    { id: 'h6', next: true, title: 'Most chest pain is not this', text: `Most chest pain is **not** a STEMI. The ECG looks normal and the first troponin is negative.\nThen the **HEART score** rates the risk, 0 to 10.\n**0 to 3**: home.\n**4 to 6**: **observation**. A day of watching and repeat tests.\n**7 and up**: admit.` },
-    { id: 'h7', final: true, title: 'Heart attack: the short version', text: `**Looks like**: chest pressure, sweating, pain in the arm or jaw.\n**Order**: ECG, labs, medications.\n**Clock**: ECG in 10 minutes, artery open in 90.\n**As charge nurse**: an ECG at the door, a room now, and never the waiting room.` },
+    { id: 'h6', next: true, title: 'Most chest pain is not this', text: `Most chest pain is **not** a STEMI. The ECG looks normal and the first troponin is negative.\nIt still gets an ECG, labs, a **chest X-ray**, and medication.\nThen the **HEART score** rates the risk, 0 to 10.\n**0 to 3**: home.\n**4 to 6**: **observation**. A day of watching and repeat tests.\n**7 and up**: admit.` },
+    { id: 'h7', final: true, title: 'Heart attack: the short version', text: `**Looks like**: chest pressure, sweating, pain in the arm or jaw.\n**Order**: ECG, labs, medications (**aspirin**). Not a STEMI: add a **chest X-ray**.\n**Clock**: ECG in 10 minutes, artery open in 90.\n**As charge nurse**: an ECG at the door, a room now, and never the waiting room.` },
   ] },
   sepsis: { name: 'Sepsis', blurb: 'Infection and a low pressure. Antibiotics within the hour.', steps: [
-    { id: 'p0', next: true, title: 'Sepsis', text: `**Sepsis** is an infection that has spread through the body. The body’s reaction drops the blood pressure and starves the organs.\nLook for **fever**, a **fast heart**, **fast breathing**, and **confusion**.\nWith a very low pressure it is **septic shock**.` },
+    { id: 'p0', next: true, title: 'Sepsis', text: `**Sepsis** is the body’s reaction to an infection, out of control. It drops the blood pressure and starves the organs.\nLook for **fever**, a **fast heart**, **fast breathing**, and **confusion**.\nWith a very low pressure it is **septic shock**.` },
     { id: 'p1', wait: true, title: 'Sepsis alert', text: `An ambulance is bringing [[Rosa]], 71. Fever, confused, blood pressure **74/40**. Normal is about 120/80.\nThe **sepsis alert** starts a clock: **antibiotics within the hour**.`,
       setup: () => ({ pt: E.trainPatient('shock', 'alert', { name: 'Rosa M.', age: 71, sex: 'F', unit: 'Medic 3', eta: 4 }) }), done: lRoomed },
     { id: 'p2', title: 'See her now', text: () => `She is **ESI 1**: the sickest level.\nTap **${lRoom()}**, then **See this patient**.`, ...seeStep('pt') },
@@ -1489,9 +1510,9 @@ const LESSONS = {
     { id: 't3', wait: true, title: 'Inbound', text: `The **blood bank** is packing the cooler. A tech will run it over.`, done: lRoomed },
     { id: 't4', title: 'See him now', text: () => `He is here, in **${lRoom()}**.\nTap **his room**, then **See this patient**.`, ...seeStep('pt') },
     { id: 't5', wait: true, title: 'In the room', text: `His belly is **hard and tender**. His heart is racing. He is **pale and cold**.\nThe trauma surgeon is at the bedside.`, done: lExamined },
-    { id: 't6', title: 'Trauma orders', text: `**X-ray** and **CT** find where he is bleeding.\n**Labs** match his blood type and count his blood.\nMassive transfusion shows as ordered already.\nTap **his room**, **X-ray**, **Labs**, **CT**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['t', 'ct']]) },
-    { id: 't7', wait: true, title: 'To the OR', text: `His nurse hangs the blood. Watch his pressure come up.\nThe CT shows a torn **spleen**. The surgeon takes him to the **OR**, the operating room, to stop the bleeding.`, done: lLeft },
-    { id: 't8', final: true, title: 'Bleeding trauma: the short version', text: `**Looks like**: an injury with a fast heart, a falling pressure, and pale skin.\n**Order**: massive transfusion first. Then X-ray, labs, CT.\n**Clock**: the surgeon at the bedside in 15 minutes.\n**As charge nurse**: a Resus room, blood on the radio report, a second nurse.` },
+    { id: 't6', title: 'Trauma orders', text: `**X-ray** and a bedside ultrasound look for blood in his chest and belly.\n**Labs** match his blood type and count his blood.\n**No CT**: his pressure is too low to leave the room.\nMassive transfusion shows as ordered already.\nTap **his room**, **X-ray**, **Labs**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab']]) },
+    { id: 't7', wait: true, title: 'To the OR', text: `His nurse starts the blood. Watch his pressure come up.\nThe ultrasound shows **blood in his belly**. The surgeon takes him straight to the **OR**, the operating room, to stop the bleeding.`, done: lLeft },
+    { id: 't8', final: true, title: 'Bleeding trauma: the short version', text: `**Looks like**: an injury with a fast heart, a falling pressure, and pale skin.\n**Order**: massive transfusion first. Then X-ray and labs. **No CT** while the pressure is down.\n**Clock**: the surgeon at the bedside in 15 minutes.\n**As charge nurse**: a Resus room, blood on the radio report, a second nurse.` },
   ] },
   breath: { name: 'Trouble breathing', blurb: 'Wheezing, wet lungs, or infection. Each needs something different.', steps: [
     { id: 'b0', next: true, title: 'Trouble breathing', text: `Trouble breathing has three common causes. Each needs something different.\n**Wheezing**: narrowed airways. That is asthma, or **COPD**: lungs damaged by years of smoking.\n**Wet lungs, can’t lie flat**: fluid backing up from a weak heart. **Heart failure.**\n**Fever and cough**: **pneumonia**, a lung infection.` },
@@ -1503,7 +1524,7 @@ const LESSONS = {
     { id: 'b5', keep: true, title: 'Breathing orders', text: `**Nebulizer**: a mist of medicine that opens the airways.\n**BiPAP**: a tight mask that pushes air and oxygen in with each breath, so he can rest.\n**X-ray** and **Labs**: check for pneumonia or fluid.\nTap **X-ray**, **Labs**, **Nebulizer**, **BiPAP**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'nebs'], ['r', 'bipap']]) },
     { id: 'b6', wait: true, title: 'Watch him settle', text: `**RT**, the respiratory therapist, fits the mask. His oxygen rises and his breathing slows.`, done: lResulted },
     { id: 'b7', title: 'Admit him', text: `He needs the mask for hours, so he stays. The **hospitalist** is the doctor who looks after admitted patients.\nTap **his room**, **Admit: call a consult**, then **Hospitalist**.`, ...callStep('pt', 'consult', 'hosp') },
-    { id: 'b8', final: true, title: 'Trouble breathing: the short version', text: `**Wheezing**: nebulizer. Add BiPAP if he is tiring.\n**Wet lungs, can’t lie flat**: BiPAP and medications.\n**Fever and cough**: oxygen and **Antibiotics**. Not Medications.\n**As charge nurse**: these are ESI 2. A room now.` },
+    { id: 'b8', final: true, title: 'Trouble breathing: the short version', text: `**Wheezing**: nebulizer. Add BiPAP if he is tiring.\n**Wet lungs, can’t lie flat**: BiPAP and medications.\n**Fever and cough**: chest X-ray, labs, oxygen, and **Antibiotics**. Not Medications.\n**As charge nurse**: these are ESI 2. A room now.` },
   ] },
   od: { name: 'Overdose', blurb: 'Slow breathing, pinpoint pupils. Naloxone wears off first.', steps: [
     { id: 'o0', next: true, title: 'Opioid overdose', text: `**Opioids** are strong painkillers: heroin, fentanyl, oxycodone. Too much **stops the breathing**.\nLook for someone **hard to wake**, with **slow, shallow breaths** and **pinpoint pupils**.\n**Naloxone**, also called Narcan, reverses it in minutes.` },
@@ -1516,24 +1537,24 @@ const LESSONS = {
     { id: 'o6', final: true, title: 'Overdose: the short version', text: `**Looks like**: hard to wake, slow breathing, pinpoint pupils.\n**Order**: naloxone and labs. Oxygen if it is low.\n**Watch**: naloxone wears off first. He can slip back.\n**As charge nurse**: ESI 2. A room where his nurse can see him.` },
   ] },
   belly: { name: 'Belly pain', blurb: 'Where it hurts picks the test: ultrasound, CT, or neither.', steps: [
-    { id: 'y0', next: true, title: 'Belly pain', text: `Where it hurts points to the organ. The organ picks the test.\n**Upper right, after meals**: the **gallbladder**, a small sac under the liver. **Ultrasound**.\n**Lower right**: the **appendix**. **CT**.\n**Flank, can’t hold still**: a **kidney stone**. **CT**.\n**Soft belly, vomiting**: a stomach bug. **Labs** only.` },
+    { id: 'y0', next: true, title: 'Belly pain', text: `Where it hurts points to the organ. The organ picks the test.\n**Upper right, after meals**: the **gallbladder**, a small sac under the liver. **Ultrasound**.\n**Lower right**: the **appendix**. **CT**.\n**Flank, can’t hold still**: a **kidney stone**. **CT**.\n**Soft belly, vomiting**: a stomach bug. **Labs**, fluids, and nausea medication. No scan.` },
     { id: 'y1', title: 'Pain after meals', text: `**Room 5**: [[Maria]], 44. Pain under her right ribs since dinner.\nTap **her room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('chole', 'room', { room: '5', name: 'Maria G.', age: 44, sex: 'F' }) }), ...seeStep('pt') },
     { id: 'y2', wait: true, title: 'In the room', text: `She is tender **under the right ribs**. Her breath catches when you press there.\nThat points at the **gallbladder**.`, done: lExamined },
     { id: 'y3', title: 'Gallbladder orders', text: `**Ultrasound**: shows gallstones and a swollen gallbladder wall. It is the first test here, **not CT**.\n**Labs**: infection and the liver.\n**Medications**: pain control.\nTap **her room**, **Labs**, **Ultrasound**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
     { id: 'y4', wait: true, title: 'Results', text: `Ultrasound: **gallstones and a thick wall**. Her white cells are up.\nThat is an inflamed gallbladder: **cholecystitis**.`, done: lResulted },
     { id: 'y5', title: 'Call surgery', text: `An inflamed gallbladder comes out. **General Surgery** takes her.\nTap **her room**, **Admit: call a consult**, then **General Surgery**.`, ...callStep('pt', 'consult', 'surg') },
-    { id: 'y6', final: true, title: 'Belly pain: the short version', text: `**Upper right, after meals**: labs and **ultrasound**. General Surgery.\n**Lower right**: labs and **CT**. General Surgery.\n**Flank pain**: labs and **CT**. Usually home.\n**Soft belly, vomiting**: labs and fluids. **No CT.**\n**As charge nurse**: most are ESI 3. A rigid belly does not wait.` },
+    { id: 'y6', final: true, title: 'Belly pain: the short version', text: `**Upper right, after meals**: labs and **ultrasound**. General Surgery.\n**Lower right**: labs and **CT**. General Surgery.\n**Flank pain**: labs and **CT**. Usually home.\n**Soft belly, vomiting**: labs, fluids, nausea medication. **No CT.**\n**As charge nurse**: most are ESI 3. A rigid belly does not wait.` },
   ] },
   falls: { name: 'Falls', blurb: 'The hip, the head, and the blood thinner.', steps: [
-    { id: 'f0', next: true, title: 'Falls', text: `A fall in an older adult hides three things.\n**The hip**: a leg that is **shorter and turned out** is broken until an X-ray says otherwise.\n**The head**: on a **blood thinner**, a small bump can bleed. That needs a **CT**.\n**The reason**: ask why they fell. A faint needs an **ECG**.` },
+    { id: 'f0', next: true, title: 'Falls', text: `A fall in an older adult hides three things.\n**The hip**: a leg that is **shorter and turned out** is broken until proven otherwise. **X-ray** first. A clean film in someone who can’t stand: CT or MRI.\n**The head**: on a **blood thinner**, a small bump can bleed. That needs a **CT**.\n**The reason**: ask why they fell. A faint needs an **ECG**.` },
     { id: 'f1', title: 'Fell, hip pain', text: `**Room 9**: [[Dorothy]], 81. She fell in her kitchen and could not get up.\nTap **her room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('hipfx', 'room', { room: '9', name: 'Dorothy K.', age: 81, sex: 'F' }) }), ...seeStep('pt') },
     { id: 'f2', wait: true, title: 'In the room', text: `Her leg is **shorter and turned outward**. She can’t lift it.\nShe tripped on a rug. She did not hit her head.`, done: lExamined },
-    { id: 'f3', title: 'Hip orders', text: `**X-ray**: shows the break.\n**Labs**: she is headed for surgery, and the surgeon needs them.\n**Medications**: pain control. A broken hip hurts.\nTap **her room**, **X-ray**, **Labs**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'meds']]) },
+    { id: 'f3', title: 'Hip orders', text: `**X-ray**: shows the break.\n**Labs**: she is headed for surgery, and the surgeon needs them. An ECG is reasonable too.\n**Medications**: pain control. A broken hip hurts.\nTap **her room**, **X-ray**, **Labs**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'meds']]) },
     { id: 'f4', wait: true, title: 'Results', text: `X-ray: a **femoral neck fracture**. The femur is the thigh bone, and its neck is the top, at the hip.\nA **broken hip**.`, done: lResulted },
     { id: 'f5', title: 'Call Orthopedics', text: `**Orthopedics** are the bone surgeons. A broken hip is fixed in the operating room.\nTap **her room**, **Admit: call a consult**, then **Orthopedics**.`, ...callStep('pt', 'consult', 'ortho') },
-    { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head injury on a blood thinner**: **CT** and labs. Reverse the thinner if it bleeds. **Trauma**.\n**Twisted ankle, tender on the bone**: X-ray only.\n**As charge nurse**: a hip is ESI 3. A head injury on a blood thinner **does not wait**.` },
+    { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head injury on a blood thinner**: **CT** and labs. Reverse the thinner if it bleeds. **Trauma**.\n**Twisted ankle, tender on the bone**: X-ray. No break: ibuprofen and home.\n**As charge nurse**: a hip is ESI 3. A head injury on a blood thinner **does not wait**.` },
   ] },
 };
 const LESSON_KEYS = Object.keys(LESSONS);
@@ -1608,7 +1629,7 @@ function coachHTML(where) {
   const s = coachStep(), n = STEPS_NOW().length, C = chOf(t.step);
   if (t.brk != null && C) {   // the card between two chapters
     const prev = chList(chMode())[C.k - 1], first = C.k === 1;
-    return `<div class="coach-c ${where}"><div class="ck">Preceptor · chapter ${C.k} of ${C.count} done</div><h4>${esc(prev.name)}: done</h4><p>${fmt(first ? `That is enough to run a quiet shift. **Play a Quiet Tuesday** now, or keep going.\nNext chapter: **${C.name}**, ${C.n} steps. It will be on the menu.` : `Next chapter: **${C.name}**, ${C.n} steps.\nStop here and it will be on the menu.`)}</p><div class="cb"><button type="button" class="skip" data-act="coachExit">Menu</button>${first ? '<button type="button" data-act="coachNext">Keep going</button><button type="button" class="go" data-act="coachEasy">Play Quiet Tuesday</button>' : '<button type="button" data-act="coachEasy">Play Quiet Tuesday</button><button type="button" class="go" data-act="coachNext">Keep going</button>'}</div></div>`;
+    return `<div class="coach-c ${where}"><div class="ck">Preceptor · chapter ${C.k} of ${C.count} done</div><h4>${esc(prev.name)}: done</h4><p>${fmt(first ? (chMode() === 'md' ? `That is enough to **see, treat, and discharge** a simple patient.\nA **Quiet Tuesday** will also bring sicker patients and ring the radio. The card on each patient tells you what it needs.` : `That is enough to **room, treat, and discharge** a walk-in.\nA **Quiet Tuesday** will also bring ambulances and ring the Box. Tap **Next** and follow it.`) + `\nOr **keep going**: ${C.name}, ${C.n} steps. **Menu** keeps your place.` : `Next chapter: **${C.name}**, ${C.n} steps.\n**Keep going**, play a **Quiet Tuesday**, or go to the **Menu**. Your place is kept under Orientation.`)}</p><div class="cb"><button type="button" class="skip" data-act="coachExit">Menu</button><button type="button"${first ? ' class="go"' : ''} data-act="coachEasy">Play Quiet Tuesday</button><button type="button"${first ? '' : ' class="go"'} data-act="coachNext">Keep going</button></div></div>`;
   }
   const title = typeof s.title === 'function' ? s.title() : s.title;
   let text = ''; try { text = typeof s.text === 'function' ? s.text() : s.text; } catch (e) { text = ''; }
@@ -1686,10 +1707,10 @@ function renderModal(G) {
     h = `<div class="mc-who">${esc(c.who)}</div><h3>${esc(c.title)}</h3><p>${fmt(c.text)}</p><div class="mc-ch">${c.choices.map(x => `<button type="button" data-act="card" data-arg="${x.k}" ${x.dis ? 'disabled' : ''}><b>${esc(x.label)}</b>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('')}</div>`;
   } else if (U.modal && U.modal.type === 'scen') {
     const m = U.modal;
-    h = `<div class="mc-who">The Box · ${esc(m.unit)} · ${esc(m.doc)} on the line${m.pack === 'miemss' ? ' · Maryland protocols' : ''}</div><h3>Medical direction</h3><p class="scen">${esc(m.sc.q)}</p>${PLAIN() && m.sc.plain ? `<p class="scen-p"><b>In plain words:</b> ${esc(m.sc.plain)}</p>` : ''}<div class="mc-ch two"><button type="button" class="go" data-act="scen" data-arg="1"><b>Approve</b></button><button type="button" class="no" data-act="scen" data-arg="0"><b>Deny</b></button></div>`;
+    h = `<div class="mc-who">The Box · ${esc(m.unit)} · ${esc(m.doc)} on the line${m.pack === 'miemss' ? ' · Maryland protocols' : ''}</div><h3>Medical direction</h3><p class="scen">${esc(m.sc.q)}</p>${PLAIN() && m.sc.plain ? `<p class="scen-p"><b>In plain words:</b> ${esc(m.sc.plain)}</p>` : ''}<div class="mc-ch two"><button type="button"${m.sc.btn ? '' : ' class="go"'} data-act="scen" data-arg="1"><b>${esc((m.sc.btn || ['Approve'])[0])}</b></button><button type="button"${m.sc.btn ? '' : ' class="no"'} data-act="scen" data-arg="0"><b>${esc((m.sc.btn || [0, 'Deny'])[1])}</b></button></div>`;   // named choices are not green and red: neither is the "yes" answer
   } else if (U.modal && U.modal.type === 'result') {
     const r = U.modal.r;
-    h = `<div class="mc-res ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Correct' : 'Incorrect'}</div><h3>You ${r.approve ? 'approved' : 'denied'} it</h3>${PLAIN() && r.sc.pwhy ? `<p><b>${esc(r.sc.pwhy)}</b></p><p class="scen-c">${esc(r.sc.why)}</p>` : `<p>${esc(r.sc.why)}</p>`}<div class="mc-ch"><button type="button" data-act="modalOk"><b>Back to the floor</b></button></div>`;
+    h = `<div class="mc-res ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Correct' : 'Incorrect'}</div><h3>${r.sc.btn ? `You said: ${esc(r.sc.btn[r.approve ? 0 : 1])}` : `You ${r.approve ? 'approved' : 'denied'} it`}</h3>${PLAIN() && r.sc.pwhy ? `<p><b>${esc(r.sc.pwhy)}</b></p><p class="scen-c">${esc(r.sc.why)}</p>` : `<p>${esc(r.sc.why)}</p>`}<div class="mc-ch"><button type="button" data-act="modalOk"><b>Back to the floor</b></button></div>`;
   } else if (U.modal && U.modal.type === 'first') {
     const md = MD(), lines = md
       ? ['A **blue stethoscope** is a patient waiting for a doctor. Tap the room, then **See this patient**.', 'After your exam, **write the orders**. When results are back, **make the call**: home, admit, or transfer.', '**Next** jumps to whatever is waiting on you.']
@@ -1794,7 +1815,7 @@ function tapRoom(id) {
   if (s && s.type === 'tri') { toast('Triage happens at the door. Tap a patient in the ambulance bay or waiting room.', 'info'); return; }
   if (s && (s.type === 'pt' || s.type === 'move')) {
     const out = s.type === 'pt' ? E.place(s.pid, id) : E.move(s.pid, id);
-    if (out.ok) { U.sel = null; sfx('tap'); } else toast(out.why, 'bad');
+    if (out.ok) { U.sel = null; sfx('tap'); } else { s.why = out.why; toast(out.why, 'bad'); }   // the reason stays on the bar: a passing message was easy to miss
     return;
   }
   if (s && s.type === 'prov') {
@@ -1897,7 +1918,7 @@ const ACT = {
     else if (it.k === 'door' || it.k === 'wait') U.sheet = { type: 'zone', z: 'triage', at: it.k };
     else toast(`${it.what}. Tap it to send EVS.`, 'info');   // a card says what it is; a dirty room has no card, so say it
   },
-  boxTap: () => { const b = $('#boxbar .bx-btn'); if (b && ACT[b.dataset.act]) ACT[b.dataset.act](b.dataset.arg, b); else toast(g().box.cur ? 'A doctor is on the line with the medic' : 'The Box is quiet', 'info'); },
+  boxTap: () => { const b = $('#boxbar .bx-btn'); if (b && ACT[b.dataset.act]) ACT[b.dataset.act](b.dataset.arg, b); else { const c = g().box.cur; toast(!c ? 'The Box is quiet' : c.kind === 'notify' ? (MD() ? 'An alert report. The charge nurse is taking it.' : 'An alert report is coming in') : 'A doctor is on the line with the medic', 'info'); } },
   fullscreen: () => {
     const d = document, el = d.documentElement;
     if (d.fullscreenElement) { d.exitFullscreen(); return; }
@@ -2081,12 +2102,22 @@ function starLine(R) {
 /* Orders the attending missed or did not need, patient by patient, with the reason. */
 function ordLogHTML(m) {
   const L = (m.log || []).filter(x => x && (x.miss.length || x.extra.length)); if (!L.length) return '';
-  return `<h4>Orders to review</h4><ul class="ordlog">${L.slice(0, 12).map(x => `<li><b>${esc(x.name)}</b> · ${esc(x.dx || '')}${x.miss.length ? `<span class="ol-m">Missed: ${esc(x.miss.join(', '))}</span>` : ''}${x.extra.length ? `<span class="ol-x">Not needed: ${esc(x.extra.join(', '))}</span>` : ''}${x.why ? `<span class="ol-w">${esc(x.why)}</span>` : ''}</li>`).join('')}</ul>${L.length > 12 ? `<p class="hint">And ${L.length - 12} more.</p>` : ''}`;
+  return `<h4>Orders to review</h4><ul class="ordlog">${L.slice(0, 12).map(x => `<li><b>${esc(x.name)}</b> · ${esc(x.dx || '')}${x.miss.length ? `<span class="ol-m">Missed: ${esc(x.miss.join(', '))}</span>` : ''}${x.extra.length ? `<span class="ol-x">Not needed: ${esc(x.extra.join(', '))}</span>` : ''}${x.fine && x.fine.length ? `<span class="ol-f">Also reasonable: ${esc(x.fine.join(', '))}</span>` : ''}${x.why ? `<span class="ol-w">${esc(x.why)}</span>` : ''}</li>`).join('')}</ul>${L.length > 12 ? `<p class="hint">And ${L.length - 12} more.</p>` : ''}`;
+}
+/* Radio calls the attending got wrong or let ring out, with the plain reason. */
+function radioLogHTML(R) {
+  const L = (R.radioLog || []); if (!L.length) return '';
+  return `<h4>Radio calls to review</h4><ul class="ordlog">${L.slice(0, 8).map(x => `<li>${esc(x.q)}<span class="ol-m">${x.miss ? 'Rang out. ' : 'You got it wrong. '}Right answer: ${esc(x.btn ? x.btn[x.a ? 0 : 1] : x.a ? 'Approve' : 'Deny')}</span><span class="ol-w">${esc(x.why)}</span></li>`).join('')}</ul>`;
+}
+/* Every patient who came back within 72 hours, and what would have prevented it. */
+function returnsHTML(R) {
+  const L = (R.returnList || []); if (!L.length) return '';
+  return `<h4>72-hour returns</h4><ul class="ordlog">${L.map(x => `<li><b>${esc(x.name)}</b> · ${esc(x.dx || '')}<span class="ol-m">${esc(x.why)}</span></li>`).join('')}</ul>`;
 }
 function mdReportHTML(R, t) {
-  if (R.mode !== 'md' || !R.md) return '';
+  if (R.mode !== 'md' || !R.md) return returnsHTML(R);
   const m = R.md;
-  return ordLogHTML(m) + `<h4>Your patients</h4><table>${t('Patients you saw', m.seen)}${t('ESI 1 and 2 seen within 10 min of a room', m.fast)}${t('Orders right / extra / missed', `${m.ordRight} / ${m.ordExtra} / ${m.ordMiss}`)}${t('Clean order sets', m.clean)}${t('Workups you had to add to', m.gaps)}${t('Patients hurt by an order', m.harm)}${t('Patients who got worse untreated', m.untreated)}${t('Disposition calls right / wrong', `${m.dispoRight} / ${m.dispoWrong}`)}${t('Medical direction calls answered', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Medical direction calls right', `${R.boxC.right} of ${R.boxC.ans}`)}</table>`;
+  return ordLogHTML(m) + radioLogHTML(R) + returnsHTML(R) + `<h4>Your patients</h4><table>${t('Patients you saw', m.seen)}${t('ESI 1 and 2 seen within 10 min of a room', m.fast)}${t('Orders right / extra / missed', `${m.ordRight} / ${m.ordExtra} / ${m.ordMiss}`)}${t('Clean order sets', m.clean)}${t('Workups you had to add to', m.gaps)}${t('Patients hurt by an order', m.harm)}${t('Patients who got worse untreated', m.untreated)}${t('Disposition calls right / wrong', `${m.dispoRight} / ${m.dispoWrong}`)}${t('Medical direction calls answered', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Medical direction calls right', `${R.boxC.right} of ${R.boxC.ans}`)}</table>`;
 }
 function mmHTML(R) {
   if (!R.mm) return '';

@@ -210,3 +210,40 @@ assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[
   const w = OC.consult ? OC.consult(p.id, 'ortho') : null;
   if (w) assert(!w.ok && /Call General Surgery\./.test(w.why), 'the wrong consultant says who to call: ' + w.why);
 }
+
+// ---- v0.16: the clinical review fixes ----
+{
+  const C = k => OC.CASES.find(c => c.k === k);
+  assert(!C('mvc').wk.includes('ct') && !C('mcired').wk.includes('ct') && /CT only if blood brings the pressure up/.test(OC.ORD_WHY.mvc), 'a bleeding trauma in shock is not scored for a CT');
+  assert(/potassium 4\.8/.test(C('dka').find.lab) && /potassium/.test(OC.ORD_WHY.dka) && /potassium/.test(OC.FIND_PLAIN[C('dka').find.lab]), 'DKA shows the potassium and says insulin waits for it');
+  assert(C('od').esi === 1 && C('chb').esi === 1 && C('burn').esi === 1 && C('bh').esi === 2 && C('mcimin').wk.join() === 'ct', 'triage levels and the neck CT follow the review');
+  for (const k of ['national', 'miemss']) assert(OC.SCEN[k].every(s => /They (want|ask)|The crew wants/.test(s.plain)), `every ${k} plain line says what the crew is asking for`);
+  assert(OC.SCEN.national.filter(s => /Can (he|she) refuse\?/.test(s.q)).every(s => s.btn && /may refuse/.test(s.btn[0])) && !OC.SCEN.national.concat(OC.SCEN.miemss).some(s => /Accept the refusal/.test(s.q)), 'refusal calls ask "Can he refuse?" and the buttons say the action');
+  // a reasonable order is neither scored nor flagged
+  OC.newGame('train', 78, { mode: 'md' });
+  const sx = OC.trainPatient('stroke', 'room', { room: 'R1' }), sp = typeof sx === 'string' ? OC.pt(sx) : sx;
+  OC.assign(OC.G.me, sp.id); let n = 0; while (sp.ord !== 'need' && n++ < 4000) OC.step(0.1);
+  const before = OC.G.stats.md.ordExtra, r1 = OC.signOrders(sp.id, ['ct', 'lab', 'ecg'], ['tnk']);
+  assert(r1.ok && OC.G.stats.md.ordExtra === before && sp.ordLog.extra.length === 0 && sp.ordLog.fine.join() === 'ECG' && sp.ordLog.miss.length === 0, 'an ECG in a stroke is reasonable: not flagged, not counted as extra');
+  // the wrong consultant stays on the patient; missing orders name the drug
+  const nx = OC.trainPatient('nstemi', 'room', { room: '5' }), np = typeof nx === 'string' ? OC.pt(nx) : nx;
+  OC.assign(OC.G.me, np.id); n = 0; while (np.ord !== 'need' && n++ < 6000) OC.step(0.1);
+  OC.signOrders(np.id, ['ecg', 'lab'], []);
+  assert(OC.missNow(np).join() === 'Medications (aspirin and heparin)', 'a missing Medications order names its drug: ' + OC.missNow(np));
+  // a watch period before an overdose goes home (a real shift, not Orientation)
+  OC.newGame('easy', 79, { mode: 'rn' });
+  const until = (cond, max) => { const t = OC.G.t; let n = 0; while (!cond() && OC.G.t - t < max && n++ < 20000) { if (OC.G.card) OC.botStep({ budget: 0 }); OC.step(0.5); } };   // a decision card stops the clock: let the autopilot answer it
+  const ox = OC.trainPatient('od', 'room', { room: '5' }), op = typeof ox === 'string' ? OC.pt(ox) : ox;
+  assert(op && op.loc === 'room' && OC.roomOf(op).kind !== 'resus', 'an overdose is ESI 1 but may take a monitored room');
+  const doc = OC.G.staff.find(s => s.role === 'md' && s.st === 'on'); OC.assign(doc.id, op.id);
+  until(() => op.dsp === 'watch' || op.loc !== 'room', 240);
+  assert(op.dsp === 'watch' && Math.round(op.due - OC.G.t) > 100, 'a treated overdose is watched for two hours, not offered for discharge: ' + op.dsp);
+  assert(OC.canPlace(op, OC.G.rooms.find(r => r.kind === 'chair' && !r.pid)).ok, 'a watched patient can wait in a chair');
+  const d = OC.discharge(op.id);
+  assert(d.ok && op.earlyDc && op.earlyDc.left > 60 && /naloxone/.test(op.earlyDc.why), 'the charge nurse may discharge early, and the reason is kept for the return');
+  const ax = OC.trainPatient('asthma', 'room', { room: '6' }), ap = typeof ax === 'string' ? OC.pt(ax) : ax;
+  const doc2 = OC.G.staff.filter(s => s.role === 'md' && s.st === 'on')[1] || doc; OC.assign(doc2.id, ap.id);
+  until(() => ap.dsp === 'watch' || ap.loc !== 'room', 300);
+  const t0 = OC.G.t; until(() => ap.dsp !== 'watch', 90);
+  assert(ap.dsp === 'ready' && OC.G.t - t0 > 45, 'after an hour of watching, an asthma patient is ready to go home: ' + ap.dsp + ' after ' + Math.round(OC.G.t - t0));
+}
