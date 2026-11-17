@@ -41,7 +41,7 @@ def run():
             page.wait_for_timeout(150)
 
         # ---------- title: pick the attending ----------
-        page.goto(URL, wait_until='domcontentloaded')
+        page.goto(URL, wait_until='domcontentloaded'); page.evaluate("() => localStorage.setItem('oc-view', 'list')"); page.goto(URL, wait_until='domcontentloaded')
         page.wait_for_timeout(1200)
         tap('[data-act="mode"][data-arg="md"]')
         tap('[data-act="pack"][data-arg="national"]')

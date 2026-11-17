@@ -477,3 +477,94 @@ body.md #istaff, body.md #btnYellow { display: none; }
 .hint.bad { color: var(--bad); font-weight: 600; }
 .pv { flex-shrink: 0; }
 @media (max-width: 560px) { .who.pv-on .em { display: none; } }
+
+/* ---------- the floor plan (v0.8) ---------- */
+.map { display: none; }
+body.mapmode .map { display: block; }
+body.mapmode #intake, body.mapmode #board, body.mapmode #zbar { display: none; }
+.map { height: calc(100vh - var(--topH, 120px) - var(--dockH, 84px)); height: calc(100dvh - var(--topH, 120px) - var(--dockH, 84px)); min-height: 200px; overflow: hidden; touch-action: none; background: #D9D3C6; }
+.map svg.floor { display: block; width: 100%; height: 100%; font-family: var(--ui); user-select: none; -webkit-user-select: none; }
+body.mapmode .logwrap { display: none; }
+body.mapmode .app { padding-bottom: 0; }
+@media (min-width: 1100px) {
+  body.mapmode .cols { display: block; }
+  body.mapmode .side { display: none; }
+  body.mapmode .dock { display: flex; }
+}
+/* phones held sideways: one slim bar on top, a slim dock, and the floor in between */
+@media (max-height: 520px) and (orientation: landscape) {
+  body.mapmode .hud { display: flex; align-items: center; gap: 10px; padding-top: calc(4px + env(safe-area-inset-top)); }
+  body.mapmode .hud-top { flex: none; gap: 6px; }
+  body.mapmode .brand { font-size: 17px; }
+  body.mapmode .brand small { display: none; }
+  body.mapmode .pills { flex: 1; padding: 4px 0; gap: 4px; }
+  body.mapmode .pill { flex-direction: row; align-items: baseline; gap: 5px; padding: 3px 7px; }
+  body.mapmode .pill b { font-size: 15px; }
+  body.mapmode .pill span { font-size: 11px; }
+  body.mapmode .shiftbar { display: none; }
+  body.mapmode .boxbar { min-height: 0; padding-top: 3px; padding-bottom: 3px; font-size: 13px; }
+  body.mapmode .boxbar .bx-btn { height: 30px; padding: 0 10px; font-size: 13px; }
+  body.mapmode .selbar { padding-top: 4px; padding-bottom: 4px; }
+  body.mapmode .selbar > span { font-size: 13px; }
+  body.mapmode .selbar button { height: 30px; }
+  body.mapmode .objs { padding-top: 3px; padding-bottom: 3px; }
+  body.mapmode .dock { padding-top: 4px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
+  body.mapmode .dock-prov { padding-top: 4px; }
+  body.mapmode .pm { min-height: 36px; padding: 3px 7px; }
+  body.mapmode .pm-t { display: none; }
+  body.mapmode .dock-team { margin-top: 4px; width: 64px; font-size: 13px; }
+  body.mapmode .dock-team small { display: none; }
+}
+.map .mp { transition: transform .9s cubic-bezier(.4, .1, .3, 1); }
+.map [data-act] { cursor: pointer; }
+.map .mroom:hover rect:first-child { filter: brightness(.97); }
+@keyframes lbBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .25; } }
+.map .lb1 { animation: lbBlink .6s linear infinite; }
+.map .lb2 { animation: lbBlink .6s linear infinite .3s; }
+@media (prefers-reduced-motion: reduce) { .map .mp { transition: none; } .map .lb1, .map .lb2 { animation: none; } }
+
+body.mapmode .selbar { position: absolute; top: 100%; left: 0; right: 0; z-index: 3; box-shadow: 0 3px 10px rgba(0, 0, 0, .25); }
+body.mapmode .objs { position: absolute; top: calc(100% + var(--selH, 0px)); right: 0; left: auto; max-width: 70%; justify-content: flex-end; background: transparent; border: 0; pointer-events: none; }
+body.mapmode .objs > * { pointer-events: auto; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+body.mapmode .toasts { top: auto; bottom: calc(var(--dockH, 60px) + 10px + env(safe-area-inset-bottom)); }
+@media (max-height: 520px) and (orientation: landscape) {
+  body.mapmode .bx-main { flex-direction: row; align-items: baseline; gap: 8px; }
+  body.mapmode .bx-name { flex: none; font-size: 14px; }
+  body.mapmode .bx-txt { font-size: 13px; }
+  body.mapmode .bx-bar { display: none; }
+  body.mapmode .objs .ob { font-size: 12px; padding: 2px 8px; }
+}
+/* floor plan: targets, selections, the Orientation's spotlight */
+.map .mroom.ok .mr-f { stroke: #1F8048; stroke-width: 5; }
+.map .mroom.no { opacity: .55; }
+.map .mpt.ok { filter: drop-shadow(0 0 4px #2BB55F) drop-shadow(0 0 2px #2BB55F); }
+.map .mpt.no { opacity: .5; }
+@keyframes critStroke { 50% { stroke: #F2B8C0; } }
+.map .mroom.crit .mr-f { stroke: #C8243A; stroke-width: 4; animation: critStroke 1s ease-in-out infinite; }
+.map .msign { cursor: pointer; }
+#map .coach-spot { filter: drop-shadow(0 0 4px #F2C230) drop-shadow(0 0 9px #F2C230); outline: none; }
+.dock .istaff { flex: none; margin: 0 6px 0 0; padding: 6px 0 0; overflow: visible; }
+.dock .istaff .ic-l { display: none; }
+.dock .istaff .ic { min-height: 44px; }
+/* phones held upright: ask to turn sideways (or use the list board) */
+.rotate { display: none; }
+@media (orientation: portrait) and (max-width: 700px) {
+  body.mapmode.ingame .rotate { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 24px; background: rgba(27, 34, 48, .96); color: #fff; text-align: center; }
+  .rot-c h3 { margin: 18px 0 6px; font: 700 24px/1.2 var(--display); }
+  .rot-c p { margin: 0 0 18px; color: #C9D2DE; font-size: 16px; }
+  .rot-c button { padding: 12px 18px; border: 2px solid #fff; border-radius: 12px; background: transparent; color: #fff; font: 700 16px/1 var(--ui); }
+  .rot-ph { width: 56px; height: 92px; margin: 0 auto; border: 4px solid #fff; border-radius: 12px; animation: rotph 2.4s ease-in-out infinite; }
+}
+@keyframes rotph { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+/* the preceptor's card stays off the middle of the floor */
+body.mapmode .coach { right: 12px; left: auto; bottom: calc(var(--dockH, 70px) + 10px); width: min(420px, calc(100vw - 24px)); }
+body.mapmode .coach.cleft { right: auto; left: 12px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  body.mapmode .coach { top: calc(var(--topH, 70px) + var(--selH, 0px) + 6px); bottom: auto; width: 290px; max-height: calc(100dvh - var(--topH, 70px) - var(--selH, 0px) - var(--dockH, 60px) - 14px); overflow: auto; margin: 0; padding: 10px 12px; }
+  body.mapmode .coach h3, body.mapmode .coach .coach-t { font-size: 17px; }
+  body.mapmode .coach p { font-size: 14px; line-height: 1.3; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  body.mapmode .toasts { gap: 4px; bottom: calc(var(--dockH, 60px) + 6px + env(safe-area-inset-bottom)); }
+  body.mapmode .toast { max-width: 440px; padding: 5px 10px; border-radius: 9px; font-size: 13px; line-height: 1.25; }
+}

@@ -7,6 +7,16 @@ A 32-bed emergency department, 07:00 to 19:00. Patients come in by ambulance and
 
 **Play it:** https://mussidik1.github.io/Overcrowded-ED-Game/
 
+## The floor plan
+
+The department is drawn from above: a bed in every room, chairs in the waiting room and the results area, a nurses' station, a break room, and the ambulance bay outside. Everyone on shift is a person on the floor. Nurses stand by their pods, providers sit at the station, techs, EVS, and transport go where the work is, and staff on break sit in the break room. EMS crews hold the wall with their patients until a nurse takes report. When the wall is full, the next ambulances back up in the driveway, each with its wait time.
+
+Tap people, rooms, and pod signs the way you'd tap tiles on a list. Drag to move around; pinch or scroll to zoom. On a phone, hold it sideways. The list board is still there if you want it: switch on the title screen or in the pause menu.
+
+![The floor plan on a laptop: rooms, the wall, ambulances backed up outside, the station, the break room](docs/screenshots/floor-plan.png)
+
+![The floor plan on a phone held sideways](docs/screenshots/floor-plan-phone.png)
+
 **New here? Start with Orientation.** Each role has its own. It lights up what to tap, holds the clock until you act, and fast-forwards through the waiting. Nothing counts against you.
 
 - **Charge nurse:** a preceptor walks you through a walk-in from registration to discharge, an ambulance patient through consult, admission, and report, a trauma alert with massive transfusion, routing a medical-direction call to a doctor, a chest-pain call, chairs, waiting-room rechecks, an interpreter, breaks, an equipment outage, and a transfer.
@@ -61,6 +71,7 @@ The game ships as one self-contained `index.html`, with the engine, UI, styles, 
 
 - `engine.js`: the simulation (no DOM)
 - `ui.js`: the phone-first interface
+- `map.js`: the floor plan (SVG), built into `ui.js`
 - `style.css`, `index.template.html`
 
 ```sh
@@ -71,11 +82,13 @@ npm run sim      # simulated shifts at several player speeds
 npm run stress   # 60 shifts, checks for stuck states
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)
 python3 test/md_ui_test.py   # the attending: see, order, decide, the radio, the report
-python3 test/train_test.py   # plays the charge nurse Orientation by tapping only what the preceptor lights up
+python3 test/map_test.py     # the floor plan: taps on the floor, panning, ambulances backing up, turning the phone
+python3 test/train_test.py   # plays the charge nurse Orientation on the floor plan, tapping only what the preceptor lights up
 MODE=md python3 test/train_test.py   # the same for the attending Orientation
+VIEW=list python3 test/train_test.py # either Orientation on the list board
 ```
 
-![Laptop view](docs/screenshots/desktop.png)
+![The list board on a laptop](docs/screenshots/desktop.png)
 
 ## Credits
 

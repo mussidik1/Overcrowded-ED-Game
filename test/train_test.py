@@ -5,7 +5,8 @@ URL = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shots')
 os.makedirs(OUT, exist_ok=True)
 errors, log = [], []
-W = int(os.environ.get('VW', '390')); H = int(os.environ.get('VH', '844'))
+VIEW = os.environ.get('VIEW', 'map')   # the floor plan is played sideways; the list board upright
+W = int(os.environ.get('VW', '844' if VIEW == 'map' else '390')); H = int(os.environ.get('VH', '390' if VIEW == 'map' else '844'))
 with sync_playwright() as pw:
     b = pw.chromium.launch(executable_path=os.environ.get('CHROME_PATH') or None, args=['--no-sandbox'])
     ctx = b.new_context(viewport={'width': W, 'height': H}, device_scale_factor=2, is_mobile=W < 900, has_touch=True, reduced_motion='reduce')
@@ -14,7 +15,7 @@ with sync_playwright() as pw:
     page.on('console', lambda m: errors.append('console.' + m.type + ': ' + m.text) if m.type == 'error' else None)
     J = page.evaluate
     MODE = os.environ.get('MODE', 'rn')
-    page.goto(URL); page.wait_for_timeout(1200)
+    page.goto(URL); page.evaluate(f"() => localStorage.setItem('oc-view', '{VIEW}')"); page.goto(URL); page.wait_for_timeout(1200)
     page.locator(f'[data-act="mode"][data-arg="{MODE}"]').tap(); page.wait_for_timeout(300)
     page.locator('button.lvl[data-arg="train"]').tap(); page.wait_for_timeout(500)
     ok_start = J('OC.G.level') == 'train' and J('OC.G.mode') == MODE and J('OC.active().length') == 0
@@ -25,8 +26,9 @@ with sync_playwright() as pw:
         if not c: errors.append('preceptor vanished'); break
         if c['i'] != last:
             log.append(f"{c['i'] + 1:>2}/{c['n']} {c['id']}"); last, same = c['i'], 0
+            if os.environ.get('TRACE'): print(log[-1], flush=True)
             if c['id'] in ('m1', 'w6', 't2', 'g6', 'h1', 'r2', 'd1', 'j3', 'a3', 'b5', 'r1', 's4', 'end') and c['id'] not in shots:
-                shots.add(c['id']); page.wait_for_timeout(250); page.screenshot(path=f"{OUT}/train_{MODE}_{c['id']}.png")
+                shots.add(c['id']); page.wait_for_timeout(250); page.screenshot(path=f"{OUT}/train_{MODE}_{VIEW}_{c['id']}.png")
         else: same += 1
         if c['final']: break
         if same > 40:
@@ -41,10 +43,16 @@ with sync_playwright() as pw:
             page.wait_for_timeout(150); continue
         el = spots.first
         try:
-            el.evaluate("e => { if (!e.closest('.sheet-body, .modal, .dock, .top, .side')) e.scrollIntoView({block: 'center'}); }")
+            el.evaluate("e => { if (!e.closest('.sheet-body, .modal, .dock, .top, .side, #map')) e.scrollIntoView({block: 'center'}); }")
             el.tap(timeout=2500); taps += 1
         except Exception as e:
-            log.append('  tap failed: ' + str(e).split('\n')[0][:120])
+            why = [ln.strip() for ln in str(e).split('\n') if 'intercepts' in ln or 'not visible' in ln or 'outside of the viewport' in ln or 'not stable' in ln]
+            what = ''
+            if os.environ.get('TRACE'):
+                try: what = el.evaluate("e => e.outerHTML.slice(0, 90) + ' @' + JSON.stringify(Object.values(e.getBoundingClientRect().toJSON()).slice(0, 4).map(Math.round))")
+                except Exception: what = '?'
+            log.append('  tap failed: ' + str(e).split('\n')[0][:120] + (' | ' + why[-1][:140] if why else '') + (' | ' + what if what else ''))
+            if os.environ.get('TRACE'): print(log[-1], flush=True)
         page.wait_for_timeout(180)
     c = J('OCUI.coach()')
     if not c or not c['final']: errors.append('did not reach the last step')

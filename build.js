@@ -12,6 +12,6 @@ const fonts = [
 ].join('\n');
 const html = src('index.template.html')
   .replace('/*FONTS*/', () => fonts).replace('/*STYLE*/', () => src('style.css'))
-  .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js'));
+  .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js').replace('/*MAP*/', () => src('map.js')));
 fs.writeFileSync(path.join(__dirname, 'index.html'), html);
 console.log('built index.html', (html.length / 1024).toFixed(1), 'KB');

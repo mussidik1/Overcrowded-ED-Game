@@ -45,6 +45,7 @@
   </div>
   <div class="cols">
     <main>
+      <section class="map" id="map" aria-label="Floor plan"></section>
       <section class="intake" id="intake" aria-label="Patients waiting for a bed">
         <div class="istaff" id="istaff" aria-label="Intake staff"></div>
         <div class="lane">
@@ -70,6 +71,7 @@
 <div class="modal-wrap" id="modalWrap" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 <div class="coach" id="coach" hidden aria-live="polite"></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="rotate" id="rotate" role="dialog" aria-label="Turn your phone sideways"><div class="rot-c"><div class="rot-ph" aria-hidden="true"></div><h3>Turn your phone sideways</h3><p>The floor plan is wide. Hold your phone sideways to see the whole department.</p><button type="button" data-act="view" data-arg="list">Use the list board instead</button></div></div>
 <div class="screen" id="title"></div>
 <div class="screen" id="report" hidden></div>
 <script>

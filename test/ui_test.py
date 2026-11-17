@@ -47,7 +47,7 @@ def run():
             page.wait_for_timeout(300)
 
         # ---------- title ----------
-        page.goto(URL, wait_until='domcontentloaded')
+        page.goto(URL, wait_until='domcontentloaded'); page.evaluate("() => localStorage.setItem('oc-view', 'list')"); page.goto(URL, wait_until='domcontentloaded')
         page.wait_for_timeout(1500)
         ok(page.locator('[data-act="mode"]').count() == 2 and page.locator('[data-act="pack"]').count() == 0, 'two roles on the title; the charge nurse has no medical-direction pack')
         tap('[data-act="mode"][data-arg="md"]')
