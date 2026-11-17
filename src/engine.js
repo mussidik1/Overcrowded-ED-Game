@@ -37,8 +37,19 @@ const LEVELS = {
   easy: { name: 'Quiet Tuesday', blurb: 'Fewer ambulances, no call-outs. Learn the board.', walk: 3.6, ems: 1.8, alerts: 0.6, consult: [42, 64], events: [52, 76], callouts: 0, board: 0.85, sickMax: 1, boarders: 2, shift: 720 },
   med:  { name: 'Manic Monday', blurb: 'A normal busy day. Somebody always calls out.', walk: 4.8, ems: 2.4, alerts: 0.85, consult: [32, 50], events: [40, 60], callouts: 1, board: 1, sickMax: 2, boarders: 3, shift: 720 },
   hard: { name: 'Full Moon Friday', blurb: 'Everything, all at once. Good luck.', walk: 6.2, ems: 3.1, alerts: 1.15, consult: [26, 40], events: [32, 50], callouts: 2, board: 1.15, sickMax: 3, boarders: 4, shift: 720 },
+  // A short shift for demos and class: two packed hours, about five minutes at normal speed.
+  rush: { name: 'Five-Minute Rush', blurb: 'Two packed hours, 07:00 to 09:00. About five minutes.', walk: 8.5, ems: 4.4, alerts: 1.7, consult: [14, 22], events: [16, 26], callouts: 1, board: 1.1, sickMax: 1, boarders: 5, shift: 120 },
   // Orientation: no random arrivals, events, or bad luck. The UI's preceptor brings in one scripted patient at a time.
   train: { name: 'Orientation', blurb: 'A preceptor walks you through every step. Nothing counts.', walk: 0, ems: 0, alerts: 0, consult: [30, 40], events: [1e9, 1e9], callouts: 0, board: 0.2, sickMax: 0, boarders: 0, shift: 720, train: true },
+};
+
+/* Preset scenarios for teaching: one named problem, at a set point in the shift. */
+const SCENS = {
+  none: { name: 'No scenario', blurb: 'A regular shift.' },
+  ct: { name: 'CT down', blurb: 'The CT scanner fails early in the shift.' },
+  mci: { name: 'Bus crash', blurb: 'A multiple-casualty call comes in early in the shift.' },
+  board: { name: 'Boarding', blurb: 'You start with extra admitted patients, and beds upstairs are slow.' },
+  short: { name: 'Short-staffed', blurb: 'Two more people call out at the start.' },
 };
 
 const ZONES = [
@@ -217,7 +228,7 @@ const CASES = [
   { k: 'moto', cc: 'Motorcycle crash, leg deformity', dx: 'Open femur fracture', esi: 1, src: 'a', age: [18, 55], wt: 1.2, wk: ['xr', 'lab'], tr: ['abx', 'blood'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'prbc', vit: 'HR 118, BP 102/64', find: { xr: 'Open femur fracture', lab: 'Hemoglobin 9.4' } },
   { k: 'arrest', cc: 'Cardiac arrest, CPR in progress', dx: 'Cardiac arrest', esi: 1, src: 'a', age: [45, 85], wt: 1.3, wk: [], tr: [], dispo: 'code', alert: 'arrest', arrest: true, vit: 'Pulseless, VF on the monitor' },
   { k: 'shock', cc: 'Fever, BP 74/40', dx: 'Septic shock', esi: 1, src: 'a', age: [60, 90], wt: 1.8, wk: ['lab'], tr: ['fluids', 'abx'], con: 'icu', pre: ['lab'], need: ['lab'], dispo: 'icu', alert: 'sepsis', vit: 'HR 128, BP 74/40, mottled', find: { lab: 'Lactate 5.4' } },
-  { k: 'rsv', cc: 'Infant breathing hard', dx: 'RSV, tiring out', esi: 2, src: 'a', age: [0, 1], wt: 0.8, wk: ['lab'], tr: ['hfnc'], ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'peds', txTo: 'the pediatric ICU', vit: 'RR 72, retractions, SpO2 88%', find: { lab: 'VBG pCO2 61' } },
+  { k: 'rsv', cc: 'Infant breathing hard', dx: 'RSV, tiring out', esi: 2, src: 'a', age: [0, 1], wt: 0.8, wk: ['lab'], tr: ['hfnc'], ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'peds', txTo: 'the pediatric ICU', vit: 'HR 168, RR 72, retractions, SpO2 88%', find: { lab: 'VBG pCO2 61' } },
   { k: 'burn', cc: 'House fire, burns to arms and chest', dx: 'Partial-thickness burns, 25%, airway injury', esi: 2, src: 'a', age: [20, 70], wt: 0.6, wk: ['lab'], tr: ['intub', 'vent', 'fluids', 'meds'], vit: 'Hoarse voice, soot in the mouth, HR 112', ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'burn', txTo: 'the burn center', find: { lab: 'Carboxyhemoglobin 6%' } },
   // mass casualty
   { k: 'mcimin', cc: 'Bus crash, neck and back pain', dx: 'Minor trauma', esi: 3, src: 'm', age: [18, 70], wt: 1, wk: ['xr', 'ct'], tr: ['meds'], dispo: 'home', find: { xr: 'No fracture', ct: 'No acute injury' } },
@@ -382,6 +393,7 @@ function newGame(level, seed, opts) {
     stats: freshStats(), care: 0, ledger: {}, log: [],
     train: !!L.train, tr: L.train ? { step: 0, ids: {}, setup: {} } : null,
     mode: opts.mode === 'md' ? 'md' : 'rn', me: opts.mode === 'md' ? 'md1' : null,
+    scen: SCENS[opts.scen] && !L.train ? opts.scen : 'none',
   };
   G.staff = ROSTER.map(mkStaff);
   for (const r of G.rooms) if (r.z === 'ft') r.closed = true;  // Fast Track opens at 09:00
@@ -391,7 +403,7 @@ function newGame(level, seed, opts) {
   // You inherit a department that has been running all night.
   let guard = 0;
   while (G.t < 0 && guard++ < 2000) { step(0.25); botStep({}); }
-  seedBoarders(L.boarders);
+  seedBoarders(L.boarders + (G.scen === 'board' ? 5 : 0));
   startShift();
   return G;
 }
@@ -423,6 +435,10 @@ function startShift() {
   for (let i = 0; i < L.callouts; i++) G.sched.push({ t: G.t + 0.3 + i * 0.3, k: 'callout' });
   G.sched.push({ t: 240, k: 'swing' });
   G.sched.push({ t: 120, k: 'ftopen' });
+  const at = Math.round(Math.min(45, G.shift * 0.17));   // a scenario's problem lands early, once the player has their feet under them
+  if (G.scen === 'ct') G.sched.push({ t: at, k: 'scenct' });
+  if (G.scen === 'mci') G.sched.push({ t: at, k: 'scenmci' });
+  if (G.scen === 'short') for (let i = 0; i < 2; i++) G.sched.push({ t: G.t + 1.5 + i * 0.4, k: 'callout' });
   if (G.train) { G.nextArr = { walk: 1e9, ems: 1e9, alert: 1e9 }; G.box.nextC = 1e9; }
   if (G.mode === 'md') { const me = staff(G.me); orphanPatients(me); me.morale = 85; }  // the night doc signed out to the team
   note(`07:00, ${L.name}. ${G.train ? 'Your preceptor has the board with you.' : 'Night shift hands you the board.'}`);
@@ -461,6 +477,110 @@ function step(dt) {
 /* ---------- arrivals ---------- */
 function pickCase(srcs) { return wpick(CASES.filter(c => srcs.includes(c.src)), c => c.wt); }
 function pickLang() { let r = rnd(); for (const [k, w] of LANG_W) { r -= w; if (r < 0) return k; } return null; }
+/* ---------- vitals: they drift while a patient waits and settle as treatment lands ----------
+   Computed from the patient's state and the clock, so nothing here changes how a shift plays out.
+   The numbers follow what the engine already knows: true acuity, time untreated, treatments done, crashing, shock. */
+const VDOOR = { 1: { hr: 124, sbp: 94, dbp: 56, rr: 24, spo2: 95 }, 2: { hr: 104, sbp: 142, dbp: 86, rr: 20, spo2: 97 }, 3: { hr: 94, sbp: 136, dbp: 84, rr: 18, spo2: 97 }, 4: { hr: 84, sbp: 128, dbp: 78, rr: 16, spo2: 99 }, 5: { hr: 78, sbp: 122, dbp: 76, rr: 16, spo2: 99 } };
+/* What each case looks like at the door, where the acuity alone would get it wrong. Written for an adult; a child's are scaled from their own normals.
+   Oxygen is low only when breathing is the problem: a stroke, a bleed, or DKA arrives with a normal sat. */
+const VCASE = {
+  refill: { sbp: 164, dbp: 98 }, otitis: { temp: 101.3 }, strep: { temp: 101.5, hr: 100 }, uti: { temp: 99.8 },
+  gastro: { hr: 106, sbp: 108, dbp: 66, spo2: 98 }, appy: { temp: 100.6, hr: 102 }, chole: { temp: 100.4, hr: 98 }, hipfx: { hr: 96, sbp: 148, dbp: 86 },
+  pna: { temp: 101.6, hr: 108, rr: 24, spo2: 91 }, copd: { hr: 104 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
+  migraine: { sbp: 140, dbp: 86 }, tb: { temp: 100.8, spo2: 95 }, bh: { hr: 98 }, etoh: { hr: 104 }, cell: { temp: 100.9 },
+  syncope: { hr: 62, sbp: 108, dbp: 64, spo2: 98 }, tia: { hr: 80, sbp: 172, dbp: 96 }, dehyd: { hr: 114, sbp: 98, dbp: 60 }, mcimin: { hr: 100, sbp: 138, dbp: 84 }, mcigrn: { hr: 98 },
+  chf: { hr: 108, rr: 28 }, od: { hr: 62, sbp: 102, dbp: 60 }, synchigh: { hr: 44, sbp: 96, dbp: 58, rr: 18, spo2: 96 },
+  cpmod: { hr: 88, sbp: 146, dbp: 88, rr: 18 }, cwp: { hr: 84, sbp: 136, dbp: 84, rr: 18, spo2: 98 }, nstemi: { hr: 94, sbp: 150, dbp: 90 },
+  afib: { rr: 20, spo2: 96 }, gib: { rr: 22 }, dka: { hr: 118, rr: 28, sbp: 104, dbp: 62, spo2: 99 }, asthma: { hr: 118, rr: 28, sbp: 138, dbp: 84 },
+  anaph: { hr: 126, rr: 26, spo2: 92 }, sepsisw: { rr: 24, spo2: 94 }, strokew: { hr: 84, sbp: 186, dbp: 102, rr: 18 }, stroke: { hr: 86, sbp: 188, dbp: 104, rr: 18 },
+  rsv: { temp: 100.6 }, burn: { rr: 24, sbp: 148, dbp: 90 },
+  stemi: { rr: 20, spo2: 95 }, lvo: { hr: 88, sbp: 196, dbp: 108, rr: 18, spo2: 95 }, mvc: { rr: 28, spo2: 93 }, tfall: { hr: 58, rr: 14, spo2: 96 },
+  moto: { rr: 22, spo2: 96 }, shock: { temp: 102.6, rr: 28, spo2: 92 },
+};
+/* These do not go pale and fast when they get worse. A head bleed's pressure climbs while the heart slows; a stroke's pressure stays up;
+   an overdose stops breathing; heart failure drowns with the pressure still high; a bad rhythm gets slower. */
+const VHOLD = new Set(['tfall', 'strokew', 'stroke', 'lvo', 'tia', 'chf', 'od', 'synchigh']);
+const VADULT = { hr: 78, sbp: 122, dbp: 76, rr: 16 };
+const vhash = s => { let h = 9; for (const c of String(s)) h = (h * 33 + c.charCodeAt(0)) >>> 0; return (h % 1000) / 1000; };
+function vNormal(age) {
+  if (age < 2) return { hr: 130, sbp: 90, dbp: 55, rr: 36, spo2: 98, temp: 98.6 };
+  if (age < 6) return { hr: 110, sbp: 96, dbp: 58, rr: 26, spo2: 98, temp: 98.6 };
+  if (age < 13) return { hr: 94, sbp: 104, dbp: 64, rr: 20, spo2: 98, temp: 98.6 };
+  return { hr: age > 75 ? 74 : 78, sbp: age > 75 ? 132 : 122, dbp: 76, rr: 16, spo2: 98, temp: 98.4 };
+}
+function vDoor(p) {   // the numbers at arrival, and the signs that go with them
+  const n = vNormal(p.age), d = Object.assign({}, n), signs = [], kid = p.age < 13;
+  const scale = (k, val) => (kid && k in VADULT ? n[k] + (val - VADULT[k]) * (k === 'sbp' || k === 'dbp' ? 0.3 : 1) : val);   // a child's version of an adult number
+  const base = VDOOR[p.esi] || VDOOR[4];
+  for (const k of ['hr', 'sbp', 'dbp', 'rr']) d[k] = scale(k, base[k]);
+  d.spo2 = Math.min(n.spo2, base.spo2);
+  for (const [k, val] of Object.entries(VCASE[p.ck] || {})) d[k] = scale(k, val);
+  for (const part of String(p.vit || '').split(',').map(x => x.trim()).filter(Boolean)) {   // a case's own numbers are already right for its age
+    let m;
+    if ((m = /^HR (\d+)/.exec(part))) d.hr = +m[1];
+    else if ((m = /^BP (\d+)\/(\d+)/.exec(part))) { d.sbp = +m[1]; d.dbp = +m[2]; }
+    else if ((m = /^RR (\d+)/.exec(part))) d.rr = +m[1];
+    else if ((m = /^SpO2 (\d+)/.exec(part))) d.spo2 = +m[1];
+    else if ((m = /^Temp ([\d.]+)/.exec(part))) d.temp = +m[1];
+    else signs.push(part);
+  }
+  return { d, n, signs };
+}
+/* Minutes for a treatment to show in the numbers. Naloxone and epinephrine work while you watch; antibiotics and an insulin drip do not. */
+const VONSET = { nalox: 3, epi: 6, intub: 4, vent: 6, nebs: 12, bipap: 10, hfnc: 10, mtp: 15, blood: 20, fluids: 20, meds: 20, tnk: 30, insulin: 40, abx: 45, repair: 5 };
+function vRelief(p, t) {   // 0: nothing has been done. 1: every treatment has had time to work.
+  const ks = Object.keys(p.treat || {}), total = Math.max(ks.length, (p.tr || []).length, 1);
+  let r = 0;
+  for (const k of ks) { const x = p.treat[k]; if (x.st !== 'done') continue; const at = x.tDone != null ? x.tDone : p.tRoom != null ? p.tRoom : p.tArrive; if (at <= t) r += Math.min(1, (t - at) / (VONSET[k] || 20)) / total; }
+  return Math.min(1, r);
+}
+/* How sick they look right now: 1 is how they came in, above 1 is worse, toward 0 is back to normal. */
+function sickAt(p, t) {
+  const rate = { 1: 0.010, 2: 0.005, 3: 0.002, 4: 0.0005 }[p.esi] || 0;
+  const at = x => (x.tDone != null ? x.tDone : p.tRoom != null ? p.tRoom : p.tArrive);
+  const done = Object.values(p.treat || {}).filter(x => x.st === 'done' && at(x) <= t);
+  const first = done.length ? Math.min(...done.map(at)) : null;
+  let s = Math.min(1.45, 1 + rate * Math.max(0, Math.min((first != null ? first : t) - p.tArrive, 120)));   // worse the longer nothing is done, up to two hours
+  if (p.crash && (!p.tCrash || p.tCrash <= t)) s = Math.max(s, 1.4);
+  if (p.shock) s = Math.max(s, 1.5);
+  s *= 1 - 0.75 * vRelief(p, t);
+  if (!(p.tr || []).length && p.dxK) s *= 0.85;   // nothing to treat, and now they know what it is
+  return s;
+}
+function vitalsOf(p, when) {
+  const t = when != null ? when : G.t;
+  if (p.arrest) return { arrest: true, taken: true, text: 'No pulse. CPR in progress', signs: [], flags: {}, trend: 'worse', s: 2 };
+  const ems = p.src === 'ems' || !!p.unit;
+  if (!ems && p.tri !== 'done' && p.loc !== 'room') return { taken: false, text: 'Not taken yet. Triage takes the first set.', signs: [], flags: {}, trend: 'steady', s: 1 };
+  const { d, n, signs } = vDoor(p), s = sickAt(p, t), s0 = sickAt(p, t - 10), rel = vRelief(p, t);
+  const kid = p.age < 13, hold = VHOLD.has(p.ck) || p.alert === 'stroke';
+  const jit = k => (vhash(p.id + k + Math.floor(t / 5)) - 0.5) * 2;   // small wobble, new every five minutes
+  const v = {};
+  for (const k of ['hr', 'rr', 'spo2']) v[k] = n[k] + (d[k] - n[k]) * s;
+  const sb = hold && p.alert === 'stroke' ? Math.max(s, 0.65) : s;   // a stroke's pressure is left high on purpose
+  v.sbp = n.sbp + (d.sbp - n.sbp) * sb; v.dbp = n.dbp + (d.dbp - n.dbp) * sb;
+  v.temp = n.temp + (d.temp - n.temp) * Math.min(s, 1.15);   // a fever does not climb the way a heart rate does
+  if ((p.shock || (p.crash && (!p.tCrash || p.tCrash <= t))) && !hold) {   // out of reserve: fast, pale, and the pressure is gone, until treatment brings it back
+    const lowS = kid ? n.sbp - 22 : p.shock ? 74 : 84, lowD = kid ? n.dbp - 14 : p.shock ? 42 : 50, hiH = kid ? n.hr + 50 : p.shock ? 131 : 126;
+    v.sbp = Math.min(v.sbp, lowS + (n.sbp - lowS) * rel); v.dbp = Math.min(v.dbp, lowD + (n.dbp - lowD) * rel);
+    v.hr = Math.max(v.hr, hiH + (n.hr - hiH) * rel); v.rr = Math.max(v.rr, n.rr + 10 * (1 - rel));
+  }
+  const hrMax = p.age < 2 ? 210 : p.age < 6 ? 200 : p.age < 13 ? 190 : p.age >= 65 ? 170 : 180;
+  v.hr = Math.round(Math.max(30, Math.min(hrMax, v.hr + jit('h') * 3)));
+  v.sbp = Math.round(Math.max(56, Math.min(240, v.sbp + jit('s') * 4)));
+  v.dbp = Math.round(Math.max(30, Math.min(v.sbp - 16, 130, v.dbp + jit('d') * 3)));
+  v.rr = Math.round(Math.max(4, Math.min(Math.max(44, Math.min(72, n.rr * 2)), v.rr + jit('r'))));   // a baby can breathe 70 times a minute; an adult cannot
+  v.spo2 = Math.round(Math.max(62, Math.min(100, v.spo2 + jit('o') * 0.8)));
+  v.temp = Math.round(Math.max(95, Math.min(105.5, v.temp + jit('t') * 0.2)) * 10) / 10;
+  const flags = kid
+    ? { hr: v.hr > n.hr + 30 || v.hr < n.hr - 35, bp: v.sbp < n.sbp - 16, rr: v.rr > n.rr + 10 || v.rr < n.rr - 8, spo2: v.spo2 < 94, temp: v.temp >= 100.4 }
+    : { hr: v.hr > 100 || v.hr < 50, bp: v.sbp < 100 || v.sbp > 180, rr: v.rr > 21 || v.rr < 10, spo2: v.spo2 < 94, temp: v.temp >= 100.4 };
+  const trend = s - s0 > 0.03 ? 'worse' : s - s0 < -0.03 ? 'better' : 'steady';
+  const showSigns = s > 0.6 ? signs : [];
+  const text = `HR ${v.hr}, BP ${v.sbp}/${v.dbp}, RR ${v.rr}, SpO2 ${v.spo2}%${flags.temp || v.temp >= 99.5 ? `, Temp ${v.temp.toFixed(1)}` : ''}${showSigns.length ? ', ' + showSigns.join(', ') : ''}`;
+  return Object.assign(v, { taken: true, ems: ems && p.loc !== 'room' && p.tri !== 'done', signs: showSigns, flags, trend, s, text });
+}
+
 function makePatient(c, src) {
   const sex = c.sex || (chance(0.5) ? 'F' : 'M');
   const age = randi(c.age[0], c.age[1]);
@@ -1661,7 +1781,7 @@ function setDispo(p) {
   else if (p.dispo === 'obs') obsAdmit(p);
   else if (p.dispo === 'admit' || p.dispo === 'icu' || p.dispo === 'bh') {
     const base = p.dispo === 'icu' ? randi(30, 90) : p.dispo === 'bh' ? randi(100, 200) : randi(45, 110);
-    p.dsp = 'board'; p.due = G.t + base * L.board; p.tBoard = G.t;
+    p.dsp = 'board'; p.due = G.t + base * L.board * (G.scen === 'board' ? 1.6 : 1); p.tBoard = G.t;
     note(`${label(p)} admitted. Waiting on an inpatient bed.`);
   } else if (p.dispo === 'or' || p.dispo === 'cath') { p.dsp = 'toproc'; p.due = G.t + 4; }
 }
@@ -2274,6 +2394,8 @@ function scheduled() {
     if (G.pre && s.k !== 'return') continue;
     if (s.k === 'callout') fireEv('callout');
     else if (s.k === 'mci') mciArrive();
+    else if (s.k === 'scenct') { if (!G.out.ct) startOutage('ct'); }
+    else if (s.k === 'scenmci') { if (!G.ev.used.mci) fireEv('mci'); }
     else if (s.k === 'return') { const o = pt(s.pid); if (o) returnVisit(o); }
     else if (s.k === 'swing') toast('11:00: Dr. Nguyen and PA Brooks are on for the swing shift', 'good');
     else if (s.k === 'ftopen') { for (const r of G.rooms) if (r.z === 'ft') r.closed = false; toast('09:00: Fast Track is open. Lee has it.', 'good'); }
@@ -2669,8 +2791,8 @@ function staffHours() {
   const seen = G.order.filter(id => G.pts[id].tArrive >= 0 && G.pts[id].loc !== 'enroute' && G.pts[id].loc !== 'new').length || 1;
   return { rn, agency, mandated, md: h('md'), app: h('app'), pct: h('pct'), rt: h('rt'), rnPerVisit: Math.round(100 * (rn + agency + mandated) / seen) / 100 };
 }
-const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200, 2200], train: [300, 800, 1400] };
-const STARS_MD = { easy: [600, 1200, 1800], med: [600, 1300, 2000], hard: [600, 1300, 2000], train: [300, 800, 1400] };
+const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200, 2200], train: [300, 800, 1400], rush: [100, 240, 340] };
+const STARS_MD = { easy: [600, 1200, 1800], med: [600, 1300, 2000], hard: [600, 1300, 2000], train: [300, 800, 1400], rush: [120, 240, 310] };
 function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' ? STARS_MD : STARS)[level || (G && G.level) || 'med']; return c >= s[2] ? 3 : c >= s[1] ? 2 : c >= s[0] ? 1 : 0; }
 function endShift(reason) {
   if (G.over) return;
@@ -2681,7 +2803,7 @@ function endShift(reason) {
   const walls = ems.map(p => p.tWall != null ? p.tWall : (p.loc === 'wall' ? G.t - p.tArrive : 0));
   const S = G.stats;
   G.report = {
-    level: G.level, pack: G.pack, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
+    level: G.level, scen: G.scen || 'none', pack: G.pack, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
     stars: G.fail ? 0 : starsFor(G.care, G.level),
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama, expired: S.expired,
     returns: S.returns + S.returnsLate, left: active().length,
@@ -2869,7 +2991,7 @@ const OC = {
   setPit, activateMTP, releaseONeg, requestInterp, overrideRx,
   register, triage, toWaiting, sendUp, bookIFT, IFT, emergent, DIVERTS, OUTAGES, outActive, justified,
   startOutage, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
-  metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage,
+  metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,
 };
 root.OC = OC;

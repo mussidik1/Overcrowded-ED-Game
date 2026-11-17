@@ -53,7 +53,7 @@ def run():
         tap('[data-act="mode"][data-arg="md"]')
         ok(page.locator('.mode.on').inner_text().startswith('Attending') and page.locator('[data-act="pack"]').count() >= 2, 'Attending role shows the medical-direction calls')
         tap('[data-act="pack"][data-arg="miemss"]')
-        ok('Maryland' in page.inner_text('.seg.on'), 'MIEMSS medical-direction pack selectable for the attending')
+        ok('Maryland' in page.inner_text('.packs:not(.scn) .seg.on'), 'MIEMSS medical-direction pack selectable for the attending')
         page.screenshot(path=f'{OUT}/01b_title_md.png')
         tap('[data-act="mode"][data-arg="rn"]')
         page.screenshot(path=f'{OUT}/01_title.png')

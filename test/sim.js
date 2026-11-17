@@ -62,7 +62,7 @@ const profiles = {
 const which = process.argv[2] || 'all';
 for (const [name, prof] of Object.entries(profiles)) {
   if (which !== 'all' && which !== name) continue;
-  for (const level of ['easy', 'med', 'hard']) {
+  for (const level of ['rush', 'easy', 'med', 'hard']) {
     const rows = [];
     for (let seed = 1; seed <= 5; seed++) rows.push(run(level, seed * 7919, prof));
     const avg = k => (rows.reduce((a, r) => a + r[k], 0) / rows.length).toFixed(1);

@@ -1,4 +1,4 @@
-"""The floor plan (v0.9): the whole department on a phone held sideways. Every tap lands on the floor itself."""
+"""The floor plan (v0.9, v0.10): the whole department on a phone held sideways. Every tap lands on the floor itself."""
 import os, sys
 from playwright.sync_api import sync_playwright
 
@@ -113,7 +113,21 @@ def run():
         ok(J("OCUI.U.sheet && OCUI.U.sheet.pid") == wall, 'tapping a crew on the wall opens the patient card')
         sh = box('.sheet')
         ok(sh['x'] > 250 and sh['height'] >= 380, 'cards slide in from the right on a sideways phone')
+        ok(page.locator('#sheet .vv').count() >= 4 and page.locator('#sheet .vtrend').count() == 1, 'the card shows live vitals and which way they are heading')
         close_sheet()
+
+        # "Needs you": a count of what is waiting, and each tap goes to the next one
+        need = J("document.querySelector('#needBtn b').textContent")
+        ok(need.isdigit() and int(need) >= 2 and J("document.getElementById('needBtn').classList.contains('on')"), f'the Needs you button counts what is waiting ({need})')
+        nb = box('#needBtn')
+        ok(nb['x'] >= box('#map')['x'] and nb['height'] >= 34, 'it sits in the corner of the floor')
+        tap('#needBtn'); page.wait_for_timeout(300)
+        first = J('OCUI.U.needLast')
+        ok(bool(first) and (J('!!OCUI.U.sheet') or J('!!OCUI.U.sel')) and page.locator('#mNeed .needring').count() == 1, 'a tap opens the most urgent one and rings it on the floor')
+        close_sheet(); J("() => { OCUI.U.sel = null; OCUI.render(); }")
+        tap('#needBtn'); page.wait_for_timeout(300)
+        ok(J('OCUI.U.needLast') != first, 'the next tap goes on to the next one')
+        close_sheet(); J("() => { OCUI.U.sel = null; OCUI.render(); }")
 
         # zoom in: the words come back, and dragging pans without tapping anything
         tap('#mzoom [data-arg="in"]'); tap('#mzoom [data-arg="in"]'); page.wait_for_timeout(200)
@@ -178,6 +192,33 @@ def run():
         # a laptop: a dock along the bottom, and words on the rooms
         page.set_viewport_size({'width': 1366, 'height': 800}); page.wait_for_timeout(400)
         ok(not J("document.body.classList.contains('rails')") and not J('OCUI.cam().far'), 'a laptop keeps the dock and shows words')
+
+        # class tools: the five-minute shift with a scenario, and a report to print
+        J("() => { OCUI.U.paused = false; OCUI.showTitle(); }"); page.wait_for_timeout(300)
+        ok(page.locator('[data-act="scenario"]').count() == 5 and page.is_visible('[data-act="scenario"][data-arg="mci"]') and not page.is_visible('.scn-sel'), 'on a laptop the scenarios are buttons')
+        tap('[data-act="scenario"][data-arg="mci"]')
+        ok(J('OCUI.U.scen') == 'mci' and J("document.querySelector('[data-act=\"scenario\"][data-arg=\"mci\"]').classList.contains('on')"), 'and a tap picks one')
+        page.set_viewport_size({'width': 844, 'height': 390}); page.wait_for_timeout(300)
+        tap('[data-act="mode"][data-arg="rn"]')
+        ok(page.locator('button.lvl[data-arg="rush"]').count() == 1 and page.locator('.scn-sel option').count() == 5 and page.is_visible('.scn-sel') and not page.is_visible('[data-act="scenario"]'), 'the menu offers the five-minute shift, and scenarios in a short menu')
+        fits = lambda: J("(() => { const t = document.getElementById('title'); return t.scrollHeight <= t.clientHeight + 1; })()")
+        ok(fits(), 'the whole menu fits a sideways phone')
+        page.select_option('.scn-sel', 'ct'); page.wait_for_timeout(250)
+        ok(J("localStorage.getItem('oc-scen')") == 'ct' and J("document.querySelector('.scn-sel').value") == 'ct' and 'CT' in page.locator('.packs.scn small').inner_text() and fits(), 'a scenario is picked and remembered, and the menu still fits')
+        tap('button.lvl[data-arg="rush"]'); page.wait_for_timeout(500)
+        ok(J('OC.G.level') == 'rush' and J('OC.G.scen') == 'ct' and J('OC.G.shift') == 120, 'the shift starts with the scenario')
+        J("() => { OCUI.U.freeze = true; for (let i = 0; i < 260; i++) { OC.step(0.1); if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(c => !c.dis).k); } OCUI.render(); }")
+        page.wait_for_timeout(300)
+        ok(J('!!OC.G.out.ct') and page.locator('#mSvc circle[fill="#C8243A"]').count() >= 1, 'the CT goes down on schedule, and the floor shows it')
+        best0 = J("localStorage.getItem('oc-best-rush')")
+        J("() => { for (let i = 0; i < 1300 && !OC.G.over; i++) { OC.step(0.1); if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(c => !c.dis).k); if (i % 20 === 0) OC.botStep({ budget: 2 }); } OCUI.U.freeze = false; }")
+        page.wait_for_timeout(900)
+        ok(J('OCUI.U.scene') == 'report' and page.locator('#report [data-act="print"]').count() == 1, 'the shift report has a print or save-as-PDF button')
+        ok('CT down' in page.locator('#report .verdict').inner_text() and J("localStorage.getItem('oc-best-rush')") == best0, 'the report names the scenario, and scenario scores stay out of the bests')
+        page.emulate_media(media='print'); page.wait_for_timeout(200)
+        ok(J("getComputedStyle(document.querySelector('#report .rep-btns')).display") == 'none' and J("getComputedStyle(document.querySelector('#report .rep-meta')).display") != 'none' and J("getComputedStyle(document.querySelector('.app')).display") == 'none', 'on paper it is just the report, with a line for a name')
+        page.emulate_media(media='screen')
+        J("() => localStorage.removeItem('oc-scen')")
         b.close()
 
 

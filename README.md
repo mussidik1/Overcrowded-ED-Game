@@ -15,7 +15,11 @@ The department is drawn from above: a bed in every room, chairs in the waiting r
 
 On a laptop the same floor shows the words all the time, with the staff in a dock along the bottom. The list board is still there if you want it: switch on the title screen or in the pause menu.
 
-**Full screen.** On Android, tap Full screen on the title screen or in the pause menu. On an iPhone, add the page to your Home Screen (Share, then Add to Home Screen) and open it from there.
+**People move.** Walk-ins come through the front door, stop at registration and triage, and take a seat. When you give someone a bed, they walk there, and ambulance patients roll in on the stretcher with their crew. Patients who go home walk out the front door, and admitted patients ride upstairs with transport. The light through the windows goes from morning to dusk over the shift.
+
+**"Needs you."** A button in the corner counts everything that is waiting on you: a room that needs a provider or a consult call, a crew on the wall, the line at the door, the radio. Tap it (or press N) and it takes you to the most urgent one. Tap again for the next.
+
+**Full screen and offline.** On Android, tap Full screen on the title screen or in the pause menu. On an iPhone, add the page to your Home Screen (Share, then Add to Home Screen) and open it from there. After the first visit the game is saved on the device, so it opens with no signal.
 
 ![The floor plan on a laptop: rooms, the wall, ambulances backed up outside, the station, the break room](docs/screenshots/floor-plan.png)
 
@@ -29,6 +33,27 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 ![Orientation: the preceptor lights up the next tap](docs/screenshots/orientation.png)
 
 ![Intake, transport, and ambulance screens](docs/screenshots/intake-and-transport.png)
+
+## Vitals that change
+
+Every patient card shows heart rate, blood pressure, breathing rate, oxygen, and temperature, and they move. A sick patient who waits gets worse: the heart rate climbs, the pressure sags, and the card says "Getting worse." Treatment turns it around, each on its own clock: naloxone and epinephrine work in minutes, fluids take about twenty, antibiotics most of an hour. Anything out of range shows in red. Walk-ins have no vitals until triage takes them. Ambulance patients arrive with the crew's set.
+
+The numbers follow the case, not just the acuity:
+
+- Oxygen is low only when breathing is the problem. A stroke, a GI bleed, or DKA arrives with a normal sat; pneumonia, heart failure, and an overdose do not.
+- An overdose breathes six times a minute until the naloxone goes in.
+- A head bleed's pressure climbs while the heart slows. A stroke's pressure is left high on purpose, even after the thrombolytic.
+- A patient who crashes in the waiting room goes fast and hypotensive, and comes back with treatment.
+- A child's numbers are scaled to a child's normals, and flagged against them.
+
+![A patient card: heart rate, pressure, and breathing in red, and getting worse](docs/screenshots/vitals.png)
+
+## For a class
+
+- **Five-Minute Rush.** Two packed hours, 07:00 to 09:00, in about five minutes of play. It has its own stars.
+- **Scenarios.** Pick one on the title screen and any shift gets a named problem early on: **CT down**, **Bus crash** (a multiple-casualty call), **Boarding** (extra admitted patients, slow beds upstairs), or **Short-staffed** (two more call-outs). Scenario scores are kept apart from your bests.
+- **Print the report.** The shift report has a "Print or save as PDF" button. On paper it is just the report, with the role, shift, scenario, date, and a line for a name.
+- **Sound.** Monitors beep, the radio squelches when the Box opens, and the big moments (alerts, codes, massive transfusion) go out as an overhead page. Turn it off on the title screen or in the pause menu.
 
 ## How a shift works: charge nurse
 
@@ -78,15 +103,18 @@ The game ships as one self-contained `index.html`, with the engine, UI, styles, 
 - `map.js`: the floor plan (SVG), built into `ui.js`
 - `style.css`, `index.template.html`
 
+The build also writes `sw.js`, a small service worker that keeps a copy of the game for offline play. Its cache name carries the version and a hash of `index.html`, so every build replaces the old copy.
+
 ```sh
 npm install      # fonts used by the build
 npm run build    # writes index.html
-npm test         # rule checks (four suites; rules4 covers the attending)
+npm test         # rule checks (five suites; rules4 covers the attending, rules5 vitals, the short shift, and scenarios)
 npm run sim      # simulated shifts at several player speeds
-npm run stress   # 60 shifts, checks for stuck states
+npm run stress   # 188 shifts across every level and scenario: checks for stuck states and out-of-range vitals
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)
 python3 test/md_ui_test.py   # the attending: see, order, decide, the radio, the report
-python3 test/map_test.py     # the floor plan on a sideways phone: fits without dragging, rails, icons, taps, zoom, ambulances backing up
+python3 test/map_test.py     # the floor plan on a sideways phone: fits without dragging, rails, icons, taps, zoom, ambulances backing up, vitals, Needs you, scenarios, the printed report
+python3 test/offline_test.py # serves the folder, installs the service worker, cuts the network, and reloads
 python3 test/train_test.py   # plays the charge nurse Orientation on the floor plan, tapping only what the preceptor lights up
 MODE=md python3 test/train_test.py   # the same for the attending Orientation
 VIEW=list python3 test/train_test.py # either Orientation on the list board

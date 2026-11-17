@@ -271,7 +271,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .ph-em { font-size: 34px; line-height: 1; }
 .ph-cc { display: grid; gap: 5px; margin: 10px 0; padding: 9px 11px; border-radius: 10px; background: #F4F6F8; line-height: 1.35; }
 .ph-cc > div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; align-items: baseline; }
-.ph-cc span { color: var(--ink-3); font: 700 11px/1.3 var(--ui); letter-spacing: .6px; text-transform: uppercase; }
+.ph-cc > div > span { color: var(--ink-3); font: 700 11px/1.3 var(--ui); letter-spacing: .6px; text-transform: uppercase; }
 .prim { display: grid; gap: 8px; margin: 10px 0 12px; }
 .prim-l { color: var(--ink-2); font: 700 12px/1 var(--ui); letter-spacing: .6px; text-transform: uppercase; }
 .big { width: 100%; min-height: 50px; border: 0; border-radius: 12px; background: var(--ink); color: #fff; font: 700 17px/1.1 var(--ui); }
@@ -611,7 +611,10 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 .map [data-act] { cursor: pointer; }
 .map .mp { transition: transform .9s cubic-bezier(.4, .1, .3, 1); }
 .map .mamb { transition: transform 1.2s cubic-bezier(.3, .1, .3, 1), opacity .9s; }
-.map .mp.walk .wk { animation: walkbob .3s ease-in-out infinite alternate; }
+.map .walk .wk, .map .mmove .wk { animation: walkbob .3s ease-in-out infinite alternate; }
+.map .mwalk { transition: transform .9s cubic-bezier(.4, .1, .3, 1); }
+.map .mmove { pointer-events: none; }
+.map .needring { fill: rgba(30, 91, 198, .14); stroke: #1E5BC6; stroke-width: 3px; vector-effect: non-scaling-stroke; pointer-events: none; animation: spotring 1.1s ease-in-out infinite; }
 @keyframes walkbob { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
 .map .ambg.ghost { opacity: .82; }
 @keyframes lbBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .2; } }
@@ -669,7 +672,7 @@ svg.lgi { width: 26px; height: 26px; margin-right: 6px; vertical-align: -8px; }
 .mag-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 8px; }
 .mag-list .mag { max-width: 100%; transform: none; }
 @media (prefers-reduced-motion: reduce) {
-  .map .mp, .map .mamb { transition: none; }
+  .map .mp, .map .mamb, .map .mwalk { transition: none; }
   .map .mp.walk .wk, .map .lb.hot .lbr, .map .lb.hot .lbb, .map .ecg, .map .codefl, .map .bspin, .map .steam, .map .tvglow, .map .ctglow, .map .boxring circle, .map .spotring, .mico .ir { animation: none; }
   .map .steam, .mico .ir, .map .boxring .r2 { display: none; }
 }
@@ -700,7 +703,7 @@ body.mapmode.training .toast { max-width: min(380px, 46vw); }
   #title .card > * { grid-column: 1; }
   #title .card > .levels { grid-column: 2; grid-row: 1 / span 9; align-self: center; gap: 6px; }
   #title .t-brand { font-size: 40px; }
-  #title .t-under { height: 8px; margin-bottom: 8px; }
+  #title .t-under { height: 8px; margin-bottom: 3px; }
   #title .modes { margin: 4px 0; }
   #title .mode { padding: 7px 10px; }
   #title .t-sub { margin-bottom: 6px; font-size: 13.5px; line-height: 1.35; }
@@ -709,12 +712,62 @@ body.mapmode.training .toast { max-width: min(380px, 46vw); }
   #title .lvl b { font-size: 16.5px; }
   #title .lvl small { font-size: 12.5px; }
   #title .packs { margin-top: 6px; gap: 4px; }
-  #title .t-links { margin-top: 6px; flex-wrap: wrap; }
+  #title .packs small { font-size: 12.5px; line-height: 1.25; }
+  #title .t-links { margin-top: 4px; flex-wrap: wrap; gap: 0 10px; }
+  #title .t-links button { padding: 7px 2px; }
   #title .t-tip { margin-top: 4px; }
 }
 /* notches: keep the floor out from under them */
 body.md.mapmode.rails .map { margin-left: env(safe-area-inset-left); }
 body.mapmode:not(.rails) .map { margin-right: env(safe-area-inset-right); margin-left: env(safe-area-inset-left); }
+/* vitals on the patient card */
+.vv { display: inline-block; margin-right: 10px; color: var(--ink-2); white-space: nowrap; }
+.vv b { color: var(--ink); font-weight: 700; }
+.vv.vbad, .vv.vbad b { color: var(--bad); }
+.vna { color: var(--ink-3); font-style: italic; }
+.vtrend { display: inline-block; padding: 1px 8px; border-radius: 9px; background: #EEF1F5; color: var(--ink-2); font: 700 12.5px/1.5 var(--ui); white-space: nowrap; }
+.vtrend.v-worse { background: #FBE3E6; color: var(--bad); }
+.vtrend.v-better { background: #E2F4E8; color: var(--good); }
+/* scenarios on the menu; the report on paper */
+.segs.s5 { display: flex; flex-wrap: wrap; }
+.segs.s5 .seg { flex: 1 1 auto; min-height: 36px; font-size: 14px; }
+.rep-meta { display: none; }
+.rep-btns .wide { grid-column: 1 / -1; }
+@media print {
+  body { background: #fff !important; }
+  body > *:not(#report) { display: none !important; }
+  #report { position: static !important; display: block !important; overflow: visible !important; padding: 0 !important; background: #fff !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  #report .card { width: 100% !important; margin: 0 !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+  .rep-btns { display: none !important; }
+  .rep-meta { display: block; margin: 4px 0 10px; color: #333; font-size: 12pt; }
+  .rep-name { display: inline-block; min-width: 180px; border-bottom: 1px solid #333; }
+  #report h4 { break-after: avoid; page-break-after: avoid; }
+  #report tr, #report .mm li, #report .rep-big { break-inside: avoid; page-break-inside: avoid; }
+  #report table { break-before: avoid; page-break-before: avoid; }
+  #report .card > *:first-child { margin-top: 0; }
+  @page { margin: 14mm 14mm 16mm; }
+}
+.scn-for { font-style: normal; }
+.scn-sel { display: none; min-width: 0; height: 36px; padding: 0 8px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper, #fff); color: var(--ink); font: 700 15px/1 var(--ui); }
+@media (max-height: 520px) and (orientation: landscape) {
+  #title .packs.scn { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 10px; margin-top: 6px; }
+  #title .packs.scn small { grid-column: 1 / -1; }
+  #title .packs.scn .segs { display: none; }
+  #title .packs.scn .scn-for { display: none; }
+  #title .scn-sel { display: block; }
+}
+/* "Needs you": a count, and each tap goes to the next one */
+.needbtn { display: none; }
+body.ingame .needbtn { position: fixed; z-index: 27; right: 10px; bottom: calc(var(--dockH, 84px) + 10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px 0 12px; border: 2px solid var(--ink); border-radius: 22px; background: var(--paper); color: var(--ink-2); font: 700 15px/1 var(--ui); box-shadow: 0 4px 12px rgba(0, 0, 0, .28); }
+body.ingame .needbtn b { font-size: 18px; font-variant-numeric: tabular-nums; }
+body.ingame .needbtn.on { border-color: #1E5BC6; background: #1E5BC6; color: #fff; }
+body.ingame .needbtn.hot { border-color: #C8243A; background: #C8243A; animation: flash 1s ease-in-out infinite; }
+body.training .needbtn { display: none; }
+body.mapmode.ingame .needbtn { right: auto; left: calc(var(--railL, 0px) + 8px); bottom: calc(var(--dockH, 0px) + 8px + env(safe-area-inset-bottom)); }
+@media (max-height: 520px) { body.mapmode.ingame .needbtn { height: 36px; padding: 0 11px 0 9px; font-size: 13px; } body.mapmode.ingame .needbtn b { font-size: 16px; } }
+@keyframes needring { 50% { stroke: rgba(30, 91, 198, .35); fill: rgba(30, 91, 198, .04); } }
+.map .needring { animation-name: needring; }
+@media print { .needbtn { display: none !important; } }
 
 </style>
 </head>
@@ -770,6 +823,7 @@ body.mapmode:not(.rails) .map { margin-right: env(safe-area-inset-right); margin
     </main>
     <aside class="side" id="side" aria-label="Team"></aside>
   </div>
+  <button type="button" class="needbtn" id="needBtn" data-act="needNext"></button>
   <nav class="rail-l" id="railL" aria-label="Intake staff"></nav>
   <div class="mzoom" id="mzoom" aria-label="Zoom the floor plan"><button type="button" data-act="zoom" data-arg="in" aria-label="Zoom in">+</button><button type="button" data-act="zoom" data-arg="out" aria-label="Zoom out">−</button><button type="button" id="mzFit" data-act="zoom" data-arg="fit" aria-label="Show the whole floor" hidden>⤢</button></div>
   <nav class="dock" id="dock" aria-label="Providers">
@@ -825,8 +879,19 @@ const LEVELS = {
   easy: { name: 'Quiet Tuesday', blurb: 'Fewer ambulances, no call-outs. Learn the board.', walk: 3.6, ems: 1.8, alerts: 0.6, consult: [42, 64], events: [52, 76], callouts: 0, board: 0.85, sickMax: 1, boarders: 2, shift: 720 },
   med:  { name: 'Manic Monday', blurb: 'A normal busy day. Somebody always calls out.', walk: 4.8, ems: 2.4, alerts: 0.85, consult: [32, 50], events: [40, 60], callouts: 1, board: 1, sickMax: 2, boarders: 3, shift: 720 },
   hard: { name: 'Full Moon Friday', blurb: 'Everything, all at once. Good luck.', walk: 6.2, ems: 3.1, alerts: 1.15, consult: [26, 40], events: [32, 50], callouts: 2, board: 1.15, sickMax: 3, boarders: 4, shift: 720 },
+  // A short shift for demos and class: two packed hours, about five minutes at normal speed.
+  rush: { name: 'Five-Minute Rush', blurb: 'Two packed hours, 07:00 to 09:00. About five minutes.', walk: 8.5, ems: 4.4, alerts: 1.7, consult: [14, 22], events: [16, 26], callouts: 1, board: 1.1, sickMax: 1, boarders: 5, shift: 120 },
   // Orientation: no random arrivals, events, or bad luck. The UI's preceptor brings in one scripted patient at a time.
   train: { name: 'Orientation', blurb: 'A preceptor walks you through every step. Nothing counts.', walk: 0, ems: 0, alerts: 0, consult: [30, 40], events: [1e9, 1e9], callouts: 0, board: 0.2, sickMax: 0, boarders: 0, shift: 720, train: true },
+};
+
+/* Preset scenarios for teaching: one named problem, at a set point in the shift. */
+const SCENS = {
+  none: { name: 'No scenario', blurb: 'A regular shift.' },
+  ct: { name: 'CT down', blurb: 'The CT scanner fails early in the shift.' },
+  mci: { name: 'Bus crash', blurb: 'A multiple-casualty call comes in early in the shift.' },
+  board: { name: 'Boarding', blurb: 'You start with extra admitted patients, and beds upstairs are slow.' },
+  short: { name: 'Short-staffed', blurb: 'Two more people call out at the start.' },
 };
 
 const ZONES = [
@@ -1005,7 +1070,7 @@ const CASES = [
   { k: 'moto', cc: 'Motorcycle crash, leg deformity', dx: 'Open femur fracture', esi: 1, src: 'a', age: [18, 55], wt: 1.2, wk: ['xr', 'lab'], tr: ['abx', 'blood'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'prbc', vit: 'HR 118, BP 102/64', find: { xr: 'Open femur fracture', lab: 'Hemoglobin 9.4' } },
   { k: 'arrest', cc: 'Cardiac arrest, CPR in progress', dx: 'Cardiac arrest', esi: 1, src: 'a', age: [45, 85], wt: 1.3, wk: [], tr: [], dispo: 'code', alert: 'arrest', arrest: true, vit: 'Pulseless, VF on the monitor' },
   { k: 'shock', cc: 'Fever, BP 74/40', dx: 'Septic shock', esi: 1, src: 'a', age: [60, 90], wt: 1.8, wk: ['lab'], tr: ['fluids', 'abx'], con: 'icu', pre: ['lab'], need: ['lab'], dispo: 'icu', alert: 'sepsis', vit: 'HR 128, BP 74/40, mottled', find: { lab: 'Lactate 5.4' } },
-  { k: 'rsv', cc: 'Infant breathing hard', dx: 'RSV, tiring out', esi: 2, src: 'a', age: [0, 1], wt: 0.8, wk: ['lab'], tr: ['hfnc'], ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'peds', txTo: 'the pediatric ICU', vit: 'RR 72, retractions, SpO2 88%', find: { lab: 'VBG pCO2 61' } },
+  { k: 'rsv', cc: 'Infant breathing hard', dx: 'RSV, tiring out', esi: 2, src: 'a', age: [0, 1], wt: 0.8, wk: ['lab'], tr: ['hfnc'], ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'peds', txTo: 'the pediatric ICU', vit: 'HR 168, RR 72, retractions, SpO2 88%', find: { lab: 'VBG pCO2 61' } },
   { k: 'burn', cc: 'House fire, burns to arms and chest', dx: 'Partial-thickness burns, 25%, airway injury', esi: 2, src: 'a', age: [20, 70], wt: 0.6, wk: ['lab'], tr: ['intub', 'vent', 'fluids', 'meds'], vit: 'Hoarse voice, soot in the mouth, HR 112', ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'burn', txTo: 'the burn center', find: { lab: 'Carboxyhemoglobin 6%' } },
   // mass casualty
   { k: 'mcimin', cc: 'Bus crash, neck and back pain', dx: 'Minor trauma', esi: 3, src: 'm', age: [18, 70], wt: 1, wk: ['xr', 'ct'], tr: ['meds'], dispo: 'home', find: { xr: 'No fracture', ct: 'No acute injury' } },
@@ -1170,6 +1235,7 @@ function newGame(level, seed, opts) {
     stats: freshStats(), care: 0, ledger: {}, log: [],
     train: !!L.train, tr: L.train ? { step: 0, ids: {}, setup: {} } : null,
     mode: opts.mode === 'md' ? 'md' : 'rn', me: opts.mode === 'md' ? 'md1' : null,
+    scen: SCENS[opts.scen] && !L.train ? opts.scen : 'none',
   };
   G.staff = ROSTER.map(mkStaff);
   for (const r of G.rooms) if (r.z === 'ft') r.closed = true;  // Fast Track opens at 09:00
@@ -1179,7 +1245,7 @@ function newGame(level, seed, opts) {
   // You inherit a department that has been running all night.
   let guard = 0;
   while (G.t < 0 && guard++ < 2000) { step(0.25); botStep({}); }
-  seedBoarders(L.boarders);
+  seedBoarders(L.boarders + (G.scen === 'board' ? 5 : 0));
   startShift();
   return G;
 }
@@ -1211,6 +1277,10 @@ function startShift() {
   for (let i = 0; i < L.callouts; i++) G.sched.push({ t: G.t + 0.3 + i * 0.3, k: 'callout' });
   G.sched.push({ t: 240, k: 'swing' });
   G.sched.push({ t: 120, k: 'ftopen' });
+  const at = Math.round(Math.min(45, G.shift * 0.17));   // a scenario's problem lands early, once the player has their feet under them
+  if (G.scen === 'ct') G.sched.push({ t: at, k: 'scenct' });
+  if (G.scen === 'mci') G.sched.push({ t: at, k: 'scenmci' });
+  if (G.scen === 'short') for (let i = 0; i < 2; i++) G.sched.push({ t: G.t + 1.5 + i * 0.4, k: 'callout' });
   if (G.train) { G.nextArr = { walk: 1e9, ems: 1e9, alert: 1e9 }; G.box.nextC = 1e9; }
   if (G.mode === 'md') { const me = staff(G.me); orphanPatients(me); me.morale = 85; }  // the night doc signed out to the team
   note(`07:00, ${L.name}. ${G.train ? 'Your preceptor has the board with you.' : 'Night shift hands you the board.'}`);
@@ -1249,6 +1319,110 @@ function step(dt) {
 /* ---------- arrivals ---------- */
 function pickCase(srcs) { return wpick(CASES.filter(c => srcs.includes(c.src)), c => c.wt); }
 function pickLang() { let r = rnd(); for (const [k, w] of LANG_W) { r -= w; if (r < 0) return k; } return null; }
+/* ---------- vitals: they drift while a patient waits and settle as treatment lands ----------
+   Computed from the patient's state and the clock, so nothing here changes how a shift plays out.
+   The numbers follow what the engine already knows: true acuity, time untreated, treatments done, crashing, shock. */
+const VDOOR = { 1: { hr: 124, sbp: 94, dbp: 56, rr: 24, spo2: 95 }, 2: { hr: 104, sbp: 142, dbp: 86, rr: 20, spo2: 97 }, 3: { hr: 94, sbp: 136, dbp: 84, rr: 18, spo2: 97 }, 4: { hr: 84, sbp: 128, dbp: 78, rr: 16, spo2: 99 }, 5: { hr: 78, sbp: 122, dbp: 76, rr: 16, spo2: 99 } };
+/* What each case looks like at the door, where the acuity alone would get it wrong. Written for an adult; a child's are scaled from their own normals.
+   Oxygen is low only when breathing is the problem: a stroke, a bleed, or DKA arrives with a normal sat. */
+const VCASE = {
+  refill: { sbp: 164, dbp: 98 }, otitis: { temp: 101.3 }, strep: { temp: 101.5, hr: 100 }, uti: { temp: 99.8 },
+  gastro: { hr: 106, sbp: 108, dbp: 66, spo2: 98 }, appy: { temp: 100.6, hr: 102 }, chole: { temp: 100.4, hr: 98 }, hipfx: { hr: 96, sbp: 148, dbp: 86 },
+  pna: { temp: 101.6, hr: 108, rr: 24, spo2: 91 }, copd: { hr: 104 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
+  migraine: { sbp: 140, dbp: 86 }, tb: { temp: 100.8, spo2: 95 }, bh: { hr: 98 }, etoh: { hr: 104 }, cell: { temp: 100.9 },
+  syncope: { hr: 62, sbp: 108, dbp: 64, spo2: 98 }, tia: { hr: 80, sbp: 172, dbp: 96 }, dehyd: { hr: 114, sbp: 98, dbp: 60 }, mcimin: { hr: 100, sbp: 138, dbp: 84 }, mcigrn: { hr: 98 },
+  chf: { hr: 108, rr: 28 }, od: { hr: 62, sbp: 102, dbp: 60 }, synchigh: { hr: 44, sbp: 96, dbp: 58, rr: 18, spo2: 96 },
+  cpmod: { hr: 88, sbp: 146, dbp: 88, rr: 18 }, cwp: { hr: 84, sbp: 136, dbp: 84, rr: 18, spo2: 98 }, nstemi: { hr: 94, sbp: 150, dbp: 90 },
+  afib: { rr: 20, spo2: 96 }, gib: { rr: 22 }, dka: { hr: 118, rr: 28, sbp: 104, dbp: 62, spo2: 99 }, asthma: { hr: 118, rr: 28, sbp: 138, dbp: 84 },
+  anaph: { hr: 126, rr: 26, spo2: 92 }, sepsisw: { rr: 24, spo2: 94 }, strokew: { hr: 84, sbp: 186, dbp: 102, rr: 18 }, stroke: { hr: 86, sbp: 188, dbp: 104, rr: 18 },
+  rsv: { temp: 100.6 }, burn: { rr: 24, sbp: 148, dbp: 90 },
+  stemi: { rr: 20, spo2: 95 }, lvo: { hr: 88, sbp: 196, dbp: 108, rr: 18, spo2: 95 }, mvc: { rr: 28, spo2: 93 }, tfall: { hr: 58, rr: 14, spo2: 96 },
+  moto: { rr: 22, spo2: 96 }, shock: { temp: 102.6, rr: 28, spo2: 92 },
+};
+/* These do not go pale and fast when they get worse. A head bleed's pressure climbs while the heart slows; a stroke's pressure stays up;
+   an overdose stops breathing; heart failure drowns with the pressure still high; a bad rhythm gets slower. */
+const VHOLD = new Set(['tfall', 'strokew', 'stroke', 'lvo', 'tia', 'chf', 'od', 'synchigh']);
+const VADULT = { hr: 78, sbp: 122, dbp: 76, rr: 16 };
+const vhash = s => { let h = 9; for (const c of String(s)) h = (h * 33 + c.charCodeAt(0)) >>> 0; return (h % 1000) / 1000; };
+function vNormal(age) {
+  if (age < 2) return { hr: 130, sbp: 90, dbp: 55, rr: 36, spo2: 98, temp: 98.6 };
+  if (age < 6) return { hr: 110, sbp: 96, dbp: 58, rr: 26, spo2: 98, temp: 98.6 };
+  if (age < 13) return { hr: 94, sbp: 104, dbp: 64, rr: 20, spo2: 98, temp: 98.6 };
+  return { hr: age > 75 ? 74 : 78, sbp: age > 75 ? 132 : 122, dbp: 76, rr: 16, spo2: 98, temp: 98.4 };
+}
+function vDoor(p) {   // the numbers at arrival, and the signs that go with them
+  const n = vNormal(p.age), d = Object.assign({}, n), signs = [], kid = p.age < 13;
+  const scale = (k, val) => (kid && k in VADULT ? n[k] + (val - VADULT[k]) * (k === 'sbp' || k === 'dbp' ? 0.3 : 1) : val);   // a child's version of an adult number
+  const base = VDOOR[p.esi] || VDOOR[4];
+  for (const k of ['hr', 'sbp', 'dbp', 'rr']) d[k] = scale(k, base[k]);
+  d.spo2 = Math.min(n.spo2, base.spo2);
+  for (const [k, val] of Object.entries(VCASE[p.ck] || {})) d[k] = scale(k, val);
+  for (const part of String(p.vit || '').split(',').map(x => x.trim()).filter(Boolean)) {   // a case's own numbers are already right for its age
+    let m;
+    if ((m = /^HR (\d+)/.exec(part))) d.hr = +m[1];
+    else if ((m = /^BP (\d+)\/(\d+)/.exec(part))) { d.sbp = +m[1]; d.dbp = +m[2]; }
+    else if ((m = /^RR (\d+)/.exec(part))) d.rr = +m[1];
+    else if ((m = /^SpO2 (\d+)/.exec(part))) d.spo2 = +m[1];
+    else if ((m = /^Temp ([\d.]+)/.exec(part))) d.temp = +m[1];
+    else signs.push(part);
+  }
+  return { d, n, signs };
+}
+/* Minutes for a treatment to show in the numbers. Naloxone and epinephrine work while you watch; antibiotics and an insulin drip do not. */
+const VONSET = { nalox: 3, epi: 6, intub: 4, vent: 6, nebs: 12, bipap: 10, hfnc: 10, mtp: 15, blood: 20, fluids: 20, meds: 20, tnk: 30, insulin: 40, abx: 45, repair: 5 };
+function vRelief(p, t) {   // 0: nothing has been done. 1: every treatment has had time to work.
+  const ks = Object.keys(p.treat || {}), total = Math.max(ks.length, (p.tr || []).length, 1);
+  let r = 0;
+  for (const k of ks) { const x = p.treat[k]; if (x.st !== 'done') continue; const at = x.tDone != null ? x.tDone : p.tRoom != null ? p.tRoom : p.tArrive; if (at <= t) r += Math.min(1, (t - at) / (VONSET[k] || 20)) / total; }
+  return Math.min(1, r);
+}
+/* How sick they look right now: 1 is how they came in, above 1 is worse, toward 0 is back to normal. */
+function sickAt(p, t) {
+  const rate = { 1: 0.010, 2: 0.005, 3: 0.002, 4: 0.0005 }[p.esi] || 0;
+  const at = x => (x.tDone != null ? x.tDone : p.tRoom != null ? p.tRoom : p.tArrive);
+  const done = Object.values(p.treat || {}).filter(x => x.st === 'done' && at(x) <= t);
+  const first = done.length ? Math.min(...done.map(at)) : null;
+  let s = Math.min(1.45, 1 + rate * Math.max(0, Math.min((first != null ? first : t) - p.tArrive, 120)));   // worse the longer nothing is done, up to two hours
+  if (p.crash && (!p.tCrash || p.tCrash <= t)) s = Math.max(s, 1.4);
+  if (p.shock) s = Math.max(s, 1.5);
+  s *= 1 - 0.75 * vRelief(p, t);
+  if (!(p.tr || []).length && p.dxK) s *= 0.85;   // nothing to treat, and now they know what it is
+  return s;
+}
+function vitalsOf(p, when) {
+  const t = when != null ? when : G.t;
+  if (p.arrest) return { arrest: true, taken: true, text: 'No pulse. CPR in progress', signs: [], flags: {}, trend: 'worse', s: 2 };
+  const ems = p.src === 'ems' || !!p.unit;
+  if (!ems && p.tri !== 'done' && p.loc !== 'room') return { taken: false, text: 'Not taken yet. Triage takes the first set.', signs: [], flags: {}, trend: 'steady', s: 1 };
+  const { d, n, signs } = vDoor(p), s = sickAt(p, t), s0 = sickAt(p, t - 10), rel = vRelief(p, t);
+  const kid = p.age < 13, hold = VHOLD.has(p.ck) || p.alert === 'stroke';
+  const jit = k => (vhash(p.id + k + Math.floor(t / 5)) - 0.5) * 2;   // small wobble, new every five minutes
+  const v = {};
+  for (const k of ['hr', 'rr', 'spo2']) v[k] = n[k] + (d[k] - n[k]) * s;
+  const sb = hold && p.alert === 'stroke' ? Math.max(s, 0.65) : s;   // a stroke's pressure is left high on purpose
+  v.sbp = n.sbp + (d.sbp - n.sbp) * sb; v.dbp = n.dbp + (d.dbp - n.dbp) * sb;
+  v.temp = n.temp + (d.temp - n.temp) * Math.min(s, 1.15);   // a fever does not climb the way a heart rate does
+  if ((p.shock || (p.crash && (!p.tCrash || p.tCrash <= t))) && !hold) {   // out of reserve: fast, pale, and the pressure is gone, until treatment brings it back
+    const lowS = kid ? n.sbp - 22 : p.shock ? 74 : 84, lowD = kid ? n.dbp - 14 : p.shock ? 42 : 50, hiH = kid ? n.hr + 50 : p.shock ? 131 : 126;
+    v.sbp = Math.min(v.sbp, lowS + (n.sbp - lowS) * rel); v.dbp = Math.min(v.dbp, lowD + (n.dbp - lowD) * rel);
+    v.hr = Math.max(v.hr, hiH + (n.hr - hiH) * rel); v.rr = Math.max(v.rr, n.rr + 10 * (1 - rel));
+  }
+  const hrMax = p.age < 2 ? 210 : p.age < 6 ? 200 : p.age < 13 ? 190 : p.age >= 65 ? 170 : 180;
+  v.hr = Math.round(Math.max(30, Math.min(hrMax, v.hr + jit('h') * 3)));
+  v.sbp = Math.round(Math.max(56, Math.min(240, v.sbp + jit('s') * 4)));
+  v.dbp = Math.round(Math.max(30, Math.min(v.sbp - 16, 130, v.dbp + jit('d') * 3)));
+  v.rr = Math.round(Math.max(4, Math.min(Math.max(44, Math.min(72, n.rr * 2)), v.rr + jit('r'))));   // a baby can breathe 70 times a minute; an adult cannot
+  v.spo2 = Math.round(Math.max(62, Math.min(100, v.spo2 + jit('o') * 0.8)));
+  v.temp = Math.round(Math.max(95, Math.min(105.5, v.temp + jit('t') * 0.2)) * 10) / 10;
+  const flags = kid
+    ? { hr: v.hr > n.hr + 30 || v.hr < n.hr - 35, bp: v.sbp < n.sbp - 16, rr: v.rr > n.rr + 10 || v.rr < n.rr - 8, spo2: v.spo2 < 94, temp: v.temp >= 100.4 }
+    : { hr: v.hr > 100 || v.hr < 50, bp: v.sbp < 100 || v.sbp > 180, rr: v.rr > 21 || v.rr < 10, spo2: v.spo2 < 94, temp: v.temp >= 100.4 };
+  const trend = s - s0 > 0.03 ? 'worse' : s - s0 < -0.03 ? 'better' : 'steady';
+  const showSigns = s > 0.6 ? signs : [];
+  const text = `HR ${v.hr}, BP ${v.sbp}/${v.dbp}, RR ${v.rr}, SpO2 ${v.spo2}%${flags.temp || v.temp >= 99.5 ? `, Temp ${v.temp.toFixed(1)}` : ''}${showSigns.length ? ', ' + showSigns.join(', ') : ''}`;
+  return Object.assign(v, { taken: true, ems: ems && p.loc !== 'room' && p.tri !== 'done', signs: showSigns, flags, trend, s, text });
+}
+
 function makePatient(c, src) {
   const sex = c.sex || (chance(0.5) ? 'F' : 'M');
   const age = randi(c.age[0], c.age[1]);
@@ -2449,7 +2623,7 @@ function setDispo(p) {
   else if (p.dispo === 'obs') obsAdmit(p);
   else if (p.dispo === 'admit' || p.dispo === 'icu' || p.dispo === 'bh') {
     const base = p.dispo === 'icu' ? randi(30, 90) : p.dispo === 'bh' ? randi(100, 200) : randi(45, 110);
-    p.dsp = 'board'; p.due = G.t + base * L.board; p.tBoard = G.t;
+    p.dsp = 'board'; p.due = G.t + base * L.board * (G.scen === 'board' ? 1.6 : 1); p.tBoard = G.t;
     note(`${label(p)} admitted. Waiting on an inpatient bed.`);
   } else if (p.dispo === 'or' || p.dispo === 'cath') { p.dsp = 'toproc'; p.due = G.t + 4; }
 }
@@ -3062,6 +3236,8 @@ function scheduled() {
     if (G.pre && s.k !== 'return') continue;
     if (s.k === 'callout') fireEv('callout');
     else if (s.k === 'mci') mciArrive();
+    else if (s.k === 'scenct') { if (!G.out.ct) startOutage('ct'); }
+    else if (s.k === 'scenmci') { if (!G.ev.used.mci) fireEv('mci'); }
     else if (s.k === 'return') { const o = pt(s.pid); if (o) returnVisit(o); }
     else if (s.k === 'swing') toast('11:00: Dr. Nguyen and PA Brooks are on for the swing shift', 'good');
     else if (s.k === 'ftopen') { for (const r of G.rooms) if (r.z === 'ft') r.closed = false; toast('09:00: Fast Track is open. Lee has it.', 'good'); }
@@ -3457,8 +3633,8 @@ function staffHours() {
   const seen = G.order.filter(id => G.pts[id].tArrive >= 0 && G.pts[id].loc !== 'enroute' && G.pts[id].loc !== 'new').length || 1;
   return { rn, agency, mandated, md: h('md'), app: h('app'), pct: h('pct'), rt: h('rt'), rnPerVisit: Math.round(100 * (rn + agency + mandated) / seen) / 100 };
 }
-const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200, 2200], train: [300, 800, 1400] };
-const STARS_MD = { easy: [600, 1200, 1800], med: [600, 1300, 2000], hard: [600, 1300, 2000], train: [300, 800, 1400] };
+const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200, 2200], train: [300, 800, 1400], rush: [100, 240, 340] };
+const STARS_MD = { easy: [600, 1200, 1800], med: [600, 1300, 2000], hard: [600, 1300, 2000], train: [300, 800, 1400], rush: [120, 240, 310] };
 function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' ? STARS_MD : STARS)[level || (G && G.level) || 'med']; return c >= s[2] ? 3 : c >= s[1] ? 2 : c >= s[0] ? 1 : 0; }
 function endShift(reason) {
   if (G.over) return;
@@ -3469,7 +3645,7 @@ function endShift(reason) {
   const walls = ems.map(p => p.tWall != null ? p.tWall : (p.loc === 'wall' ? G.t - p.tArrive : 0));
   const S = G.stats;
   G.report = {
-    level: G.level, pack: G.pack, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
+    level: G.level, scen: G.scen || 'none', pack: G.pack, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
     stars: G.fail ? 0 : starsFor(G.care, G.level),
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama, expired: S.expired,
     returns: S.returns + S.returnsLate, left: active().length,
@@ -3657,7 +3833,7 @@ const OC = {
   setPit, activateMTP, releaseONeg, requestInterp, overrideRx,
   register, triage, toWaiting, sendUp, bookIFT, IFT, emergent, DIVERTS, OUTAGES, outActive, justified,
   startOutage, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
-  metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage,
+  metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,
 };
 root.OC = OC;
@@ -3673,7 +3849,7 @@ const E = window.OC;
 const $ = (s, r) => (r || document).querySelector(s);
 const SPEEDS = [1, 2, 3, 4];
 const BASE = 0.4; // game minutes per real second at 1×: a 12-hour shift takes about 30 minutes
-const U = { scene: 'title', lvl: 'med', mode: 'rn', view: 'map', ord: null, ordOpen: null, pack: 'national', sel: null, sheet: null, modal: null, speed: 1, paused: false, sound: true, ringId: null, ringT: 0, wide: false, lastSave: 0, hold: false, ff: 0, coachKey: null };
+const U = { scene: 'title', lvl: 'med', mode: 'rn', view: 'map', scen: 'none', ord: null, ordOpen: null, pack: 'national', sel: null, sheet: null, modal: null, speed: 1, paused: false, sound: true, ringId: null, ringT: 0, wide: false, lastSave: 0, hold: false, ff: 0, coachKey: null };
 let audio = null;
 
 /* ---------- small helpers ---------- */
@@ -3742,8 +3918,51 @@ function tone(f, d, type, vol, at) {
     o.connect(gn); gn.connect(audio.destination); o.start(t0); o.stop(t0 + d + 0.03);
   } catch (e) { /* ignore */ }
 }
+/* A monitor beeping somewhere, faster and sharper when a code is running. Quiet on purpose. */
+let ambT = 0, pageT = 0;
+function ambient(G, now) {
+  if (!audio || !U.sound || U.scene !== 'game' || isPaused() || now - ambT < 1150) return;
+  ambT = now;
+  const act = E.inRooms();
+  if (act.some(p => p.arrest)) { tone(1180, .07, 'square', .016); tone(1180, .07, 'square', .016, .17); }
+  else if (act.length) tone(act.some(p => p.crash || p.shock) ? 990 : 880, .045, 'sine', Math.min(.018, .005 + act.length * .0005));
+  if (Math.random() < .04) tone(1560, .03, 'sine', .007, .45);   // an IV pump, somewhere
+}
+function radioBurst() {   // squelch when the Box opens up
+  if (!audio || !U.sound) return;
+  try {
+    const n = Math.floor(audio.sampleRate * .22), buf = audio.createBuffer(1, n, audio.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = audio.createBufferSource(), bp = audio.createBiquadFilter(), gn = audio.createGain();
+    src.buffer = buf; bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 1.2; gn.gain.value = .05;
+    src.connect(bp); bp.connect(gn); gn.connect(audio.destination); src.start();
+  } catch (e) { /* ignore */ }
+}
+function page(text) {   // an overhead page: a chime, then a voice if the browser has one
+  const now = performance.now();
+  if (!U.sound || U.scene !== 'game' || now - pageT < 9000) return;
+  pageT = now;
+  tone(660, .22, 'sine', .05); tone(523, .34, 'sine', .05, .24);
+  try {
+    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+    const u = new SpeechSynthesisUtterance(text); u.volume = .5; u.rate = 1.02;
+    setTimeout(() => { try { if (U.sound && U.scene === 'game') window.speechSynthesis.speak(u); } catch (e) { /* ignore */ } }, 700);
+  } catch (e) { /* ignore */ }
+}
+function hush() { try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } }   // the overhead voice stops when the shift does
+function pageFor(msg) {   // which messages go out overhead
+  let m;
+  if ((m = /^(\w+) alert at the bay/.exec(msg))) return `${m[1] === 'Code' ? 'Code blue' : m[1] + ' alert'}, ambulance bay.`;
+  if ((m = /^Report taken: (\w+)/.exec(msg))) return `${m[1]} team to the emergency department.`;
+  if (/Massive transfusion/i.test(msg) && /activated/i.test(msg)) return 'Massive transfusion protocol, emergency department.';
+  if (/^CODE BLUE in the waiting room/.test(msg)) return 'Code blue, waiting room.';
+  if (/lost pulses/.test(msg)) return 'Code blue, emergency department.';
+  if (/is crashing in the waiting room/.test(msg)) return 'Rapid response, waiting room.';
+  return null;
+}
 function sfx(n) {
   if (U.scene !== 'game') return;
+  if (n === 'ring') radioBurst();
   if (n === 'ring') { tone(880, .11, 'square', .04); tone(660, .11, 'square', .04, .14); tone(880, .11, 'square', .04, .28); vib([70, 50, 70]); }
   else if (n === 'ring2') { tone(880, .09, 'square', .03); tone(660, .09, 'square', .03, .12); }
   else if (n === 'siren') { for (let i = 0; i < 3; i++) { tone(620, .16, 'sawtooth', .025, i * .32); tone(820, .16, 'sawtooth', .025, i * .32 + .16); } }
@@ -3758,6 +3977,7 @@ function vib(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e)
 /* ---------- toasts ---------- */
 function toast(msg, kind) {
   const box = $('#toasts'); if (!box) return;
+  const pg = pageFor(String(msg)); if (pg) page(pg);   // the big ones go out overhead too
   const el = document.createElement('div');
   el.className = 'toast t-' + (kind || 'info'); el.textContent = msg;
   box.appendChild(el);
@@ -3796,7 +4016,7 @@ function render() {
   document.body.classList.toggle('rails', rails);
   { const ist = $('#istaff'), want = U.view !== 'map' ? $('#intake') : rails ? $('#railL') : $('#dock');   // in the floor plan, registrars and triage nurses ride in a rail or the dock
     if (ist && want && ist.parentNode !== want) want.insertBefore(ist, want.firstChild); }
-  renderHud(G); renderBox(G); renderObjs(G); renderSel(G); renderZoneBar(G); renderIntakeStaff(G); renderLanes(G); renderBoard(G); if (U.view === 'map') mapRender(G); renderDock(G); renderSide(G); renderLog(G);
+  renderHud(G); renderBox(G); renderObjs(G); renderNeed(G); renderSel(G); renderZoneBar(G); renderIntakeStaff(G); renderLanes(G); renderBoard(G); if (U.view === 'map') mapRender(G); renderDock(G); renderSide(G); renderLog(G);
   coachRun();
   renderSheet(G); renderModal(G);
   live(G);
@@ -4167,9 +4387,15 @@ function where(p) {
   if (p.loc === 'room') return E.roomName(p.room);
   return { wall: 'On the wall (EMS stretcher)', waiting: p.pitSeen ? 'Waiting room (seen in triage)' : 'Waiting room', triage: 'Triage line', enroute: 'En route', gone: 'Gone' }[p.loc] || p.loc;
 }
-function vitals(p) {
-  if (p.vit) return p.vit;
-  return { 1: 'Unstable', 2: 'HR 112, BP 154/92, SpO2 94%', 3: 'HR 96, BP 138/84, SpO2 97%', 4: 'HR 84, BP 128/78, SpO2 99%', 5: 'HR 78, BP 122/76, SpO2 99%' }[ve(p)];
+/* Vitals now, with the abnormal ones in red and which way they are heading. */
+function vitalsHTML(p) {
+  const v = E.vitalsOf(p);
+  if (v.arrest) return `<span class="vv vbad"><b>${esc(v.text)}</b></span>`;
+  if (!v.taken) return `<span class="vna">${esc(v.text)}</span>`;
+  const f = v.flags, it = (l, val, bad) => `<span class="vv${bad ? ' vbad' : ''}">${l} <b>${val}</b></span>`;
+  return it('HR', v.hr, f.hr) + it('BP', `${v.sbp}/${v.dbp}`, f.bp) + it('RR', v.rr, f.rr) + it('SpO2', v.spo2 + '%', f.spo2) + (v.temp >= 99.5 ? it('Temp', v.temp.toFixed(1), f.temp) : '')
+    + (v.signs.length ? `<span class="vv">${esc(v.signs.join(', '))}</span>` : '')
+    + `<i class="vtrend v-${v.trend}">${v.trend === 'worse' ? '▼ Getting worse' : v.trend === 'better' ? '▲ Improving' : v.ems ? 'From the EMS report' : 'Steady'}</i>`;
 }
 function provButtons(p, G) {
   return G.staff.filter(s => E.isProv(s) && E.present(s)).map(s => {
@@ -4310,7 +4536,7 @@ function ptSheet(G, p) {
   if (!p) return '';
   if (p.loc === 'gone') return head(esc(p.name), 'No longer in the department') + `<p class="hint">${esc({ dc: 'Discharged home.', obs: 'Went to the observation unit.', admit: 'Went upstairs.', icu: 'Went to the ICU.', bh: 'Went to the psych unit.', or: 'Went to the OR.', cath: 'Went to the cath lab.', tx: 'Transferred out.', lwbs: 'Left without being seen.', ama: 'Left against medical advice.', expired: 'Died in the department.' }[p.outcome] || 'Left.')}</p>`;
   let h = `<div class="ph"><div class="ph-who"><span class="ph-em">${emoji(p)}</span><span><b>${esc(p.name)}</b>, ${p.age}${p.sex} ${esiChip(p)} ${alertTag(p)}${langChip(p)}${p.ret ? ' <i class="rettag">72-hr return</i>' : ''}${p.vip ? ' <i class="vip">VIP</i>' : ''}${p.stat ? ' <i class="stat">Stat</i>' : ''}<br><span class="ph-sub">${esc(where(p))} · ${p.src === 'ems' ? esc(p.unit || 'EMS') : 'Walk-in'} · ${p.loc === 'enroute' ? `ETA <span data-cd="${p.eta}"></span>` : `in the ED <span data-el="${p.tArrive}"></span>`}</span></span></div></div>`;
-  const kv = [['Complaint', esc(p.cc)], ['Vitals', esc(vitals(p))]], dx = dxShown(p);
+  const kv = [['Complaint', esc(p.cc)], ['Vitals', vitalsHTML(p)]], dx = dxShown(p);
   if (dx) kv.push(['Diagnosis', `<b>${esc(dx)}</b>`]); else if (p.alertOn && p.alert) kv.push(['Working', `${esc(E.ALERTS[p.alert].name)} alert`]);
   if (p.iso) kv.push(['Isolation', 'Airborne. Room 8 or 16.']);
   if (p.sitter) kv.push(['Safety', 'Needs a safe room (19 or 20) or a 1:1 sitter']);
@@ -4899,6 +5125,51 @@ function live(G) {
   for (const el of document.querySelectorAll('[data-load]')) { const s = E.staff(el.dataset.load); if (!s) continue; const v = `Load ${fl(E.nurseLoad(s))}/${E.ratioCap(s)}`; if (el.textContent !== v) el.textContent = v; }
 }
 
+/* ---------- "Needs you": everything waiting on the player right now, most urgent first ---------- */
+function needList(G) {
+  const out = [], md = MD(), c = G.box.cur;
+  if (c && !c.taken && !(md && c.kind === 'notify')) out.push({ k: 'box', id: 'box', pr: 0, what: md ? 'The radio is ringing' : c.kind === 'notify' ? 'The Box: take report' : 'The Box: find a doctor' });
+  for (const r of G.rooms) {
+    const p = r.pid ? E.pt(r.pid) : null;
+    if (p) {
+      const ns = nextStep(p, r, G), fl = /\bfl\b/.test(ns.c);
+      let pr = /n-code/.test(ns.c) && fl ? 1 : /n-bad/.test(ns.c) ? 2 : /n-act/.test(ns.c) ? 4 : /n-go/.test(ns.c) && fl ? 5 : 0;
+      if (md && pr && !(mine(p) || (E.needsProv(p) && !p.prov) || pr === 1)) pr = 0;   // the charge nurse has the rest
+      if (pr) out.push({ k: 'room', id: r.id, pid: p.id, pr: pr + ve(p) / 10, what: `${E.roomName(r.id)}: ${ns.t.replace(/<[^>]+>/g, '').replace(/ · $/, '')}` });
+    } else if (!md && r.st === 'dirty' && !r.closed && G.evsQ.indexOf(r.id) < 0) out.push({ k: 'dirty', id: r.id, pr: 8, what: `${E.roomName(r.id)} is dirty` });
+  }
+  if (!md) {
+    for (const p of E.active()) {
+      if (p.loc !== 'wall') continue;
+      const u = p.unit || 'EMS';
+      if (E.emergent(p)) out.push({ k: 'pt', id: p.id, pid: p.id, pr: 1.5, what: `${u}: needs a room now` });
+      else if (intakeDone(p)) out.push({ k: 'pt', id: p.id, pid: p.id, pr: 6 - Math.min(0.9, (G.t - p.tArrive) / 90), what: `${u}: ready for a bed` });
+      else if (p.reg === 'none' || p.tri === 'none') out.push({ k: 'pt', id: p.id, pid: p.id, pr: 6.5, what: `${u}: needs ${p.tri === 'none' ? 'report taken' : 'registration'}` });
+    }
+    const door = G.triageQ.map(E.pt).filter(p => p && (p.reg === 'none' || p.tri === 'none')).length;
+    if (door) out.push({ k: 'door', id: 'door', pr: 7, what: `${door} at the door need${door === 1 ? 's' : ''} registration or triage` });
+    const wait = E.active().filter(p => p.loc === 'waiting' && !p.pitSeen).length;
+    if (wait && G.rooms.some(r => !r.pid && r.st === 'clean' && !r.closed && r.kind !== 'chair' && r.kind !== 'resus')) out.push({ k: 'wait', id: 'wait', pr: 6.2, what: `${wait} in the waiting room, and a bed is open` });
+  }
+  return out.sort((a, b) => a.pr - b.pr);
+}
+function needEl(it) {   // where it is on the board
+  const fp = U.view === 'map';
+  if (it.k === 'room' || it.k === 'dirty') return document.getElementById((fp ? 'mroom-' : 'room-') + it.id);
+  if (it.k === 'pt') return fp ? document.querySelector(`#mPts [data-arg="${it.pid}"], #mAmbs [data-arg="${it.pid}"]`) : document.querySelector(`#laneEms [data-arg="${it.pid}"]`);
+  if (it.k === 'door') return fp ? document.getElementById('mDoor') : document.getElementById('laneWait');
+  if (it.k === 'wait') return fp ? document.getElementById('mWait') : document.getElementById('laneWait');
+  return fp ? document.getElementById('mBox') : document.getElementById('boxbar');
+}
+function renderNeed(G) {
+  const el = $('#needBtn'); if (!el) return;
+  const list = U.scene === 'game' && !G.train ? needList(G) : [], n = list.length;
+  const h = n ? `<b>${n}</b><span>Next</span>` : '<b>✓</b><span>Clear</span>';
+  setH(el, h); setC(el, 'needbtn' + (n ? ' on' : '') + (n && list[0].pr < 3 ? ' hot' : ''));
+  el.setAttribute('aria-label', n ? `${n} ${n === 1 ? 'thing needs' : 'things need'} you. Go to the next one: ${list[0].what}` : 'Nothing is waiting on you');
+  if (U.view === 'map') { const r = U.needRing, it = r && performance.now() < r.until ? list.find(x => x.id === r.id) : null, x = it ? needEl(it) : null; mapSpot(x ? [x] : [], 'mNeed', 'needring'); }
+}
+
 /* ---------- taps ---------- */
 function tapRoom(id) {
   const r = E.room(id), s = U.sel;
@@ -4965,6 +5236,8 @@ const ACT = {
   mdd: a => { const [pid, k] = a.split('|'); if (k === 'consult') { U.sheet = { type: 'consult', pid }; return; } res(E.mdDecide(pid, k), true); },
   view: v => { U.view = v === 'list' || v === 'map' ? v : U.view === 'map' ? 'list' : 'map'; store('oc-view', U.view); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   mode: m => { U.mode = m === 'md' ? 'md' : 'rn'; store('oc-mode', U.mode); setH($('#title'), titleHTML()); },
+  scenario: k => { U.scen = E.SCENS[k] ? k : 'none'; store('oc-scen', U.scen); setH($('#title'), titleHTML()); },
+  print: () => { try { window.print(); } catch (e) { toast('Printing is not available here. Open the game in your browser to print.', 'info'); } },
   coachNext: () => coachAdvance(),
   coachSkip: () => coachSkip(),
   coachExit: () => { save(true); showTitle(); },
@@ -4993,6 +5266,20 @@ const ACT = {
     U.sheet = { type: 'zone', z: 'triage' };
   },
   zoom: k => { mapZoom(k === 'in' ? 1.5 : k === 'out' ? 1 / 1.5 : 0); },
+  needNext: () => {   // jump to the next thing that needs the player
+    const G = g(), list = needList(G);
+    if (!list.length) { toast('Nothing is waiting on you right now', 'good'); return; }
+    const it = list[(list.findIndex(x => x.id === U.needLast) + 1) % list.length];
+    U.needLast = it.id; U.needRing = { id: it.id, until: performance.now() + 6000 }; U.sel = null; U.sheet = null;
+    const x = needEl(it);
+    if (x && U.view === 'map') mapFocus(x); else if (x) x.scrollIntoView({ block: 'center' });
+    if (it.k === 'box') ACT.boxTap();
+    else if (it.k === 'room') U.sheet = { type: 'pt', pid: it.pid };
+    else if (it.k === 'pt') tapPt(it.pid);
+    else if (it.k === 'door' || it.k === 'wait') U.sheet = { type: 'zone', z: 'triage' };
+    else toast(`${it.what}. Tap it to send EVS.`, 'info');
+    if (it.k !== 'dirty' && it.k !== 'box') toast(it.what, 'info');
+  },
   boxTap: () => { const b = $('#boxbar .bx-btn'); if (b && ACT[b.dataset.act]) ACT[b.dataset.act](b.dataset.arg, b); else toast(g().box.cur ? 'A doctor is on the line with the medic' : 'The Box is quiet', 'info'); },
   fullscreen: () => {
     const d = document, el = d.documentElement;
@@ -5039,10 +5326,10 @@ const ACT = {
   pizza: () => res(E.orderPizza()),
   yellow: () => { U.sheet = { type: 'divert' }; },
   divertSet: a => { const [k, on] = a.split('|'); res(E.setDivert(k, on === '1')); },
-  pause: () => { U.paused = !U.paused; if (U.paused) save(true); },
+  pause: () => { U.paused = !U.paused; if (U.paused) { save(true); hush(); } },
   resume: () => { U.paused = false; },
   speed: () => { U.speed = SPEEDS[(SPEEDS.indexOf(U.speed) + 1) % SPEEDS.length]; toast(`${U.speed}× speed`, 'info'); },
-  sound: () => { U.sound = !U.sound; store('oc-sound', U.sound ? '1' : '0'); if (U.sound) ensureAudio(); if (U.scene === 'title') setH($('#title'), titleHTML()); },
+  sound: () => { U.sound = !U.sound; store('oc-sound', U.sound ? '1' : '0'); if (U.sound) ensureAudio(); else hush(); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   help: () => { U.sheet = { type: 'help' }; },
   pack: k => { U.pack = k; store('oc-pack', k); setH($('#title'), titleHTML()); },
   start: lvl => start(lvl),
@@ -5084,7 +5371,7 @@ function resumeSave() {
 }
 
 /* ---------- scenes ---------- */
-const DOT = { easy: 'var(--e4)', med: 'var(--e3)', hard: 'var(--e1)' };
+const DOT = { easy: 'var(--e4)', med: 'var(--e3)', hard: 'var(--e1)', rush: '#7B4A9E' };
 const BLURB_MD = { easy: 'Fewer patients, fewer radio calls. Learn the orders.', med: 'A normal busy day. The radio keeps ringing.', hard: 'Sicker patients, all at once. Good luck.' };
 function bestOf(l, mode) { return +(store('oc-best-' + ((mode || U.mode) === 'md' ? 'md-' : '') + l) || 0); }
 const trainedKey = mode => (mode === 'md' ? 'oc-trained-md' : 'oc-trained');
@@ -5095,15 +5382,16 @@ function titleHTML() {
   const modes = `<div class="modes" role="group" aria-label="Your role"><button type="button" class="mode${md ? '' : ' on'}" data-act="mode" data-arg="rn" aria-pressed="${!md}"><b>Charge nurse</b><small>Run the board</small></button><button type="button" class="mode${md ? ' on' : ''}" data-act="mode" data-arg="md" aria-pressed="${md}"><b>Attending</b><small>See patients, write orders</small></button></div>`;
   const tb = md ? 'A senior attending walks you through patients, orders, results, the call, and the radio. Nothing counts.' : E.LEVELS.train.blurb;
   const train = `<button type="button" class="lvl train" data-act="start" data-arg="train"><span class="dot" style="background:var(--accent)"></span><span><b>${E.LEVELS.train.name}</b><small>${tb}</small></span>${store(trainedKey(U.mode)) ? '<span class="best">Done ✓</span>' : fresh ? '<span class="best go">Start here</span>' : ''}</button>`;
-  const lv = train + ['easy', 'med', 'hard'].map(k => { const L = E.LEVELS[k], b = bestOf(k), st = b ? E.starsFor(b, k, U.mode) : 0; return `<button type="button" class="lvl" data-act="start" data-arg="${k}"><span class="dot" style="background:${DOT[k]}"></span><span><b>${L.name}</b><small>${md && BLURB_MD[k] ? BLURB_MD[k] : L.blurb}</small></span>${b ? `<span class="best">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>` : ''}</button>`; }).join('');
+  const lv = train + ['rush', 'easy', 'med', 'hard'].map(k => { const L = E.LEVELS[k], b = bestOf(k), st = b ? E.starsFor(b, k, U.mode) : 0; return `<button type="button" class="lvl" data-act="start" data-arg="${k}"><span class="dot" style="background:${DOT[k]}"></span><span><b>${L.name}</b><small>${md && BLURB_MD[k] ? BLURB_MD[k] : L.blurb}</small></span>${b ? `<span class="best">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>` : ''}</button>`; }).join('');
   const sv = readSave();
   const resume = sv ? `<button type="button" class="lvl resume" data-act="resumeSave"><span class="dot" style="background:var(--accent)"></span><span><b>Resume your shift</b><small>${sv.G.mode === 'md' ? 'Attending' : 'Charge nurse'}: ${esc(E.LEVELS[sv.lvl] ? E.LEVELS[sv.lvl].name : '')}, paused at ${E.clock(sv.G.t)}</small></span></button>` : '';
+  const scens = `<div class="packs scn"><span id="scnLab">Scenario<i class="scn-for"> (for class or practice)</i></span><div class="segs s5">${Object.entries(E.SCENS).map(([k, S]) => `<button type="button" class="seg${U.scen === k ? ' on' : ''}" data-act="scenario" data-arg="${k}" aria-pressed="${U.scen === k}">${k === 'none' ? 'None' : esc(S.name)}</button>`).join('')}</div><select class="scn-sel" data-pick="scenario" aria-labelledby="scnLab">${Object.entries(E.SCENS).map(([k, S]) => `<option value="${k}"${U.scen === k ? ' selected' : ''}>${k === 'none' ? 'None' : esc(S.name)}</option>`).join('')}</select><small>${esc(E.SCENS[U.scen].blurb)}${U.scen !== 'none' ? ' <span class="scn-note">Not counted in your bests.</span>' : ''}</small></div>`;
   const packs = Object.entries(E.PACKS).map(([k, P]) => `<button type="button" class="seg${U.pack === k ? ' on' : ''}" data-act="pack" data-arg="${k}" aria-pressed="${U.pack === k}">${esc(P.name)}</button>`).join('');
-  return `<div class="card"><div class="t-kicker">An ED shift survival game</div><h1 class="t-brand">Overcrowded</h1><svg class="t-under" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 6 L297 6" stroke="#C8243A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>${modes}<p class="t-sub">${md ? "You're an attending in a 32-bed ED, 07:00 to 19:00. The charge nurse runs the board. You see patients, write the orders, make the calls, and answer the radio when a medic needs medical direction." : "You're the charge nurse for a 32-bed ED, 07:00 to 19:00. Five pods, a resus team, a radio that won't stop ringing, and an administrator who just walked in."}</p><div class="levels">${resume}${lv}</div>${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}<div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="view">${U.view === 'map' ? 'Board: floor plan' : 'Board: list'}</button><button type="button" data-act="sound">Sound: ${U.sound ? 'on' : 'off'}</button>${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? `<button type="button" data-act="fullscreen">${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
+  return `<div class="card"><div class="t-kicker">An ED shift survival game</div><h1 class="t-brand">Overcrowded</h1><svg class="t-under" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 6 L297 6" stroke="#C8243A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>${modes}<p class="t-sub">${md ? "You're an attending in a 32-bed ED, 07:00 to 19:00. The charge nurse runs the board. You see patients, write the orders, make the calls, and answer the radio when a medic needs medical direction." : "You're the charge nurse for a 32-bed ED, 07:00 to 19:00. Five pods, a resus team, a radio that won't stop ringing, and an administrator who just walked in."}</p><div class="levels">${resume}${lv}</div>${scens}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}<div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="view">${U.view === 'map' ? 'Board: floor plan' : 'Board: list'}</button><button type="button" data-act="sound">Sound: ${U.sound ? 'on' : 'off'}</button>${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? `<button type="button" data-act="fullscreen">${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
 }
 function clearToasts() { const b = $('#toasts'); if (b) b.innerHTML = ''; }
 function showTitle() {
-  clearToasts();
+  clearToasts(); hush();
   U.scene = 'title'; U.sel = null; U.sheet = null; U.modal = null; U.paused = false;
   E.newGame('med', 4242);
   for (let i = 0; i < 160; i++) { E.step(0.25); E.botStep({}); }
@@ -5115,7 +5403,7 @@ function start(lvl) {
   ensureAudio();
   U.lvl = lvl; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = false; U.speed = 1;
   store('oc-save', null);
-  E.newGame(lvl, lvl === 'train' ? 20261116 : (Math.random() * 2147483647) | 0, { pack: U.pack, mode: U.mode });
+  E.newGame(lvl, lvl === 'train' ? 20261116 : (Math.random() * 2147483647) | 0, { pack: U.pack, mode: U.mode, scen: U.scen });
   $('#title').hidden = true; $('#report').hidden = true;
   U.coachKey = null;
   const helpKey = 'oc-seen-help2' + (U.mode === 'md' ? '-md' : '');
@@ -5130,21 +5418,22 @@ function reportHTML(R) {
   const LED = { md: 'Patients you saw', orders: 'Orders', harm: 'Harm and untreated patients', dispo: 'Disposition calls', flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood', transfer: 'Transfers', gray: 'Gray-zone calls', chair: 'Admitted patients in chairs', experience: 'Complaints' };
   const rows = Object.entries(led).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LED[k] || k}</td><td class="${v < 0 ? 'neg' : 'pos'}">${v > 0 ? '+' : ''}${Math.round(v)}</td></tr>`).join('');
   const t = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
-  return `<div class="card rep"><h2>${R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift report' : 'Shift report'}</h2><div class="stars" aria-label="${R.stars} of 3 stars">${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}</div><p class="verdict">${R.fail ? 'Staff satisfaction hit the floor and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
+  return `<div class="card rep"><h2>${R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift report' : 'Shift report'}</h2><div class="stars" aria-label="${R.stars} of 3 stars">${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}</div><p class="verdict">${R.fail ? 'Staff satisfaction hit the floor and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
+<p class="rep-meta">${R.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${esc(L.name)}${R.scen && R.scen !== 'none' ? ' · ' + esc(E.SCENS[R.scen].name) : ''} · ${new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · Name: <span class="rep-name">&nbsp;</span></p>
 <div class="rep-big"><div><b>${R.care}</b><span>${R.mode === 'md' ? 'Score' : 'Pt mgmt'}</span></div><div><b>${R.wait}m</b><span>Avg wait</span></div>${R.mode === 'md' && R.md ? `<div><b>${R.md.seen}</b><span>You saw</span></div>` : `<div><b>${R.sat}%</b><span>Staff sat</span></div>`}</div>
 ${mmHTML(R)}${mdReportHTML(R, t)}
 <h4>Where your points came from</h4><table class="ledger">${rows || t('Nothing yet', '0')}</table>
 ${metricsHTML(R, t)}
-${R.mode === 'md' ? mdDeptHTML(R, t) : `<h4>Patients</h4><table>${t('Arrived this shift', R.seen)}${t('Discharged home', R.dc)}${t('Sent home from triage', R.pitDc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('Left against medical advice', R.ama)}${t('72-hour returns', R.returns)}${t('Still in the ED at 19:00', R.left)}</table>
+${R.mode === 'md' ? mdDeptHTML(R, t) : `<h4>Patients</h4><table>${t('Arrived this shift', R.seen)}${t('Discharged home', R.dc)}${t('Sent home from triage', R.pitDc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('Left against medical advice', R.ama)}${t('72-hour returns', R.returns)}${t(`Still in the ED at ${E.clock(E.LEVELS[R.level] ? E.LEVELS[R.level].shift : 720)}`, R.left)}</table>
 <h4>EMS and the Box</h4><table>${t('Average EMS wall time (arrival to hand-off)', R.wallAvg + 'm')}${t('EMS handed off to the waiting room', R.offloads)}${t('Units on the wall over 30 min', R.wallOver)}${t('Medical direction calls sent to a doctor', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Alert reports taken', `${R.boxN.ans} of ${R.boxN.ans + R.boxN.miss}`)}${t('Alert time goals met', `${R.goalsMet} of ${R.goalsMet + R.goalsMiss}`)}${t('Ambulances diverted', `${R.diverted} (${R.yellowMins}m yellow, ${R.redMins}m red)`)}</table>
 <h4>Outages and diversion</h4><table>${R.outages.length ? R.outages.map(o => t(`${esc(E.OUTAGES[o.k].name)} at ${E.clock(o.t0)}`, o.divertAt == null ? `No ${esc(E.DIVERTS[E.OUTAGES[o.k].fix].name)}${o.misses ? ` · ${o.misses} came anyway` : ''}` : `${esc(E.DIVERTS[E.OUTAGES[o.k].fix].short)} divert in ${Math.round(o.divertAt - o.t0)}m${o.misses ? ` · ${o.misses} came first` : ''}${o.after ? ` · ${o.after}m too long` : ''}`)).join('') : t('Nothing broke this shift', '')}${R.divertExtra ? t('Minutes on a specific divert with nothing broken', R.divertExtra) : ''}</table>
 <h4>Services</h4><table>${t('Interpreters requested', `${R.interp} for ${R.lep} patients who needed one`)}${t('Massive transfusions', `${R.mtp}${R.mtpWaste ? ` (${R.mtpWaste} not needed)` : ''}`)}${t('Patients who went into shock', R.shock)}${t('O-negative units used', R.oneg)}${t('Meds pulled on override', `${R.overrides} (${R.medErrors} errors)`)}${t('Seen by a provider in triage', R.pitSeen)}${t('Registered / triaged', `${R.registered} / ${R.triaged}`)}${t('Sent upstairs by transporter / tech', `${R.transports.tp} / ${R.transports.pct}`)}${t('Interfacility ambulances', `${R.ift.als} ALS · ${R.ift.cct} CCT · ${R.ift.air} air${R.iftRefused ? ` (${R.iftRefused} wrong level)` : ''}`)}</table>
 <h4>Team</h4><table>${t('Angry consultants', R.angry + R.wrongSpec)}${t('Nurse-minutes over ratio', R.ratioMin)}${t('Safety events', R.adverse)}${t('Agency nurses / mandates', `${R.agency} / ${R.mandates}`)}${R.staffH ? t('RN hours (staff / agency / mandated)', `${R.staffH.rn} / ${R.staffH.agency} / ${R.staffH.mandated}`) + t('RN hours per patient', R.staffH.rnPerVisit) + t('Attending / PA and NP hours', `${R.staffH.md} / ${R.staffH.app}`) : ''}</table>`}
-<div class="rep-btns"><button type="button" class="big act" data-act="restart">Run it back</button><button type="button" class="big" data-act="menu">Menu</button></div></div>`;
+<div class="rep-btns"><button type="button" class="big act" data-act="restart">Run it back</button><button type="button" class="big" data-act="menu">Menu</button><button type="button" class="big wide" data-act="print">Print or save as PDF</button></div></div>`;
 }
 /* Morbidity and mortality: the three worst moments of the shift, and the decision behind each. */
 function mdDeptHTML(R, t) {
-  return `<h4>The department</h4><table>${t('Arrived this shift', R.seen)}${t('Discharged home', R.dc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('72-hour returns', R.returns)}${t('Still in the ED at 19:00', R.left)}${t('Alert time goals met', `${R.goalsMet} of ${R.goalsMet + R.goalsMiss}`)}</table>`;
+  return `<h4>The department</h4><table>${t('Arrived this shift', R.seen)}${t('Discharged home', R.dc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('72-hour returns', R.returns)}${t(`Still in the ED at ${E.clock(E.LEVELS[R.level] ? E.LEVELS[R.level].shift : 720)}`, R.left)}${t('Alert time goals met', `${R.goalsMet} of ${R.goalsMet + R.goalsMiss}`)}</table>`;
 }
 function mdReportHTML(R, t) {
   if (R.mode !== 'md' || !R.md) return '';
@@ -5166,9 +5455,9 @@ ${R.mode === 'md' ? '' : `<h4>Patient experience</h4><table>${t('Experience scor
 function showReport() {
   const G = g(), R = G.report; if (!R) return;
   U.scene = 'report'; U.sheet = null; U.modal = null; U.sel = null;
-  clearToasts();
+  clearToasts(); hush();
   store('oc-save', null);
-  if (!R.fail && R.care > bestOf(R.level, R.mode)) store('oc-best-' + (R.mode === 'md' ? 'md-' : '') + R.level, String(R.care));
+  if (!R.fail && (!R.scen || R.scen === 'none') && R.care > bestOf(R.level, R.mode)) store('oc-best-' + (R.mode === 'md' ? 'md-' : '') + R.level, String(R.care));
   const el = $('#report'); el.hidden = false; setH(el, reportHTML(R)); el.scrollTop = 0; window.scrollTo(0, 0);
   render();
 }
@@ -5187,6 +5476,7 @@ function frame(now) {
     if (demoAcc > 0.5) { demoAcc = 0; for (let i = 0; i < 2; i++) E.step(0.25); E.botStep({}); }
   }
   if (G && U.scene === 'game' && G.over) showReport();
+  if (G && U.scene === 'game') ambient(G, now);
   if (now - lastR > 110) { lastR = now; render(); }
   requestAnimationFrame(frame);
 }
@@ -5198,12 +5488,17 @@ function bind() {
     if (el && U.mapDrag && performance.now() < U.mapDrag && el.closest('#map')) return;   // that was a drag across the floor plan, not a tap
     mapAct(el, e.clientX, e.clientY);
   });
+  document.addEventListener('change', e => {   // the scenario menu on a sideways phone
+    const el = e.target && e.target.closest ? e.target.closest('select[data-pick]') : null;
+    if (el && ACT[el.dataset.pick]) ACT[el.dataset.pick](el.value);
+  });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { if (U.sel) U.sel = null; else if (U.sheet) U.sheet = null; render(); }
+    else if ((e.key === 'n' || e.key === 'N') && U.scene === 'game' && !e.metaKey && !e.ctrlKey && !/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) { ACT.needNext(); render(); }
   });
   document.addEventListener('fullscreenchange', () => { if (U.scene === 'title') setH($('#title'), titleHTML()); else render(); });
   window.addEventListener('resize', () => { U.layKey = null; if (U.scene === 'game') render(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && U.scene === 'game') { U.paused = true; save(true); render(); } });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hush(); if (document.hidden && U.scene === 'game') { U.paused = true; save(true); render(); } });
   window.addEventListener('pagehide', () => save(true));
 }
 function boot(data) {
@@ -5212,9 +5507,11 @@ function boot(data) {
   const pk = store('oc-pack'); if (pk && E.PACKS[pk]) U.pack = pk;
   if (store('oc-mode') === 'md') U.mode = 'md';
   if (store('oc-view') === 'list') U.view = 'list';
+  if (E.SCENS[store('oc-scen')]) U.scen = store('oc-scen');
   if (/^https?:$/.test(location.protocol) && window.top === window.self) {   // on the web (not inside another page): a home-screen icon and a full-screen app
     const link = (rel, href) => { const l = document.createElement('link'); l.rel = rel; l.href = href; document.head.appendChild(l); };
     link('manifest', 'manifest.webmanifest'); link('apple-touch-icon', 'apple-touch-icon.png'); link('icon', 'icons/icon-192.png');
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});   // plays offline once it has loaded once
   }
   buildBoard(); bind();
   for (const [id, txt] of [['laneEms', 'No ambulances waiting'], ['laneWait', 'Waiting room is empty']]) $('#' + id).dataset.empty = txt;
@@ -5461,6 +5758,55 @@ function staffSpot(s, G, sl) {
   return sl.near([1190, 610], 46, 4);
 }
 
+/* ---------- patients who move ----------
+   Walk-ins walk from the door to check-in, a triage bay, a seat. When someone is bedded, moved, or leaves,
+   a walker or a stretcher makes the trip through the hallway. LAST remembers where each patient was drawn. */
+const LAST = new Map(), ARRIVE = new Map(), SVGNS = 'http://www.w3.org/2000/svg';
+let LASTKEY = null, LASTT = null;
+const NOMOTION = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+const GATE = [476, 349], HALL_Y = 349;
+function routeTo(from, to) {   // through the openings and down the hallway, not through the walls
+  const pts = [], lobby = from[0] < 484 && from[1] > 404, wallSide = from[0] < 250 && from[1] < 342;
+  if (wallSide) pts.push([224, 336]);
+  if (to[0] < 484 && to[1] < 330) { if (lobby) pts.push([458, 414], GATE); else if (from[0] >= 484) pts.push([from[0], HALL_Y], GATE); pts.push([366, 362]); }   // into Resus through the alcove
+  else if (to[0] >= 484) { if (lobby) pts.push([458, 414]); pts.push(from[0] < 484 ? GATE : [from[0], HALL_Y], [to[0], HALL_Y]); }
+  pts.push(to); return pts;
+}
+function routeOut(from, how) {   // 'door': walks out the front. 'up': to the elevators. 'bay': out to an ambulance.
+  const pts = [];
+  if (from[0] >= 484) pts.push([from[0], HALL_Y]);
+  if (how === 'up') { if (from[0] < 484) pts.push(GATE); pts.push([1150, HALL_Y], [1150, 676], [1086, 680]); return pts; }
+  if (from[0] >= 484) pts.push(GATE);
+  if (how === 'bay') { pts.push([224, 336], [150, 190], [64, 190]); return pts; }
+  if (from[0] >= 250 || from[1] < 404) pts.push([458, 414]);
+  pts.push([196, 612], [126, 663], [30, 663]); return pts;
+}
+function mapMove(from, pts, kind, p, pusher) {
+  const layer = document.getElementById('mMove'); if (!layer || layer.childElementCount > 12) return 0;
+  const path = [from].concat(pts), segs = []; let len = 0;
+  for (let i = 1; i < path.length; i++) { const d = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); segs.push(d); len += d; }
+  if (len < 10) return 0;
+  const dur = Math.max(650, Math.min(2800, len / 0.45));
+  const n = document.createElementNS(SVGNS, 'g'); n.setAttribute('class', 'mmove');
+  const esi = p.tri === 'done' || p.room ? ve(p) : 0;
+  n.innerHTML = kind === 'stretcher' ? `<g transform="translate(-32 0)">${figSVG({ seed: p.id + 'm1', body: pusher || ROLEC.ems, stripe: pusher ? null : '#E3BA12', k: 1.15 })}</g>${stretcherSVG(-16, -11, 54, 22, p, esi)}` : `<g class="wk">${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15 })}</g>`;
+  n.style.transform = `translate(${from[0]}px, ${from[1]}px)`;
+  layer.appendChild(n);
+  let acc = 0;
+  const frames = path.map((pt, i) => { if (i) acc += segs[i - 1]; return { transform: `translate(${pt[0]}px, ${pt[1]}px)`, offset: Math.min(1, acc / len) }; });
+  try { n.animate(frames, { duration: dur, easing: 'linear', fill: 'forwards' }); } catch (e) { n.remove(); return 0; }
+  setTimeout(() => n.remove(), dur + 60);
+  return dur;
+}
+/* Morning light, plain daylight, a golden late afternoon, dusk by 19:00. */
+function dayTint(t) {
+  if (t < 90) return ['#FFBE6E', 0.15 * (1 - t / 90)];
+  if (t < 540) return ['#FFBE6E', 0];
+  if (t < 660) return ['#FF9A3C', 0.13 * (t - 540) / 120];
+  const f = Math.min(1, (t - 660) / 60);
+  return [`rgb(${Math.round(255 - 195 * f)},${Math.round(154 - 94 * f)},${Math.round(60 + 70 * f)})`, 0.13 + 0.09 * f];
+}
+
 /* The camera: the whole floor fits by default; drag to pan, pinch or wheel to zoom. */
 const CAM = { x: 0, y: 0, w: MW, h: MH, set: false, far: true };
 function camClamp(el) {
@@ -5546,14 +5892,14 @@ function mapFocus(x) {
   camClamp(el); camApply(el);
 }
 /* The Orientation's spotlight: a ring around each lit target on the floor. */
-function mapSpot(els) {
-  const el = document.getElementById('map'), layer = document.getElementById('mSpot'); if (!el || !layer) return;
+function mapSpot(els, layerId, cls) {
+  const el = document.getElementById('map'), layer = document.getElementById(layerId || 'mSpot'); if (!el || !layer) return;
   const m = el.getBoundingClientRect(); let h = '';
   if (m.width) for (const x of els) {
     if (!x.closest || !x.closest('#map')) continue;
     const r = x.getBoundingClientRect(); if (!r.width) continue;
     const k = CAM.w / m.width, pad = 5 * k;
-    h += `<rect class="spotring" x="${(CAM.x + (r.left - m.left) * k - pad).toFixed(0)}" y="${(CAM.y + (r.top - m.top) * k - pad).toFixed(0)}" width="${(r.width * k + 2 * pad).toFixed(0)}" height="${(r.height * k + 2 * pad).toFixed(0)}" rx="${(9 * k).toFixed(1)}"/>`;
+    h += `<rect class="${cls || 'spotring'}" x="${(CAM.x + (r.left - m.left) * k - pad).toFixed(0)}" y="${(CAM.y + (r.top - m.top) * k - pad).toFixed(0)}" width="${(r.width * k + 2 * pad).toFixed(0)}" height="${(r.height * k + 2 * pad).toFixed(0)}" rx="${(9 * k).toFixed(1)}"/>`;
   }
   setH(layer, h);
 }
@@ -5568,7 +5914,7 @@ function mapRender(G) {
 <pattern id="tile" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0 V26 H0" fill="none" stroke="rgba(27,34,48,.05)" stroke-width="1"/></pattern>
 <pattern id="plank" width="46" height="14" patternUnits="userSpaceOnUse"><path d="M0 14 H46 M18 0 V14" fill="none" stroke="rgba(110,78,40,.13)" stroke-width="1"/></pattern>
 <pattern id="carpet" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#E6DECF"/><circle cx="3" cy="3" r="1.1" fill="rgba(110,96,70,.2)"/><circle cx="9" cy="9" r="1.1" fill="rgba(110,96,70,.2)"/></pattern></defs>
-<g id="mStatic">${mapStatic()}</g><g id="mSvc"></g><g id="mRooms">${G.rooms.filter(r => RM[r.id]).map(r => `<g id="mroom-${r.id}" data-act="room" data-arg="${r.id}" transform="translate(${RM[r.id].x} ${RM[r.id].y})" role="button"></g>`).join('')}</g><g id="mSigns"></g><g id="mAmbs"></g><g id="mPts"></g><g id="mAmb"></g><g id="mPeople"></g><g id="mFx"></g><g id="mSpot"></g></svg>`;
+<g id="mStatic">${mapStatic()}</g><g id="mSvc"></g><g id="mRooms">${G.rooms.filter(r => RM[r.id]).map(r => `<g id="mroom-${r.id}" data-act="room" data-arg="${r.id}" transform="translate(${RM[r.id].x} ${RM[r.id].y})" role="button"></g>`).join('')}</g><g id="mSigns"></g><g id="mAmbs"></g><g id="mPts"><g id="mPtsWall"></g><g id="mPtsWalk"></g></g><g id="mAmb"></g><g id="mMove"></g><g id="mPeople"></g><g id="mFx"></g><g id="mNeed"></g><g id="mSpot"></g></svg>`;
     el._built = true; camBind(el);
   }
   const rr = el.getBoundingClientRect();
@@ -5581,6 +5927,24 @@ function mapRender(G) {
   const sel = U.sel, selP = sel && sel.pid ? E.pt(sel.pid) : null, selS = sel && sel.type === 'prov' ? E.staff(sel.sid) : null;
   const act = E.active(), md = MD();
   const setA = (n, k, v) => { const c = n._a || (n._a = {}); if (c[k] !== v) { n.setAttribute(k, v); c[k] = v; } };
+
+  // a new shift or a loaded save: forget where people were
+  const nowMs = performance.now(), key = G.seed + '|' + G.level + '|' + G.mode;
+  if (key !== LASTKEY || (LASTT != null && G.t < LASTT - 0.5)) { LAST.clear(); ARRIVE.clear(); SEAT.clear(); const mv = document.getElementById('mMove'); if (mv) mv.innerHTML = ''; }
+  LASTKEY = key; LASTT = G.t;
+  const motion = !NOMOTION.matches && !U.ff && U.speed <= 2 && U.scene === 'game' && !document.hidden;
+  const posNow = new Map();
+  for (const r of G.rooms) {
+    const R = RM[r.id]; if (!R || !r.pid) continue;
+    const c = [R.x + R.w / 2, R.y + R.h / 2], prev = LAST.get(r.pid), p = E.pt(r.pid);
+    posNow.set(r.pid, { x: c[0], y: c[1], kind: 'room', room: r.id });
+    if (motion && p && prev && (prev.kind !== 'room' || prev.room !== r.id) && !ARRIVE.has(r.pid)) {   // walking or rolling to the bed
+      const roll = prev.kind === 'wall' || prev.kind === 'amb' || (prev.kind === 'room' && ve(p) <= 2);
+      const d = mapMove([prev.x, prev.y], routeTo([prev.x, prev.y], c), roll ? 'stretcher' : 'walk', p, prev.kind === 'room' ? ROLEC.rn : null);
+      if (d) ARRIVE.set(r.pid, nowMs + d);
+    }
+  }
+  for (const [id, until] of Array.from(ARRIVE)) if (until < nowMs) ARRIVE.delete(id);
 
   // pod signs: tap to assign nurses
   let signs = '';
@@ -5617,14 +5981,15 @@ function mapRender(G) {
     if (r.iso) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#E0A21A" stroke-width="2.4" stroke-dasharray="7 5"/>`;
     if (p && p.arrest) g += `<rect class="codefl" width="${w}" height="${h}" rx="7" fill="#C8243A"/>`;
     if (md && p && mine(p)) g += `<path d="M0 ${h - 24} V${h - 7} a7 7 0 0 0 7 7 H24Z" fill="#F2C230"/>`;
-    const mon = !p ? 'off' : p.arrest ? 'flat' : crit ? 'bad' : 'ok', iv = !!(p && p.tr && p.tr.length && !E.treatsDone(p));
-    if (kind === 'chair') g += reclinerSVG(cx, h / 2 + 3, p);
-    else if (kind === 'hall') g += stretcherSVG(28, 11, 49, 25, p, esi);
+    const vt = p ? E.vitalsOf(p) : null, bp = p && !ARRIVE.has(p.id) ? p : null;   // bp: the patient once they are actually in the bed
+    const mon = !bp ? 'off' : p.arrest ? 'flat' : crit || vt.s >= 1.25 ? 'bad' : 'ok', iv = !!(bp && p.tr && p.tr.length && !E.treatsDone(p));
+    if (kind === 'chair') g += reclinerSVG(cx, h / 2 + 3, bp);
+    else if (kind === 'hall') g += stretcherSVG(28, 11, 49, 25, bp, esi);
     else if (kind === 'resus') {
-      g += `<circle cx="${cx - 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/><circle cx="${cx + 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/>` + bedSVG(cx, 44, 44, 84, p, esi, dirty);
+      g += `<circle cx="${cx - 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/><circle cx="${cx + 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/>` + bedSVG(cx, 44, 44, 84, bp, esi, dirty);
       g += `<g class="nearonly">${monSVG(6, 52, mon) + ivSVG(w - 16, 58, iv)}<rect x="7" y="${h - 30}" width="15" height="22" rx="3" fill="#C8243A"/><rect x="7" y="${h - 22}" width="15" height="3" fill="#F3D5D9"/><rect x="${w - 22}" y="${h - 30}" width="15" height="22" rx="3" fill="#7F93AB"/><rect x="${w - 20}" y="${h - 28}" width="11" height="7" rx="1.5" fill="#263042"/></g>`;
     } else {
-      g += bedSVG(cx, 38, 38, 54, p, esi, dirty);
+      g += bedSVG(cx, 38, 38, 54, bp, esi, dirty);
       if (!r.safe) g += `<g class="nearonly">${curtainSVG(5, 38, 9) + monSVG(10, 40, mon) + ivSVG(w - 15, 46, iv)}</g>`;
     }
     if (p && p.arrest) g += `<g class="beacon" transform="translate(${w - 13} ${h - 13})"><circle r="8" fill="#C8243A" stroke="#fff" stroke-width="1.2"/><path class="bspin" d="M0 0 L8 -3.4 A8.7 8.7 0 0 1 8 3.4Z" fill="#FFE3E6"/></g>`;
@@ -5633,6 +5998,7 @@ function mapRender(G) {
     g += `<text x="5" y="${small ? 16 : 20}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(r.id)}</text>`;
     if (esi) g += small ? `<circle cx="${w - 12}" cy="12" r="10" fill="var(--e${esi})"/><text x="${w - 12}" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">${esi}</text>`
       : `<circle cx="${w - 16}" cy="17" r="13" fill="var(--e${esi})"/><text x="${w - 16}" y="23" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">${esi}</text>`;
+    if (vt && vt.taken && !vt.arrest && vt.trend === 'worse' && vt.s >= 1.15) g += `<path d="M-6.5 -4 H6.5 L0 6.5Z" transform="translate(${small ? w - 27 : w - 33} ${small ? 23 : 31})" fill="#C8243A" stroke="#fff" stroke-width="1.4"/>`;   // vitals heading the wrong way
     let ico = null, tone = '';
     if (p) { ico = ns.i || 'wait'; tone = toneOf(ns.c); }
     else if (r.closed) { ico = 'lock'; tone = 'off'; }
@@ -5665,7 +6031,8 @@ function mapRender(G) {
     const ok = sel && sel.type === 'reg' ? regable(p) : sel && sel.type === 'tri' ? p.tri === 'none' && (p.loc === 'wall' || p.loc === 'triage') : null;
     return `<g class="mpt${ok === true ? ' ok' : ok === false ? ' no' : ''}${sel && sel.pid === p.id ? ' sel' : ''}" data-act="pt" data-arg="${p.id}"${clu ? ` data-clu="${clu}"` : ''} transform="translate(${x} ${y})" role="button" aria-label="${esc(p.name)}, ${p.age}${p.sex}, ${esc(p.cc)}${extra || ''}">${inner}</g>`;
   };
-  const walker = p => `<rect x="-18" y="-19" width="36" height="40" fill="transparent"/>${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15, ring: sel && sel.pid === p.id })}`;
+  const walker = p => `<rect x="-18" y="-19" width="36" height="40" fill="transparent"/><g class="wk">${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15, ring: sel && sel.pid === p.id })}</g>`;
+  const walkers = [];   // people on their feet at the door and in the waiting room: keyed, so they walk between spots
 
   // the waiting room: everyone keeps their seat
   let pts = '';
@@ -5678,7 +6045,8 @@ function mapRender(G) {
     if (!SEAT.has(p.id)) { standing++; continue; }
     const [x, y] = WAIT_SEATS[SEAT.get(p.id)];
     by.set(p.id, [x + 8, y + 16]);
-    pts += ptG(p, x, y, walker(p) + (p.tri === 'done' ? `<circle cx="11" cy="-11" r="6.5" fill="var(--e${ve(p)})" stroke="#fff" stroke-width="1"/><text class="nearonly" x="11" y="-7.6" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff">${ve(p)}</text>` : ''), ', waiting room', 'mWait');
+    walkers.push({ p, x, y, extra: ', waiting room', clu: 'mWait', dot: p.tri === 'done' });
+    posNow.set(p.id, { x, y, kind: 'seat' });
   }
   if (standing) pts += `<text x="470" y="511" text-anchor="end" font-size="14" font-weight="700" fill="#C8243A">+${standing} standing</text>`;
 
@@ -5692,7 +6060,8 @@ function mapRender(G) {
     else if (regBy.has(p.id)) { at = [150 + 54 * regBy.get(p.id), 416]; extra = ', checking in'; }
     else if (door < 12) { at = [138 + (door % 3) * 44, 446 + Math.floor(door / 3) * 46]; door++; }
     else { doorMore++; continue; }
-    pts += ptG(p, at[0], at[1], walker(p), extra, 'mDoor');
+    walkers.push({ p, x: at[0], y: at[1], extra, clu: 'mDoor' });
+    posNow.set(p.id, { x: at[0], y: at[1], kind: 'door' });
   }
   if (doorMore) pts += `<text x="182" y="622" text-anchor="middle" font-size="14" font-weight="700" fill="#C8243A">+${doorMore} more</text>`;
 
@@ -5701,6 +6070,7 @@ function mapRender(G) {
   inside.forEach((p, i) => {
     const y = WALL_Y(i), esi = p.tri === 'done' ? ve(p) : 0, mins = Math.round(G.t - p.tArrive);
     by.set(p.id, [196, y + 4]);
+    posNow.set(p.id, { x: 195, y, kind: 'wall' });
     const badge = intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
       : E.emergent(p) ? `<g class="mico bad fl" transform="translate(240 ${y + 9})"><circle class="ir" r="9"/><circle class="ib" r="9"/><g transform="scale(.7)">${ICO.alert}</g></g>` : '';
     pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${figSVG({ seed: p.id + 'm1', body: ROLEC.ems, stripe: '#E3BA12', k: 1.25, ring: sel && sel.pid === p.id })}</g>`
@@ -5709,7 +6079,26 @@ function mapRender(G) {
       + `<g transform="translate(226 ${y - 15})"><rect x="-20" y="-9.5" width="40" height="19" rx="9.5" fill="${mins > 30 ? '#C8243A' : mins > 15 ? '#B76E00' : '#5E6878'}" stroke="#fff" stroke-width="1"/><text y="5.2" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff">${mins}m</text></g>${badge}`,
       `, ${esc(p.unit || 'EMS')} on the wall for ${mins} minutes${intakeDone(p) ? ', ready for a bed' : E.emergent(p) ? ', needs a room now' : ''}`);
   });
-  setH(document.getElementById('mPts'), pts);
+  setH(document.getElementById('mPtsWall'), pts);
+  const wl = document.getElementById('mPtsWalk'), seenW = new Set();
+  for (const w of walkers) {
+    const p = w.p, id = 'w-' + p.id, tr = `translate(${w.x}px, ${w.y}px)`; seenW.add(id);
+    const ok = sel && sel.type === 'reg' ? regable(p) : sel && sel.type === 'tri' ? p.tri === 'none' && (p.loc === 'wall' || p.loc === 'triage') : null;
+    let n = wl.querySelector(`[data-id="${id}"]`);
+    if (!n) {
+      n = document.createElementNS(SVGNS, 'g'); n.setAttribute('data-id', id); n.setAttribute('data-act', 'pt'); n.setAttribute('data-arg', p.id); n.setAttribute('role', 'button');
+      const prev = LAST.get(p.id);   // new at the door: they come in through the front door
+      n.style.transform = !motion ? tr : prev ? `translate(${prev.x}px, ${prev.y}px)` : p.loc === 'triage' && G.t - p.tArrive < 3 ? 'translate(124px, 663px)' : tr;
+      wl.appendChild(n); n.getBoundingClientRect();
+    }
+    const inner = walker(p) + (w.dot ? `<circle cx="11" cy="-11" r="6.5" fill="var(--e${ve(p)})" stroke="#fff" stroke-width="1"/><text class="nearonly" x="11" y="-7.6" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff">${ve(p)}</text>` : '');
+    if (n._svg !== inner) { n.innerHTML = inner; n._svg = inner; }
+    const cls = `mpt mwalk${ok === true ? ' ok' : ok === false ? ' no' : ''}${sel && sel.pid === p.id ? ' sel' : ''}`;
+    if (n._c !== cls) { n.setAttribute('class', cls); n._c = cls; }
+    setA(n, 'data-clu', w.clu); setA(n, 'aria-label', `${p.name}, ${p.age}${p.sex}, ${p.cc}${w.extra || ''}`);
+    if (n.style.transform !== tr) { n.style.transform = tr; n.classList.add('walk'); clearTimeout(n._wt); n._wt = setTimeout(() => n.classList.remove('walk'), 950); }
+  }
+  for (const n of Array.from(wl.children)) if (!seenW.has(n.getAttribute('data-id'))) n.remove();
 
   // outside: the bay, the driveway, who's inbound
   let amb = '';
@@ -5718,7 +6107,7 @@ function mapRender(G) {
   if (G.enroute.length > 2) amb += `<text x="100" y="64" text-anchor="end" font-size="13" font-weight="700" fill="#FFD0D5">+${G.enroute.length - 2} inbound</text>`;
   setH(document.getElementById('mAmb'), amb);
   const ambAt = new Map();
-  wall.forEach((p, i) => { if (i < 3) ambAt.set(p.id, [56, 96 + i * 56, 'bay']); else if (i >= 6 && i < 10) ambAt.set(p.id, [56, 306 + (i - 6) * 56, 'out']); });
+  wall.forEach((p, i) => { if (i < 3) ambAt.set(p.id, [56, 96 + i * 56, 'bay']); else if (i >= 6 && i < 10) { ambAt.set(p.id, [56, 306 + (i - 6) * 56, 'out']); posNow.set(p.id, { x: 56, y: 306 + (i - 6) * 56, kind: 'amb' }); } });
   G.enroute.map(E.pt).filter(Boolean).slice(0, 2).forEach((p, i) => ambAt.set(p.id, [56, i ? 562 : 32, 'in']));
   const ambL = document.getElementById('mAmbs'), seenA = new Set();
   for (const [pid, at] of ambAt) {
@@ -5747,7 +6136,8 @@ function mapRender(G) {
   if (G.pizza) svc += '<rect x="1240" y="100" width="32" height="26" rx="2" fill="#E9DCC0" stroke="#B89B6A"/><circle cx="1256" cy="113" r="9.5" fill="#E8B04A"/><circle cx="1252.5" cy="110" r="2" fill="#C8243A"/><circle cx="1259.5" cy="115.5" r="2" fill="#C8243A"/><circle cx="1258" cy="108.5" r="1.6" fill="#C8243A"/>';
   if (G.box.cur && !G.box.cur.taken) svc += '<g class="boxring" transform="translate(721 350)"><circle r="10"/><circle class="r2" r="10"/></g>';
   setH(document.getElementById('mSvc'), svc);
-  setH(document.getElementById('mFx'), out('power') ? `<rect x="112" y="0" width="${MW - 112}" height="${MH}" fill="#0A1024" opacity=".3" pointer-events="none"/>` : '');
+  const [tc, ta] = dayTint(G.t);   // the light changes through the day
+  setH(document.getElementById('mFx'), (ta > 0.004 ? `<rect x="-900" y="-700" width="${MW + 1800}" height="${MH + 1400}" fill="${tc}" opacity="${ta.toFixed(2)}" pointer-events="none"/>` : '') + (out('power') ? `<rect x="112" y="0" width="${MW - 112}" height="${MH}" fill="#0A1024" opacity=".3" pointer-events="none"/>` : ''));
 
   // staff, keyed so they walk between spots
   const layer = document.getElementById('mPeople'), seen = new Set();
@@ -5767,6 +6157,18 @@ function mapRender(G) {
     if (n.style.transform !== tr) { n.style.transform = tr; n.classList.add('walk'); clearTimeout(n._wt); n._wt = setTimeout(() => n.classList.remove('walk'), 950); }
   }
   for (const n of Array.from(layer.children)) if (!seen.has(n.getAttribute('data-id'))) n.remove();
+
+  // people who left since the last frame walk or roll out; then remember where everyone is
+  for (const [pid, prev] of Array.from(LAST)) {
+    if (posNow.has(pid)) continue;
+    const p = E.pt(pid);
+    if (motion && p && p.loc === 'gone' && p.outcome && p.outcome !== 'expired') {
+      const how = ['dc', 'lwbs', 'ama'].includes(p.outcome) ? 'door' : p.outcome === 'tx' ? 'bay' : 'up';
+      mapMove([prev.x, prev.y], routeOut([prev.x, prev.y], how), how === 'door' ? 'walk' : 'stretcher', p, how === 'bay' ? null : ROLEC.tp);
+    }
+    LAST.delete(pid);
+  }
+  for (const [pid, at] of posNow) LAST.set(pid, at);
 }
 
 const hot = window.claude && window.claude.hot;

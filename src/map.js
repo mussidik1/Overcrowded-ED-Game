@@ -233,6 +233,55 @@ function staffSpot(s, G, sl) {
   return sl.near([1190, 610], 46, 4);
 }
 
+/* ---------- patients who move ----------
+   Walk-ins walk from the door to check-in, a triage bay, a seat. When someone is bedded, moved, or leaves,
+   a walker or a stretcher makes the trip through the hallway. LAST remembers where each patient was drawn. */
+const LAST = new Map(), ARRIVE = new Map(), SVGNS = 'http://www.w3.org/2000/svg';
+let LASTKEY = null, LASTT = null;
+const NOMOTION = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+const GATE = [476, 349], HALL_Y = 349;
+function routeTo(from, to) {   // through the openings and down the hallway, not through the walls
+  const pts = [], lobby = from[0] < 484 && from[1] > 404, wallSide = from[0] < 250 && from[1] < 342;
+  if (wallSide) pts.push([224, 336]);
+  if (to[0] < 484 && to[1] < 330) { if (lobby) pts.push([458, 414], GATE); else if (from[0] >= 484) pts.push([from[0], HALL_Y], GATE); pts.push([366, 362]); }   // into Resus through the alcove
+  else if (to[0] >= 484) { if (lobby) pts.push([458, 414]); pts.push(from[0] < 484 ? GATE : [from[0], HALL_Y], [to[0], HALL_Y]); }
+  pts.push(to); return pts;
+}
+function routeOut(from, how) {   // 'door': walks out the front. 'up': to the elevators. 'bay': out to an ambulance.
+  const pts = [];
+  if (from[0] >= 484) pts.push([from[0], HALL_Y]);
+  if (how === 'up') { if (from[0] < 484) pts.push(GATE); pts.push([1150, HALL_Y], [1150, 676], [1086, 680]); return pts; }
+  if (from[0] >= 484) pts.push(GATE);
+  if (how === 'bay') { pts.push([224, 336], [150, 190], [64, 190]); return pts; }
+  if (from[0] >= 250 || from[1] < 404) pts.push([458, 414]);
+  pts.push([196, 612], [126, 663], [30, 663]); return pts;
+}
+function mapMove(from, pts, kind, p, pusher) {
+  const layer = document.getElementById('mMove'); if (!layer || layer.childElementCount > 12) return 0;
+  const path = [from].concat(pts), segs = []; let len = 0;
+  for (let i = 1; i < path.length; i++) { const d = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); segs.push(d); len += d; }
+  if (len < 10) return 0;
+  const dur = Math.max(650, Math.min(2800, len / 0.45));
+  const n = document.createElementNS(SVGNS, 'g'); n.setAttribute('class', 'mmove');
+  const esi = p.tri === 'done' || p.room ? ve(p) : 0;
+  n.innerHTML = kind === 'stretcher' ? `<g transform="translate(-32 0)">${figSVG({ seed: p.id + 'm1', body: pusher || ROLEC.ems, stripe: pusher ? null : '#E3BA12', k: 1.15 })}</g>${stretcherSVG(-16, -11, 54, 22, p, esi)}` : `<g class="wk">${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15 })}</g>`;
+  n.style.transform = `translate(${from[0]}px, ${from[1]}px)`;
+  layer.appendChild(n);
+  let acc = 0;
+  const frames = path.map((pt, i) => { if (i) acc += segs[i - 1]; return { transform: `translate(${pt[0]}px, ${pt[1]}px)`, offset: Math.min(1, acc / len) }; });
+  try { n.animate(frames, { duration: dur, easing: 'linear', fill: 'forwards' }); } catch (e) { n.remove(); return 0; }
+  setTimeout(() => n.remove(), dur + 60);
+  return dur;
+}
+/* Morning light, plain daylight, a golden late afternoon, dusk by 19:00. */
+function dayTint(t) {
+  if (t < 90) return ['#FFBE6E', 0.15 * (1 - t / 90)];
+  if (t < 540) return ['#FFBE6E', 0];
+  if (t < 660) return ['#FF9A3C', 0.13 * (t - 540) / 120];
+  const f = Math.min(1, (t - 660) / 60);
+  return [`rgb(${Math.round(255 - 195 * f)},${Math.round(154 - 94 * f)},${Math.round(60 + 70 * f)})`, 0.13 + 0.09 * f];
+}
+
 /* The camera: the whole floor fits by default; drag to pan, pinch or wheel to zoom. */
 const CAM = { x: 0, y: 0, w: MW, h: MH, set: false, far: true };
 function camClamp(el) {
@@ -318,14 +367,14 @@ function mapFocus(x) {
   camClamp(el); camApply(el);
 }
 /* The Orientation's spotlight: a ring around each lit target on the floor. */
-function mapSpot(els) {
-  const el = document.getElementById('map'), layer = document.getElementById('mSpot'); if (!el || !layer) return;
+function mapSpot(els, layerId, cls) {
+  const el = document.getElementById('map'), layer = document.getElementById(layerId || 'mSpot'); if (!el || !layer) return;
   const m = el.getBoundingClientRect(); let h = '';
   if (m.width) for (const x of els) {
     if (!x.closest || !x.closest('#map')) continue;
     const r = x.getBoundingClientRect(); if (!r.width) continue;
     const k = CAM.w / m.width, pad = 5 * k;
-    h += `<rect class="spotring" x="${(CAM.x + (r.left - m.left) * k - pad).toFixed(0)}" y="${(CAM.y + (r.top - m.top) * k - pad).toFixed(0)}" width="${(r.width * k + 2 * pad).toFixed(0)}" height="${(r.height * k + 2 * pad).toFixed(0)}" rx="${(9 * k).toFixed(1)}"/>`;
+    h += `<rect class="${cls || 'spotring'}" x="${(CAM.x + (r.left - m.left) * k - pad).toFixed(0)}" y="${(CAM.y + (r.top - m.top) * k - pad).toFixed(0)}" width="${(r.width * k + 2 * pad).toFixed(0)}" height="${(r.height * k + 2 * pad).toFixed(0)}" rx="${(9 * k).toFixed(1)}"/>`;
   }
   setH(layer, h);
 }
@@ -340,7 +389,7 @@ function mapRender(G) {
 <pattern id="tile" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0 V26 H0" fill="none" stroke="rgba(27,34,48,.05)" stroke-width="1"/></pattern>
 <pattern id="plank" width="46" height="14" patternUnits="userSpaceOnUse"><path d="M0 14 H46 M18 0 V14" fill="none" stroke="rgba(110,78,40,.13)" stroke-width="1"/></pattern>
 <pattern id="carpet" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#E6DECF"/><circle cx="3" cy="3" r="1.1" fill="rgba(110,96,70,.2)"/><circle cx="9" cy="9" r="1.1" fill="rgba(110,96,70,.2)"/></pattern></defs>
-<g id="mStatic">${mapStatic()}</g><g id="mSvc"></g><g id="mRooms">${G.rooms.filter(r => RM[r.id]).map(r => `<g id="mroom-${r.id}" data-act="room" data-arg="${r.id}" transform="translate(${RM[r.id].x} ${RM[r.id].y})" role="button"></g>`).join('')}</g><g id="mSigns"></g><g id="mAmbs"></g><g id="mPts"></g><g id="mAmb"></g><g id="mPeople"></g><g id="mFx"></g><g id="mSpot"></g></svg>`;
+<g id="mStatic">${mapStatic()}</g><g id="mSvc"></g><g id="mRooms">${G.rooms.filter(r => RM[r.id]).map(r => `<g id="mroom-${r.id}" data-act="room" data-arg="${r.id}" transform="translate(${RM[r.id].x} ${RM[r.id].y})" role="button"></g>`).join('')}</g><g id="mSigns"></g><g id="mAmbs"></g><g id="mPts"><g id="mPtsWall"></g><g id="mPtsWalk"></g></g><g id="mAmb"></g><g id="mMove"></g><g id="mPeople"></g><g id="mFx"></g><g id="mNeed"></g><g id="mSpot"></g></svg>`;
     el._built = true; camBind(el);
   }
   const rr = el.getBoundingClientRect();
@@ -353,6 +402,24 @@ function mapRender(G) {
   const sel = U.sel, selP = sel && sel.pid ? E.pt(sel.pid) : null, selS = sel && sel.type === 'prov' ? E.staff(sel.sid) : null;
   const act = E.active(), md = MD();
   const setA = (n, k, v) => { const c = n._a || (n._a = {}); if (c[k] !== v) { n.setAttribute(k, v); c[k] = v; } };
+
+  // a new shift or a loaded save: forget where people were
+  const nowMs = performance.now(), key = G.seed + '|' + G.level + '|' + G.mode;
+  if (key !== LASTKEY || (LASTT != null && G.t < LASTT - 0.5)) { LAST.clear(); ARRIVE.clear(); SEAT.clear(); const mv = document.getElementById('mMove'); if (mv) mv.innerHTML = ''; }
+  LASTKEY = key; LASTT = G.t;
+  const motion = !NOMOTION.matches && !U.ff && U.speed <= 2 && U.scene === 'game' && !document.hidden;
+  const posNow = new Map();
+  for (const r of G.rooms) {
+    const R = RM[r.id]; if (!R || !r.pid) continue;
+    const c = [R.x + R.w / 2, R.y + R.h / 2], prev = LAST.get(r.pid), p = E.pt(r.pid);
+    posNow.set(r.pid, { x: c[0], y: c[1], kind: 'room', room: r.id });
+    if (motion && p && prev && (prev.kind !== 'room' || prev.room !== r.id) && !ARRIVE.has(r.pid)) {   // walking or rolling to the bed
+      const roll = prev.kind === 'wall' || prev.kind === 'amb' || (prev.kind === 'room' && ve(p) <= 2);
+      const d = mapMove([prev.x, prev.y], routeTo([prev.x, prev.y], c), roll ? 'stretcher' : 'walk', p, prev.kind === 'room' ? ROLEC.rn : null);
+      if (d) ARRIVE.set(r.pid, nowMs + d);
+    }
+  }
+  for (const [id, until] of Array.from(ARRIVE)) if (until < nowMs) ARRIVE.delete(id);
 
   // pod signs: tap to assign nurses
   let signs = '';
@@ -389,14 +456,15 @@ function mapRender(G) {
     if (r.iso) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#E0A21A" stroke-width="2.4" stroke-dasharray="7 5"/>`;
     if (p && p.arrest) g += `<rect class="codefl" width="${w}" height="${h}" rx="7" fill="#C8243A"/>`;
     if (md && p && mine(p)) g += `<path d="M0 ${h - 24} V${h - 7} a7 7 0 0 0 7 7 H24Z" fill="#F2C230"/>`;
-    const mon = !p ? 'off' : p.arrest ? 'flat' : crit ? 'bad' : 'ok', iv = !!(p && p.tr && p.tr.length && !E.treatsDone(p));
-    if (kind === 'chair') g += reclinerSVG(cx, h / 2 + 3, p);
-    else if (kind === 'hall') g += stretcherSVG(28, 11, 49, 25, p, esi);
+    const vt = p ? E.vitalsOf(p) : null, bp = p && !ARRIVE.has(p.id) ? p : null;   // bp: the patient once they are actually in the bed
+    const mon = !bp ? 'off' : p.arrest ? 'flat' : crit || vt.s >= 1.25 ? 'bad' : 'ok', iv = !!(bp && p.tr && p.tr.length && !E.treatsDone(p));
+    if (kind === 'chair') g += reclinerSVG(cx, h / 2 + 3, bp);
+    else if (kind === 'hall') g += stretcherSVG(28, 11, 49, 25, bp, esi);
     else if (kind === 'resus') {
-      g += `<circle cx="${cx - 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/><circle cx="${cx + 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/>` + bedSVG(cx, 44, 44, 84, p, esi, dirty);
+      g += `<circle cx="${cx - 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/><circle cx="${cx + 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/>` + bedSVG(cx, 44, 44, 84, bp, esi, dirty);
       g += `<g class="nearonly">${monSVG(6, 52, mon) + ivSVG(w - 16, 58, iv)}<rect x="7" y="${h - 30}" width="15" height="22" rx="3" fill="#C8243A"/><rect x="7" y="${h - 22}" width="15" height="3" fill="#F3D5D9"/><rect x="${w - 22}" y="${h - 30}" width="15" height="22" rx="3" fill="#7F93AB"/><rect x="${w - 20}" y="${h - 28}" width="11" height="7" rx="1.5" fill="#263042"/></g>`;
     } else {
-      g += bedSVG(cx, 38, 38, 54, p, esi, dirty);
+      g += bedSVG(cx, 38, 38, 54, bp, esi, dirty);
       if (!r.safe) g += `<g class="nearonly">${curtainSVG(5, 38, 9) + monSVG(10, 40, mon) + ivSVG(w - 15, 46, iv)}</g>`;
     }
     if (p && p.arrest) g += `<g class="beacon" transform="translate(${w - 13} ${h - 13})"><circle r="8" fill="#C8243A" stroke="#fff" stroke-width="1.2"/><path class="bspin" d="M0 0 L8 -3.4 A8.7 8.7 0 0 1 8 3.4Z" fill="#FFE3E6"/></g>`;
@@ -405,6 +473,7 @@ function mapRender(G) {
     g += `<text x="5" y="${small ? 16 : 20}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(r.id)}</text>`;
     if (esi) g += small ? `<circle cx="${w - 12}" cy="12" r="10" fill="var(--e${esi})"/><text x="${w - 12}" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">${esi}</text>`
       : `<circle cx="${w - 16}" cy="17" r="13" fill="var(--e${esi})"/><text x="${w - 16}" y="23" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">${esi}</text>`;
+    if (vt && vt.taken && !vt.arrest && vt.trend === 'worse' && vt.s >= 1.15) g += `<path d="M-6.5 -4 H6.5 L0 6.5Z" transform="translate(${small ? w - 27 : w - 33} ${small ? 23 : 31})" fill="#C8243A" stroke="#fff" stroke-width="1.4"/>`;   // vitals heading the wrong way
     let ico = null, tone = '';
     if (p) { ico = ns.i || 'wait'; tone = toneOf(ns.c); }
     else if (r.closed) { ico = 'lock'; tone = 'off'; }
@@ -437,7 +506,8 @@ function mapRender(G) {
     const ok = sel && sel.type === 'reg' ? regable(p) : sel && sel.type === 'tri' ? p.tri === 'none' && (p.loc === 'wall' || p.loc === 'triage') : null;
     return `<g class="mpt${ok === true ? ' ok' : ok === false ? ' no' : ''}${sel && sel.pid === p.id ? ' sel' : ''}" data-act="pt" data-arg="${p.id}"${clu ? ` data-clu="${clu}"` : ''} transform="translate(${x} ${y})" role="button" aria-label="${esc(p.name)}, ${p.age}${p.sex}, ${esc(p.cc)}${extra || ''}">${inner}</g>`;
   };
-  const walker = p => `<rect x="-18" y="-19" width="36" height="40" fill="transparent"/>${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15, ring: sel && sel.pid === p.id })}`;
+  const walker = p => `<rect x="-18" y="-19" width="36" height="40" fill="transparent"/><g class="wk">${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15, ring: sel && sel.pid === p.id })}</g>`;
+  const walkers = [];   // people on their feet at the door and in the waiting room: keyed, so they walk between spots
 
   // the waiting room: everyone keeps their seat
   let pts = '';
@@ -450,7 +520,8 @@ function mapRender(G) {
     if (!SEAT.has(p.id)) { standing++; continue; }
     const [x, y] = WAIT_SEATS[SEAT.get(p.id)];
     by.set(p.id, [x + 8, y + 16]);
-    pts += ptG(p, x, y, walker(p) + (p.tri === 'done' ? `<circle cx="11" cy="-11" r="6.5" fill="var(--e${ve(p)})" stroke="#fff" stroke-width="1"/><text class="nearonly" x="11" y="-7.6" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff">${ve(p)}</text>` : ''), ', waiting room', 'mWait');
+    walkers.push({ p, x, y, extra: ', waiting room', clu: 'mWait', dot: p.tri === 'done' });
+    posNow.set(p.id, { x, y, kind: 'seat' });
   }
   if (standing) pts += `<text x="470" y="511" text-anchor="end" font-size="14" font-weight="700" fill="#C8243A">+${standing} standing</text>`;
 
@@ -464,7 +535,8 @@ function mapRender(G) {
     else if (regBy.has(p.id)) { at = [150 + 54 * regBy.get(p.id), 416]; extra = ', checking in'; }
     else if (door < 12) { at = [138 + (door % 3) * 44, 446 + Math.floor(door / 3) * 46]; door++; }
     else { doorMore++; continue; }
-    pts += ptG(p, at[0], at[1], walker(p), extra, 'mDoor');
+    walkers.push({ p, x: at[0], y: at[1], extra, clu: 'mDoor' });
+    posNow.set(p.id, { x: at[0], y: at[1], kind: 'door' });
   }
   if (doorMore) pts += `<text x="182" y="622" text-anchor="middle" font-size="14" font-weight="700" fill="#C8243A">+${doorMore} more</text>`;
 
@@ -473,6 +545,7 @@ function mapRender(G) {
   inside.forEach((p, i) => {
     const y = WALL_Y(i), esi = p.tri === 'done' ? ve(p) : 0, mins = Math.round(G.t - p.tArrive);
     by.set(p.id, [196, y + 4]);
+    posNow.set(p.id, { x: 195, y, kind: 'wall' });
     const badge = intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
       : E.emergent(p) ? `<g class="mico bad fl" transform="translate(240 ${y + 9})"><circle class="ir" r="9"/><circle class="ib" r="9"/><g transform="scale(.7)">${ICO.alert}</g></g>` : '';
     pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${figSVG({ seed: p.id + 'm1', body: ROLEC.ems, stripe: '#E3BA12', k: 1.25, ring: sel && sel.pid === p.id })}</g>`
@@ -481,7 +554,26 @@ function mapRender(G) {
       + `<g transform="translate(226 ${y - 15})"><rect x="-20" y="-9.5" width="40" height="19" rx="9.5" fill="${mins > 30 ? '#C8243A' : mins > 15 ? '#B76E00' : '#5E6878'}" stroke="#fff" stroke-width="1"/><text y="5.2" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff">${mins}m</text></g>${badge}`,
       `, ${esc(p.unit || 'EMS')} on the wall for ${mins} minutes${intakeDone(p) ? ', ready for a bed' : E.emergent(p) ? ', needs a room now' : ''}`);
   });
-  setH(document.getElementById('mPts'), pts);
+  setH(document.getElementById('mPtsWall'), pts);
+  const wl = document.getElementById('mPtsWalk'), seenW = new Set();
+  for (const w of walkers) {
+    const p = w.p, id = 'w-' + p.id, tr = `translate(${w.x}px, ${w.y}px)`; seenW.add(id);
+    const ok = sel && sel.type === 'reg' ? regable(p) : sel && sel.type === 'tri' ? p.tri === 'none' && (p.loc === 'wall' || p.loc === 'triage') : null;
+    let n = wl.querySelector(`[data-id="${id}"]`);
+    if (!n) {
+      n = document.createElementNS(SVGNS, 'g'); n.setAttribute('data-id', id); n.setAttribute('data-act', 'pt'); n.setAttribute('data-arg', p.id); n.setAttribute('role', 'button');
+      const prev = LAST.get(p.id);   // new at the door: they come in through the front door
+      n.style.transform = !motion ? tr : prev ? `translate(${prev.x}px, ${prev.y}px)` : p.loc === 'triage' && G.t - p.tArrive < 3 ? 'translate(124px, 663px)' : tr;
+      wl.appendChild(n); n.getBoundingClientRect();
+    }
+    const inner = walker(p) + (w.dot ? `<circle cx="11" cy="-11" r="6.5" fill="var(--e${ve(p)})" stroke="#fff" stroke-width="1"/><text class="nearonly" x="11" y="-7.6" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff">${ve(p)}</text>` : '');
+    if (n._svg !== inner) { n.innerHTML = inner; n._svg = inner; }
+    const cls = `mpt mwalk${ok === true ? ' ok' : ok === false ? ' no' : ''}${sel && sel.pid === p.id ? ' sel' : ''}`;
+    if (n._c !== cls) { n.setAttribute('class', cls); n._c = cls; }
+    setA(n, 'data-clu', w.clu); setA(n, 'aria-label', `${p.name}, ${p.age}${p.sex}, ${p.cc}${w.extra || ''}`);
+    if (n.style.transform !== tr) { n.style.transform = tr; n.classList.add('walk'); clearTimeout(n._wt); n._wt = setTimeout(() => n.classList.remove('walk'), 950); }
+  }
+  for (const n of Array.from(wl.children)) if (!seenW.has(n.getAttribute('data-id'))) n.remove();
 
   // outside: the bay, the driveway, who's inbound
   let amb = '';
@@ -490,7 +582,7 @@ function mapRender(G) {
   if (G.enroute.length > 2) amb += `<text x="100" y="64" text-anchor="end" font-size="13" font-weight="700" fill="#FFD0D5">+${G.enroute.length - 2} inbound</text>`;
   setH(document.getElementById('mAmb'), amb);
   const ambAt = new Map();
-  wall.forEach((p, i) => { if (i < 3) ambAt.set(p.id, [56, 96 + i * 56, 'bay']); else if (i >= 6 && i < 10) ambAt.set(p.id, [56, 306 + (i - 6) * 56, 'out']); });
+  wall.forEach((p, i) => { if (i < 3) ambAt.set(p.id, [56, 96 + i * 56, 'bay']); else if (i >= 6 && i < 10) { ambAt.set(p.id, [56, 306 + (i - 6) * 56, 'out']); posNow.set(p.id, { x: 56, y: 306 + (i - 6) * 56, kind: 'amb' }); } });
   G.enroute.map(E.pt).filter(Boolean).slice(0, 2).forEach((p, i) => ambAt.set(p.id, [56, i ? 562 : 32, 'in']));
   const ambL = document.getElementById('mAmbs'), seenA = new Set();
   for (const [pid, at] of ambAt) {
@@ -519,7 +611,8 @@ function mapRender(G) {
   if (G.pizza) svc += '<rect x="1240" y="100" width="32" height="26" rx="2" fill="#E9DCC0" stroke="#B89B6A"/><circle cx="1256" cy="113" r="9.5" fill="#E8B04A"/><circle cx="1252.5" cy="110" r="2" fill="#C8243A"/><circle cx="1259.5" cy="115.5" r="2" fill="#C8243A"/><circle cx="1258" cy="108.5" r="1.6" fill="#C8243A"/>';
   if (G.box.cur && !G.box.cur.taken) svc += '<g class="boxring" transform="translate(721 350)"><circle r="10"/><circle class="r2" r="10"/></g>';
   setH(document.getElementById('mSvc'), svc);
-  setH(document.getElementById('mFx'), out('power') ? `<rect x="112" y="0" width="${MW - 112}" height="${MH}" fill="#0A1024" opacity=".3" pointer-events="none"/>` : '');
+  const [tc, ta] = dayTint(G.t);   // the light changes through the day
+  setH(document.getElementById('mFx'), (ta > 0.004 ? `<rect x="-900" y="-700" width="${MW + 1800}" height="${MH + 1400}" fill="${tc}" opacity="${ta.toFixed(2)}" pointer-events="none"/>` : '') + (out('power') ? `<rect x="112" y="0" width="${MW - 112}" height="${MH}" fill="#0A1024" opacity=".3" pointer-events="none"/>` : ''));
 
   // staff, keyed so they walk between spots
   const layer = document.getElementById('mPeople'), seen = new Set();
@@ -539,4 +632,16 @@ function mapRender(G) {
     if (n.style.transform !== tr) { n.style.transform = tr; n.classList.add('walk'); clearTimeout(n._wt); n._wt = setTimeout(() => n.classList.remove('walk'), 950); }
   }
   for (const n of Array.from(layer.children)) if (!seen.has(n.getAttribute('data-id'))) n.remove();
+
+  // people who left since the last frame walk or roll out; then remember where everyone is
+  for (const [pid, prev] of Array.from(LAST)) {
+    if (posNow.has(pid)) continue;
+    const p = E.pt(pid);
+    if (motion && p && p.loc === 'gone' && p.outcome && p.outcome !== 'expired') {
+      const how = ['dc', 'lwbs', 'ama'].includes(p.outcome) ? 'door' : p.outcome === 'tx' ? 'bay' : 'up';
+      mapMove([prev.x, prev.y], routeOut([prev.x, prev.y], how), how === 'door' ? 'walk' : 'stretcher', p, how === 'bay' ? null : ROLEC.tp);
+    }
+    LAST.delete(pid);
+  }
+  for (const [pid, at] of posNow) LAST.set(pid, at);
 }
