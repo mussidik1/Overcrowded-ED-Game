@@ -727,7 +727,7 @@ body.mapmode:not(.rails) .map { margin-right: env(safe-area-inset-right); margin
   .rep-meta { display: block; margin: 4px 0 10px; color: #333; font-size: 12pt; }
   .rep-name { display: inline-block; min-width: 180px; border-bottom: 1px solid #333; }
   #report h4 { break-after: avoid; page-break-after: avoid; }
-  #report tr, #report .mm li, #report .rep-big { break-inside: avoid; page-break-inside: avoid; }
+  #report tr, #report .mm li, #report .rep-big, #report table { break-inside: avoid; page-break-inside: avoid; }
   #report table { break-before: avoid; page-break-before: avoid; }
   #report .card > *:first-child { margin-top: 0; }
   @page { margin: 14mm 14mm 16mm; }
@@ -747,9 +747,62 @@ body.ingame .needbtn { position: fixed; z-index: 27; right: 10px; bottom: calc(v
 body.ingame .needbtn b { font-size: 18px; font-variant-numeric: tabular-nums; }
 body.ingame .needbtn.on { border-color: #1E5BC6; background: #1E5BC6; color: #fff; }
 body.ingame .needbtn.hot { border-color: #C8243A; background: #C8243A; animation: flash 1s ease-in-out infinite; }
-body.training .needbtn { display: none; }
+body.training:not(.needon) .needbtn { display: none; }
 body.mapmode.ingame .needbtn { right: auto; left: calc(var(--railL, 0px) + 8px); bottom: calc(var(--dockH, 0px) + 8px + env(safe-area-inset-bottom)); }
 @media (max-height: 520px) { body.mapmode.ingame .needbtn { height: 36px; padding: 0 11px 0 9px; font-size: 13px; } body.mapmode.ingame .needbtn b { font-size: 16px; } }
+.needbtn .nb-n { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.needbtn .nb-w { max-width: 170px; overflow: hidden; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.needbtn .nb-w::before { content: "· "; }
+/* a phone held sideways: the button rides at the foot of the left rail, off the floor */
+body.mapmode.ingame .needbtn.inrail { position: static; flex: none; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; width: 100%; height: auto; min-height: 44px; margin-top: auto; padding: 5px 6px; border-radius: 10px; box-shadow: none; text-align: left; }
+body.mapmode.ingame .needbtn.inrail { padding: 5px 4px 5px 5px; }
+body.mapmode.ingame .needbtn.inrail .nb-w { max-width: 100%; overflow: visible; font: 600 10px/1.15 var(--ui); white-space: normal; text-overflow: clip; overflow-wrap: anywhere; }
+body.mapmode.ingame .needbtn.inrail .nb-w::before { content: none; }
+/* the rail is narrow: the count on its own line, so "12 Next" never clips */
+body.mapmode.ingame .needbtn.inrail .nb-n { display: block; font: 700 11px/1.1 var(--ui); white-space: normal; }
+body.mapmode.ingame .needbtn.inrail .nb-n b { display: block; font-size: 19px; line-height: 1; }
+@media (max-height: 520px) { body.mapmode.ingame .needbtn:not(.inrail) .nb-w { display: none; } }
+/* the pick list: tap the row to give them a bed, Card to read their card */
+.mag-row { display: flex; align-items: stretch; gap: 6px; }
+.mag-row .mag { flex: 1 1 auto; min-width: 0; }
+.mag-card { flex: none; align-self: center; min-width: 52px; height: 40px; padding: 0 10px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); color: var(--ink); font: 700 14px/1 var(--ui); }
 @keyframes needring { 50% { stroke: rgba(30, 91, 198, .35); fill: rgba(30, 91, 198, .04); } }
 .map .needring { animation-name: needring; }
 @media print { .needbtn { display: none !important; } }
+/* patient names: a highlighted tag wherever a patient shows, so "Maria L. is ready" can be matched to a bed */
+.pn, .mag .m-txt b.pn, .room .who b.pn { display: inline-block; max-width: 100%; padding: 0 5px; border-radius: 5px; background: var(--ink); color: #fff; font: 700 .9em/1.5 var(--ui); font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+.mag.crit .m-txt b.pn, .room.crit .who b.pn { background: var(--bad); }
+.map #mNames { pointer-events: none; }
+.map .mname text { letter-spacing: .1px; }
+/* Words: the plain-language list */
+.gl { margin: 14px 0 0; }
+.gl h4 { margin: 0 0 4px; }
+.gl dl { margin: 0; }
+.gl dl > div { display: grid; grid-template-columns: minmax(96px, 30%) minmax(0, 1fr); gap: 2px 12px; padding: 7px 0; border-top: 1px solid var(--line, #E3E7EC); }
+.gl dt { color: var(--ink); font: 700 15px/1.3 var(--ui); }
+.gl dd { margin: 0; color: var(--ink-2); font: 500 14.5px/1.38 var(--body); }
+@media (max-width: 420px) { .gl dl > div { grid-template-columns: 1fr; } }
+.wlink { margin: 2px 0 10px; }
+.wlink button { padding: 9px 12px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); color: var(--ink); font: 700 14.5px/1.1 var(--ui); }
+.coach-c .cb { flex-wrap: wrap; }
+/* A real phone: no double-tap zoom or pinch on the page during a shift (the floor has its own zoom), no text-selection bubble on a long press. */
+body.ingame { touch-action: pan-x pan-y; }
+.map, .map svg.floor { -webkit-touch-callout: none; }
+.top, .dock, .rail-l, .selbar, .coach, .needbtn { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* Orientation on a sideways phone: the preceptor sits beside the drawer, not inside it */
+.coach.beside { position: fixed !important; z-index: 96 !important; top: calc(8px + env(safe-area-inset-top)) !important; right: auto !important; bottom: auto !important; left: calc(8px + env(safe-area-inset-left)) !important; width: min(340px, calc(100vw - min(470px, 62vw) - 16px - env(safe-area-inset-left))) !important; max-height: none !important; transform: none !important; }
+.coach.beside .coach-c { max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); overflow: auto; }
+@media (max-height: 520px) and (orientation: landscape) {
+  /* messages stay off an open card: bottom left, over the dimmed floor */
+  body.sheeton .toasts { top: auto; right: auto; bottom: calc(8px + env(safe-area-inset-bottom)); left: calc(8px + env(safe-area-inset-left)); width: calc(100vw - min(470px, 62vw) - 16px - env(safe-area-inset-left)); align-items: flex-start; }
+}
+.ob.scen { background: #EFE6F7; color: #4F2A73; font-weight: 700; }
+/* a laptop or a tablet on its side: the menu in two columns, so the scenario picker and the links are on screen without scrolling */
+@media (min-width: 960px) and (min-height: 521px) {
+  #title .card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); column-gap: 30px; align-content: start; width: min(990px, 94vw); }
+  #title .card > * { grid-column: 1; }
+  #title .card > .levels { grid-column: 2; grid-row: 1 / span 12; align-self: center; }
+}
+/* the wide list board keeps the team in a panel on the right: the Next button goes to the other corner */
+@media (min-width: 1100px) { body.ingame:not(.mapmode) .needbtn { right: auto; bottom: 12px; left: 12px; } }
+.coach.ctop { top: calc(var(--topH, 150px) + 8px); bottom: auto; }

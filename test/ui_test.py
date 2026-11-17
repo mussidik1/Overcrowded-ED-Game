@@ -163,8 +163,8 @@ def run():
         tap('#sheet [data-act="boxDoc"]:not([disabled])')
         ok(not page.is_visible('#modalWrap') and J('!!(OC.G.box.cur && OC.G.box.cur.taken)') and 'on the line' in page.inner_text('#boxbar'), 'the attending takes the call; the charge nurse makes no medical decision')
         page.screenshot(path=f'{OUT}/04c_box_doctor.png')
-        J("() => { let n = 0; while (OC.G.box.cur && n++ < 300) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); } }")
-        ok(J('!OC.G.box.cur && OC.G.stats.boxC.ans >= 1'), 'the attending finishes the call')
+        J("() => { let n = 0; while (OC.G.stats.boxC.ans < 1 && n++ < 400) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); } }")   # until this call is done; another may ring right behind it
+        ok(J('OC.G.stats.boxC.ans >= 1'), 'the attending finishes the call')
 
         # ---------- interpreter ----------
         rid = None
@@ -200,7 +200,7 @@ def run():
         ok(J(f"OC.staff('{sid}').pit") is True, 'APP stationed in triage from their card')
         tap('.sheet-x')
         J("""() => { const tri = OC.G.staff.find(s => s.role === 'rn' && s.st === 'on' && s.zones.includes('triage')) || OC.G.staff.find(s => s.role === 'rn' && s.st === 'on' && !s.zones.length);
-            let n = 0; const end = OC.G.t + 30; while (OC.G.t < end && n++ < 4000) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1);
+            let n = 0; const end = OC.G.t + 60; while (OC.G.t < end && OC.G.stats.pitSeen < 1 && n++ < 6000) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1);
               for (const p of OC.active()) { if ((p.loc === 'triage' || p.loc === 'wall') && p.reg === 'none') OC.register(p.id, 'reg1'); if (p.loc === 'triage' && p.tri === 'none' && tri) OC.triage(p.id, tri.id); } } }""")
         page.wait_for_timeout(300)
         clear_modal()

@@ -11,13 +11,17 @@ A 32-bed emergency department, 07:00 to 19:00. Patients come in by ambulance and
 
 The department is drawn from above: a bed in every room, chairs in the waiting room and the results area, a nurses' station, a break room, and the ambulance bay outside. Everyone on shift is a person on the floor. Nurses stand by their pods, providers sit at the station, techs, EVS, and transport go where the work is, and staff on break sit in the break room. EMS crews hold the wall with their patients until a nurse takes report. When the wall is full, the next ambulances back up in the driveway, each with its wait time.
 
-**It fits a phone held sideways.** The whole department is on screen at once, with no dragging. Scores run along a slim strip on top, registrars and the triage nurse sit on a rail at the left, and providers sit on a rail at the right. Each room shows one icon for what it needs: a blue stethoscope for "needs a provider," a phone for "call a consult," a broom for a dirty room. Filled, pulsing icons need you. Gray ones are waiting on someone else. Pinch (or use the + button) to zoom in and the icons turn into words, with name tags on the staff. Zoomed out, tap the waiting room or the line at the door to pick a person from a list.
+**It fits a phone held sideways.** The whole department is on screen at once, with no dragging. Scores run along a slim strip on top, registrars and the triage nurse sit on a rail at the left, and providers sit on a rail at the right. Each room shows one icon for what it needs: a blue stethoscope for "needs a provider," a phone for "call a consult," a broom for a dirty room. Filled, pulsing icons need you. Gray ones are waiting on someone else. Pinch (or use the + button) to zoom in and the icons turn into words, with name tags on the staff. Zoomed out, tap the waiting room or the line at the door to pick a person from a list: tap the row to give them a bed, or Card to read their card.
+
+**Every patient has a name tag.** Each occupied room shows the patient's name on a dark tag, at both zoom levels, drawn above the staff so a nurse at the bedside never hides it. The same tag is on the wall, in the waiting-room list, and on the list board. When a message says "Kwame E. is crashing," you can find Kwame.
+
+**Taps forgive a sliding thumb.** A real fingertip moves during a tap. The floor takes a tap that slides up to 16 px, or a quick one up to 30, and a thumb resting on the glass does not block the other hand.
 
 On a laptop the same floor shows the words all the time, with the staff in a dock along the bottom. The list board is still there if you want it: switch on the title screen or in the pause menu.
 
 **People move.** Walk-ins come through the front door, stop at registration and triage, and take a seat. When you give someone a bed, they walk there, and ambulance patients roll in on the stretcher with their crew. Patients who go home walk out the front door, and admitted patients ride upstairs with transport. The light through the windows goes from morning to dusk over the shift.
 
-**"Needs you."** A button in the corner counts everything that is waiting on you: a room that needs a provider or a consult call, a crew on the wall, the line at the door, the radio. Tap it (or press N) and it takes you to the most urgent one. Tap again for the next.
+**"Next."** A button counts everything that is waiting on you and names the most urgent one: a room that needs a provider or a consult call, a crew on the wall, the line at the door, the radio. Tap it (or press N) and it goes exactly there. Tap again for the next. When the Box rings it turns red and says so. A patient on the wall with two vital signs in red goes ahead of routine work. On a sideways phone it sits at the foot of the left rail, off the floor.
 
 **Full screen and offline.** On Android, tap Full screen on the title screen or in the pause menu. On an iPhone, add the page to your Home Screen (Share, then Add to Home Screen) and open it from there. After the first visit the game is saved on the device, so it opens with no signal.
 
@@ -27,8 +31,12 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 
 **New here? Start with Orientation.** Each role has its own. It lights up what to tap, holds the clock until you act, and fast-forwards through the waiting. Nothing counts against you.
 
-- **Charge nurse:** a preceptor walks you through a walk-in from registration to discharge, an ambulance patient through consult, admission, and report, a trauma alert with massive transfusion, routing a medical-direction call to a doctor, a chest-pain call, chairs, waiting-room rechecks, an interpreter, breaks, an equipment outage, and a transfer.
-- **Attending:** a senior attending walks you through strep throat (see, order, discharge), DKA (treat what you find, admit to the ICU), appendicitis (a thin workup, the missing CT, call surgery), a medical-direction call on the radio, and a stroke alert from door to needle.
+**No medical background needed.** Orientation is written for someone who has never worked in a hospital, and it teaches the real game, not an easier one. Every short name is explained in plain words the first time it comes up: ESI, EMS, RN, PCT, EVS, the Box, MTP, ECG, CT, HEART score, boarding, divert, and the rest. It shows how to read a room and a patient card, including what each vital sign is and what a normal number looks like. A **Words** button on every preceptor card, in How to play, and in the pause menu opens the whole list: about ninety terms in plain language.
+
+- **Charge nurse (62 steps):** the screen and your five scores, a walk-in from registration to discharge, the Next button, an ambulance patient through consult, admission, and report, a trauma alert with massive transfusion, routing a medical-direction call to a doctor, a chest-pain call, chairs, waiting-room rechecks, an interpreter, breaks, an equipment outage, a transfer, and the words you will hear on a real shift.
+- **Attending (34 steps):** reading a card and its vital signs, strep throat (see, order, discharge), DKA (treat what you find, admit to the ICU), appendicitis (a thin workup, the missing CT, call surgery), a medical-direction call on the radio, and a stroke alert from door to needle.
+
+On a phone held sideways the preceptor's card sits beside an open patient card, not inside it, so what you are told to tap is always on screen.
 
 ![Orientation: the preceptor lights up the next tap](docs/screenshots/orientation.png)
 
@@ -36,14 +44,19 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 
 ## Vitals that change
 
-Every patient card shows heart rate, blood pressure, breathing rate, oxygen, and temperature, and they move. A sick patient who waits gets worse: the heart rate climbs, the pressure sags, and the card says "Getting worse." Treatment turns it around, each on its own clock: naloxone and epinephrine work in minutes, fluids take about twenty, antibiotics most of an hour. Anything out of range shows in red. Walk-ins have no vitals until triage takes them. Ambulance patients arrive with the crew's set.
+Every patient card shows heart rate, blood pressure, breathing rate, oxygen, and temperature, and they move. A sick patient who waits gets worse: the heart rate climbs, the pressure sags, and the card says "Getting worse" and why ("no bed yet," "no provider yet," "treatment not given yet"). The label is read off the numbers: it says worse or improving only when someone watching the monitor would see it. Abnormal numbers that are not moving read "Not improving." Anything out of range shows in red. Walk-ins have no vitals until triage takes them. Ambulance patients arrive with the crew's set.
+
+Treatment turns it around, each on its own clock: naloxone and epinephrine work in minutes, fluids and blood take about twenty. Antibiotics stop the decline but take hours to move a heart rate or a fever, so they get no credit they have not earned.
 
 The numbers follow the case, not just the acuity:
 
-- Oxygen is low only when breathing is the problem. A stroke, a GI bleed, or DKA arrives with a normal sat; pneumonia, heart failure, and an overdose do not.
-- An overdose breathes six times a minute until the naloxone goes in.
-- A head bleed's pressure climbs while the heart slows. A stroke's pressure is left high on purpose, even after the thrombolytic.
-- A patient who crashes in the waiting room goes fast and hypotensive, and comes back with treatment.
+- Oxygen is low only when breathing is the problem. A stroke, a GI bleed, or DKA arrives with a normal sat.
+- Once a nurse has assessed a patient with a low sat, the card says "on oxygen." That is nursing, not an order.
+- No case arrives with vitals that contradict its triage level. (A test checks every case.)
+- An overdose arrives drowsy after the crew's naloxone, and its breathing slows again as the field dose wears off.
+- A head bleed's pressure climbs while the heart slows.
+- A stroke's pressure stays high but under 185/110, the limit for the thrombolytic, because the game has no order to lower it. After the drug it stays under 180/105.
+- A patient who crashes in the waiting room goes fast and hypotensive, and comes back with treatment. Patients whose risk score will send them home or to observation do not crash.
 - A child's numbers are scaled to a child's normals, and flagged against them.
 
 ![A patient card: heart rate, pressure, and breathing in red, and getting worse](docs/screenshots/vitals.png)
@@ -51,8 +64,10 @@ The numbers follow the case, not just the acuity:
 ## For a class
 
 - **Five-Minute Rush.** Two packed hours, 07:00 to 09:00, in about five minutes of play. It has its own stars.
-- **Scenarios.** Pick one on the title screen and any shift gets a named problem early on: **CT down**, **Bus crash** (a multiple-casualty call), **Boarding** (extra admitted patients, slow beds upstairs), or **Short-staffed** (two more call-outs). Scenario scores are kept apart from your bests.
+- **Scenarios.** Pick one on the title screen and any shift gets a named problem early on: **CT down**, **Bus crash** (a multiple-casualty call), **Boarding** (extra admitted patients, slow beds upstairs), or **Short-staffed** (two more call-outs). The game says so at the start, keeps a "Scenario" tag on the status strip, and names it in the pause menu and on the report. Scenario shifts do not count toward your bests.
 - **Print the report.** The shift report has a "Print or save as PDF" button. On paper it is just the report, with the role, shift, scenario, date, and a line for a name.
+- **The last report is kept.** Leave the report by accident and it is still there: "Last report" on the title screen brings it back, after a reload too. "Run it back" starts the same shift again in one tap.
+- **Every student gets a different shift.** Arrivals and events are random, so scores are for discussion, not for ranking students against each other.
 - **Sound.** Monitors beep, the radio squelches when the Box opens, and the big moments (alerts, codes, massive transfusion) go out as an overhead page. Turn it off on the title screen or in the pause menu.
 
 ## How a shift works: charge nurse
@@ -108,12 +123,13 @@ The build also writes `sw.js`, a small service worker that keeps a copy of the g
 ```sh
 npm install      # fonts used by the build
 npm run build    # writes index.html
-npm test         # rule checks (five suites; rules4 covers the attending, rules5 vitals, the short shift, and scenarios)
+npm test         # rule checks (five suites, 231 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios)
 npm run sim      # simulated shifts at several player speeds
 npm run stress   # 188 shifts across every level and scenario: checks for stuck states and out-of-range vitals
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)
 python3 test/md_ui_test.py   # the attending: see, order, decide, the radio, the report
-python3 test/map_test.py     # the floor plan on a sideways phone: fits without dragging, rails, icons, taps, zoom, ambulances backing up, vitals, Needs you, scenarios, the printed report
+python3 test/map_test.py     # the floor plan on a sideways phone (81 checks): fits without dragging, rails, icons, name tags, sliding taps, zoom, ambulances backing up, vitals, the Next button, Words, scenarios, the printed and kept report
+python3 test/finger_test.py  # Orientation the way a real finger plays it: people moving, real time, touches that slide 12 px. MODE=md for the attending
 python3 test/offline_test.py # serves the folder, installs the service worker, cuts the network, and reloads
 python3 test/train_test.py   # plays the charge nurse Orientation on the floor plan, tapping only what the preceptor lights up
 MODE=md python3 test/train_test.py   # the same for the attending Orientation

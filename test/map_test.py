@@ -1,4 +1,4 @@
-"""The floor plan (v0.9, v0.10): the whole department on a phone held sideways. Every tap lands on the floor itself."""
+"""The floor plan (v0.9 to v0.11): the whole department on a phone held sideways. Every tap lands on the floor itself."""
 import os, sys
 from playwright.sync_api import sync_playwright
 
@@ -113,20 +113,64 @@ def run():
         ok(J("OCUI.U.sheet && OCUI.U.sheet.pid") == wall, 'tapping a crew on the wall opens the patient card')
         sh = box('.sheet')
         ok(sh['x'] > 250 and sh['height'] >= 380, 'cards slide in from the right on a sideways phone')
-        ok(page.locator('#sheet .vv').count() >= 4 and page.locator('#sheet .vtrend').count() == 1, 'the card shows live vitals and which way they are heading')
+        ok(page.locator('#sheet .vv').count() == 5 and page.locator('#sheet .vtrend').count() == 1 and '°F' in page.locator('#sheet .ph-cc').inner_text(), 'the card shows all five vitals, the temperature in Fahrenheit, and which way they are heading')
         close_sheet()
+
+        # patient names: a highlighted tag in every occupied room, at both zoom levels, drawn above the staff
+        occ = J("OC.G.rooms.filter(r => r.pid).length")
+        ok(occ >= 3 and page.locator('#mNames .mname.faronly').count() == occ and page.locator('#mNames .mname.nearonly').count() == occ, f'every occupied room carries its patient\'s name ({occ})')
+        nm = J("(() => { const r = OC.G.rooms.find(r => r.pid && /^\\d+$/.test(r.id)); return [OC.pt(r.pid).name, r.id]; })()")
+        ok(nm[0] in J("Array.from(document.querySelectorAll('#mNames .mname.faronly text')).map(t => t.textContent)") and nm[0] in J(f"document.getElementById('mroom-{nm[1]}').getAttribute('aria-label')"), f'the tag reads the patient\'s name ({nm[0]})')
+        tb = page.locator('#mNames .mname.faronly text').first.bounding_box()
+        ok(tb['height'] >= 6.5 and page.locator('#mNames .mname.faronly').first.is_visible() and not page.locator('#mNames .mname.nearonly').first.is_visible(), f'zoomed out, the name is still readable ({tb["height"]:.1f}px)')
+        ok(J("getComputedStyle(document.getElementById('mNames')).pointerEvents") == 'none', 'and it never blocks a tap on the room')
+
+        # a real fingertip slides during a tap: the floor still takes it
+        cdp = ctx.new_cdp_session(page)
+        def finger(sel, dx, dy):
+            bb = page.locator(sel).first.bounding_box(); x, y = bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2
+            cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': x, 'y': y}]}); page.wait_for_timeout(30)
+            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x + dx / 2, 'y': y + dy / 2}]}); page.wait_for_timeout(25)
+            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x + dx, 'y': y + dy}]}); page.wait_for_timeout(40)
+            cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []}); page.wait_for_timeout(350)
+        finger(f'#mroom-{nm[1]}', 9, 8)
+        ok(J("OCUI.U.sheet && OCUI.U.sheet.type") == 'pt', 'a tap that slides 12 px still opens the room')
+        close_sheet(); page.wait_for_timeout(450)
+        finger(f'#mroom-{nm[1]}', 17, 14)
+        ok(J("OCUI.U.sheet && OCUI.U.sheet.type") == 'pt', 'so does a hurried one that slides 22 px')
+        close_sheet(); page.wait_for_timeout(450)
 
         # "Needs you": a count of what is waiting, and each tap goes to the next one
         need = J("document.querySelector('#needBtn b').textContent")
         ok(need.isdigit() and int(need) >= 2 and J("document.getElementById('needBtn').classList.contains('on')"), f'the Needs you button counts what is waiting ({need})')
         nb = box('#needBtn')
-        ok(nb['x'] >= box('#map')['x'] and nb['height'] >= 34, 'it sits in the corner of the floor')
+        ok(J("!!document.querySelector('#railL #needBtn')") and nb['x'] + nb['width'] <= box('#map')['x'] + 1 and nb['height'] >= 40, 'on a sideways phone it rides at the foot of the left rail, off the floor')
+        said = J("document.getElementById('needBtn').getAttribute('aria-label')")
+        named = J("document.querySelector('#needBtn .nb-w').textContent")
+        ok(bool(named) and 'Go to the next one' in said, f'it names where the next tap goes ({named})')
+        n0 = page.locator('.toast').count()
         tap('#needBtn'); page.wait_for_timeout(300)
         first = J('OCUI.U.needLast')
-        ok(bool(first) and (J('!!OCUI.U.sheet') or J('!!OCUI.U.sel')) and page.locator('#mNeed .needring').count() == 1, 'a tap opens the most urgent one and rings it on the floor')
+        went = J("(() => { const s = OCUI.U.sheet, sel = OCUI.U.sel; if (s && s.type === 'pt') { const p = OC.pt(s.pid); return [p.name, p.room ? OC.roomName(p.room) : '']; } if (s && s.type === 'boxdoc') return ['The Box']; if (s && s.type === 'zone') return ['The door', 'Waiting room']; if (sel && sel.pid) return [OC.pt(sel.pid).name]; return []; })()")
+        ok(bool(first) and named in went and page.locator('#mNeed .needring').count() == 1, f'a tap goes exactly where it said, and rings it on the floor ({named} -> {went})')
+        ok(not J('!!OCUI.U.sheet') or page.locator('.toast').count() == n0, 'no pop-up lands on the card it just opened')
         close_sheet(); J("() => { OCUI.U.sel = null; OCUI.render(); }")
         tap('#needBtn'); page.wait_for_timeout(300)
         ok(J('OCUI.U.needLast') != first, 'the next tap goes on to the next one')
+        close_sheet(); J("() => { OCUI.U.sel = null; OCUI.render(); }")
+        # the radio outranks everything: with the Box ringing, the button turns red, names it, and goes there
+        J("() => { const G = OC.G; if (!G.box.cur) OC.trainConsult(); OCUI.render(); }"); page.wait_for_timeout(250)
+        if J('!!OC.G.box.cur && !OC.G.box.cur.taken'):
+            ok(J("document.getElementById('needBtn').classList.contains('hot')") and J("document.querySelector('#needBtn .nb-w').textContent") == 'The Box', 'when the Box rings, the button is red and says so')
+            tap('#needBtn'); page.wait_for_timeout(300)
+            ok(J("OCUI.U.sheet && OCUI.U.sheet.type") in ('boxdoc',) or J("!!(OCUI.U.modal)") or J('!!OC.G.box.cur.taken'), 'and one tap answers it')
+            close_sheet(); J("() => { OCUI.U.modal = null; OCUI.U.sel = null; OCUI.render(); }")
+        # the waiting list: tap a row to bed them, or Card to read their card
+        J("() => { OCUI.U.sheet = { type: 'zone', z: 'triage' }; OCUI.render(); }"); page.wait_for_timeout(250)
+        if page.locator('#sheet [data-act="ptCard"]').count():
+            pidc = page.locator('#sheet [data-act="ptCard"]').first.get_attribute('data-arg')
+            tap('#sheet [data-act="ptCard"]')
+            ok(J("OCUI.U.sheet && OCUI.U.sheet.type") == 'pt' and J('OCUI.U.sheet.pid') == pidc and not J('!!OCUI.U.sel'), 'Card beside a name in the waiting list opens that card')
         close_sheet(); J("() => { OCUI.U.sel = null; OCUI.render(); }")
 
         # zoom in: the words come back, and dragging pans without tapping anything
@@ -161,6 +205,10 @@ def run():
         J("() => { OCUI.U.freeze = false; }")
         page.set_viewport_size({'width': 390, 'height': 844}); page.wait_for_timeout(400)
         ok(J("getComputedStyle(document.getElementById('rotate')).display") != 'none', 'upright, the floor plan asks to turn sideways')
+        J("() => { OCUI.U.freeze = false; OCUI.U.paused = false; OCUI.U.sheet = null; OCUI.U.modal = null; if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(c => !c.dis).k); }")
+        t0 = J('OC.G.t'); page.wait_for_timeout(2600); t1 = J('OC.G.t')
+        ok(t1 - t0 < 0.05, f'and the clock holds while the board is covered ({t1 - t0:.2f} min in 2.6 s)')
+        J("() => { OCUI.U.freeze = true; }")
         tap('#rotate [data-act="view"]'); page.wait_for_timeout(300)
         ok(J('OCUI.U.view') == 'list' and J("localStorage.getItem('oc-view')") == 'list', 'the list board is one tap away, and it sticks')
         ok(J("getComputedStyle(document.getElementById('rotate')).display") == 'none' and J("getComputedStyle(document.getElementById('board')).display") != 'none', 'the list board shows')
@@ -207,6 +255,12 @@ def run():
         ok(J("localStorage.getItem('oc-scen')") == 'ct' and J("document.querySelector('.scn-sel').value") == 'ct' and 'CT' in page.locator('.packs.scn small').inner_text() and fits(), 'a scenario is picked and remembered, and the menu still fits')
         tap('button.lvl[data-arg="rush"]'); page.wait_for_timeout(500)
         ok(J('OC.G.level') == 'rush' and J('OC.G.scen') == 'ct' and J('OC.G.shift') == 120, 'the shift starts with the scenario')
+        ok('Scenario: CT down' in page.locator('#toasts').inner_text() and 'Scenario: CT down' in page.locator('#objs').inner_text(), 'and says so: a message at the start, and a tag for the whole shift')
+        J("() => { OCUI.U.freeze = true; }"); clear_cards(); J("() => { if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(c => !c.dis).k); OCUI.U.paused = true; OCUI.render(); }"); page.wait_for_timeout(250)
+        ok('ct down scenario' in page.locator('#modal .mc-who').text_content().lower() and page.locator('#modal [data-act="words"]').count() == 1, 'the pause menu names the scenario and has the word list')
+        tap('#modal [data-act="words"]'); page.wait_for_timeout(250)
+        ok(J("OCUI.U.sheet && OCUI.U.sheet.type") == 'words' and page.locator('#sheet .gl dt').count() >= 80 and 'Emergency Severity Index' in page.locator('#sheet').inner_text(), 'Words lists every short name in plain language')
+        close_sheet(); J("() => { OCUI.U.paused = false; OCUI.U.freeze = false; OCUI.render(); }")
         J("() => { OCUI.U.freeze = true; for (let i = 0; i < 260; i++) { OC.step(0.1); if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(c => !c.dis).k); } OCUI.render(); }")
         page.wait_for_timeout(300)
         ok(J('!!OC.G.out.ct') and page.locator('#mSvc circle[fill="#C8243A"]').count() >= 1, 'the CT goes down on schedule, and the floor shows it')
@@ -218,6 +272,14 @@ def run():
         page.emulate_media(media='print'); page.wait_for_timeout(200)
         ok(J("getComputedStyle(document.querySelector('#report .rep-btns')).display") == 'none' and J("getComputedStyle(document.querySelector('#report .rep-meta')).display") != 'none' and J("getComputedStyle(document.querySelector('.app')).display") == 'none', 'on paper it is just the report, with a line for a name')
         page.emulate_media(media='screen')
+        # the report is kept: leave it, and it is still one tap away on the menu
+        tap('#report [data-act="menu"]'); page.wait_for_timeout(400)
+        ok(J('OCUI.U.scene') == 'title' and page.locator('#title [data-act="lastReport"]').count() == 1, 'after leaving the report, the menu offers the last report')
+        page.reload(); page.wait_for_timeout(700)
+        tap('#title [data-act="lastReport"]'); page.wait_for_timeout(400)
+        ok(J('OCUI.U.scene') == 'report' and 'CT down' in page.locator('#report .verdict').inner_text() and page.locator('#report [data-act="print"]').count() == 1, 'it survives a reload, scenario and all, and can still be printed')
+        tap('#report [data-act="again"]'); page.wait_for_timeout(500)
+        ok(J('OCUI.U.scene') == 'game' and J('OC.G.level') == 'rush' and J('OC.G.t') < 2, 'Run it back starts the same shift again in one tap')
         J("() => localStorage.removeItem('oc-scen')")
         b.close()
 

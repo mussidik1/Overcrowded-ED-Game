@@ -195,15 +195,15 @@ const CASES = [
   { k: 'chole', cc: 'Belly pain after meals', dx: 'Cholecystitis', esi: 3, src: 'b', age: [30, 70], sex: 'F', wt: 3, wk: ['lab', 'us'], tr: ['meds'], con: 'surg', pre: ['lab', 'us'], dispo: 'admit', find: { lab: 'WBC 13.1, liver tests up', us: 'Gallstones, thick gallbladder wall' } },
   { k: 'hipfx', cc: 'Fell, hip pain', dx: 'Hip fracture', esi: 3, src: 'e', age: [70, 95], wt: 5, wk: ['xr', 'lab'], tr: ['meds'], con: 'ortho', pre: ['xr'], dispo: 'admit', find: { xr: 'Femoral neck fracture', lab: 'Hgb 11.9' } },
   { k: 'pna', cc: 'Cough and fever', dx: 'Pneumonia', esi: 3, src: 'b', age: [50, 90], wt: 4, wk: ['lab', 'xr'], tr: ['abx'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', find: { lab: 'WBC 17.2', xr: 'Right lower lobe infiltrate' } },
-  { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 3, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 86%, RR 28, pCO2 58', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' } },
-  { k: 'chf', cc: "Short of breath, can't lie flat", dx: 'Heart failure flare', esi: 2, src: 'e', age: [60, 90], wt: 3, wk: ['ecg', 'xr', 'lab'], tr: ['bipap', 'meds'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 84%, BP 188/104', find: { ecg: 'Sinus tach, old Q waves', xr: 'Pulmonary edema', lab: 'BNP 2,400' } },
+  { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 3, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 90%, RR 24, wheezing', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' } },
+  { k: 'chf', cc: "Short of breath, can't lie flat", dx: 'Heart failure flare', esi: 2, src: 'e', age: [60, 90], wt: 3, wk: ['ecg', 'xr', 'lab'], tr: ['bipap', 'meds'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 91%, BP 178/102', find: { ecg: 'Sinus tach, old Q waves', xr: 'Pulmonary edema', lab: 'BNP 2,400' } },
   { k: 'stone', cc: 'Flank pain', dx: 'Kidney stone', esi: 3, src: 'w', age: [25, 60], wt: 4, wk: ['lab', 'ct'], tr: ['meds', 'fluids'], dispo: 'home', find: { lab: 'Blood in urine, no infection', ct: '4 mm ureteral stone' } },
   { k: 'dvt', cc: 'Swollen leg', dx: 'Deep vein thrombosis', esi: 3, src: 'w', age: [30, 80], wt: 3, wk: ['us', 'lab'], tr: ['meds'], dispo: 'home', find: { us: 'Femoral vein clot', lab: 'Kidney function normal' } },
   { k: 'migraine', cc: 'Worst headache this month', dx: 'Migraine', esi: 3, src: 'w', age: [18, 50], sex: 'F', wt: 3, wk: [], tr: ['fluids', 'meds'], dispo: 'home' },
   { k: 'tb', cc: 'Cough, night sweats', dx: 'Suspected tuberculosis', esi: 3, src: 'w', age: [25, 70], wt: 1.2, wk: ['xr', 'lab'], tr: [], con: 'hosp', pre: ['xr', 'lab'], dispo: 'admit', iso: 'air', find: { xr: 'Cavity in the upper lobe', lab: 'WBC 11.4' } },
   { k: 'bh', cc: 'Behavioral health crisis', dx: 'Behavioral health emergency', esi: 3, src: 'b', age: [16, 60], wt: 2.5, wk: ['lab'], tr: [], con: 'psych', pre: ['lab'], dispo: 'bh', sitter: true, find: { lab: 'Medically cleared' } },
   { k: 'etoh', cc: 'Intoxicated, found on a bench', dx: 'Alcohol intoxication', esi: 3, src: 'e', age: [25, 65], sex: 'M', wt: 3, wk: ['lab'], tr: ['fluids'], dispo: 'home', ama: 2, find: { lab: 'Ethanol 280, glucose normal' } },
-  { k: 'od', cc: 'Found unresponsive, pinpoint pupils', dx: 'Opioid overdose', esi: 2, src: 'e', age: [18, 55], wt: 2, wk: ['lab'], tr: ['nalox'], dispo: 'home', ama: 4, vit: 'RR 6, SpO2 82%', find: { lab: 'Fentanyl positive' } },
+  { k: 'od', cc: 'Found unresponsive, pinpoint pupils', dx: 'Opioid overdose', esi: 2, src: 'e', age: [18, 55], wt: 2, wk: ['lab'], tr: ['nalox'], dispo: 'home', ama: 4, vit: 'RR 10, SpO2 91%, drowsy after naloxone in the field', find: { lab: 'Fentanyl positive' } },
   { k: 'cell', cc: 'Red, hot leg', dx: 'Cellulitis', esi: 3, src: 'w', age: [30, 80], wt: 3, wk: ['lab'], tr: ['abx'], con: 'hosp', pre: ['lab'], dispo: 'admit', find: { lab: 'WBC 14.0' } },
   { k: 'syncope', cc: 'Passed out', dx: 'Syncope, low risk', esi: 3, src: 'b', age: [16, 70], wt: 3, wk: ['ecg', 'lab'], tr: [], dispo: 'home', gray: 'syncope', find: { ecg: 'Normal sinus rhythm', lab: 'Normal' } },
   { k: 'synchigh', cc: 'Passed out sitting down', dx: 'Syncope, high risk', esi: 2, src: 'b', age: [60, 90], wt: 1.5, wk: ['ecg', 'lab'], tr: [], dispo: 'obs', gray: 'syncope', find: { ecg: 'New bundle branch block', lab: 'Normal' } },
@@ -228,7 +228,7 @@ const CASES = [
   { k: 'moto', cc: 'Motorcycle crash, leg deformity', dx: 'Open femur fracture', esi: 1, src: 'a', age: [18, 55], wt: 1.2, wk: ['xr', 'lab'], tr: ['abx', 'blood'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'prbc', vit: 'HR 118, BP 102/64', find: { xr: 'Open femur fracture', lab: 'Hemoglobin 9.4' } },
   { k: 'arrest', cc: 'Cardiac arrest, CPR in progress', dx: 'Cardiac arrest', esi: 1, src: 'a', age: [45, 85], wt: 1.3, wk: [], tr: [], dispo: 'code', alert: 'arrest', arrest: true, vit: 'Pulseless, VF on the monitor' },
   { k: 'shock', cc: 'Fever, BP 74/40', dx: 'Septic shock', esi: 1, src: 'a', age: [60, 90], wt: 1.8, wk: ['lab'], tr: ['fluids', 'abx'], con: 'icu', pre: ['lab'], need: ['lab'], dispo: 'icu', alert: 'sepsis', vit: 'HR 128, BP 74/40, mottled', find: { lab: 'Lactate 5.4' } },
-  { k: 'rsv', cc: 'Infant breathing hard', dx: 'RSV, tiring out', esi: 2, src: 'a', age: [0, 1], wt: 0.8, wk: ['lab'], tr: ['hfnc'], ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'peds', txTo: 'the pediatric ICU', vit: 'HR 168, RR 72, retractions, SpO2 88%', find: { lab: 'VBG pCO2 61' } },
+  { k: 'rsv', cc: 'Infant breathing hard', dx: 'RSV, tiring out', esi: 2, src: 'a', age: [0, 1], wt: 0.8, wk: ['lab'], tr: ['hfnc'], ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'peds', txTo: 'the pediatric ICU', vit: 'HR 168, RR 66, retractions, SpO2 91%', find: { lab: 'VBG pCO2 61' } },
   { k: 'burn', cc: 'House fire, burns to arms and chest', dx: 'Partial-thickness burns, 25%, airway injury', esi: 2, src: 'a', age: [20, 70], wt: 0.6, wk: ['lab'], tr: ['intub', 'vent', 'fluids', 'meds'], vit: 'Hoarse voice, soot in the mouth, HR 112', ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'burn', txTo: 'the burn center', find: { lab: 'Carboxyhemoglobin 6%' } },
   // mass casualty
   { k: 'mcimin', cc: 'Bus crash, neck and back pain', dx: 'Minor trauma', esi: 3, src: 'm', age: [18, 70], wt: 1, wk: ['xr', 'ct'], tr: ['meds'], dispo: 'home', find: { xr: 'No fracture', ct: 'No acute injury' } },
@@ -486,20 +486,20 @@ const VDOOR = { 1: { hr: 124, sbp: 94, dbp: 56, rr: 24, spo2: 95 }, 2: { hr: 104
 const VCASE = {
   refill: { sbp: 164, dbp: 98 }, otitis: { temp: 101.3 }, strep: { temp: 101.5, hr: 100 }, uti: { temp: 99.8 },
   gastro: { hr: 106, sbp: 108, dbp: 66, spo2: 98 }, appy: { temp: 100.6, hr: 102 }, chole: { temp: 100.4, hr: 98 }, hipfx: { hr: 96, sbp: 148, dbp: 86 },
-  pna: { temp: 101.6, hr: 108, rr: 24, spo2: 91 }, copd: { hr: 104 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
+  pna: { temp: 101.6, hr: 98, rr: 20, spo2: 94 }, copd: { hr: 98 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
   migraine: { sbp: 140, dbp: 86 }, tb: { temp: 100.8, spo2: 95 }, bh: { hr: 98 }, etoh: { hr: 104 }, cell: { temp: 100.9 },
-  syncope: { hr: 62, sbp: 108, dbp: 64, spo2: 98 }, tia: { hr: 80, sbp: 172, dbp: 96 }, dehyd: { hr: 114, sbp: 98, dbp: 60 }, mcimin: { hr: 100, sbp: 138, dbp: 84 }, mcigrn: { hr: 98 },
-  chf: { hr: 108, rr: 28 }, od: { hr: 62, sbp: 102, dbp: 60 }, synchigh: { hr: 44, sbp: 96, dbp: 58, rr: 18, spo2: 96 },
+  syncope: { hr: 62, sbp: 108, dbp: 64, spo2: 98 }, tia: { hr: 80, sbp: 172, dbp: 96 }, dehyd: { hr: 104, sbp: 106, dbp: 64 }, mcimin: { hr: 100, sbp: 138, dbp: 84 }, mcigrn: { hr: 98 },
+  chf: { hr: 108, rr: 26 }, od: { hr: 64, sbp: 104, dbp: 62 }, synchigh: { hr: 70, sbp: 124, dbp: 74, rr: 16, spo2: 97 },
   cpmod: { hr: 88, sbp: 146, dbp: 88, rr: 18 }, cwp: { hr: 84, sbp: 136, dbp: 84, rr: 18, spo2: 98 }, nstemi: { hr: 94, sbp: 150, dbp: 90 },
   afib: { rr: 20, spo2: 96 }, gib: { rr: 22 }, dka: { hr: 118, rr: 28, sbp: 104, dbp: 62, spo2: 99 }, asthma: { hr: 118, rr: 28, sbp: 138, dbp: 84 },
-  anaph: { hr: 126, rr: 26, spo2: 92 }, sepsisw: { rr: 24, spo2: 94 }, strokew: { hr: 84, sbp: 186, dbp: 102, rr: 18 }, stroke: { hr: 86, sbp: 188, dbp: 104, rr: 18 },
+  anaph: { hr: 126, rr: 26, spo2: 92 }, sepsisw: { rr: 24, spo2: 94 }, strokew: { hr: 84, sbp: 168, dbp: 92, rr: 18 }, stroke: { hr: 86, sbp: 172, dbp: 94, rr: 18 },
   rsv: { temp: 100.6 }, burn: { rr: 24, sbp: 148, dbp: 90 },
-  stemi: { rr: 20, spo2: 95 }, lvo: { hr: 88, sbp: 196, dbp: 108, rr: 18, spo2: 95 }, mvc: { rr: 28, spo2: 93 }, tfall: { hr: 58, rr: 14, spo2: 96 },
+  stemi: { rr: 20, spo2: 95 }, lvo: { hr: 88, sbp: 176, dbp: 98, rr: 18, spo2: 95 }, mvc: { rr: 28, spo2: 93 }, tfall: { hr: 58, rr: 14, spo2: 96 },
   moto: { rr: 22, spo2: 96 }, shock: { temp: 102.6, rr: 28, spo2: 92 },
 };
 /* These do not go pale and fast when they get worse. A head bleed's pressure climbs while the heart slows; a stroke's pressure stays up;
-   an overdose stops breathing; heart failure drowns with the pressure still high; a bad rhythm gets slower. */
-const VHOLD = new Set(['tfall', 'strokew', 'stroke', 'lvo', 'tia', 'chf', 'od', 'synchigh']);
+   an overdose stops breathing; heart failure drowns with the pressure still high. */
+const VHOLD = new Set(['tfall', 'strokew', 'stroke', 'lvo', 'tia', 'chf', 'od']);
 const VADULT = { hr: 78, sbp: 122, dbp: 76, rr: 16 };
 const vhash = s => { let h = 9; for (const c of String(s)) h = (h * 33 + c.charCodeAt(0)) >>> 0; return (h % 1000) / 1000; };
 function vNormal(age) {
@@ -526,8 +526,9 @@ function vDoor(p) {   // the numbers at arrival, and the signs that go with them
   }
   return { d, n, signs };
 }
-/* Minutes for a treatment to show in the numbers. Naloxone and epinephrine work while you watch; antibiotics and an insulin drip do not. */
-const VONSET = { nalox: 3, epi: 6, intub: 4, vent: 6, nebs: 12, bipap: 10, hfnc: 10, mtp: 15, blood: 20, fluids: 20, meds: 20, tnk: 30, insulin: 40, abx: 45, repair: 5 };
+/* Minutes for a treatment to show in the numbers. Naloxone and epinephrine work while you watch. An insulin drip takes most of an hour.
+   Antibiotics stop the clock but take hours to move a heart rate or a fever: they get no credit they have not earned. */
+const VONSET = { nalox: 3, epi: 6, intub: 4, vent: 6, nebs: 12, bipap: 10, hfnc: 10, mtp: 15, blood: 20, fluids: 20, meds: 20, tnk: 30, insulin: 40, abx: 360, repair: 5 };
 function vRelief(p, t) {   // 0: nothing has been done. 1: every treatment has had time to work.
   const ks = Object.keys(p.treat || {}), total = Math.max(ks.length, (p.tr || []).length, 1);
   let r = 0;
@@ -547,17 +548,13 @@ function sickAt(p, t) {
   if (!(p.tr || []).length && p.dxK) s *= 0.85;   // nothing to treat, and now they know what it is
   return s;
 }
-function vitalsOf(p, when) {
-  const t = when != null ? when : G.t;
-  if (p.arrest) return { arrest: true, taken: true, text: 'No pulse. CPR in progress', signs: [], flags: {}, trend: 'worse', s: 2 };
-  const ems = p.src === 'ems' || !!p.unit;
-  if (!ems && p.tri !== 'done' && p.loc !== 'room') return { taken: false, text: 'Not taken yet. Triage takes the first set.', signs: [], flags: {}, trend: 'steady', s: 1 };
-  const { d, n, signs } = vDoor(p), s = sickAt(p, t), s0 = sickAt(p, t - 10), rel = vRelief(p, t);
-  const kid = p.age < 13, hold = VHOLD.has(p.ck) || p.alert === 'stroke';
-  const jit = k => (vhash(p.id + k + Math.floor(t / 5)) - 0.5) * 2;   // small wobble, new every five minutes
+/* The numbers before rounding and wobble, at any minute. */
+function vRaw(p, t) {
+  const { d, n, signs } = vDoor(p), s = sickAt(p, t), rel = vRelief(p, t);
+  const kid = p.age < 13, stroke = p.alert === 'stroke', hold = VHOLD.has(p.ck) || stroke;
   const v = {};
   for (const k of ['hr', 'rr', 'spo2']) v[k] = n[k] + (d[k] - n[k]) * s;
-  const sb = hold && p.alert === 'stroke' ? Math.max(s, 0.65) : s;   // a stroke's pressure is left high on purpose
+  const sb = stroke ? Math.max(s, 0.65) : s;   // a stroke's pressure is left high on purpose
   v.sbp = n.sbp + (d.sbp - n.sbp) * sb; v.dbp = n.dbp + (d.dbp - n.dbp) * sb;
   v.temp = n.temp + (d.temp - n.temp) * Math.min(s, 1.15);   // a fever does not climb the way a heart rate does
   if ((p.shock || (p.crash && (!p.tCrash || p.tCrash <= t))) && !hold) {   // out of reserve: fast, pale, and the pressure is gone, until treatment brings it back
@@ -565,20 +562,43 @@ function vitalsOf(p, when) {
     v.sbp = Math.min(v.sbp, lowS + (n.sbp - lowS) * rel); v.dbp = Math.min(v.dbp, lowD + (n.dbp - lowD) * rel);
     v.hr = Math.max(v.hr, hiH + (n.hr - hiH) * rel); v.rr = Math.max(v.rr, n.rr + 10 * (1 - rel));
   }
+  let capS = 240, capD = 130;
+  if (stroke) {   // there is no blood-pressure order in the game, so a stroke stays under the limit for the thrombolytic: 185/110 before it, 180/105 after
+    const x = p.treat && p.treat.tnk, given = !!(x && x.st === 'done' && (x.tDone == null || x.tDone <= t));
+    capS = given ? 172 : 180; capD = given ? 98 : 104;
+    v.sbp = Math.min(v.sbp, capS); v.dbp = Math.min(v.dbp, capD);
+  }
+  // A nurse who has assessed a patient with a low sat puts oxygen on. That is nursing, not an order, and it is why the sat comes up before the antibiotic could matter.
+  const device = ['bipap', 'hfnc', 'vent', 'intub'].some(k => p.treat && p.treat[k] && p.treat[k].st === 'done');
+  const o2 = p.loc === 'room' && p.rn === 'done' && d.spo2 < 94 && !device;
+  if (o2) v.spo2 = Math.max(v.spo2, p.ck === 'copd' ? 91 : kid ? 95 : 94);
+  return { v, n, d, s, signs, kid, o2, capS, capD };
+}
+/* How far from normal, in steps a person would notice on the monitor: 5 beats, 6 of pressure, 2 breaths, 1.5 points of oxygen, half a degree. */
+const vFar = (v, n) => Math.abs(v.hr - n.hr) / 5 + Math.abs(v.sbp - n.sbp) / 6 + Math.abs(v.rr - n.rr) / 2 + Math.abs(v.spo2 - n.spo2) / 1.5 + Math.abs(v.temp - n.temp) / 0.5;
+function vitalsOf(p, when) {
+  const t = when != null ? when : G.t;
+  if (p.arrest) return { arrest: true, taken: true, text: 'No pulse. CPR in progress', signs: [], flags: {}, trend: 'worse', s: 2 };
+  const ems = p.src === 'ems' || !!p.unit;
+  if (!ems && p.tri !== 'done' && p.loc !== 'room') return { taken: false, text: 'Not taken yet. Triage takes the first set.', signs: [], flags: {}, trend: 'steady', s: 1 };
+  const R = vRaw(p, t), R0 = vRaw(p, t - 15), { n, s, kid } = R, v = Object.assign({}, R.v);
+  const jit = k => (vhash(p.id + k + Math.floor(t / 5)) - 0.5) * 2;   // small wobble, new every five minutes
   const hrMax = p.age < 2 ? 210 : p.age < 6 ? 200 : p.age < 13 ? 190 : p.age >= 65 ? 170 : 180;
   v.hr = Math.round(Math.max(30, Math.min(hrMax, v.hr + jit('h') * 3)));
-  v.sbp = Math.round(Math.max(56, Math.min(240, v.sbp + jit('s') * 4)));
-  v.dbp = Math.round(Math.max(30, Math.min(v.sbp - 16, 130, v.dbp + jit('d') * 3)));
+  v.sbp = Math.round(Math.max(56, Math.min(R.capS, v.sbp + jit('s') * 4)));
+  v.dbp = Math.round(Math.max(30, Math.min(v.sbp - 16, R.capD, v.dbp + jit('d') * 3)));
   v.rr = Math.round(Math.max(4, Math.min(Math.max(44, Math.min(72, n.rr * 2)), v.rr + jit('r'))));   // a baby can breathe 70 times a minute; an adult cannot
   v.spo2 = Math.round(Math.max(62, Math.min(100, v.spo2 + jit('o') * 0.8)));
   v.temp = Math.round(Math.max(95, Math.min(105.5, v.temp + jit('t') * 0.2)) * 10) / 10;
   const flags = kid
     ? { hr: v.hr > n.hr + 30 || v.hr < n.hr - 35, bp: v.sbp < n.sbp - 16, rr: v.rr > n.rr + 10 || v.rr < n.rr - 8, spo2: v.spo2 < 94, temp: v.temp >= 100.4 }
     : { hr: v.hr > 100 || v.hr < 50, bp: v.sbp < 100 || v.sbp > 180, rr: v.rr > 21 || v.rr < 10, spo2: v.spo2 < 94, temp: v.temp >= 100.4 };
-  const trend = s - s0 > 0.03 ? 'worse' : s - s0 < -0.03 ? 'better' : 'steady';
-  const showSigns = s > 0.6 ? signs : [];
-  const text = `HR ${v.hr}, BP ${v.sbp}/${v.dbp}, RR ${v.rr}, SpO2 ${v.spo2}%${flags.temp || v.temp >= 99.5 ? `, Temp ${v.temp.toFixed(1)}` : ''}${showSigns.length ? ', ' + showSigns.join(', ') : ''}`;
-  return Object.assign(v, { taken: true, ems: ems && p.loc !== 'room' && p.tri !== 'done', signs: showSigns, flags, trend, s, text });
+  // The trend is read off the numbers themselves: worse or better only when a person watching the monitor would see it move.
+  const moved = vFar(R.v, n) - vFar(R0.v, R0.n);
+  const trend = moved >= 1 ? 'worse' : moved <= -1 ? 'better' : 'steady';
+  const showSigns = (s > 0.6 ? R.signs : []).concat(R.o2 ? ['on oxygen'] : []);
+  const text = `HR ${v.hr}, BP ${v.sbp}/${v.dbp}, RR ${v.rr}, SpO2 ${v.spo2}%${flags.temp || v.temp >= 99.5 ? `, Temp ${v.temp.toFixed(1)}°F` : ''}${showSigns.length ? ', ' + showSigns.join(', ') : ''}`;
+  return Object.assign(v, { taken: true, ems: ems && p.loc !== 'room' && p.tri !== 'done', signs: showSigns, flags, trend, s, o2: R.o2, red: Object.values(flags).some(Boolean), text });
 }
 
 function makePatient(c, src) {
@@ -2038,11 +2058,11 @@ function minuteTick() {
   for (const p of active()) {
     if (p.loc === 'triage') {
       if (p.esi >= 3 && p.tri !== 'doing' && t - p.tArrive > p.patience * 0.8) { toast(`${p.name} left before triage after ${Math.round(t - p.tArrive)} min`, 'bad'); mm(22, `${p.name} left before triage after ${Math.round(t - p.tArrive)} min`, p.reg === 'none' ? 'Nobody registered them' : 'No nurse got to their triage'); leave(p, 'lwbs'); continue; }
-      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tArrive > 20 && chance(0.012)) crash(p);
+      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tArrive > 20 && chance(0.012) && !p.gray) crash(p);   // a gray-zone patient (sent home or to obs on a risk score) does not crash
     }
     if (p.loc === 'waiting') {
       if (p.esi >= 3 && t - p.tTriage > p.patience && !p.pitDcQ) { toast(`${p.name} (ESI ${vEsi(p)}) left without being seen after ${Math.round(t - p.tArrive)} min`, 'bad'); mm(25, `${p.name} (ESI ${vEsi(p)}) left without being seen after ${Math.round(t - p.tArrive)} min`, crowdWhy()); leave(p, 'lwbs'); continue; }
-      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tTriage > 30 && chance(0.012)) crash(p);
+      if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tTriage > 30 && chance(0.012) && !p.gray) crash(p);
     }
     if (p.crash && !p.arrest && p.loc !== 'room' && t - p.tCrash > 15) waitingArrest(p);
     hemorrhageTick(p);
@@ -2063,7 +2083,7 @@ function minuteTick() {
     if (p.loc === 'wall') {
       const w = t - p.tArrive;
       if (w > 30) care(-0.5, 'wall');
-      if (w > 60) G.ev.regionDue = true;
+      if (w > 60) { G.ev.regionDue = true; G.ev.wall60 = true; }
     } else if (p.loc === 'room') {
       const r = roomOf(p);
       if (p.sitter && !r.safe && !p.sitBy) { care(-0.5, 'sitter'); warnOnce('sit' + p.id, `${roomName(r.id)} needs a sitter and no PCT is free`, 30); }
@@ -2688,7 +2708,9 @@ const EV = {
   },
   region: {
     fire() {
-      setCard('region', 'EMS system call', 'EMS system coordinator', `"Your hospital has had ambulances on the wall over an hour today${G.ev.missedC >= 2 ? ', and two consults went unanswered' : ''}${Object.keys(DIVERTS).some(k => G.dv[k].on) ? ', and you have been on divert a long time' : ''}. What's the plan?"`, [
+      // say only what actually happened
+      const why = [G.ev.wall60 ? 'Your ambulances have waited on the wall over an hour today' : '', G.ev.missedC >= 2 ? 'Two calls for medical direction went unanswered' : '', Object.keys(DIVERTS).some(k => G.dv[k].on && G.t - G.dv[k].since > 20) ? 'You have been on divert a long time' : ''].filter(Boolean);
+      setCard('region', 'EMS system call', 'EMS system coordinator', `"${(why.length ? why : ['We are hearing from crews about your department']).join('. ')}. What's the plan?"`, [
         { k: 'commit', label: 'Offload every unit within 30 min', sub: 'A goal for the next hour' },
         { k: 'yellow', label: 'Go on Yellow Alert', sub: 'Fewer ambulances. Admin will notice.', dis: G.mods.noDivert > G.t || G.dv.yellow.on },
         { k: 'blame', label: '"It\'s the boarding."', sub: 'True, but it costs you points' },

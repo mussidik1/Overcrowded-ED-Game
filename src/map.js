@@ -304,39 +304,52 @@ function camReset(el) {
   camClamp(el); camApply(el); CAM.set = true; CAM.auto = true; CAM.rw = r.width; CAM.rh = r.height;
 }
 function camBind(el) {
-  const pts = new Map(); let st = null;
+  const pts = new Map(); let st = null;   // pts: every finger on the floor, with where and when it came down and how far it has strayed
   const toMap = (cx, cy) => { const r = el.getBoundingClientRect(); return [CAM.x + (cx - r.left) / r.width * CAM.w, CAM.y + (cy - r.top) / r.height * CAM.h]; };
   const zoom = (f, cx, cy) => { const [mx, my] = toMap(cx, cy), r = el.getBoundingClientRect(); CAM.w /= f; camClamp(el); CAM.x = mx - (cx - r.left) / r.width * CAM.w; CAM.y = my - (cy - r.top) / r.height * CAM.h; camClamp(el); camApply(el); };
-  el.addEventListener('pointerdown', e => { pts.set(e.pointerId, [e.clientX, e.clientY]); st = { x: CAM.x, y: CAM.y, w: CAM.w, p: Array.from(pts.values()).map(a => a.slice()), moved: false }; });
+  const snap = moved => ({ x: CAM.x, y: CAM.y, w: CAM.w, p: Array.from(pts.values()).map(a => [a.x, a.y]), moved: !!moved });
+  el.addEventListener('pointerdown', e => {
+    if (e.isPrimary) pts.clear();   // a first finger down means no other finger is: forget any touch whose lift we never heard about
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now(), far: 0, slop: e.pointerType === 'mouse' ? 6 : 16 });
+    st = snap(false);
+  });
   el.addEventListener('pointermove', e => {
-    if (!pts.has(e.pointerId) || !st) return;
-    pts.set(e.pointerId, [e.clientX, e.clientY]);
+    const me = pts.get(e.pointerId); if (!me || !st) return;
+    me.x = e.clientX; me.y = e.clientY; me.far = Math.max(me.far, Math.hypot(me.x - me.x0, me.y - me.y0));
     const r = el.getBoundingClientRect(), now = Array.from(pts.values());
     if (now.length >= 2 && st.p.length >= 2) {
-      const d0 = Math.hypot(st.p[0][0] - st.p[1][0], st.p[0][1] - st.p[1][1]), d1 = Math.hypot(now[0][0] - now[1][0], now[0][1] - now[1][1]);
-      if (d0 > 10) { CAM.w = st.w; CAM.x = st.x; CAM.y = st.y; camClamp(el); zoom(d1 / d0, (now[0][0] + now[1][0]) / 2, (now[0][1] + now[1][1]) / 2); }
+      const d0 = Math.hypot(st.p[0][0] - st.p[1][0], st.p[0][1] - st.p[1][1]), d1 = Math.hypot(now[0].x - now[1].x, now[0].y - now[1].y);
+      if (!st.moved && Math.abs(d1 - d0) < 12 && me.far < me.slop) return;   // a thumb resting on the glass is not a pinch
+      if (d0 > 10) { CAM.w = st.w; CAM.x = st.x; CAM.y = st.y; camClamp(el); zoom(d1 / d0, (now[0].x + now[1].x) / 2, (now[0].y + now[1].y) / 2); }
       st.moved = true; CAM.auto = false; U.mapDrag = performance.now() + 250; return;
     }
-    const dx = now[0][0] - st.p[0][0], dy = now[0][1] - st.p[0][1];
-    if (!st.moved && Math.hypot(dx, dy) < 10) return;
+    const dx = now[0].x - st.p[0][0], dy = now[0].y - st.p[0][1];
+    if (!st.moved && Math.hypot(dx, dy) < me.slop) return;   // a real fingertip slides a little during a tap
     st.moved = true; U.mapDrag = performance.now() + 250;
     const x0 = CAM.x, y0 = CAM.y;
     CAM.x = st.x - dx / r.width * CAM.w; CAM.y = st.y - dy / r.height * CAM.h; camClamp(el); camApply(el);
     if (CAM.x !== x0 || CAM.y !== y0) CAM.auto = false;
   });
-  const end = e => { pts.delete(e.pointerId); st = pts.size ? { x: CAM.x, y: CAM.y, w: CAM.w, p: Array.from(pts.values()).map(a => a.slice()), moved: true } : null; };
-  // A tap acts on exactly what is under the finger. (Browsers nudge taps toward nearby big targets, and the floor is full of them.)
+  const end = e => { pts.delete(e.pointerId); st = pts.size ? snap(true) : null; };
+  // A tap acts on exactly what was under the finger when it came down. (Browsers nudge taps toward nearby big targets, and the floor is full of them.)
   el.addEventListener('pointerup', e => {
-    const tap = st && !st.moved && pts.size === 1;
+    const me = pts.get(e.pointerId);
+    // A tap is a touch that stayed put, or a quick one that slid less than a fingertip's width (a hurried thumb). A drag is slower or goes farther.
+    const quick = !!(me && st && st.moved && pts.size === 1 && st.p.length === 1 && e.pointerType !== 'mouse' && performance.now() - me.t0 < 300 && me.far < 30);
+    if (quick) { CAM.x = st.x; CAM.y = st.y; CAM.w = st.w; camClamp(el); camApply(el); U.mapDrag = 0; }   // put the floor back where it was
+    const tap = !!(me && st && (quick || (!st.moved && me.far < me.slop)));
     end(e);
     if (!tap || e.button > 0) return;
-    U.mapTap = { t: performance.now() + 600, x: e.clientX, y: e.clientY };   // the browser's own click for this tap is dropped
-    const hit = document.elementsFromPoint(e.clientX, e.clientY).find(n => el.contains(n) && n.closest('[data-act]'));
+    U.mapTap = { t: performance.now() + 600, x: e.clientX, y: e.clientY, x0: me.x0, y0: me.y0 };   // the browser's own click for this tap is dropped
+    const hit = document.elementsFromPoint(me.x0, me.y0).find(n => el.contains(n) && n.closest('[data-act]'));
     let tgt = hit ? hit.closest('[data-act]') : null;
     if (tgt && CAM.far && tgt.dataset.clu) tgt = document.getElementById(tgt.dataset.clu) || tgt;   // zoomed out, people at the door and in the waiting room are too small to pick: open the list
-    mapAct(tgt, e.clientX, e.clientY);
+    mapAct(tgt, me.x0, me.y0);
   });
   el.addEventListener('pointercancel', end);
+  window.addEventListener('pointerup', e => { if (pts.has(e.pointerId) && !el.contains(e.target)) end(e); });   // lifted somewhere off the floor
+  window.addEventListener('pointercancel', e => { if (pts.has(e.pointerId) && !el.contains(e.target)) end(e); });
+  window.addEventListener('blur', () => { pts.clear(); st = null; });
   el.addEventListener('wheel', e => { e.preventDefault(); CAM.auto = false; zoom(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX, e.clientY); }, { passive: false });
 }
 function mapZoom(f) {
@@ -389,7 +402,7 @@ function mapRender(G) {
 <pattern id="tile" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0 V26 H0" fill="none" stroke="rgba(27,34,48,.05)" stroke-width="1"/></pattern>
 <pattern id="plank" width="46" height="14" patternUnits="userSpaceOnUse"><path d="M0 14 H46 M18 0 V14" fill="none" stroke="rgba(110,78,40,.13)" stroke-width="1"/></pattern>
 <pattern id="carpet" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#E6DECF"/><circle cx="3" cy="3" r="1.1" fill="rgba(110,96,70,.2)"/><circle cx="9" cy="9" r="1.1" fill="rgba(110,96,70,.2)"/></pattern></defs>
-<g id="mStatic">${mapStatic()}</g><g id="mSvc"></g><g id="mRooms">${G.rooms.filter(r => RM[r.id]).map(r => `<g id="mroom-${r.id}" data-act="room" data-arg="${r.id}" transform="translate(${RM[r.id].x} ${RM[r.id].y})" role="button"></g>`).join('')}</g><g id="mSigns"></g><g id="mAmbs"></g><g id="mPts"><g id="mPtsWall"></g><g id="mPtsWalk"></g></g><g id="mAmb"></g><g id="mMove"></g><g id="mPeople"></g><g id="mFx"></g><g id="mNeed"></g><g id="mSpot"></g></svg>`;
+<g id="mStatic">${mapStatic()}</g><g id="mSvc"></g><g id="mRooms">${G.rooms.filter(r => RM[r.id]).map(r => `<g id="mroom-${r.id}" data-act="room" data-arg="${r.id}" transform="translate(${RM[r.id].x} ${RM[r.id].y})" role="button"></g>`).join('')}</g><g id="mSigns"></g><g id="mAmbs"></g><g id="mPts"><g id="mPtsWall"></g><g id="mPtsWalk"></g></g><g id="mAmb"></g><g id="mMove"></g><g id="mPeople"></g><g id="mNames"></g><g id="mFx"></g><g id="mNeed"></g><g id="mSpot"></g></svg>`;
     el._built = true; camBind(el);
   }
   const rr = el.getBoundingClientRect();
@@ -437,6 +450,7 @@ function mapRender(G) {
   setH(document.getElementById('mSigns'), signs);
 
   // rooms: floor, bed and patient, what they need next, what a selection can do here
+  let names = '';
   for (const r of G.rooms) {
     const R = RM[r.id], n = R && document.getElementById('mroom-' + r.id); if (!n) continue;
     const p = r.pid ? E.pt(r.pid) : null, ns = p ? nextStep(p, r, G) : null, esi = p && (p.tri === 'done' || p.room) ? ve(p) : 0;
@@ -480,6 +494,13 @@ function mapRender(G) {
     else if (r.st === 'dirty') { ico = 'broom'; tone = G.evsQ.indexOf(r.id) < 0 && !md ? 'dirty fl' : 'dirtyq'; }
     else if (r.st === 'cleaning') { ico = 'sparkle'; tone = 'clean'; }
     if (ico) g += small ? icoSVG(ico, w - 13, h - 14, 11.5, tone) : icoSVG(ico, cx + 2, 18, 16, tone);
+    // the patient's name, highlighted, so a message that names someone can be matched to a room
+    if (p) {
+      const nfill = crit ? '#C8243A' : '#1B2230';
+      const tagN = (x, y, tw, th, fs, cls) => { const mc = Math.max(3, Math.floor((tw - 6) / (fs * 0.54))), nm = p.name.length > mc ? p.name.slice(0, mc - 1) + '…' : p.name; return `<g class="mname ${cls}"><rect x="${R.x + x}" y="${R.y + y}" width="${tw}" height="${th}" rx="${Math.min(6, th / 2)}" fill="${nfill}"/><text x="${R.x + x + tw / 2}" y="${R.y + y + th / 2 + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#FFFFFF">${esc(nm)}</text></g>`; };
+      if (small) names += tagN(3, h - 19, w - 30, 17, 13, 'faronly') + tagN(26, 2, w - 52, 14, 11, 'nearonly');
+      else names += tagN(3, h - 23, w - 6, 20, 15.5, 'faronly') + tagN(5, h - 41, w - 10, 17, 13, 'nearonly');
+    }
     // zoomed in: the words
     const tcol = ns ? (/n-bad|n-code/.test(ns.c) ? '#C8243A' : /n-act/.test(ns.c) ? '#1E5BC6' : /n-go/.test(ns.c) ? '#1F8048' : /n-warn/.test(ns.c) ? '#96590A' : '#5E6878') : r.st === 'dirty' ? '#8C6239' : r.closed ? '#7A8493' : '#1F8048';
     const flw = ns && /\bfl\b/.test(ns.c), fs = small ? 11.5 : 13, maxc = Math.floor((w - (small ? 30 : 8)) / (fs * 0.5));
@@ -487,9 +508,10 @@ function mapRender(G) {
     const wt = fits ? words.replace(/<span /g, '<tspan ').replace(/<\/span>/g, '</tspan>') : plain.slice(0, maxc - 1) + '…';
     g += `<g class="nearonly"><rect x="2" y="${h - 21}" width="${w - (small ? 28 : 4)}" height="19" rx="5" fill="${flw ? tcol : 'rgba(255,255,255,.92)'}"/><text x="${small ? (w - 26) / 2 : cx}" y="${h - 7}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${flw ? '#FFFFFF' : tcol}">${wt}</text></g>`;
     setA(n, 'class', `mroom${selc}${crit ? ' crit' : ''}`);
-    setA(n, 'aria-label', `${E.roomName(r.id)}${p ? `: ${p.age}${p.sex}, ${p.cc}${esi ? `, ESI ${esi}` : ''}` : ''}. ${plain}`);
+    setA(n, 'aria-label', `${E.roomName(r.id)}${p ? `: ${p.name}, ${p.age}${p.sex}, ${p.cc}${esi ? `, ESI ${esi}` : ''}` : ''}. ${plain}`);
     setH(n, g);
   }
+  setH(document.getElementById('mNames'), names);
 
   // who stands where: helpers for the people layers
   const used = {}, beds = {}, by = new Map(), seenPt = {}, bayOf = new Map(), bayUsed = new Set();
@@ -550,7 +572,7 @@ function mapRender(G) {
       : E.emergent(p) ? `<g class="mico bad fl" transform="translate(240 ${y + 9})"><circle class="ir" r="9"/><circle class="ib" r="9"/><g transform="scale(.7)">${ICO.alert}</g></g>` : '';
     pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${figSVG({ seed: p.id + 'm1', body: ROLEC.ems, stripe: '#E3BA12', k: 1.25, ring: sel && sel.pid === p.id })}</g>`
       + stretcherSVG(152, y - 13, 86, 26, p, esi)
-      + `<text class="nearonly" x="205" y="${y + 3.6}" text-anchor="middle" font-size="10" font-weight="700" fill="#2B3240">${esc(p.unit || '')}</text>`
+      + `<g class="nearonly"><rect x="174" y="${y - 7}" width="62" height="14" rx="5" fill="#1B2230"/><text x="205" y="${y + 3.6}" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">${esc(p.name.length > 11 ? p.name.slice(0, 10) + '…' : p.name)}</text><text x="170" y="${y - 15.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#2B3240">${esc(p.unit || '')}</text></g>`
       + `<g transform="translate(226 ${y - 15})"><rect x="-20" y="-9.5" width="40" height="19" rx="9.5" fill="${mins > 30 ? '#C8243A' : mins > 15 ? '#B76E00' : '#5E6878'}" stroke="#fff" stroke-width="1"/><text y="5.2" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff">${mins}m</text></g>${badge}`,
       `, ${esc(p.unit || 'EMS')} on the wall for ${mins} minutes${intakeDone(p) ? ', ready for a bed' : E.emergent(p) ? ', needs a room now' : ''}`);
   });
