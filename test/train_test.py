@@ -47,6 +47,7 @@ with sync_playwright() as pw:
             if os.environ.get('TRACE'): print(log[-1], flush=True)
             # every prompt is drawn with its key words in bold: no stars or brackets left showing, and no card with nothing bold in it
             card = J("(() => { const p = document.querySelector('.coach-c p'); return p ? { t: p.innerText, b: p.querySelectorAll('b').length } : null; })()")
+            if c.get('brk') is not None and J(f"!!(OC.G.tr.setup && OC.G.tr.setup['{c['id']}'])"): errors.append(f"the card after chapter {c['brk']} shows with the next chapter's patient already here ({c['id']})")
             if card and ('**' in card['t'] or '[[' in card['t'] or ']]' in card['t']): errors.append(f"step {c['id']}: a formatting mark is showing: {card['t'][:80]}")
             if card and not card['b'] and len(card['t'].split()) > 12: errors.append(f"step {c['id']}: nothing is bold in a {len(card['t'].split())}-word card")
             if card: words.append(len(card['t'].split()))

@@ -589,7 +589,7 @@ function mapRender(G) {
   // the wall: a crew and a stretcher in each spot, with how long they've held it
   const wall = act.filter(p => p.loc === 'wall').sort((a, b) => a.tArrive - b.tArrive), inside = wall.slice(0, 6), outside = wall.slice(6);
   const lab = (id, t) => { const n = document.getElementById(id); if (n && n.textContent !== t) n.textContent = t; };
-  lab('mWallL', wall.length ? `THE WALL · ${wall.length}` : 'THE WALL'); lab('mWaitL', waiting.length ? `WAITING · ${waiting.length}` : 'WAITING'); lab('mDoorL', G.triageQ.length ? `DOOR · ${G.triageQ.length}` : 'DOOR');
+  lab('mWallL', wall.length ? `WALL · ${wall.length}` : 'THE WALL');   // with a count it drops THE, so it stays clear of the Resus tray lab('mWaitL', waiting.length ? `WAITING · ${waiting.length}` : 'WAITING'); lab('mDoorL', G.triageQ.length ? `DOOR · ${G.triageQ.length}` : 'DOOR');
   inside.forEach((p, i) => {
     const y = WALL_Y(i), esi = p.tri === 'done' ? ve(p) : 0, mins = Math.round(G.t - p.tArrive);
     by.set(p.id, [196, y + 4]);

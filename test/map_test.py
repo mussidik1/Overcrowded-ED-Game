@@ -278,6 +278,14 @@ def run():
         J("() => { OCUI.U.sheet = null; OCUI.U.freeze = false; OCUI.render(); }")
         page.screenshot(path=f'{OUT}/map_phone_md.png')
 
+        # the Words search takes typing one letter at a time and keeps the keyboard
+        J("() => { OCUI.U.wq = ''; OCUI.U.sheet = { type: 'words' }; OCUI.render(); }"); page.wait_for_timeout(350)
+        if page.locator('#wq').count():
+            page.locator('#wq').tap(); page.wait_for_timeout(150); page.keyboard.type('tropo', delay=260); page.wait_for_timeout(400)
+            shown = J("[...document.querySelectorAll('#sheet .gl dl > div')].filter(d => d.getClientRects().length).length")
+            ok(J("document.querySelector('#wq').value") == 'tropo' and J("document.activeElement && document.activeElement.id") == 'wq' and 0 < shown < 10, f'typing in the Words search keeps the box in focus and narrows the list ({shown} shown)')
+        else: ok(False, 'the Words sheet has a search box')
+        J("() => { OCUI.U.sheet = null; OCUI.render(); }"); page.wait_for_timeout(200)
         # a laptop: a dock along the bottom, and words on the rooms
         page.set_viewport_size({'width': 1366, 'height': 800}); page.wait_for_timeout(400)
         ok(not J("document.body.classList.contains('rails')") and not J('OCUI.cam().far'), 'a laptop keeps the dock and shows words')

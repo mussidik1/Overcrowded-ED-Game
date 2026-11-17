@@ -1119,7 +1119,7 @@ function wordsHTML() {
   const q = (U.wq || '').trim().toLowerCase(), hit = (t, d) => !q || (t + ' ' + d).toLowerCase().includes(q);
   let n = 0;
   const body = GLOSS.map(([g, list]) => { const k = list.filter(([t, d]) => hit(t, d)).length; n += k; return `<div class="gl"${k ? '' : ' hidden'}><h4>${esc(g)}</h4><dl>${list.map(([t, d]) => `<div${hit(t, d) ? '' : ' hidden'}><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('')}</dl></div>`; }).join('');
-  return head('Words', 'Every short name in the game, in plain language.') + `<div class="wsearch"><input type="search" id="wq" data-wq placeholder="Search the words" aria-label="Search the words" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(U.wq || '')}"></div><p class="hint wnone"${n ? ' hidden' : ''}>Nothing matches. Try a shorter word.</p>` + body + `<div class="wlink wplain"><button type="button" data-act="plain">Plain words under results and radio calls: ${PLAIN() ? 'on' : 'off'}</button></div>`;
+  return head('Words', 'Every short name in the game, in plain language.') + `<div class="wsearch"><input type="search" id="wq" data-wq placeholder="Search the words" aria-label="Search the words" autocomplete="off" autocapitalize="off" spellcheck="false"></div><p class="hint wnone"${n ? ' hidden' : ''}>Nothing matches. Try a shorter word.</p>` + body + `<div class="wlink wplain"><button type="button" data-act="plain">Plain words under results and radio calls: ${PLAIN() ? 'on' : 'off'}</button></div>`;
 }
 /* What the floor plan's icons mean. */
 function legendHTML(md) {
@@ -1580,10 +1580,12 @@ function coachRun() {
       // A wait that is over before anyone could read the card (the lab was already back, the bed was already ready) does not flash past:
       // the card stays, with a Next button, until the player has read it.
       if (s.wait && !stuck && (t.held === t.step || performance.now() - U.coachAt < coachReadMs(s))) { t.held = t.step; break; }
-      coachAdvance(); continue;
+      coachAdvance(); if (t.brk != null) break;
+      continue;
     }
     break;
   }
+  if (t.brk != null) { U.hold = true; U.ff = 0; return; }   // a chapter just ended: its card shows before the next patient arrives
   const s = coachStep(), held = t.held === t.step;
   U.hold = !s.wait || held; U.ff = s.wait && !held ? 18 : 0;
 }
@@ -1905,7 +1907,7 @@ const ACT = {
   team: () => { U.sheet = { type: 'team' }; },
   staffOpen: id => { U.sheet = { type: 'staff', sid: id }; },
   closeSheet: () => { U.sheet = (U.sheet && U.sheet.back) || null; },
-  words: () => { if (!(U.sheet && U.sheet.type === 'words')) U.sheet = { type: 'words', back: U.sheet || null }; },
+  words: () => { if (!(U.sheet && U.sheet.type === 'words')) { U.wq = ''; U.sheet = { type: 'words', back: U.sheet || null }; } },
   selCancel: () => { U.sel = null; },
   ptCard: pid => { U.sel = null; U.sheet = { type: 'pt', pid }; },
   selInfo: () => { const s = U.sel; if (!s) return; U.sheet = s.type === 'prov' ? { type: 'staff', sid: s.sid } : { type: 'pt', pid: s.pid }; },
