@@ -19,6 +19,11 @@ const RM = {};
 // Pod signs: where each zone's label sits (tap it to assign nurses).
 const ZSIGN = { resus: [256, 8, 222], a: [490, 8, 206], b: [704, 8, 206], c: [918, 8, 206], hall: [704, 254, 206], d: [490, 614, 206], e: [704, 614, 206], ft: [918, 614, 206], rp: [1160, 244, 230] };
 const ZSHORTN = { resus: 'Resus', a: 'A', b: 'B', c: 'C', d: 'D', e: 'E', hall: 'Hall', ft: 'Fast', rp: 'Chairs' };
+const TAGC = { red: '#E0293F', yellow: '#F2C230', green: '#2FA35B' };   // field triage tags from a multiple-casualty call
+// One line is all a hallway bed or a chair has when zoomed in: the same thing, said shorter.
+const WORDS_SHORT = [[/^Needs a provider( \(recheck\))?.*/, 'Needs provider'], [/^Bed ready: nurse calls report/, 'Report next'], [/^Floor won't take report/, 'Report waits'], [/^Bed ready: send up/, 'Send up'], [/^Accepted: book ambulance/, 'Book a ride'],
+  [/^Crew waiting on treatment/, 'Crew waiting'], [/^Crew taking report/, 'Crew report'], [/^Needs full registration/, 'Finish reg'], [/^Needs registration/, 'Register'], [/^Discharge teaching/, 'Teaching'], [/^Ready: discharge/, 'Discharge'],
+  [/^Admitted · bed.*/, 'Admitted'], [/^Obs · bed.*/, 'To obs'], [/^Treatment underway/, 'Treating'], [/^Waiting on pharmacy/, 'Pharmacy'], [/^Waiting on RT/, 'Needs RT'], [/^Workup pending/, 'Workup'], [/^Request transfer/, 'Transfer'], [/ taking them up$/, ' taking up'], [/^Attending co-sign/, 'Co-sign'], [/^Call a consult/, 'Consult']];
 // Where people stand when they aren't with a patient: two lanes down the hallway, clear of signs and room numbers.
 const POD_SPOT = { a: [512, 322], b: [650, 322], c: [940, 322], hall: [1032, 322], d: [512, 376], e: [650, 376], ft: [940, 376], hold: [1032, 376], rp: [1180, 470], resus: [286, 366] };
 const POD_PER = { a: 3, d: 3, b: 2, e: 2, c: 2, ft: 2, hall: 1, hold: 1, rp: 4, resus: 3 };
@@ -165,6 +170,7 @@ function mapStatic() {
   // the wall: six stretcher spots
   s += L(181, 27, 'THE WALL', 16, 'middle');
   for (let i = 0; i < 6; i++) s += `<rect x="150" y="${WALL_Y(i) - 16}" width="94" height="32" rx="6" fill="none" stroke="#C3C9D2" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+  s += `<g id="mWall" data-act="cluster" data-arg="wall" role="button" aria-label="The wall: ambulance crews waiting to hand over"><rect x="114" y="8" width="134" height="${WALL_Y(5) + 26 - 8}" fill="transparent"/></g>`;   // zoomed out, the stretchers are too small to pick: one tap opens the list
   // resus alcove: crash cart, supply cart
   s += '<rect x="262" y="384" width="26" height="16" rx="3" fill="#C8243A"/><rect x="262" y="389" width="26" height="3" fill="#F3D5D9"/><rect x="294" y="386" width="22" height="14" rx="3" fill="#AEB7C2"/>';
   // check-in desk, the line at the door, the front door
@@ -442,7 +448,7 @@ function mapRender(G) {
     const over = (!ns.length && n > 0) || load > cap, full = ns.length && load === cap;
     const lt = ns.length ? `${fl(load)}/${cap}` : closed ? (z === 'ft' && G.t < 120 ? '09:00' : 'closed') : n ? 'no RN!' : 'no RN';
     const fg = over ? '#FFFFFF' : '#1B2230';
-    signs += `<g class="msign${over ? ' over' : ''}" id="mzh-${z}" data-act="zone" data-arg="${z}" transform="translate(${x} ${y})" role="button" aria-label="${esc(zn)}: ${ns.length ? esc(ns.map(s => s.short).join(' and ')) + `, load ${fl(load)} of ${cap}` : 'no nurse'}"><rect x="-3" y="-6" width="${w + 6}" height="42" fill="transparent"/>`
+    signs += `<g class="msign${over ? ' over' : ''}" id="mzh-${z}" data-act="zone" data-arg="${z}" transform="translate(${x} ${y})" role="button" aria-label="${esc(zn)}: ${ns.length ? esc(ns.map(s => s.short).join(' and ')) + `, load ${fl(load)} of ${cap}` : 'no nurse'}"><rect x="-3" y="${y > 560 ? -6 : -8}" width="${w + 6}" height="${y < 100 ? 58 : y > 560 ? 78 : 46}" fill="transparent"/>`
       + `<rect width="${w}" height="30" rx="15" fill="${over ? '#C8243A' : closed && !ns.length ? '#E6E8EB' : '#FFFFFF'}" stroke="${over ? '#C8243A' : full ? '#B76E00' : '#8E97A4'}" stroke-width="${full ? 2.4 : 1.6}"/>`
       + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
       + `<text class="nearonly" x="12" y="20" font-size="14" font-weight="700" fill="${fg}">${esc(zn)} · ${ns.length ? esc(ns.map(s => s.short).join(' + ')) + ' ' : ''}${lt}</text></g>`;
@@ -494,21 +500,33 @@ function mapRender(G) {
     else if (r.st === 'dirty') { ico = 'broom'; tone = G.evsQ.indexOf(r.id) < 0 && !md ? 'dirty fl' : 'dirtyq'; }
     else if (r.st === 'cleaning') { ico = 'sparkle'; tone = 'clean'; }
     if (ico) g += small ? icoSVG(ico, w - 13, h - 14, 11.5, tone) : icoSVG(ico, cx + 2, 18, 16, tone);
-    // the patient's name, highlighted, so a message that names someone can be matched to a room
-    if (p) {
-      const nfill = crit ? '#C8243A' : '#1B2230';
-      const tagN = (x, y, tw, th, fs, cls) => { const mc = Math.max(3, Math.floor((tw - 6) / (fs * 0.54))), nm = p.name.length > mc ? p.name.slice(0, mc - 1) + '…' : p.name; return `<g class="mname ${cls}"><rect x="${R.x + x}" y="${R.y + y}" width="${tw}" height="${th}" rx="${Math.min(6, th / 2)}" fill="${nfill}"/><text x="${R.x + x + tw / 2}" y="${R.y + y + th / 2 + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#FFFFFF">${esc(nm)}</text></g>`; };
-      if (small) names += tagN(3, h - 19, w - 30, 17, 13, 'faronly') + tagN(26, 2, w - 52, 14, 11, 'nearonly');
-      else names += tagN(3, h - 23, w - 6, 20, 15.5, 'faronly') + tagN(5, h - 41, w - 10, 17, 13, 'nearonly');
-    }
-    // zoomed in: the words
+    // zoomed in: the words. A room wraps them onto two lines before it cuts them off; a hallway bed or a chair has one line and says it shorter.
     const tcol = ns ? (/n-bad|n-code/.test(ns.c) ? '#C8243A' : /n-act/.test(ns.c) ? '#1E5BC6' : /n-go/.test(ns.c) ? '#1F8048' : /n-warn/.test(ns.c) ? '#96590A' : '#5E6878') : r.st === 'dirty' ? '#8C6239' : r.closed ? '#7A8493' : '#1F8048';
     const flw = ns && /\bfl\b/.test(ns.c), fs = small ? 11.5 : 13, maxc = Math.floor((w - (small ? 30 : 8)) / (fs * 0.5));
-    const fits = plain.length + (/<span/.test(words) ? 4 : 0) <= maxc;
-    const wt = fits ? words.replace(/<span /g, '<tspan ').replace(/<\/span>/g, '</tspan>') : plain.slice(0, maxc - 1) + '…';
-    g += `<g class="nearonly"><rect x="2" y="${h - 21}" width="${w - (small ? 28 : 4)}" height="19" rx="5" fill="${flw ? tcol : 'rgba(255,255,255,.92)'}"/><text x="${small ? (w - 26) / 2 : cx}" y="${h - 7}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${flw ? '#FFFFFF' : tcol}">${wt}</text></g>`;
+    const tsp = x => x.replace(/<span /g, '<tspan ').replace(/<\/span>/g, '</tspan>'), len = x => x.replace(/<span[^>]*><\/span>/g, '0:00').replace(/<[^>]+>/g, '').length;
+    let lines = [words];
+    if (len(words) > maxc) {
+      if (small) { let sh = plain; for (const [a, b] of WORDS_SHORT) sh = sh.replace(a, b); lines = [sh.length > maxc ? sh.slice(0, maxc - 1) + '…' : sh]; }
+      else {
+        const mc2 = Math.floor((w - 8) / 5.5), cuts = [];
+        for (let i = 0, d = 0; i < words.length; i++) { const ch = words[i]; if (ch === '<') d++; else if (ch === '>') d--; else if (ch === ' ' && !d) cuts.push(i); }
+        let best = null;
+        for (const i of cuts) { const a = words.slice(0, i), b = words.slice(i + 1), sc = Math.max(len(a), len(b)); if (!best || sc < best.sc) best = { a, b, sc }; }
+        if (best) { best.a = best.a.replace(/ ·$/, ''); best.b = best.b.replace(/^· /, ''); }   // the dot that joined them is not needed once they are on two lines
+        lines = best ? [best.a, len(best.b) > mc2 ? best.b.replace(/<[^>]+>/g, '').slice(0, mc2 - 1) + '…' : best.b] : [plain.slice(0, maxc - 1) + '…'];
+      }
+    }
+    const two = lines.length > 1, lh = 12.5, wy = h - 21 - (two ? lh : 0), wfs = two ? 11 : fs, wx = small ? (w - 26) / 2 : cx;
+    g += `<g class="nearonly"><rect x="2" y="${wy}" width="${w - (small ? 28 : 4)}" height="${19 + (two ? lh : 0)}" rx="5" fill="${flw ? tcol : 'rgba(255,255,255,.92)'}"/>${lines.map((ln, i) => `<text x="${wx}" y="${h - 7 - (two && !i ? lh : 0)}" text-anchor="middle" font-size="${wfs}" font-weight="700" fill="${flw ? '#FFFFFF' : tcol}">${tsp(ln)}</text>`).join('')}</g>`;
+    // the patient's name, highlighted, so a message that names someone can be matched to a room. A bus-crash patient's tag colour rides on it.
+    if (p) {
+      const nfill = crit ? '#C8243A' : '#1B2230', tc = p.tag ? TAGC[p.tag] : null;
+      const tagN = (x, y, tw, th, fs, cls) => { const mc = Math.max(3, Math.floor((tw - 6 - (tc ? 9 : 0)) / (fs * 0.54))), nm = p.name.length > mc ? p.name.slice(0, mc - 1) + '…' : p.name; return `<g class="mname ${cls}"><rect x="${R.x + x}" y="${R.y + y}" width="${tw}" height="${th}" rx="${Math.min(6, th / 2)}" fill="${nfill}"/>${tc ? `<rect x="${R.x + x + 2.5}" y="${R.y + y + 2.5}" width="8" height="${th - 5}" rx="2.5" fill="${tc}" stroke="#fff" stroke-width="1.1"/>` : ''}<text x="${R.x + x + tw / 2 + (tc ? 4.5 : 0)}" y="${R.y + y + th / 2 + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#FFFFFF">${esc(nm)}</text></g>`; };
+      if (small) names += tagN(3, h - 19, w - 30, 17, 13, 'faronly') + tagN(26, 2, w - 52, 14, 11, 'nearonly');
+      else names += tagN(3, h - 23, w - 6, 20, 15.5, 'faronly') + tagN(5, h - 41 - (two ? lh : 0), w - 10, 17, 13, 'nearonly');
+    }
     setA(n, 'class', `mroom${selc}${crit ? ' crit' : ''}`);
-    setA(n, 'aria-label', `${E.roomName(r.id)}${p ? `: ${p.name}, ${p.age}${p.sex}, ${p.cc}${esi ? `, ESI ${esi}` : ''}` : ''}. ${plain}`);
+    setA(n, 'aria-label', `${E.roomName(r.id)}${p ? `: ${p.name}, ${E.ageSex(p)}, ${p.cc}${esi ? `, ESI ${esi}` : ''}` : ''}. ${plain}`);
     setH(n, g);
   }
   setH(document.getElementById('mNames'), names);
@@ -526,7 +544,7 @@ function mapRender(G) {
   };
   const ptG = (p, x, y, inner, extra, clu) => {
     const ok = sel && sel.type === 'reg' ? regable(p) : sel && sel.type === 'tri' ? p.tri === 'none' && (p.loc === 'wall' || p.loc === 'triage') : null;
-    return `<g class="mpt${ok === true ? ' ok' : ok === false ? ' no' : ''}${sel && sel.pid === p.id ? ' sel' : ''}" data-act="pt" data-arg="${p.id}"${clu ? ` data-clu="${clu}"` : ''} transform="translate(${x} ${y})" role="button" aria-label="${esc(p.name)}, ${p.age}${p.sex}, ${esc(p.cc)}${extra || ''}">${inner}</g>`;
+    return `<g class="mpt${ok === true ? ' ok' : ok === false ? ' no' : ''}${sel && sel.pid === p.id ? ' sel' : ''}" data-act="pt" data-arg="${p.id}"${clu ? ` data-clu="${clu}"` : ''} transform="translate(${x} ${y})" role="button" aria-label="${esc(p.name)}, ${E.ageSex(p)}, ${esc(p.cc)}${extra || ''}">${inner}</g>`;
   };
   const walker = p => `<rect x="-18" y="-19" width="36" height="40" fill="transparent"/><g class="wk">${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15, ring: sel && sel.pid === p.id })}</g>`;
   const walkers = [];   // people on their feet at the door and in the waiting room: keyed, so they walk between spots
@@ -571,10 +589,10 @@ function mapRender(G) {
     const badge = intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
       : E.emergent(p) ? `<g class="mico bad fl" transform="translate(240 ${y + 9})"><circle class="ir" r="9"/><circle class="ib" r="9"/><g transform="scale(.7)">${ICO.alert}</g></g>` : '';
     pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${figSVG({ seed: p.id + 'm1', body: ROLEC.ems, stripe: '#E3BA12', k: 1.25, ring: sel && sel.pid === p.id })}</g>`
-      + stretcherSVG(152, y - 13, 86, 26, p, esi)
+      + stretcherSVG(152, y - 13, 86, 26, p, esi) + (p.tag ? `<rect x="148" y="${y - 12}" width="9" height="24" rx="3" fill="${TAGC[p.tag]}" stroke="#fff" stroke-width="1.3"/>` : '')
       + `<g class="nearonly"><rect x="174" y="${y - 7}" width="62" height="14" rx="5" fill="#1B2230"/><text x="205" y="${y + 3.6}" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">${esc(p.name.length > 11 ? p.name.slice(0, 10) + '…' : p.name)}</text><text x="170" y="${y - 15.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#2B3240">${esc(p.unit || '')}</text></g>`
       + `<g transform="translate(226 ${y - 15})"><rect x="-20" y="-9.5" width="40" height="19" rx="9.5" fill="${mins > 30 ? '#C8243A' : mins > 15 ? '#B76E00' : '#5E6878'}" stroke="#fff" stroke-width="1"/><text y="5.2" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff">${mins}m</text></g>${badge}`,
-      `, ${esc(p.unit || 'EMS')} on the wall for ${mins} minutes${intakeDone(p) ? ', ready for a bed' : E.emergent(p) ? ', needs a room now' : ''}`);
+      `, ${esc(p.unit || 'EMS')} on the wall for ${mins} minutes${intakeDone(p) ? ', ready for a bed' : E.emergent(p) ? ', needs a room now' : ''}`, 'mWall');
   });
   setH(document.getElementById('mPtsWall'), pts);
   const wl = document.getElementById('mPtsWalk'), seenW = new Set();
@@ -592,7 +610,7 @@ function mapRender(G) {
     if (n._svg !== inner) { n.innerHTML = inner; n._svg = inner; }
     const cls = `mpt mwalk${ok === true ? ' ok' : ok === false ? ' no' : ''}${sel && sel.pid === p.id ? ' sel' : ''}`;
     if (n._c !== cls) { n.setAttribute('class', cls); n._c = cls; }
-    setA(n, 'data-clu', w.clu); setA(n, 'aria-label', `${p.name}, ${p.age}${p.sex}, ${p.cc}${w.extra || ''}`);
+    setA(n, 'data-clu', w.clu); setA(n, 'aria-label', `${p.name}, ${E.ageSex(p)}, ${p.cc}${w.extra || ''}`);
     if (n.style.transform !== tr) { n.style.transform = tr; n.classList.add('walk'); clearTimeout(n._wt); n._wt = setTimeout(() => n.classList.remove('walk'), 950); }
   }
   for (const n of Array.from(wl.children)) if (!seenW.has(n.getAttribute('data-id'))) n.remove();
@@ -616,7 +634,7 @@ function mapRender(G) {
     const put = (k, v) => { if (n.getAttribute(k) !== v) n.setAttribute(k, v); };
     if (at[2] === 'bay') { if (n.hasAttribute('data-act')) { n.removeAttribute('data-act'); n.removeAttribute('data-arg'); n.removeAttribute('role'); } n.style.pointerEvents = 'none'; }
     else { put('data-act', 'pt'); put('data-arg', pid); put('role', 'button'); n.style.pointerEvents = ''; }
-    put('aria-label', `${p.unit || 'Ambulance'}: ${p.age}${p.sex}, ${p.cc}${at[2] === 'out' ? `, backed up outside for ${mins} minutes` : at[2] === 'in' ? ', on the way in' : ', at the bay'}`);
+    put('aria-label', `${p.unit || 'Ambulance'}: ${E.ageSex(p)}, ${p.cc}${at[2] === 'out' ? `, backed up outside for ${mins} minutes` : at[2] === 'in' ? ', on the way in' : ', at the bay'}`);
     const tr = `translate(${at[0]}px, ${at[1]}px)`; if (n.style.transform !== tr) n.style.transform = tr;
   }
   for (const n of Array.from(ambL.children)) if (!n._gone && !seenA.has(n.getAttribute('data-id'))) {

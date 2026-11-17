@@ -48,7 +48,9 @@ def run():
         tap('button.lvl[data-arg="med"]')
         page.wait_for_timeout(400)
         ok(J('OC.G.mode') == 'md' and J('OC.G.me') == 'md1', 'Manic Monday as the attending')
-        ok(page.is_visible('#sheetWrap') and 'Write orders' in page.inner_text('#sheet'), 'first-play help is the attending version')
+        ok(page.is_visible('#modalWrap') and 'first shift as the attending' in page.inner_text('#modal').lower() and 'See this patient' in page.inner_text('#modal'), 'the first-shift card is the attending version')
+        tap('#modal [data-act="firstHelp"]')
+        ok(page.is_visible('#sheetWrap') and 'Write orders' in page.inner_text('#sheet'), 'and so is How to play')
         page.screenshot(path=f'{OUT}/md_00_help.png')
         tap('.sheet-x')
         for _ in range(10):

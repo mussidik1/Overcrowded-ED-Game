@@ -60,7 +60,11 @@ def run():
 
         # ---------- start: first-play help, then the call-out ----------
         tap('button.lvl[data-arg="med"]')
-        ok(page.is_visible('#sheetWrap'), 'first-play help opens')
+        ok(page.is_visible('#modalWrap') and 'Three things to know' in page.inner_text('#modal') and page.locator('#modal ol.first li').count() == 3 and not page.is_visible('#sheetWrap'), 'the first shift opens with three lines, not the whole manual')
+        c0 = J('OC.clock()'); page.wait_for_timeout(700)
+        ok(J('OC.clock()') == c0 and page.locator('#modal [data-act="firstTrain"]').count() == 1, 'the clock waits, and Orientation is offered to someone who has not done it')
+        tap('#modal [data-act="firstHelp"]')
+        ok(page.is_visible('#sheetWrap') and 'How to run the board' in page.inner_text('#sheet'), 'How to play is one tap away')
         tap('.sheet-x'); tap('#modal [data-act="resume"]')
         page.wait_for_timeout(900)
         ok(page.is_visible('#modalWrap'), 'call-out card appears at shift start')

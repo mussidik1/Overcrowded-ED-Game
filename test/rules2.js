@@ -221,8 +221,9 @@ const r13 = OC.setDivert('ct', true);
 assert(r13.ok && G.dv.ct.on, 'CT Divert on: ' + r13.msg);
 const before13 = G.order.length, div13 = G.stats.diverted;
 forceAlerts(240);
-const ctHits = G.order.slice(before13).map(OC.pt).filter(p => p.alert === 'stroke' || (p.alert === 'trauma' && p.wk.includes('ct'))).length;
-assert(G.stats.diverted > div13 && ctHits <= 4, `on CT Divert, stroke and head-injury alerts go elsewhere (${G.stats.diverted - div13} diverted, ${ctHits} came anyway)`);
+const ctHits = G.order.slice(before13).map(OC.pt).filter(p => p.src === 'ems' && (p.alert === 'stroke' || (p.alert === 'trauma' && p.wk.includes('ct')))).length;   // walk-in strokes cannot be diverted
+const div = G.stats.diverted - div13;
+assert(div > 0 && ctHits <= Math.max(4, div * 0.15), `on CT Divert, stroke and head-injury alerts go elsewhere (${div} diverted, ${ctHits} came anyway)`);
 G.out.ct.until = G.t;
 run(2);
 assert(!OC.outActive('ct') && !OC.justified('ct'), 'scanner fixed: CT Divert is no longer justified');

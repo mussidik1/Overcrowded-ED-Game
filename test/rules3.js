@@ -94,7 +94,8 @@ if (holds.length >= 3) {
   assert(b2.dsp === 'callrep', 'floors in shift change: report waits');
   G.mods.noReport = -1e9; run(20, () => b2.dsp === 'bedready');
   assert(b2.dsp === 'bedready', 'report goes through once the floor picks up');
-  const zn = OC.zoneNurses(OC.roomOf(b3).z)[0], before = OC.nurseLoad(zn);
+  const hb = holds.find(b => OC.zoneNurses(OC.roomOf(b).z).some(s => s.id !== 'rnX')) || b3;   // a hold whose pod nurse is not Casey herself
+  const zn = OC.zoneNurses(OC.roomOf(hb).z).find(s => s.id !== 'rnX'), before = OC.nurseLoad(zn);
   const casey = OC.staff('rnX'); casey.zones = []; casey.cover = [];
   assert(OC.toggleZone('rnX', 'hold').ok, 'Casey takes the admitted holds');
   assert(OC.nurseLoad(zn) < before && Math.abs(OC.nurseLoad(casey) - OC.holdLoad()) < 1e-9 && OC.ratioCap(casey) === 5, 'pod nurses drop the holds; the hold nurse carries them at 1:5');

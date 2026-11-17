@@ -1,4 +1,4 @@
-"""The floor plan (v0.9 to v0.11): the whole department on a phone held sideways. Every tap lands on the floor itself."""
+"""The floor plan (v0.9 to v0.12): the whole department on a phone held sideways. Every tap lands on the floor itself."""
 import os, sys
 from playwright.sync_api import sync_playwright
 
@@ -107,12 +107,17 @@ def run():
         ok(J("OCUI.U.sheet && OCUI.U.sheet.z") == 'resus', 'the resus sign wins over the bay next to it')
         close_sheet()
 
-        # a wall patient: tap the crew to open the patient card (a drawer on the right, so the floor stays in view)
+        # a wall patient: zoomed out, the stretchers are small, so a tap on the wall opens the list; Card opens the patient card (a drawer on the right, so the floor stays in view)
         wall = J("OC.active().filter(p => p.loc === 'wall').sort((a, b) => a.tArrive - b.tArrive)[0].id")
+        nwall = J("OC.active().filter(p => p.loc === 'wall').length")
         tap(f'#mPts [data-arg="{wall}"]')
-        ok(J("OCUI.U.sheet && OCUI.U.sheet.pid") == wall, 'tapping a crew on the wall opens the patient card')
-        sh = box('.sheet')
-        ok(sh['x'] > 250 and sh['height'] >= 380, 'cards slide in from the right on a sideways phone')
+        ok(J("OCUI.U.sheet && OCUI.U.sheet.type") == 'zone' and J("OCUI.U.sheet.at") == 'wall' and page.locator('#sheet .mag-row').count() >= nwall and 'The wall' in page.locator('#sheet').inner_text(), 'zoomed out, a tap on the wall opens the list of crews')
+        tap(f'#sheet [data-act="ptCard"][data-arg="{wall}"]')
+        ok(J("OCUI.U.sheet && OCUI.U.sheet.pid") == wall, 'and Card opens the patient card')
+        sh = box('.sheet'); th = J("document.getElementById('top').offsetHeight")
+        ok(sh['x'] > 250 and sh['height'] >= 340 and abs(sh['y'] - th) <= 2, 'cards slide in from the right on a sideways phone, under the top strip')
+        bx = box('#boxbar')
+        ok(J(f"(() => {{ const e = document.elementFromPoint({bx['x'] + bx['width'] / 2}, {bx['y'] + bx['height'] / 2}); return !!(e && e.closest('#boxbar')); }})()") and J("(() => { const e = document.elementFromPoint(40, 18); return !!(e && e.closest('#top')); })()"), 'with a card open, the clock and the Box stay in view and in reach')
         ok(page.locator('#sheet .vv').count() == 5 and page.locator('#sheet .vtrend').count() == 1 and '°F' in page.locator('#sheet .ph-cc').inner_text(), 'the card shows all five vitals, the temperature in Fahrenheit, and which way they are heading')
         close_sheet()
 
@@ -173,9 +178,34 @@ def run():
             ok(J("OCUI.U.sheet && OCUI.U.sheet.type") == 'pt' and J('OCUI.U.sheet.pid') == pidc and not J('!!OCUI.U.sel'), 'Card beside a name in the waiting list opens that card')
         close_sheet(); J("() => { OCUI.U.sel = null; OCUI.render(); }")
 
+        # messages ride in the top strip, one at a time: never over a room. The strip stays one line, and the scores keep their labels, even with the Box ringing
+        J("() => { OC.G.box.cur = null; OC.G.box.q = []; OC.trainConsult(); OCUI.render(); }"); page.wait_for_timeout(250)
+        J("() => { OC.hooks.toast('Dr. Hartwell (Cardiology) is at the bedside in Room 7', 'info'); OC.hooks.toast('Room 12 is clean', 'good'); }"); page.wait_for_timeout(250)
+        tb, th = box('#toasts .toast'), J("document.getElementById('top').offsetHeight")
+        ok(page.locator('#toasts .toast').count() == 1 and tb and tb['y'] >= 0 and tb['y'] + tb['height'] <= th + 1, f"a message shows inside the top strip, one at a time ({round(tb['y'] + tb['height'])} of {th}px)")
+        r1 = box('#mroom-1')
+        ok(tb['y'] + tb['height'] <= r1['y'], 'and covers no room')
+        page.wait_for_timeout(1700)
+        ok('Room 12 is clean' in page.locator('#toasts').inner_text(), 'the next message follows the first')
+        lbl = J("(() => { const s = document.querySelector('#pWait span'); return getComputedStyle(s, '::after').content + '|' + getComputedStyle(s).display; })()")
+        ok('Wait' in lbl and 'none' not in lbl and th <= 44, f'with the Box ringing, the scores keep their labels and the strip stays one line ({th}px)')
+        for (w, h) in [(667, 375)]:
+            page.set_viewport_size({'width': w, 'height': h}); page.wait_for_timeout(350)
+            th2 = J("document.getElementById('top').offsetHeight"); bx = box('#boxbar .bx-btn')
+            ok(th2 <= 44 and bx and bx['x'] + bx['width'] <= w + 1, f'{w}x{h}: the ringing Box stays in the strip ({th2}px) with its button on screen')
+        page.set_viewport_size({'width': 844, 'height': 390}); page.wait_for_timeout(300)
+        J("() => { OC.G.box.cur = null; OC.G.box.q = []; document.getElementById('toasts').innerHTML = ''; OCUI.render(); }")
+
+        # touch areas: the zoom buttons, and a pod sign that reaches a little past its outline
+        zb = box('#mzoom [data-arg="in"]'); sg = box('#mzh-d rect')
+        ok(zb['width'] >= 38 and zb['height'] >= 38 and sg['height'] >= 30, f"zoom buttons are {round(zb['width'])}px and a pod sign's touch area is {round(sg['height'])}px tall")
+
         # zoom in: the words come back, and dragging pans without tapping anything
         tap('#mzoom [data-arg="in"]'); tap('#mzoom [data-arg="in"]'); page.wait_for_timeout(200)
         ok(not J('OCUI.cam().far') and J("getComputedStyle(document.querySelector('#mRooms .nearonly')).display") != 'none', 'zoomed in, rooms show words')
+        cut = J("[...document.querySelectorAll('#mRooms g[id^=mroom-]')].filter(g => !/^mroom-(H|C)/.test(g.id)).map(g => [...g.querySelectorAll('.nearonly text')].map(t => t.textContent).join(' / ')).filter(t => /…/.test(t))")
+        two = J("[...document.querySelectorAll('#mRooms g[id^=mroom-]')].filter(g => g.querySelectorAll('.nearonly > text').length === 2).length")
+        ok(len(cut) == 0, f'room words wrap onto a second line instead of being cut off ({two} rooms on two lines; cut: {cut[:3]})')
         vb0 = J("document.querySelector('#map svg').getAttribute('viewBox')")
         mb = box('#map'); cx, cy = mb['x'] + mb['width'] * 0.55, mb['y'] + mb['height'] * 0.5
         cdp = ctx.new_cdp_session(page)
@@ -186,7 +216,9 @@ def run():
         cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []}); page.wait_for_timeout(300)
         ok(J("document.querySelector('#map svg').getAttribute('viewBox')") != vb0, 'dragging pans the floor')
         ok(not J('OCUI.U.sheet') and not J('OCUI.U.sel'), 'a drag is not a tap')
-        tap('#mzFit'); page.wait_for_timeout(200)
+        page.wait_for_timeout(350)   # let the browser finish the drag gesture before the next tap
+        tap('#mzFit'); page.wait_for_timeout(250)
+        if not J('OCUI.cam().far'): page.wait_for_timeout(400); tap('#mzFit'); page.wait_for_timeout(250); checks.append('note  the first tap after the drag was swallowed by the browser')
         ok(J('OCUI.cam().far') and J("document.getElementById('mzFit').hidden"), 'one tap shows the whole floor again')
 
         # more crews than the wall holds: they back up outside, in their ambulances
@@ -235,6 +267,15 @@ def run():
         ok(J("getComputedStyle(document.getElementById('railL')).display") == 'none', 'the attending has no intake rail')
         tap('#mzh-a')
         ok(not J('OCUI.U.sheet'), 'the attending cannot reassign nurses from a pod sign')
+        J("() => { OCUI.U.freeze = true; const r = OC.G.rooms.find(x => !x.pid && x.st === 'clean' && x.kind === 'main'); const p = OC.pt(OC.trainPatient('gib', 'room', { room: r.id, age: 60, name: 'Gina B.' })); window.__g = p.id; OCUI.U.sheet = { type: 'pt', pid: p.id }; OCUI.render(); }"); page.wait_for_timeout(300)
+        txt = page.locator('#sheet').inner_text()
+        ok('Written after the exam' in txt and 'IV fluids' not in txt and 'transfusion' not in txt.lower() and 'Labs' not in txt, "before the exam, the attending's card does not list the plan")
+        J("() => { const r = OC.G.rooms.find(x => !x.pid && x.st === 'clean' && x.kind === 'resus'); const p = OC.pt(OC.trainPatient('stroke', 'room', { room: r.id, age: 70, name: 'Stan K.', bpOver: true })); p.alertOn = true; p.dxK = true; OCUI.U.sheet = { type: 'pt', pid: p.id }; OCUI.render(); }"); page.wait_for_timeout(300)
+        txt = page.locator('#sheet').inner_text()
+        ok('Last known well' in txt and 'has to be in by' in txt, 'a stroke card shows last known well and when the window closes')
+        J("() => { const p = OC.pt(OC.trainPatient('mciyel', 'ems', { age: 40, name: 'Yara T.' })); OCUI.U.sheet = { type: 'pt', pid: p.id }; OCUI.render(); }"); page.wait_for_timeout(300)
+        ok(page.locator('#sheet .mtag.mt-yellow').count() == 1 and 'field tag' in page.locator('#sheet').inner_text().lower(), 'a bus-crash patient carries the field tag')
+        J("() => { OCUI.U.sheet = null; OCUI.U.freeze = false; OCUI.render(); }")
         page.screenshot(path=f'{OUT}/map_phone_md.png')
 
         # a laptop: a dock along the bottom, and words on the rooms
