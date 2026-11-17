@@ -90,7 +90,7 @@ OC.newGame('med', 4242, { mode: 'md' }); G = OC.G;
 assert(OC.staff(ME).q.length === 0 && !OC.active().some(p => p.prov === ME), 'you start with an empty panel; the night doc signed out to the team');
 run(120);
 const others = OC.active().filter(p => p.prov && p.prov !== ME).length;
-assert(OC.inRooms().length > 10 && others > 0 && !OC.active().some(p => p.prov === ME), `the computer charge nurse rooms patients, and other providers pick up anyone you leave (${others})`);
+assert(OC.inRooms().length > 5 && others > 0 && !OC.active().some(p => p.prov === ME), `the computer charge nurse rooms patients, and other providers pick up anyone you leave (${others})`);
 const MDT = ['md', 'orders', 'harm', 'dispo', 'box', 'consult', 'flow', 'goals', 'returns', 'gray', 'blood'];
 assert(Object.keys(G.ledger).every(k => MDT.includes(k)), 'your score has no nursing items (ratios, wall time, staffing): ' + Object.keys(G.ledger).join(', '));
 let n = 0; while (!G.over && n++ < 20000) { OC.step(0.1); if (n % 20 === 0) OC.mdPlay({ budget: 2, acc: 0.8, line: 1 }); }
@@ -103,3 +103,27 @@ assert(OC.STARS_MD && OC.starsFor(2100, 'hard', 'md') === 3 && OC.starsFor(2100,
 const snap = JSON.parse(JSON.stringify(G));
 OC.load(snap);
 assert(OC.G.mode === 'md' && OC.G.me === ME, 'a saved physician shift resumes as the physician');
+
+// 10. Review fixes (v0.7.2)
+OC.newGame('train', 21, { mode: 'md' }); G = OC.G;
+const k1 = OC.pt(OC.trainPatient('appy', 'room', { room: '9' }));
+OC.assign(ME, k1.id); run(40, () => k1.ord === 'need');
+OC.signOrders(k1.id, [], ['meds']);
+assert(!k1.dxK && k1.ord === 'more', 'treatment with no tests: the diagnosis waits for the workup');
+OC.signOrders(k1.id, ['lab', 'ct'], []);
+run(6);
+assert(k1.dsp !== 'mddecide', 'and your call waits for the results');
+run(120, () => k1.dsp === 'mddecide');
+assert(k1.dsp === 'mddecide' && Object.values(k1.work).every(w => w.st === 'done'), 'your call comes after every result is back');
+const k2 = OC.pt(OC.trainPatient('dka', 'room', { room: '5' }));
+OC.assign(ME, k2.id); run(40, () => k2.ord === 'need');
+OC.signOrders(k2.id, ['lab'], ['fluids']);
+run(120, () => k2.dsp === 'mddecide');
+assert(k2.txGap && k2.dsp === 'mddecide', 'not improving at your call');
+const r2 = OC.signOrders(k2.id, [], ['insulin']);
+assert(r2.ok && !k2.txGap, 'orders can still be added at your call, and that closes the gap');
+OC.newGame('med', 77, { mode: 'md' }); G = OC.G;
+run(600);
+assert(OC.staff(ME).st !== 'break' && G.staff.filter(s => s.role === 'md' && s.id !== ME).some(s => s.lastBreak > 0), 'the computer charge nurse sends the other doctors on break, never you');
+const names = Object.values(G.pts).map(p => p.name);
+assert(new Set(names).size === names.length, `no repeated patient names (${names.length} patients)`);

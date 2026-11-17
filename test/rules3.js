@@ -114,7 +114,7 @@ if (gp) {
 }
 G = fresh(508);
 const mk = (right) => { const p = OC.inRooms().find(x => x.dsp === 'none' && !x.gray); p.gray = { tool: 'HEART score', score: right === 'obs' ? 5 : 2, band: right === 'obs' ? 'moderate' : 'low', right, ok: right === 'obs' ? ['admit'] : [] }; p.dsp = 'decide'; return p; };
-run(30, () => OC.inRooms().filter(x => x.dsp === 'none').length >= 4, BOT);
+run(180, () => OC.inRooms().filter(x => x.dsp === 'none' && !x.gray).length >= 4, BOT);
 let gx = mk('home');
 let c1 = G.care; OC.grayDispo(gx.id, 'obs');
 assert(Math.round(G.care - c1) === -6 && G.stats.gray.over === 1, 'too cautious with a low-risk score costs points');

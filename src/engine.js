@@ -230,14 +230,14 @@ const SCEN = {
     { q: '64M with crushing chest pain. BP 84/52, HR 58. Requesting nitroglycerin.', a: false, why: 'A systolic BP under 90 is a contraindication to nitroglycerin. Treat the hypotension and consider right-sided involvement.' },
     { q: '58M with chest pain, BP 150/90. He took tadalafil (Cialis) yesterday. Requesting nitroglycerin.', a: false, why: 'Tadalafil within 48 hours plus a nitrate can drop the pressure hard. No nitro.' },
     { q: '81F, unwitnessed arrest. Asystole after 25 minutes of full ALS care, no ROSC, no reversible cause found. Requesting termination of resuscitation.', a: true, why: 'Prolonged asystole after full ALS efforts with no ROSC generally meets termination criteria under protocol.' },
-    { q: '34M, alert and oriented, GCS 15, ankle injury. Understands the risks and wants to refuse transport.', a: true, why: 'An adult with decision-making capacity who understands the risks can refuse. Document it and tell him to call back.' },
-    { q: '52M diabetic, glucose 38, confused. Refusing treatment and transport.', a: false, why: 'Hypoglycemia takes away capacity. Treat the sugar, then reassess whether he can refuse.' },
+    { q: '34M, alert and oriented, GCS 15, ankle injury. Understands the risks and wants to refuse transport. Accept the refusal?', a: true, why: 'An adult with decision-making capacity who understands the risks can refuse. Document it and tell him to call back.' },
+    { q: '52M diabetic, glucose 38, confused. Refusing treatment and transport. Accept the refusal?', a: false, why: 'Hypoglycemia takes away capacity. Treat the sugar, then reassess whether he can refuse.' },
     { q: '6-year-old, seizing for 10 minutes, no IV access. Requesting intranasal midazolam.', a: true, why: 'Status epilepticus needs a benzodiazepine now. Intranasal or IM is right when there is no IV.' },
     { q: '40F with a femur fracture. BP 128/80, pain still 9/10 after one dose of fentanyl. Requesting a repeat dose.', a: true, why: 'Stable vital signs and ongoing severe pain: repeat analgesia is appropriate.' },
     { q: '70M with facial droop and aphasia, last known well 45 minutes ago, positive LVO screen. Requesting to bypass to the comprehensive stroke center (+12 min).', a: true, why: 'A suspected large vessel occlusion inside the window does better at a center that can pull the clot.' },
     { q: '66M on dialysis, missed two sessions. Peaked T waves, HR 44. Requesting calcium and albuterol.', a: true, why: 'Suspected hyperkalemia with ECG changes: calcium protects the heart, albuterol shifts potassium into cells.' },
     { q: '25F in anaphylaxis, still wheezing and hypotensive 5 minutes after IM epinephrine. Requesting a repeat dose.', a: true, why: 'Repeat IM epinephrine every 5 to 15 minutes for anaphylaxis that persists.' },
-    { q: '45M, intoxicated, GCS 14, scalp laceration after a fall. Wants to refuse.', a: false, why: 'Intoxication plus a head injury makes capacity doubtful. Transport is the safer call.' },
+    { q: '45M, intoxicated, GCS 14, scalp laceration after a fall. Wants to refuse. Accept the refusal?', a: false, why: 'Intoxication plus a head injury makes capacity doubtful. Transport is the safer call.' },
     { q: '60M, HR 34, BP 70/40, no response to atropine. Requesting transcutaneous pacing.', a: true, why: 'Unstable bradycardia that atropine did not fix: pace (or start a chronotropic drip).' },
     { q: '30F in stable SVT at 210, vagal maneuvers failed. Requesting adenosine.', a: true, why: 'Stable narrow-complex SVT after failed vagal maneuvers: adenosine is the next step.' },
     { q: '72M with CHF, crackles to the shoulders, SpO2 84%, BP 190/110. Requesting CPAP and nitroglycerin.', a: true, why: 'Hypertensive pulmonary edema: CPAP plus nitrates take the load off the heart and lungs.' },
@@ -250,8 +250,8 @@ const SCEN = {
     { q: '74F, Stroke Alert. BP still 232/126 after two 10 mg doses of labetalol. Requesting the 20 mg dose.', a: true, why: 'Stroke 4.17 and Labetalol 11.25: the third dose (20 mg) needs consultation. Pressure is still at or above 220/120, and the total maximum is 80 mg.' },
     { q: '81M, Stroke Alert, BP 84/50. Requesting a fluid bolus on the way to the stroke center.', a: true, why: 'Stroke 4.17: a hypotensive stroke patient requires consultation. A brain at risk needs perfusion pressure, so treat the hypotension.' },
     { q: '28M with severe agitation, temp 104°F, HR 150, fighting restraints. One dose of droperidol already given. Requesting midazolam.', a: true, why: 'Agitation 4.2-A: additional sedative doses require consultation. Hyperthermia plus a struggle against restraints risks sudden death. Sedate and cool him.' },
-    { q: '47F hit her head and passed out briefly. She keeps asking the same questions and wants to refuse transport.', a: false, why: 'Patient-Initiated Refusal 2.6: she is not fully oriented, so she lacks capacity, and head injury with loss of consciousness is a shaded high-risk answer. She cannot refuse. Transport.' },
-    { q: '16-year-old with an ankle injury at a skate park. No parent or guardian can be reached. He wants to refuse.', a: false, why: 'Patient-Initiated Refusal 2.6: a minor with no authorized decision maker cannot refuse. Keep trying the guardian and transport.' },
+    { q: '47F hit her head and passed out briefly. She keeps asking the same questions and wants to refuse transport. Accept the refusal?', a: false, why: 'Patient-Initiated Refusal 2.6: she is not fully oriented, so she lacks capacity, and head injury with loss of consciousness is a shaded high-risk answer. She cannot refuse. Transport.' },
+    { q: '16-year-old with an ankle injury at a skate park. No parent or guardian can be reached. He wants to refuse. Accept the refusal?', a: false, why: 'Patient-Initiated Refusal 2.6: a minor with no authorized decision maker cannot refuse. Keep trying the guardian and transport.' },
     { q: '4-year-old in narrow-complex tachycardia at 260, mottled, adenosine failed. Requesting synchronized cardioversion.', a: true, why: 'Pediatric Tachycardia 3.3-P: cardioversion for narrow-complex tachycardia in a child requires consultation. Poor perfusion after failed adenosine means cardiovert.' },
     { q: '64M with ROSC after a VF arrest. BP 96/60, 12-lead shows a STEMI. Requesting the cardiac interventional center (+10 min).', a: true, why: 'Post-ROSC 3.5-A: every post-arrest patient requires consultation. ROSC with a STEMI belongs at a cardiac interventional center if transport is safe.' },
     { q: '70F with CHF, SpO2 86% on CPAP, BP 170/96. The 12-lead shows inferior ST elevation, plus ST elevation in V4R. Requesting nitroglycerin.', a: false, why: 'CHF 6.3-A: with an inferior MI, consult before nitroglycerin. ST elevation in V4R means right ventricular involvement, and nitrates can drop her pressure hard.' },
@@ -301,7 +301,17 @@ function clock(t) {
 }
 function hourMul(t) { const h = ((Math.floor((SHIFT_START + t) / 60) % 24) + 24) % 24; return HOUR_MUL[h]; }
 function zoneList(zs) { return zs.map(z => ZONE_NAME[z]).join(' + '); }
-function genName(sex, age) { const pool = age < 13 ? KIDS[sex] : NAMES[sex]; return pick(pool) + ' ' + INITIALS[randi(0, INITIALS.length - 1)] + '.'; }
+function genName(sex, age) {
+  const pool = age < 13 ? KIDS[sex] : NAMES[sex], used = G.names || (G.names = []);
+  const staffFirst = new Set(G.staff ? G.staff.flatMap(x => [x.name.split(' ')[0], x.short]) : []);
+  let n = '';
+  for (let i = 0; i < 25; i++) {
+    n = pick(pool) + ' ' + INITIALS[randi(0, INITIALS.length - 1)] + '.';
+    if (!used.includes(n) && !used.some(u => u.split(' ')[0] === n.split(' ')[0] && i < 12) && !staffFirst.has(n.split(' ')[0])) break;
+  }
+  used.push(n); if (used.length > 400) used.shift();
+  return n;
+}
 const cap = x => x ? x.charAt(0).toUpperCase() + x.slice(1) : x;
 const langMul = p => (p.lang && p.interp !== 'on' ? 1.5 : 1);
 
@@ -535,7 +545,7 @@ function startOutage(k) {
   G.stats.outLog.push({ k, t0: G.t, t1: until, divertAt: null, misses: 0, after: 0 });
   if (k === 'ct' || k === 'power') G.img.ct.down = Math.max(G.img.ct.down, until);
   if (k === 'power') { G.mods.lab = Math.max(G.mods.lab, until); G.mods.ehr = Math.max(G.mods.ehr, until); }
-  toast(`${O.msg} Expected back in about ${until - G.t} min.`, 'alert'); sound('alarm');
+  toast(`${O.msg} Expected back in about ${Math.round(until - G.t)} min.`, 'alert'); sound('alarm');
   if (G.dv[O.fix].on) creditDivert(O.fix);
 }
 function outageTick() {
@@ -543,7 +553,7 @@ function outageTick() {
     if (G.out[o].until > G.t) continue;
     const O = OUTAGES[o], on = G.dv[O.fix].on;
     delete G.out[o];
-    toast(`${O.name}: fixed.${on && !justified(O.fix) ? ` Lift ${DIVERTS[O.fix].name}.` : ''}`, 'good');
+    toast(`${O.name}: fixed.${on && !justified(O.fix) && G.mode !== 'md' ? ` Lift ${DIVERTS[O.fix].name}.` : ''}`, 'good');
   }
 }
 function creditDivert(kind) {
@@ -849,7 +859,7 @@ const HARM = { tnk: [0.5, 50, 'bled after a thrombolytic they did not need'], in
 function awaitOrders(p) {
   if (!p.right) p.right = { wk: p.wk.slice(), tr: p.tr.filter(k => k !== 'vent') };
   p.wk = p.wk.filter(k => p.work[k]);          // anything triage already started stays (an ECG for chest pain)
-  p.tr = p.tr.filter(k => p.treat[k]);
+  p.tr = p.tr.filter(k => p.treat[k] || (k === 'mtp' && p.bb && p.bb.mtp));
   p.ord = 'need';
   if (!G.pre) note(`${label(p)}: you've seen them. Write orders.`);
 }
@@ -886,6 +896,7 @@ function signOrders(pid, tests, treats) {
   else if (!p.wk.length) workGap(p);
   if (p.txGap) p.txGap = R.tr.filter(k => !p.tr.includes(k));
   if (p.txGap && !p.txGap.length) p.txGap = null;
+  if (newT.length && (p.dsp === 'mddecide' || p.dsp === 'decide')) p.dsp = 'none';
   const n = newT.length + newR.length;
   return { ok: true, msg: `${n} order${n === 1 ? '' : 's'} signed for ${label(p)}${newR.includes('meds') ? ` (${rxName(p)})` : ''}` };
 }
@@ -915,7 +926,7 @@ function mdDecide(pid, pick) {
   const want = p.dispo, S = G.stats.md;
   if (pick === 'home') {
     if (want === 'home') { S.dispoRight++; care(12, 'dispo', p); }
-    else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; mm(65, `${p.name} went home with ${p.dx.charAt(0).toLowerCase() + p.dx.slice(1)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
+    else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; mm(65, `${p.name} went home with ${(/^[A-Z][a-z]/.test(p.dx) ? p.dx.charAt(0).toLowerCase() + p.dx.slice(1) : p.dx)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
     p.mdPick = 'home'; p.dispo = 'home'; p.dsp = 'none';
     return { ok: true, msg: `${label(p)} is going home once treatment is done.` };
   }
@@ -965,7 +976,7 @@ function orders(p) {
   for (const k of p.tr) if (!p.treat[k]) p.treat[k] = newTreat(k);
   if (p.treat.intub && p.treat.intub.st !== 'done' && p.treat.vent && p.treat.vent.st !== 'done') p.treat.vent = { st: 'wait' };
   queueProcs(p);
-  if (!p.wk.length && !p.dxK) p.dxK = true;
+  if (!p.wk.length && !p.dxK && !mdMine(p)) p.dxK = true;   // the attending's diagnosis waits for signed orders and results
 }
 function codeTeam(p) {
   const rt = G.staff.find(s => s.role === 'rt' && s.st === 'on' && !s.task);
@@ -1430,6 +1441,7 @@ function activateMTP(pid) {
     return { ok: false, why: 'The blood bank pushed back: this patient is not bleeding out. Cooler cancelled, O-negative wasted.' };
   }
   p.bb = { st: 'mtp', due: G.t + (uses >= 4 ? 8 : 15), mtp: true };
+  if (mdMine(p) && p.ev === 'done' && !p.tr.includes('mtp')) { p.tr.push('mtp'); orders(p); if (p.txGap) { p.txGap = p.txGap.filter(k => k !== 'mtp'); if (!p.txGap.length) p.txGap = null; } }
   if (G.blood.oneg <= 4) toast(`Blood bank: only ${G.blood.oneg} units of O-negative left`, 'bad');
   return { ok: true, msg: `MTP activated for ${label(p)}. The first cooler is ready in about ${uses >= 4 ? 8 : 15} min, and a tech will run it.` };
 }
@@ -1610,7 +1622,7 @@ function flowTick() {
 }
 function checkDispo(p) {
   if (mdMine(p)) {
-    if (p.ev !== 'done' || !p.dxK || p.arrest || p.ord !== 'signed') return;
+    if (p.ev !== 'done' || !p.dxK || p.arrest || p.ord !== 'signed' || !allWorkDone(p)) return;
     if (p.mdPick !== 'transfer' && ((p.dispo === 'cath' && outActive('cath')) || (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')))) {
       const cath = p.dispo === 'cath';
       p.dispo = 'transfer'; p.txTo = cath ? 'another PCI center' : 'another trauma center'; if (!cath) p.needCC = true; else delete p.goals.d2b90;
@@ -1952,7 +1964,7 @@ function minuteTick() {
   const hn = holdNurses().length;
   for (const z of ZONES) {
     let n = 0; for (const r of G.rooms) if (r.z === z.id && r.pid && !(hn && isBoarder(G.pts[r.pid]))) n++;
-    if (n && !zoneNurses(z.id).length) { care(-0.5 * n, 'uncovered'); G.stats.uncovered += n; warnOnce('unc' + z.id, `${z.name} has ${n} patient${n > 1 ? 's' : ''} and no nurse. Tap the ${z.name} header.`, 15); }
+    if (n && !zoneNurses(z.id).length) { care(-0.5 * n, 'uncovered'); G.stats.uncovered += n; if (G.mode !== 'md') warnOnce('unc' + z.id, `${z.name} has ${n} patient${n > 1 ? 's' : ''} and no nurse. Tap the ${z.name} header.`, 15); }
   }
   for (const s of G.staff) {
     if (!present(s)) continue;
@@ -1965,7 +1977,7 @@ function minuteTick() {
     s.morale = clamp(s.morale, 0, 100);
   }
   const ar = inRooms().filter(activeResus);
-  if (ar.length) { const rn = zoneNurses('resus').length; if (!rn || zoneLoad('resus', hn > 0) / rn > 4) warnOnce('resus2', `Active resuscitation in ${ar.map(p => roomName(p.room)).join(' and ')}. Resus needs another nurse: tap the Resus header and add one.`, 20); }
+  if (ar.length) { const rn = zoneNurses('resus').length; if ((!rn || zoneLoad('resus', hn > 0) / rn > 4) && G.mode !== 'md') warnOnce('resus2', `Active resuscitation in ${ar.map(p => roomName(p.room)).join(' and ')}. Resus needs another nurse: tap the Resus header and add one.`, 20); }
   for (const k in G.spec) { const m = G.spec[k]; if (m.mood < 0 && t - m.at > 60) { m.mood++; m.at = t; } }
   outageTick();
   for (const k in DIVERTS) {
@@ -2094,7 +2106,7 @@ function staffTick() {
   for (const s of G.staff) {
     if (s.st === 'break' && t >= s.until) { s.st = 'on'; s.lastBreak = t; endCover(s); note(`${s.name} is back from break`); }
     else if (s.st === 'away' && t >= s.until) { s.st = 'on'; endCover(s); toast(`${s.name} is back on the floor`, 'good'); }
-    else if (s.st === 'pending' && t >= s.until) { s.st = 'on'; s.lastBreak = t; if (s.tag !== 'swing shift' && s.tag !== 'Fast Track 09:00') toast(`${s.name} arrived${s.zones.length ? ' and took ' + zoneList(s.zones) : ''}`, 'good'); }
+    else if (s.st === 'pending' && t >= s.until) { s.st = 'on'; s.lastBreak = t; if (s.tag !== 'swing shift' && s.tag !== 'Fast Track 09:00') { for (const z of s.zones) if (z !== 'ft' && G.rooms.some(r => r.z === z && r.closed)) setZoneClosed(z, false); toast(`${s.name} arrived${s.zones.length ? ' and took ' + zoneList(s.zones) + ', and it is open' : ''}`, 'good'); } }
     if (s.leaveAt != null && t >= s.leaveAt && (s.st === 'on' || s.st === 'break')) {
       const zs = s.zones.slice();
       staffGone(s, 'gone');
@@ -2620,7 +2632,7 @@ function trainOutage(k, mins) {
   G.out[k] = { t0: G.t, until, credited: false };
   G.stats.outLog.push({ k, t0: G.t, t1: until, divertAt: null, misses: 0, after: 0 });
   if (k === 'ct' || k === 'power') G.img.ct.down = Math.max(G.img.ct.down, until);
-  toast(`${O.msg} Expected back in about ${mins} min.`, 'alert'); sound('alarm');
+  toast(`${O.msg} Expected back in about ${Math.round(mins)} min.`, 'alert'); sound('alarm');
 }
 
 /* ---------- end of shift ---------- */
@@ -2807,7 +2819,7 @@ function botStep(o) {
     if (want !== has && (want ? !cx.zones.length : true)) add(2.5, () => toggleZone('rnX', 'resus').ok);
   }
   if (o.breaks && G.t > 180) {
-    const due = G.staff.find(s => s.st === 'on' && G.t - s.lastBreak > 260 && !G.staff.some(x => x.st === 'break' && x.role === s.role));
+    const due = G.staff.find(s => s.st === 'on' && !(G.mode === 'md' && s.id === G.me) && G.t - s.lastBreak > 260 && !G.staff.some(x => x.st === 'break' && x.role === s.role));
     if (due) add(9.5, () => sendBreak(due.id).ok);
   }
   acts.sort((a, x) => a.pr - x.pr || a.n - x.n);

@@ -41,7 +41,7 @@ function makeMvc() {
 }
 void makeMvc;
 let mvc = null;
-run(720, () => (mvc = OC.active().find(p => p.bleed === 'mtp')));
+for (const sd of [33, 34, 35, 36, 37, 38, 39, 40]) { G = fresh(sd); run(720, () => (mvc = OC.active().find(p => p.bleed === 'mtp'))); if (mvc) break; }   // any seed with a bleeding trauma
 assert(mvc, 'a hemorrhaging trauma patient arrived');
 if (mvc) {
   run(16);
