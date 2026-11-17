@@ -14,12 +14,19 @@ with sync_playwright() as pw:
     page.on('pageerror', lambda e: errors.append('pageerror: ' + str(e)))
     page.on('console', lambda m: errors.append('console.' + m.type + ': ' + m.text) if m.type == 'error' else None)
     J = page.evaluate
-    MODE = os.environ.get('MODE', 'rn')
+    MODE = os.environ.get('MODE', 'rn'); LESSON = os.environ.get('LESSON')   # LESSON=stroke|heart|sepsis|bleed|breath|od plays one lesson, started from either role
     page.goto(URL); page.evaluate(f"() => localStorage.setItem('oc-view', '{VIEW}')"); page.goto(URL); page.wait_for_timeout(1200)
     page.locator(f'[data-act="mode"][data-arg="{MODE}"]').tap(); page.wait_for_timeout(300)
-    page.locator('button.lvl[data-arg="train"]').tap(); page.wait_for_timeout(500)
-    ok_start = J('OC.G.level') == 'train' and J('OC.G.mode') == MODE and J('OC.active().length') == 0
-    if not ok_start: errors.append('Orientation did not start on an empty board')
+    if LESSON:
+        page.locator('#title [data-act="lessons"]').tap(); page.wait_for_timeout(400)
+        if page.locator('#sheet [data-act="lesson"]').count() != 6: errors.append('the Lessons list does not show six lessons')
+        page.locator(f'#sheet [data-act="lesson"][data-arg="{LESSON}"]').tap(); page.wait_for_timeout(500)
+        ok_start = J('OC.G.level') == 'train' and J('OC.G.mode') == 'md' and J('OCUI.coach().lesson') == LESSON and J('OC.active().length') == 0 and J('OCUI.U.mode') == MODE
+        if not ok_start: errors.append(f'the {LESSON} lesson did not start as the attending on an empty board, leaving the title role alone')
+    else:
+        page.locator('button.lvl[data-arg="train"]').tap(); page.wait_for_timeout(500)
+        ok_start = J('OC.G.level') == 'train' and J('OC.G.mode') == MODE and J('OC.active().length') == 0
+        if not ok_start: errors.append('Orientation did not start on an empty board')
     last, same, taps, shots, words = -1, 0, 0, set(), []
     for it in range(600):
         c = J('OCUI.coach()')
@@ -61,7 +68,17 @@ with sync_playwright() as pw:
         page.wait_for_timeout(180)
     c = J('OCUI.coach()')
     if not c or not c['final']: errors.append('did not reach the last step')
-    page.screenshot(path=f'{OUT}/train_{MODE}_final.png')
+    page.screenshot(path=f'{OUT}/train_{LESSON or MODE}_final.png')
+    if LESSON and c and c['final']:
+        # the goals a lesson teaches are met when the player follows it, and finishing marks it done on the title
+        goals = J("(() => { const t = OC.G.tr; const p = OC.pt(t.ids.pt); return p ? p.goals : null; })()") or {}
+        missed = [k for k, v in goals.items() if v is False]
+        if missed: errors.append(f'following the {LESSON} lesson missed a time goal: {missed}')
+        nxt = page.locator('[data-act="lessonNext"]')
+        page.locator('[data-act="coachDone"]').first.tap(); page.wait_for_timeout(500)
+        if not (J("localStorage.getItem('oc-lesson-" + LESSON + "')") == '1' and page.is_visible('#title') and '1 of 6' in page.inner_text('#title [data-act="lessons"]')): errors.append('finishing the lesson did not mark it done on the title')
+        if J("localStorage.getItem('oc-trained-md')") or J("localStorage.getItem('oc-trained')"): errors.append('a lesson marked Orientation as done')
+        print('goals:', goals)
     print('\n'.join(log))
     print(f'taps: {taps}, game clock: {J("OC.clock()")}, care {J("Math.round(OC.G.care)")}, cards read {len(words)}, words {sum(words)}, longest {max(words or [0])}')
     if words and max(words) > 70: errors.append(f'a preceptor card runs {max(words)} words: over 70')

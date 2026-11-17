@@ -101,15 +101,15 @@ const ROSTER = [
 ];
 
 const SPECS = {
-  hosp:   { name: 'Hospitalist', short: 'Hosp', doc: 'Dr. Fenn', mad: x => `I'm not admitting anyone without ${x}. Call me back.` },
-  cards:  { name: 'Cardiology', short: 'Cards', doc: 'Dr. Hartwell', mad: x => `You paged cardiology without ${x}?` },
-  neuro:  { name: 'Neurology', short: 'Neuro', doc: 'Dr. Sato', mad: x => `I can't decide anything until I see ${x}.` },
-  surg:   { name: 'General Surgery', short: 'Surg', doc: 'Dr. Blake', mad: x => `Get me ${x}, then we'll talk.` },
-  trauma: { name: 'Trauma Surgery', short: 'Trauma', doc: 'Dr. Voss', mad: x => `Call me when ${x} is done.` },
-  ortho:  { name: 'Orthopedics', short: 'Ortho', doc: 'Dr. Bonner', mad: x => `Films first. I need ${x}.` },
-  gi:     { name: 'Gastroenterology', short: 'GI', doc: 'Dr. Marsh', mad: x => `What's the hemoglobin? Call back with ${x}.` },
-  psych:  { name: 'Psychiatry', short: 'Psych', doc: 'Dr. Lund', mad: x => `Is the patient medically cleared? I need ${x}.` },
-  icu:    { name: 'Critical Care', short: 'ICU', doc: 'Dr. Ibarra', mad: x => `Call me back with ${x}.` },
+  hosp:   { name: 'Hospitalist', what: 'Admits most medical patients', short: 'Hosp', doc: 'Dr. Fenn', mad: x => `I'm not admitting anyone without ${x}. Call me back.` },
+  cards:  { name: 'Cardiology', what: 'The heart', short: 'Cards', doc: 'Dr. Hartwell', mad: x => `You paged cardiology without ${x}?` },
+  neuro:  { name: 'Neurology', what: 'The brain: stroke', short: 'Neuro', doc: 'Dr. Sato', mad: x => `I can't decide anything until I see ${x}.` },
+  surg:   { name: 'General Surgery', what: 'The belly: appendix, gallbladder', short: 'Surg', doc: 'Dr. Blake', mad: x => `Get me ${x}, then we'll talk.` },
+  trauma: { name: 'Trauma Surgery', what: 'Serious injuries and bleeding', short: 'Trauma', doc: 'Dr. Voss', mad: x => `Call me when ${x} is done.` },
+  ortho:  { name: 'Orthopedics', what: 'Bones and joints', short: 'Ortho', doc: 'Dr. Bonner', mad: x => `Films first. I need ${x}.` },
+  gi:     { name: 'Gastroenterology', what: 'Bleeding in the stomach or bowel', short: 'GI', doc: 'Dr. Marsh', mad: x => `What's the hemoglobin? Call back with ${x}.` },
+  psych:  { name: 'Psychiatry', what: 'Mental health emergencies', short: 'Psych', doc: 'Dr. Lund', mad: x => `Is the patient medically cleared? I need ${x}.` },
+  icu:    { name: 'Critical Care', what: 'The ICU: the sickest patients', short: 'ICU', doc: 'Dr. Ibarra', mad: x => `Call me back with ${x}.` },
 };
 
 const WORK = {
@@ -135,7 +135,7 @@ const TREAT = {
   vent:    { label: 'Ventilator', by: 'rt', dur: 8 },
   blood:   { label: 'Blood transfusion', by: 'rn', dur: 6, gate: 'blood' },
   mtp:     { label: 'Massive transfusion', by: 'rn', dur: 10, gate: 'mtp' },
-  repair:  { label: 'Lac repair', by: 'prov', dur: 8 },
+  repair:  { label: 'Stitches', by: 'prov', dur: 8 },
   intub:   { label: 'Intubation', by: 'prov', dur: 10, md: true, rt: true },
   o2:      { label: 'Oxygen', by: 'rn', dur: 1 },
   bp:      { label: 'Blood pressure control', by: 'rn', dur: 3, rx: true },
@@ -169,7 +169,7 @@ const DIVERTS = {
   yellow: { name: 'Yellow Alert', short: 'Yellow', capacity: true, cost: 0.3, rate: 0.6, when: 'The ED is saturated', what: 'Ambulances take non-critical patients elsewhere. Alerts still come.', takes: c => c.esi >= 3 && !c.alert },
   red: { name: 'Red Alert', short: 'Red', capacity: true, cost: 0.4, rate: 0.5, when: 'No monitored or ICU beds', what: 'Ambulances take critical medical patients elsewhere when they can. Trauma still comes.', takes: c => c.esi <= 2 && c.alert !== 'trauma' && c.alert !== 'arrest' },
   ct: { name: 'CT Divert', short: 'CT', cost: 0.1, rate: 0.95, when: 'The CT scanner is down', what: 'Stroke alerts and head-injury trauma go to a hospital with a working scanner.', takes: c => c.alert === 'stroke' || (c.alert === 'trauma' && c.wk.includes('ct')) },
-  stemi: { name: 'STEMI Divert', short: 'STEMI', cost: 0.1, rate: 0.95, when: 'The cath lab is down or full', what: 'STEMI alerts go to another PCI center.', takes: c => c.alert === 'stemi' },
+  stemi: { name: 'STEMI Divert', short: 'STEMI', cost: 0.1, rate: 0.95, when: 'The cath lab is down or full', what: 'STEMI alerts go to another hospital with a cath lab.', takes: c => c.alert === 'stemi' },
   trauma: { name: 'Trauma Divert', short: 'Trauma', cost: 0.1, rate: 0.95, when: 'No trauma surgeon or OR', what: 'Trauma alerts go to another trauma center.', takes: c => c.alert === 'trauma' },
   disaster: { name: 'Internal Disaster', short: 'Closed', cost: 0.1, rate: 0.95, when: 'The lab, power, or building has failed', what: 'All ambulances go elsewhere. Walk-ins still come, and patients in cardiac arrest still go to the closest ED.', takes: c => c.alert !== 'arrest' },
 };
@@ -226,15 +226,15 @@ const CASES = [
   { k: 'sepsisw', cc: 'Fever and confusion', dx: 'Sepsis (urinary source)', esi: 2, src: 'w', age: [65, 92], wt: 1.2, wk: ['lab'], tr: ['fluids', 'abx'], con: 'hosp', pre: ['lab'], need: ['lab'], dispo: 'admit', alert: 'sepsis', vit: 'Temp 102.9, HR 118, BP 98/60', find: { lab: 'Lactate 3.1, urine positive' } },
   { k: 'strokew', cc: 'Face droop, slurred speech', dx: 'Acute ischemic stroke', esi: 2, src: 'w', age: [55, 88], wt: 1, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], dispo: 'icu', alert: 'stroke', find: { ct: 'No bleed', lab: 'Glucose 118' } },
   // EMS alerts: they ring the Box first
-  { k: 'stemi', cc: 'Crushing chest pain', dx: 'Anterior STEMI', esi: 1, src: 'a', age: [45, 80], wt: 3, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg'], need: ['ecg'], dispo: 'cath', alert: 'stemi', ecg10: true, vit: 'HR 98, BP 142/88, diaphoretic', find: { ecg: 'ST elevation V1–V4', lab: 'Troponin pending' } },
+  { k: 'stemi', cc: 'Crushing chest pain', dx: 'Anterior STEMI', esi: 1, src: 'a', age: [45, 80], wt: 3, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg'], need: ['ecg'], dispo: 'cath', alert: 'stemi', ecg10: true, vit: 'HR 98, BP 142/88, sweating', find: { ecg: 'ST elevation V1–V4', lab: 'Troponin pending' } },
   { k: 'stroke', cc: "Can't move right side", dx: 'Acute ischemic stroke', esi: 2, src: 'a', age: [55, 90], wt: 2, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], dispo: 'icu', alert: 'stroke', find: { ct: 'No bleed', lab: 'Glucose 132' } },
   { k: 'lvo', cc: "Can't speak, eyes deviated", dx: 'Large vessel occlusion stroke', esi: 1, src: 'a', age: [55, 90], wt: 1.2, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], ift: 'cct', dispo: 'transfer', alert: 'stroke', txTo: 'the comprehensive stroke center', find: { ct: 'No bleed; CTA shows M1 occlusion', lab: 'Glucose 141' } },
-  { k: 'mvc', cc: 'Rollover crash, unrestrained', dx: 'Splenic laceration, hemorrhagic shock', esi: 1, src: 'a', age: [17, 45], wt: 2.2, wk: ['xr', 'lab', 'ct'], tr: ['mtp'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'mtp', vit: 'HR 134, BP 78/40, pale', find: { xr: 'No pneumothorax, FAST positive', lab: 'Hemoglobin 8.1', ct: 'Grade IV splenic laceration' } },
+  { k: 'mvc', cc: 'Rollover crash, no seat belt', dx: 'Splenic laceration, hemorrhagic shock', esi: 1, src: 'a', age: [17, 45], wt: 2.2, wk: ['xr', 'lab', 'ct'], tr: ['mtp'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'mtp', vit: 'HR 134, BP 78/40, pale', find: { xr: 'No pneumothorax, FAST positive', lab: 'Hemoglobin 8.1', ct: 'Grade IV splenic laceration' } },
   { k: 'tfall', cc: 'Fell down stairs, on a blood thinner', dx: 'Subdural hematoma', esi: 1, src: 'a', age: [70, 95], wt: 2, wk: ['ct', 'lab'], tr: ['reverse'], con: 'trauma', pre: [], need: ['ct'], dispo: 'icu', alert: 'trauma', vit: 'GCS 12, BP 168/92', find: { ct: 'Acute subdural hematoma', lab: 'INR 2.9' } },
   { k: 'moto', cc: 'Motorcycle crash, leg deformity', dx: 'Open femur fracture', esi: 1, src: 'a', age: [18, 55], wt: 1.2, wk: ['xr', 'lab'], tr: ['abx', 'blood'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'prbc', vit: 'HR 118, BP 102/64', find: { xr: 'Open femur fracture', lab: 'Hemoglobin 9.4' } },
   { k: 'arrest', cc: 'Cardiac arrest, CPR in progress', dx: 'Cardiac arrest', esi: 1, src: 'a', age: [45, 85], wt: 1.3, wk: [], tr: [], dispo: 'code', alert: 'arrest', arrest: true, vit: 'Pulseless, VF on the monitor' },
   { k: 'shock', cc: 'Fever, BP 74/40', dx: 'Septic shock', esi: 1, src: 'a', age: [60, 90], wt: 1.8, wk: ['lab'], tr: ['o2', 'fluids', 'abx', 'pressor'], con: 'icu', pre: ['lab'], need: ['lab'], dispo: 'icu', alert: 'sepsis', vit: 'HR 128, BP 74/40, mottled', find: { lab: 'Lactate 5.4' } },
-  { k: 'rsv', cc: 'Infant breathing hard', dx: 'RSV, tiring out', esi: 2, src: 'a', age: [0, 1], wt: 0.8, wk: ['lab'], tr: ['hfnc'], ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'peds', txTo: 'the pediatric ICU', vit: 'HR 168, RR 66, retractions, SpO2 91%', find: { lab: 'VBG pCO2 61' } },
+  { k: 'rsv', cc: 'Infant breathing hard', dx: 'RSV, tiring out', esi: 2, src: 'a', age: [0, 1], wt: 0.8, wk: ['lab'], tr: ['hfnc'], ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'peds', txTo: 'the pediatric ICU', vit: 'HR 168, RR 66, ribs pulling in, SpO2 91%', find: { lab: 'VBG pCO2 61' } },
   { k: 'burn', cc: 'House fire, burns to arms and chest', dx: 'Partial-thickness burns, 25%, airway injury', esi: 2, src: 'a', age: [20, 70], wt: 0.6, wk: ['lab'], tr: ['intub', 'vent', 'fluids', 'meds'], vit: 'Hoarse voice, soot in the mouth, HR 112', ift: 'cct', dispo: 'transfer', need: ['lab'], alert: 'burn', txTo: 'the burn center', find: { lab: 'Carboxyhemoglobin 6%' } },
   // mass casualty: the field's triage tag comes with each patient. Red is immediate, yellow can wait a little, green is walking wounded.
   { k: 'mcired', cc: 'Bus crash: pinned under a seat, belly rigid', dx: 'Liver laceration, hemorrhagic shock', esi: 1, src: 'm', age: [20, 60], wt: 1, wk: ['xr', 'lab', 'ct'], tr: ['mtp'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'mtp', tag: 'red', vit: 'HR 136, BP 80/44, pale', find: { xr: 'No pneumothorax, FAST positive', lab: 'Hemoglobin 7.9', ct: 'Grade IV liver laceration' } },
@@ -1032,6 +1032,28 @@ function taskDone(s, k) {
   else if (k.type === 'pitdc') { if (p.loc === 'waiting') { G.stats.pitDc++; note(`${s.short} discharged ${p.name} from triage`); leave(p, 'dc'); } }
 }
 /* ---------- physician mode: the player writes the orders ---------- */
+const DX_PLAIN = {
+  'Contact dermatitis': 'A skin reaction to something touched', 'Medication refill': 'Ran out of a regular medicine', 'Dental abscess': 'A pocket of infection at a tooth', 'Strep throat': 'A bacterial throat infection',
+  'Ankle sprain': 'Stretched ligaments, no break', 'Simple laceration': 'A cut that needs stitches', 'Urinary tract infection': 'A bladder infection', 'Gastroenteritis': 'A stomach bug',
+  'Appendicitis': 'An inflamed appendix. It comes out in surgery', 'Cholecystitis': 'An inflamed gallbladder', 'Hip fracture': 'A broken hip. It needs surgery', 'Pneumonia': 'A lung infection',
+  'COPD flare': 'Lungs damaged by smoking, flaring up', 'Heart failure flare': 'A weak heart, with fluid backing up into the lungs', 'Kidney stone': 'A small stone stuck on its way out of the kidney',
+  'Deep vein thrombosis': 'A blood clot in a leg vein', 'Migraine': 'A severe headache that comes in attacks', 'Suspected tuberculosis': 'A lung infection that spreads through the air',
+  'Behavioral health emergency': 'A mental health crisis', 'Alcohol intoxication': 'Drunk, and watched until sober', 'Opioid overdose': 'Too much of an opioid. It slows the breathing', 'Cellulitis': 'A skin infection',
+  'Syncope, low risk': 'Fainting, with nothing worrying found', 'Syncope, high risk': 'Fainting that may come from the heart', 'Transient ischemic attack': 'A stroke that cleared on its own. A warning',
+  'Dehydration': 'Low on fluids', 'Chest pain, moderate risk': 'No heart attack found yet, but not in the clear', 'Chest pain, low risk': 'Not the heart, as far as the tests can tell',
+  'NSTEMI (heart attack)': 'A heart attack with the artery partly blocked', 'A-fib with rapid rate': 'An irregular, racing heartbeat', 'Complete heart block': 'The heart’s wiring has failed. It beats too slowly',
+  'Upper GI bleed': 'Bleeding in the stomach or gullet', 'Diabetic ketoacidosis': 'No insulin, so the blood turns acid', 'Asthma attack': 'Airways squeezed tight', 'Anaphylaxis': 'A severe allergic reaction',
+  'Sepsis (urinary source)': 'A bladder infection that is overwhelming the body', 'Acute ischemic stroke': 'A clot blocking a blood vessel in the brain', 'Anterior STEMI': 'A heart attack: an artery fully blocked',
+  'Large vessel occlusion stroke': 'A clot in a main brain artery. Some centers can pull it out', 'Splenic laceration, hemorrhagic shock': 'A torn spleen, bleeding into the belly',
+  'Subdural hematoma': 'Bleeding between the skull and the brain', 'Open femur fracture': 'A broken thigh bone, through the skin', 'Cardiac arrest': 'The heart has stopped', 'Septic shock': 'An infection that has dropped the blood pressure',
+  'RSV, tiring out': 'A virus clogging a baby’s small airways', 'Partial-thickness burns, 25%, airway injury': 'Deep burns over a quarter of the body, and a burned airway',
+  'Liver laceration, hemorrhagic shock': 'A torn liver, bleeding into the belly', 'Closed femur fracture': 'A broken thigh bone', 'Neck strain': 'A pulled neck muscle, no break', 'Wrist fracture': 'A broken wrist',
+  'NSTEMI with cardiogenic shock': 'A heart attack, and the heart is failing to pump', 'A-fib with rapid rate, unstable': 'A racing heartbeat that is dropping the pressure', 'Complete heart block, unstable': 'A heart too slow to hold a pressure',
+  'Upper GI bleed with hemorrhagic shock': 'Stomach bleeding, with too little blood left', 'Severe diabetic ketoacidosis': 'No insulin, and the blood is dangerously acid', 'Asthma attack with respiratory failure': 'Airways so tight the breathing is failing',
+  'COPD flare with respiratory failure': 'Damaged lungs that can no longer keep up', 'Flash pulmonary edema': 'The lungs suddenly filling with fluid', 'Opioid overdose: the naloxone wore off': 'The opioid outlasted the drug that reversed it',
+  'Anaphylactic shock': 'An allergic reaction that has dropped the blood pressure', 'Septic shock (urinary source)': 'A bladder infection that has dropped the blood pressure', 'Acute ischemic stroke, getting worse': 'A brain clot, and more brain is being lost',
+  'Femur fracture with hemorrhagic shock': 'A broken thigh bone, bleeding heavily', 'ROSC after cardiac arrest': 'The heart is beating again after it stopped', 'Resuscitation unsuccessful': 'The team could not restart the heart',
+};
 const NORMAL = { ecg: 'Normal sinus rhythm', lab: 'Normal', xr: 'No acute findings', ct: 'No acute findings', us: 'Normal' };
 const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU', or: 'the OR', cath: 'the cath lab', bh: 'psychiatric admission', transfer: 'a transfer', obs: 'observation' };
 // What the drug in "Medications" was, for each case that needs one.
@@ -1823,7 +1845,7 @@ function checkDispo(p) {
     if (p.ev !== 'done' || !p.dxK || p.arrest || p.ord !== 'signed' || !allWorkDone(p)) return;
     if (p.mdPick !== 'transfer' && ((p.dispo === 'cath' && outActive('cath')) || (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')))) {
       const cath = p.dispo === 'cath';
-      p.dispo = 'transfer'; p.txTo = cath ? 'another PCI center' : 'another trauma center'; if (!cath) p.needCC = true; else delete p.goals.d2b90;
+      p.dispo = 'transfer'; p.txTo = cath ? 'another hospital with a cath lab' : 'another trauma center'; if (!cath) p.needCC = true; else delete p.goals.d2b90;
       p.mdPick = 'transfer'; p.dsp = 'readytx';
       note(`${label(p)} needs ${cath ? 'a cath lab' : 'an OR'} and ours is down. The charge nurse is calling the transfer center.`, 'bad');
       return;
@@ -1843,7 +1865,7 @@ function checkDispo(p) {
   if (p.ev !== 'done' || !p.dxK || p.arrest || p.reg !== 'done') return;
   if (p.cosign === 'need' || p.cosign === 'wait') return;
   if (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done')) return;
-  if (p.dispo === 'cath' && outActive('cath')) { p.dispo = 'transfer'; p.txTo = 'another PCI center'; delete p.goals.d2b90; note(`${label(p)} needs a cath lab and ours is down. Transfer them.`, 'bad'); }
+  if (p.dispo === 'cath' && outActive('cath')) { p.dispo = 'transfer'; p.txTo = 'another hospital with a cath lab'; delete p.goals.d2b90; note(`${label(p)} needs a cath lab and ours is down. Transfer them.`, 'bad'); }
   if (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')) { p.dispo = 'transfer'; p.txTo = 'another trauma center'; p.needCC = true; note(`${label(p)} needs an OR and there isn't one. Transfer them.`, 'bad'); }
   // Transfers get called in as soon as the diagnosis is clear. Treatment keeps going while the crew drives in.
   if (p.dispo === 'transfer') { p.dsp = 'readytx'; return; }
@@ -2111,7 +2133,7 @@ function toArrest(p, where) {
 }
 function waitingArrest(p) {
   toArrest(p, 'Arrested in the waiting room');
-  mm(95, `${p.name} arrested in the waiting room`, `They crashed ${Math.round(G.t - p.tCrash)} min earlier and never got a resus bay`);
+  mm(95, `${p.name} went into cardiac arrest in the waiting room`, `They crashed ${Math.round(G.t - p.tCrash)} min earlier and never got a resus bay`);
   if (G.pre) return;
   G.stats.wrCodes++; care(-60, 'waiting');
   toast(`CODE BLUE in the waiting room: ${p.name}`, 'alert'); sound('alarm');
@@ -2442,7 +2464,9 @@ function nextScen() {
   }
   return G.box.scen.pop();
 }
-const scenOf = c => (SCEN[G.pack] || SCEN.national)[c.sc];
+const TRAIN_SCEN = { q: '34M with a twisted ankle. He is awake, thinking clearly, and understands the risks. He wants to refuse the ride to the hospital. Accept the refusal?', a: true,
+  why: 'An adult who is thinking clearly and understands the risks may refuse care. The medic writes it down and tells him to call back if it gets worse.' };
+const scenOf = c => (c.sc === 'train' ? TRAIN_SCEN : (SCEN[G.pack] || SCEN.national)[c.sc]);
 function surveyMul() { return G.mods.survey > G.t ? 2 : 1; }
 function boxTick(dt) {
   const b = G.box, L = LEVELS[G.level];
@@ -2593,7 +2617,7 @@ function injure(s, how) {
   for (const x of G.staff) if (present(x)) x.morale -= 3;
   G.stats.adverse++; care(-25, 'safety');
   const f = startCover(s);
-  toast(`${s.name} ${how} and is off the floor for 45 min.${f ? ` ${f.name} is covering.` : ''}`, 'bad'); sound('bad');
+  toast(`${s.name} ${how} and is away for 45 min.${f ? ` ${f.name} is covering.` : ''}`, 'bad'); sound('bad');
 }
 function allMorale(n) { for (const s of G.staff) if (present(s)) s.morale = clamp(s.morale + n, 0, 100); }
 function awayEv(role, mins, msg) {
@@ -2908,7 +2932,7 @@ function trainPatient(k, how, o) {
 }
 function trainConsult() {
   if (G.box.cur) return false;
-  G.box.cur = { kind: 'consult', sc: nextScen(), unit: 'Medic 12', id: ++G.box.seq, ring: 1e9, left: 1e9, t0: G.t };
+  G.box.cur = { kind: 'consult', sc: 'train', unit: 'Medic 12', id: ++G.box.seq, ring: 1e9, left: 1e9, t0: G.t };
   sound('ring');
   return true;
 }
@@ -3156,7 +3180,7 @@ const OC = {
   startOutage, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,
-  ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, CRASH, needsTx, strokeSetup,
+  ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, CRASH, needsTx, strokeSetup, DX_PLAIN,
   crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k] && EV[k].fire) fireEv(k); }, eventKeys: () => Object.keys(EV), eventReady: k => !!(EV[k] && EV[k].fire && EV[k].w && EV[k].w() > 0),
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };

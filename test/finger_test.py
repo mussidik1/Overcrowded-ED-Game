@@ -31,7 +31,9 @@ with sync_playwright() as pw:
         finger(bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2)
     page.goto(URL); J(f"() => localStorage.setItem('oc-view', '{VIEW}')"); page.goto(URL); page.wait_for_timeout(1200)
     tap_sel(f'[data-act="mode"][data-arg="{MODE}"]'); page.wait_for_timeout(400)
-    tap_sel('button.lvl[data-arg="train"]'); page.wait_for_timeout(700)
+    LESSON = os.environ.get('LESSON')   # one of the six lessons instead of Orientation
+    if LESSON: tap_sel('#title [data-act="lessons"]'); page.wait_for_timeout(500); tap_sel(f'#sheet [data-act="lesson"][data-arg="{LESSON}"]'); page.wait_for_timeout(700)
+    else: tap_sel('button.lvl[data-arg="train"]'); page.wait_for_timeout(700)
     if J('OC.G.level') != 'train': errors.append('Orientation did not start')
     last, tries, total_taps, slow = -1, 0, 0, []
     for it in range(1400):

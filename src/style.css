@@ -702,10 +702,11 @@ body.mapmode.ingame .mzoom { position: fixed; z-index: 26; right: calc(var(--rai
   #title .modes { margin: 4px 0; }
   #title .mode { padding: 7px 10px; }
   #title .t-sub { margin-bottom: 6px; font-size: 13.5px; line-height: 1.35; }
-  #title .lvl { min-height: 50px; padding: 6px 10px; }
-  #title .lvl .dot { width: 26px; height: 26px; }
-  #title .lvl b { font-size: 16.5px; }
-  #title .lvl small { font-size: 12.5px; }
+  #title .card > .levels { gap: 5px; }   /* six rows: Orientation, Lessons, and four shifts */
+  #title .lvl { min-height: 44px; padding: 4px 10px; }
+  #title .lvl .dot { width: 24px; height: 24px; }
+  #title .lvl b { font-size: 16px; }
+  #title .lvl small { font-size: 12px; line-height: 1.2; }
   #title .packs { margin-top: 6px; gap: 4px; }
   #title .packs small { font-size: 12.5px; line-height: 1.25; }
   #title .t-links { margin-top: 4px; flex-wrap: wrap; gap: 0 10px; }
@@ -796,6 +797,15 @@ body.mapmode.ingame .needbtn.inrail .nb-n b { display: block; font-size: 19px; l
 .wlink button { padding: 9px 12px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); color: var(--ink); font: 700 14.5px/1.1 var(--ui); }
 .coach-c .cb { flex-wrap: wrap; }
 .coach-c p b, .modal p b, ol.first b { font-weight: 700; }
+/* list board: in a narrow room tile the name tag keeps its own width and the age and chips wrap under it (it used to be squeezed to a sliver) */
+.room .who { flex-wrap: wrap; row-gap: 2px; }
+.room .who b.pn { flex: 0 1 auto; min-width: 2.4em; }
+.dxp { display: block; margin-top: 1px; color: var(--ink-2); font: 500 .86em/1.25 var(--body); }
+/* Lessons: the row on the title and the list of six */
+.lvl.lsn { border-color: #0D716E; }
+.cgrid.lsn { grid-template-columns: 1fr 1fr; }
+.cgrid.lsn .lsn-ok { color: #1F8048; font-style: normal; }
+@media (max-width: 520px) { .cgrid.lsn { grid-template-columns: 1fr; } }
 .coach-c p b.pn, .modal p b.pn { padding: 0 5px; line-height: 1.35; overflow: visible; vertical-align: baseline; }   /* in a sentence the tag sits on the text's baseline */
 /* A real phone: no double-tap zoom or pinch on the page during a shift (the floor has its own zoom), no text-selection bubble on a long press. */
 body.ingame { touch-action: pan-x pan-y; }

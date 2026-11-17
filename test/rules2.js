@@ -242,7 +242,7 @@ G = fresh(1515);
 OC.startOutage('cath'); G.out.cath.until = 1e9;
 let stemiTx = null;
 forceAlerts(600, () => { OC.botStep({ budget: 3, divert: false }); return (stemiTx = OC.active().find(p => p.alert === 'stemi' && p.dispo === 'transfer')); });
-assert(stemiTx && stemiTx.txTo === 'another PCI center', 'with the cath lab down, a STEMI that came anyway has to be transferred');
+assert(stemiTx && stemiTx.txTo === 'another hospital with a cath lab', 'with the cath lab down, a STEMI that came anyway has to be transferred');
 
 G = fresh(1616);
 let labP = null;

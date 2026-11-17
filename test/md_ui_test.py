@@ -64,7 +64,7 @@ def run():
         ok(not page.is_visible('#btnYellow') and page.locator('#pStaff span').inner_text() == 'Panel', 'attending HUD: panel, not staffing; no yellow button')
 
         # ---------- see a patient ----------
-        sim(60, "OC.inRooms().some(p => OC.needsProv(p) && !p.prov && !p.arrest)")
+        sim(180, "OC.inRooms().some(p => OC.needsProv(p) && !p.prov && !p.arrest)")   # on a quiet morning the other providers can take the first few
         pid = J("() => { const p = OC.inRooms().filter(p => OC.needsProv(p) && !p.prov && !p.arrest).sort((a, b) => OC.vEsi(a) - OC.vEsi(b))[0]; return p ? p.id : null; }")
         ok(pid is not None, 'a roomed patient is waiting for a provider')
         if pid is None: raise SystemExit('no patient to see; stopping')
