@@ -87,8 +87,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git stash -u -q || true
-          if git fetch -q origin ci-results; then git checkout -q -B ci-results FETCH_HEAD; else git checkout -q --orphan ci-results; git rm -rf -q . || true; fi
-          cp "$RUNNER_TEMP/webkit.txt" webkit.txt
-          git add webkit.txt
-          git commit -q -m "WebKit results for ${GITHUB_SHA::7}" || echo "nothing new"
-          git push -q origin ci-results
+          # two runs (main and 3d) can finish together: start again from the latest copy and retry
+          for try in 1 2 3 4 5; do
+            if git fetch -q origin ci-results; then git checkout -q -f -B ci-results FETCH_HEAD; else git checkout -q --orphan ci-results; git rm -rf -q . || true; fi
+            cp "$RUNNER_TEMP/webkit.txt" webkit.txt
+            git add webkit.txt
+            git commit -q -m "WebKit results for ${GITHUB_SHA::7} (${GITHUB_REF_NAME})" || echo "nothing new"
+            if git push -q origin ci-results; then exit 0; fi
+            sleep $((try * 7))
+          done
+          exit 1
