@@ -1,5 +1,5 @@
-commit dabfda9749021df792407b2dc92ef1a1f1623429
-date   2026-11-18 05:52 UTC
+commit 9101a4b67c6e92cc7370afe4b7bc048e985cf160
+date   2026-11-18 10:42 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 2011, 'stars': 3, 'wait': 19, 'left': 24} {'seen': 42, 'fast': 19, 'ordRight': 111, 'ordExtra': 2, 'ordMiss': 1, 'clean': 38, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 37, 'dispoWrong': 1, 'log': [{'name': 'Keisha D.', 'dx': 'Sepsis (urinary source)', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs with a lactate. Fluids and antibiotics inside the hour.'}, {'name': 'Tom M.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Zoe J.', 'dx': 'Ear infection', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'No tests. You can see the infection. Amoxicillin.'}]}
+1:report {'care': 1984, 'stars': 2, 'wait': 20, 'left': 19} {'seen': 43, 'fast': 17, 'ordRight': 107, 'ordExtra': 3, 'ordMiss': 5, 'clean': 33, 'gaps': 5, 'harm': 0, 'untreated': 0, 'dispoRight': 35, 'dispoWrong': 1, 'log': [{'name': 'Raj B.', 'dx': 'Chest pain, moderate risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Malik F.', 'dx': 'Dehydration', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show the kidneys are dry. Fluids fix it.'}, {'name': 'Aisha S.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Shanice A.', 'dx': 'Acute ischemic stroke', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology. An ECG is reasonable.'}, {'name': 'Jamal S.', 'dx': 'Pneumonia', 'miss': [], 'extra': [], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Raj T.', 'dx': 'Kidney stone', 'miss': [], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Earl N.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Kwame E.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.'}]}
 30:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 2011)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1984)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:27, care 144, cards read 70, words 2507, longest 68
+taps: 77, game clock: 10:36, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -42,7 +42,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 40, game clock: 09:50, care 240, cards read 39, words 1392, longest 65
+taps: 40, game clock: 09:47, care 240, cards read 39, words 1392, longest 65
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:35, care 144, cards read 70, words 2506, longest 68
+taps: 78, game clock: 10:29, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:41, care 57, cards read 8, words 306, longest 58
+taps: 6, game clock: 07:40, care 57, cards read 8, words 306, longest 58
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -74,13 +74,22 @@ md map 844x390, finger slides up to 12px: 37 steps, 64 taps, floor ignored 0, bu
 No errors.
 
 === python test/offline_test.py ===
-PASS
+FAIL
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.17.0-519f616953']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
-9:No errors.
-ok   it keeps a copy of the game (6 files)
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.18.0-9906a879fe']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+9:ERRORS:
+10:  pageerror: Unexpected token '<'
 ok   with the network off, the game still loads
 ok   and a shift starts offline
+ERRORS:
+  pageerror: Unexpected token '<'
+
+=== python test/map3d_test.py ===
+PASS
+10:No errors.
+ok   tapping nurse rnR1 in 3D opens or selects them ("staff")
+ok   the zoom button zooms the 3D floor
+ok   turning the 3D floor off shows the flat map
 No errors.
 
-ALL PASS
+SOME FAILED
