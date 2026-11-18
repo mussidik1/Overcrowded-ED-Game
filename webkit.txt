@@ -1,5 +1,5 @@
-commit cce371690f34e5c89072613d9136238e90cc3c06
-date   2026-11-18 19:39 UTC
+commit 6d9fc6ecf050d9d5043c5847625b2a5043fe169e
+date   2026-11-18 19:40 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,7 +13,7 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1980, "wait": 17, "sat": 54, "stars": 2, "seen": 123, "dc": 57, "adm": 36, "lwbs": 0, "ama": 1, "returns": 2, "mtp": 4, "interp": 15, "pitSeen": 0}
+1:report {"care": 1818, "wait": 14, "sat": 55, "stars": 2, "seen": 109, "dc": 52, "adm": 35, "lwbs": 0, "ama": 1, "returns": 2, "mtp": 2, "interp": 13, "pitSeen": 0}
 53:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
@@ -22,22 +22,21 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 771, 'stars': 1, 'wait': 21, 'left': 23} {'seen': 27, 'fast': 15, 'ordRight': 92, 'ordExtra': 3, 'ordMiss': 2, 'clean': 21, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 17, 'dispoWrong': 3, 'log': [{'name': 'Linda C.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Aria H.', 'dx': 'Contact dermatitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'No tests. A contact rash gets a steroid cream and an antihistamine.'}, {'name': 'Joyce M.', 'dx': 'Transient ischemic attack', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'CT rules out a bleed. ECG looks for A-fib. Labs check the sugar. Observe: stroke risk is highest in the first two days. Aspirin is reasonable.'}, {'name': 'Jen L.', 'dx': 'Pneumonia', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}]}
+1:report {'care': 883, 'stars': 1, 'wait': 21, 'left': 21} {'seen': 30, 'fast': 6, 'ordRight': 80, 'ordExtra': 5, 'ordMiss': 5, 'clean': 20, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 25, 'dispoWrong': 1, 'log': [{'name': 'Bill C.', 'dx': 'Kidney stone', 'miss': ['Urinalysis', 'BMP', 'CT abdomen and pelvis'], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Hector A.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}, {'name': 'Malik G.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Jen G.', 'dx': 'COPD flare', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP. A steroid is reasonable.'}, {'name': 'Frank K.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Ivan N.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Ana R.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Lucia W.', 'dx': 'Contact dermatitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. A contact rash gets a steroid cream and an antihistamine.'}]}
 28:ERRORS:
-29:  CHECK FAILED: picked 3 orders for A-fib with rapid rate
+29:  CHECK FAILED: picked 4 orders for Kidney stone
 30:  CHECK FAILED: signed a clean order set
-31:  CHECK FAILED: decision handled on the way ({'dsp': 'none', 'pick': None, 'want': 'admit', 'con': 'cards', 'gray': None, 'loc': 'room'})
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 883)
 ERRORS:
-  CHECK FAILED: picked 3 orders for A-fib with rapid rate
+  CHECK FAILED: picked 4 orders for Kidney stone
   CHECK FAILED: signed a clean order set
-  CHECK FAILED: decision handled on the way ({'dsp': 'none', 'pick': None, 'want': 'admit', 'con': 'cards', 'gray': None, 'loc': 'room'})
 
 === MODE=rn python test/train_test.py ===
 PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:36, care 144, cards read 70, words 2507, longest 68
+taps: 77, game clock: 10:32, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -53,7 +52,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:36, care 144, cards read 70, words 2506, longest 68
+taps: 78, game clock: 10:32, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
