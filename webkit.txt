@@ -1,5 +1,5 @@
-commit 4a0093d9f0bce80f7038e49617a999aa1580c203
-date   2026-11-18 04:07 UTC
+commit dabfda9749021df792407b2dc92ef1a1f1623429
+date   2026-11-18 05:52 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,8 +13,8 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1747, "wait": 13, "sat": 52, "stars": 2, "seen": 123, "dc": 52, "adm": 35, "lwbs": 0, "ama": 1, "returns": 3, "mtp": 2, "interp": 16, "pitSeen": 0}
-51:No errors.
+1:report {"care": 1818, "wait": 14, "sat": 55, "stars": 2, "seen": 109, "dc": 52, "adm": 35, "lwbs": 0, "ama": 1, "returns": 2, "mtp": 2, "interp": 13, "pitSeen": 0}
+52:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 2180, 'stars': 3, 'wait': 18, 'left': 12} {'seen': 44, 'fast': 19, 'ordRight': 110, 'ordExtra': 3, 'ordMiss': 4, 'clean': 35, 'gaps': 4, 'harm': 0, 'untreated': 0, 'dispoRight': 38, 'dispoWrong': 2, 'log': [{'name': 'Ruth D.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['Labs'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Nadia G.', 'dx': 'Chest pain, moderate risk, worse', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Maria W.', 'dx': 'Sepsis (urinary source)', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs with a lactate. Fluids and antibiotics inside the hour.'}, {'name': 'Shanice W.', 'dx': 'Complete heart block', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG shows the block. Labs check the potassium. Pace now. Cardiology.'}, {'name': 'Rosa H.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Jamal P.', 'dx': 'Large vessel occlusion stroke', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'CT rules out a bleed, and a CT angiogram finds the blocked artery. Glucose rules out a mimic. Clot-busting drug, then transfer to a center that removes clots.'}, {'name': 'Shanice T.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.'}]}
+1:report {'care': 2011, 'stars': 3, 'wait': 19, 'left': 24} {'seen': 42, 'fast': 19, 'ordRight': 111, 'ordExtra': 2, 'ordMiss': 1, 'clean': 38, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 37, 'dispoWrong': 1, 'log': [{'name': 'Keisha D.', 'dx': 'Sepsis (urinary source)', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs with a lactate. Fluids and antibiotics inside the hour.'}, {'name': 'Tom M.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Zoe J.', 'dx': 'Ear infection', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'No tests. You can see the infection. Amoxicillin.'}]}
 30:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 2180)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 2011)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:27, care 144, cards read 70, words 2288, longest 68
+taps: 77, game clock: 10:27, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -42,7 +42,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 40, game clock: 09:50, care 240, cards read 39, words 1350, longest 64
+taps: 40, game clock: 09:50, care 240, cards read 39, words 1392, longest 65
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:36, care 144, cards read 70, words 2287, longest 68
+taps: 78, game clock: 10:35, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:40, care 57, cards read 8, words 304, longest 57
+taps: 6, game clock: 07:41, care 57, cards read 8, words 306, longest 58
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -76,7 +76,7 @@ No errors.
 === python test/offline_test.py ===
 PASS
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.16.4-61646993ea']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.17.0-519f616953']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
 9:No errors.
 ok   it keeps a copy of the game (6 files)
 ok   with the network off, the game still loads
