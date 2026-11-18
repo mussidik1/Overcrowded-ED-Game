@@ -18,6 +18,7 @@ with sync_playwright() as pw:
     MODE = os.environ.get('MODE', 'rn'); LESSON = os.environ.get('LESSON')   # LESSON=stroke|heart|sepsis|bleed|breath|od plays one lesson, started from either role
     page.goto(URL); page.evaluate(f"() => localStorage.setItem('oc-view', '{VIEW}')"); page.goto(URL); page.wait_for_timeout(1200)
     page.locator(f'[data-act="mode"][data-arg="{MODE}"]').tap(); page.wait_for_timeout(300)
+    page.locator('[data-act="tmenu"][data-arg="learn"]').tap(); page.wait_for_timeout(300)
     if LESSON:
         page.locator('#title [data-act="lessons"]').tap(); page.wait_for_timeout(400)
         if page.locator('#sheet [data-act="lesson"]').count() != 8: errors.append('the Lessons list does not show eight lessons')
@@ -29,6 +30,7 @@ with sync_playwright() as pw:
         ch = int(os.environ['CHAPTER']) - 1
         J(f"localStorage.setItem('oc-ch-{MODE}-0', '1')"); page.goto(URL); page.wait_for_timeout(1000)
         page.locator(f'[data-act="mode"][data-arg="{MODE}"]').tap(); page.wait_for_timeout(300)
+        page.locator('[data-act="tmenu"][data-arg="learn"]').tap(); page.wait_for_timeout(300)
         page.locator('#title [data-act="chapters"]').tap(); page.wait_for_timeout(400)
         want = 3 if MODE == 'md' else 4
         if page.locator('#sheet [data-act="chapter"]').count() != want: errors.append(f'the chapter list does not show {want} chapters')

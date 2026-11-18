@@ -33,6 +33,7 @@ with sync_playwright() as pw:
     page.goto(URL); J(f"() => localStorage.setItem('oc-view', '{VIEW}')"); page.goto(URL); page.wait_for_timeout(1200)
     tap_sel(f'[data-act="mode"][data-arg="{MODE}"]'); page.wait_for_timeout(400)
     LESSON = os.environ.get('LESSON')   # one of the eight lessons instead of Orientation
+    tap_sel('[data-act="tmenu"][data-arg="learn"]'); page.wait_for_timeout(400)
     if LESSON: tap_sel('#title [data-act="lessons"]'); page.wait_for_timeout(500); tap_sel(f'#sheet [data-act="lesson"][data-arg="{LESSON}"]'); page.wait_for_timeout(700)
     else: tap_sel('button.lvl[data-arg="train"]'); page.wait_for_timeout(700)
     if J('OC.G.level') != 'train': errors.append('Orientation did not start')

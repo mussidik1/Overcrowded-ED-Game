@@ -50,7 +50,7 @@ def run():
             ctx.set_offline(True)
             page.reload(); page.wait_for_timeout(900)
             ok(page.locator('#title .t-brand').count() == 1 and 'Overcrowded' in page.locator('#title .t-brand').inner_text(), 'with the network off, the game still loads')
-            page.locator('button.lvl[data-arg="rush"]').tap(); page.wait_for_timeout(600)
+            page.locator('[data-act="tmenu"][data-arg="play"]').tap(); page.wait_for_timeout(300); page.locator('button.lvl[data-arg="rush"]').tap(); page.wait_for_timeout(600)
             ok(page.evaluate("OC.G.level") == 'rush' and page.evaluate("document.querySelectorAll('#mRooms [data-act=\"room\"]').length") >= 38, 'and a shift starts offline')
             b.close()
     finally:
