@@ -1,5 +1,5 @@
-commit 6d9fc6ecf050d9d5043c5847625b2a5043fe169e
-date   2026-11-18 19:40 UTC
+commit 412dcfe60d9b5c2a66ea5652fae6ab1863cd50da
+date   2026-11-18 21:31 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,7 +13,7 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1818, "wait": 14, "sat": 55, "stars": 2, "seen": 109, "dc": 52, "adm": 35, "lwbs": 0, "ama": 1, "returns": 2, "mtp": 2, "interp": 13, "pitSeen": 0}
+1:report {"care": 1882, "wait": 13, "sat": 51, "stars": 2, "seen": 116, "dc": 45, "adm": 36, "lwbs": 0, "ama": 0, "returns": 1, "mtp": 2, "interp": 14, "pitSeen": 0}
 53:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
@@ -22,14 +22,12 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 883, 'stars': 1, 'wait': 21, 'left': 21} {'seen': 30, 'fast': 6, 'ordRight': 80, 'ordExtra': 5, 'ordMiss': 5, 'clean': 20, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 25, 'dispoWrong': 1, 'log': [{'name': 'Bill C.', 'dx': 'Kidney stone', 'miss': ['Urinalysis', 'BMP', 'CT abdomen and pelvis'], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Hector A.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}, {'name': 'Malik G.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Jen G.', 'dx': 'COPD flare', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP. A steroid is reasonable.'}, {'name': 'Frank K.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Ivan N.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Ana R.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Lucia W.', 'dx': 'Contact dermatitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. A contact rash gets a steroid cream and an antihistamine.'}]}
-28:ERRORS:
-29:  CHECK FAILED: picked 4 orders for Kidney stone
-30:  CHECK FAILED: signed a clean order set
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 883)
-ERRORS:
-  CHECK FAILED: picked 4 orders for Kidney stone
-  CHECK FAILED: signed a clean order set
+1:report {'care': 1837, 'stars': 2, 'wait': 21, 'left': 16} {'seen': 43, 'fast': 14, 'ordRight': 138, 'ordExtra': 4, 'ordMiss': 3, 'clean': 35, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 34, 'dispoWrong': 2, 'log': [{'name': 'Keisha G.', 'dx': 'Urinary tract infection', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.'}, {'name': 'Tom T.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Minh H.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Linda H.', 'dx': 'Splenic laceration, hemorrhagic shock', 'miss': [], 'extra': [], 'fine': [], 'why': 'X-ray and a bedside ultrasound look for blood in the chest and belly. Labs with a blood type. Massive transfusion. CT only if blood brings the pressure up. If it stays down: straight to the OR.'}, {'name': 'Tyler W.', 'dx': 'Contact dermatitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. A contact rash gets a steroid cream and an antihistamine.'}, {'name': 'Dorothy G.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}]}
+30:No errors.
+ok   the team sheet has no nurse controls for the attending
+ok   the attending shift report
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1837)
+No errors.
 
 === MODE=rn python test/train_test.py ===
 PASS
@@ -52,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:32, care 144, cards read 70, words 2506, longest 68
+taps: 78, game clock: 10:36, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -60,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:41, care 57, cards read 8, words 316, longest 58
+taps: 6, game clock: 07:41, care -2, cards read 8, words 316, longest 58
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -78,7 +76,7 @@ No errors.
 === python test/offline_test.py ===
 PASS
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.19.1-9d15e8030c']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.20.0-c0a2c888bd']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
 9:No errors.
 ok   it keeps a copy of the game (6 files)
 ok   with the network off, the game still loads
@@ -86,19 +84,3 @@ ok   and a shift starts offline
 No errors.
 
 === python test/map3d_test.py ===
-PASS
-14:No errors.
-ok   3D detail moves from auto to sharp in the pause menu
-ok   and comes round to auto, and is saved
-ok   turning the 3D floor off shows the flat map
-No errors.
-
-=== python test/imaging_test.py ===
-PASS
-10:No errors.
-ok   Close closes it
-ok   every credited picture is in img/ (20)
-ok   every picture has an author, an allowed licence, and a source link
-No errors.
-
-ALL PASS
