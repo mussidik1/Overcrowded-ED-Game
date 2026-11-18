@@ -29,8 +29,11 @@ def run():
         page.on('console', lambda m: errors.append('console.' + m.type + ': ' + m.text) if m.type == 'error' and 'GL Driver' not in m.text and 'favicon' not in m.text else None)
         J = page.evaluate
         page.goto(url + 'index.html'); page.wait_for_timeout(800)
-        ok(page.locator('[data-act="three"]').count() == 1 and 'Floor: 3D' in page.locator('[data-act="three"]').inner_text(), 'the menu offers the 3D floor, on by default')
-        page.locator('[data-act="mode"][data-arg="rn"]').first.click(); page.locator('button.lvl[data-arg="med"]').first.click()
+        page.locator('[data-act="tmenu"][data-arg="set"]').first.click(); page.wait_for_timeout(300)
+        ok(page.locator('[data-act="three"]').count() == 1 and '3D' in page.locator('[data-act="three"]').inner_text(), 'Settings offers the 3D floor, on by default')
+        ok(page.locator('[data-act="q3d"]').count() == 1 and 'auto' in page.locator('[data-act="q3d"]').inner_text(), 'and 3D detail, on auto')
+        page.locator('.t-back').first.click(); page.wait_for_timeout(300)
+        page.locator('[data-act="mode"][data-arg="rn"]').first.click(); page.locator('[data-act="tmenu"][data-arg="play"]').first.click(); page.locator('button.lvl[data-arg="med"]').first.click()
         t0 = time.time()
         try: page.wait_for_function("() => document.getElementById('map').classList.contains('three')", timeout=240000)
         except Exception: pass
@@ -44,6 +47,8 @@ def run():
         for _ in range(8): clear(); page.wait_for_timeout(2500)
         page.wait_for_timeout(4000)
         page.screenshot(path=os.path.join(OUT, 'map3d-shift.png'))
+        inf = J("OC3D.info()")
+        ok(inf and inf['calls'] < 900, f"draw calls in a frame: {inf and inf['calls']} ({inf and inf['tris']} triangles, detail {inf and inf['q']})")
         n = J("(() => { const v = OC3D._view; return { staff: OC.G.staff.filter(s => s.st === 'on').length, rooms: OC.G.rooms.filter(r => r.pid).length }; })()")
         ok(n['staff'] > 10, f"staff on shift: {n['staff']}")
         # a tap on an occupied room opens its patient, the same as on the flat map
@@ -77,6 +82,12 @@ def run():
         J("mapZoom(0)") if J("typeof mapZoom === 'function'") else None
         # turning it off brings the flat map back
         J("OC && 0"); page.locator('#btnPause, [data-act="pause"]').first.click(); page.wait_for_timeout(500)
+        if page.locator('[data-act="q3d"]').count():
+            page.locator('[data-act="q3d"]').first.click(); page.wait_for_timeout(400)
+            ok(J("OC3D.quality().want") == 'high' and 'sharp' in page.locator('[data-act="q3d"]').inner_text(), '3D detail moves from auto to sharp in the pause menu')
+            for _ in range(3): page.locator('[data-act="q3d"]').first.click(); page.wait_for_timeout(300)
+            ok(J("OC3D.quality().want") == 'auto' and J("localStorage.getItem('oc-3dq')") == 'auto', 'and comes round to auto, and is saved')
+        else: ok(False, 'the pause menu offers 3D detail')
         if page.locator('[data-act="three"]').count():
             page.locator('[data-act="three"]').first.click(); page.wait_for_timeout(1500)
             ok(not J("document.getElementById('map').classList.contains('three')"), 'turning the 3D floor off shows the flat map')

@@ -48,7 +48,7 @@ def run():
         page.goto(URL); page.wait_for_timeout(900)
         ok(J('OCUI.U.view') == 'map', 'the floor plan is the default board')
         ok(box('#title .card')['height'] <= 390, 'the menu fits a sideways phone without scrolling')
-        tap('[data-act="mode"][data-arg="rn"]'); tap('button.lvl[data-arg="med"]'); page.wait_for_timeout(500)
+        tap('[data-act="mode"][data-arg="rn"]'); tap('[data-act="tmenu"][data-arg="play"]'); tap('button.lvl[data-arg="med"]'); page.wait_for_timeout(500)
         J("() => { OCUI.U.freeze = true; }")   # hold the clock so the checks don't race the shift
 
         # the layout: one strip on top, rails at the sides, the whole floor between
@@ -292,7 +292,7 @@ def run():
 
         # the attending sees the same floor, but the charge nurse runs the pods
         J("() => { OCUI.U.freeze = false; OCUI.U.paused = false; OCUI.showTitle(); }"); page.wait_for_timeout(300)
-        tap('[data-act="mode"][data-arg="md"]'); tap('button.lvl[data-arg="med"]'); page.wait_for_timeout(500)
+        tap('[data-act="mode"][data-arg="md"]'); tap('[data-act="tmenu"][data-arg="play"]'); tap('button.lvl[data-arg="med"]'); page.wait_for_timeout(500)
         ok(J('OC.G.mode') == 'md', 'an attending shift starts on the floor plan')
         ok(J("getComputedStyle(document.getElementById('railL')).display") == 'none', 'the attending has no intake rail')
         tap('#mzh-a')
@@ -322,11 +322,13 @@ def run():
 
         # class tools: the five-minute shift with a scenario, and a report to print
         J("() => { OCUI.U.paused = false; OCUI.showTitle(); }"); page.wait_for_timeout(300)
+        ok(page.locator('#title [data-act="tmenu"]').count() == 3 and page.locator('#title button.lvl[data-arg="med"]').count() == 0, 'the menu has three parts: Play a shift, Learn, Settings')
+        tap('[data-act="tmenu"][data-arg="play"]')
         ok(page.locator('[data-act="scenario"]').count() == 5 and page.is_visible('[data-act="scenario"][data-arg="mci"]') and not page.is_visible('.scn-sel'), 'on a laptop the scenarios are buttons')
         tap('[data-act="scenario"][data-arg="mci"]')
         ok(J('OCUI.U.scen') == 'mci' and J("document.querySelector('[data-act=\"scenario\"][data-arg=\"mci\"]').classList.contains('on')"), 'and a tap picks one')
         page.set_viewport_size({'width': 844, 'height': 390}); page.wait_for_timeout(300)
-        tap('[data-act="mode"][data-arg="rn"]')
+        tap('.t-back'); tap('[data-act="mode"][data-arg="rn"]'); tap('[data-act="tmenu"][data-arg="play"]')
         ok(page.locator('button.lvl[data-arg="rush"]').count() == 1 and page.locator('.scn-sel option').count() == 5 and page.is_visible('.scn-sel') and not page.is_visible('[data-act="scenario"]'), 'the menu offers the five-minute shift, and scenarios in a short menu')
         fits = lambda: J("(() => { const t = document.getElementById('title'); return t.scrollHeight <= t.clientHeight + 1; })()")
         ok(fits(), 'the whole menu fits a sideways phone')

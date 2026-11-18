@@ -881,3 +881,28 @@ body.ingame { touch-action: pan-x pan-y; }
 /* the wide list board keeps the team in a panel on the right: the Next button goes to the other corner */
 @media (min-width: 1100px) { body.ingame:not(.mapmode) .needbtn { right: auto; bottom: 12px; left: 12px; } }
 .coach.ctop { top: calc(var(--topH, 150px) + 8px); bottom: auto; }
+
+/* v0.18.1: the menu and its three parts (Play a shift, Learn, Settings) */
+.t-go .t-chev { margin-left: 6px; color: var(--ink-3); font: 700 26px/1 var(--ui); }
+.t-go .best { margin-left: auto; }
+.t-go .best + .t-chev { margin-left: 8px; }
+.t-go:not(:has(.best)) .t-chev { margin-left: auto; }
+.t-head { margin-bottom: 10px; }
+.t-head h2 { margin: 6px 0 4px; font: 700 30px/1.1 var(--ui); }
+.t-head .t-sub { margin-bottom: 4px; }
+.t-back { padding: 8px 10px 8px 0; border: 0; background: none; color: var(--accent); font: 700 16px/1 var(--ui); }
+.t-sets { display: grid; gap: 8px; }
+.t-set { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 8px 14px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); font: 500 17px/1.2 var(--ui); text-align: left; box-shadow: 0 3px 0 var(--ink); }
+.t-set b { font: 700 17px/1.2 var(--ui); color: var(--accent); white-space: nowrap; }
+.t-set:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.t-main .levels .lvl { min-height: 72px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  #title .card > .t-sets { grid-column: 2; grid-row: 1 / span 9; align-self: center; gap: 6px; }
+  #title .t-set { min-height: 42px; padding: 4px 12px; font-size: 15px; }
+  #title .t-set b { font-size: 15px; }
+  #title .t-head h2 { font-size: 24px; margin: 2px 0; }
+  #title .t-main .levels .lvl { min-height: 56px; }
+}
+@media (min-width: 960px) and (min-height: 521px) {
+  #title .card > .t-sets { grid-column: 2; grid-row: 1 / span 12; align-self: center; }
+}

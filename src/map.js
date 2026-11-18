@@ -404,7 +404,7 @@ function use3d(G) {
   if (!U.three || !G || G.train || D3.failed || U.view !== 'map') return false;
   if (!window.OC3D) { load3d(); return false; }
   const el = document.getElementById('map'); if (!el || !OC3D.ok) return false;
-  if (!OC3D.init(el, H3D)) { D3.failed = true; return false; }
+  if (!el.querySelector('canvas.floor3d')) { if (!OC3D.init(el, H3D)) { D3.failed = true; return false; } if (OC3D.quality) OC3D.quality(U.q3d); }
   if (!el.classList.contains('three')) el.classList.add('three');
   return OC3D.ready();
 }
@@ -418,6 +418,7 @@ function off3d() { const el = document.getElementById('map'); if (el) el.classLi
 const H3D = {
   RM, icon: k => ICO[k] || ICO.wait, route: (a, b) => routeTo(a, b), speed: () => Math.min(4, U.speed || 1),
   drag: () => { U.mapDrag = performance.now() + 250; },
+  live: () => U.scene === 'game' && !U.paused && !U.modal,
   fail: () => { D3.failed = true; off3d(); },
   tap(kind, id, cx, cy, far) {
     let n = null;
@@ -456,7 +457,7 @@ function mapRender(G) {
   const sel = U.sel, selP = sel && sel.pid ? E.pt(sel.pid) : null, selS = sel && sel.type === 'prov' ? E.staff(sel.sid) : null;
   const act = E.active(), md = MD();
   const setA = (n, k, v) => { const c = n._a || (n._a = {}); if (c[k] !== v) { n.setAttribute(k, v); c[k] = v; } };
-  const SN = on3d ? { rooms: [], staff: [], pts: [], amb: [], signs: [], counts: [], left: {} } : null;   // what the 3D floor draws this frame
+  const SN = on3d ? { rooms: [], staff: [], pts: [], amb: [], signs: [], counts: [], left: {}, t: G.t, power: !!(G.out && G.out.power && G.out.power.until > G.t) } : null;   // what the 3D floor draws this frame
 
   // a new shift or a loaded save: forget where people were
   const nowMs = performance.now(), key = G.seed + '|' + G.level + '|' + G.mode;

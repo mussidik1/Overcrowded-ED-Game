@@ -47,7 +47,20 @@ const buf = async u => PACK[u] ? b64buf(PACK[u]) : (await fetch(BASE + u)).array
 const load = u => (cache[u] ||= buf(u).then(b => loader.parseAsync(b, BASE)));
 const GL = {}, ROOM = {}, ENT = new Map(), AMB = new Map(), ROOMX = {}, LBL = new Map(), ANIM = {};
 const view = { tx: 2, ty: -1, dist: 60, fit: 60, tilt: 52 * DEG };
-let snap = null, clock = new THREE.Clock(), lastPick = [];
+let snap = null, clock = new THREE.Clock(), lastPick = [], SUN = null;
+/* Quality. auto starts balanced on a phone (sharp on a computer) and steps down while frames run slow. */
+const QL = { high: { dpr: 2, shadow: 2048, soft: true, fps: 60 }, med: { dpr: 1.5, shadow: 1024, soft: false, fps: 60 }, low: { dpr: 1, shadow: 0, soft: false, fps: 30 } };
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+let qWant = 'auto', qNow = '', perf = { t: 0, n: 0, slow: 0 }, lastDraw = 0;
+function setQuality(q) {
+  if (!R) return; const lv = QL[q] || QL.med; qNow = q;
+  dpr = Math.min(window.devicePixelRatio || 1, lv.dpr); R.setPixelRatio(dpr); W = 0;
+  R.shadowMap.enabled = lv.shadow > 0; R.shadowMap.type = lv.soft ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+  if (SUN) { SUN.castShadow = lv.shadow > 0; if (lv.shadow && SUN.shadow.mapSize.x !== lv.shadow) { SUN.shadow.mapSize.set(lv.shadow, lv.shadow); if (SUN.shadow.map) { SUN.shadow.map.dispose(); SUN.shadow.map = null; } } }
+  S.traverse(m => { if (m.material) (Array.isArray(m.material) ? m.material : [m.material]).forEach(x => { x.needsUpdate = true; }); });
+  perf = { t: 0, n: 0, slow: 0 };
+}
+const qStart = () => (qWant === 'auto' ? (TOUCH ? 'med' : 'high') : qWant);
 
 const M = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.8 }, o));
 const shade = o => o.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
@@ -100,7 +113,7 @@ async function build() {
   await Promise.all(all.concat(anims.map(a => `anim/${a}.glb`), ['stretcher.glb', 'ambulance.glb']).map(u => load(u)));
   for (const a of anims) ANIM[a] = (await load(`anim/${a}.glb`)).animations[0];
   for (const u of all) GL[u.replace(/^people\//, '').replace(/\.glb$/, '')] = await load(u);
-  GL.amb = await load('ambulance.glb'); people.length;
+  GL.amb = await load('ambulance.glb'); GL.str = await load('stretcher.glb'); people.length;
   ready = true;
 }
 const RING = M('#ff1010', { emissive: '#ff0000', emissiveIntensity: 2.4 }), BLANK = M('#10347f', { roughness: 0.9 }), CALL_ON = M('#ffffff', { emissive: '#fff6e0', emissiveIntensity: 3 }), CALL_OFF = M('#8d9298', { roughness: 0.4 });
@@ -199,17 +212,21 @@ function setPose(e, want) {
   e.root.rotation.y = (want.rot || 0) * DEG;
   play(e, want.anim);
 }
-function moveTo(e, want, from2, to2) {
+/* roll: a patient who is lying down goes on a stretcher, still lying, and the stretcher goes with them. */
+function moveTo(e, want, from2, to2, roll) {
   const cur = e.root.position, start = [cur.x, -cur.z];
   const pts = from2 && to2 ? routeFor(e, from2, to2, want) : [[want.x, want.y]];
-  e.path = [start].concat(pts); e.seg = 0; e.want = want; e.walking = true;
-  e.inner.rotation.set(0, 0, 0); play(e, 'walk');
+  e.path = [start].concat(pts); e.seg = 0; e.want = want; e.walking = true; e.rolling = !!roll;
+  if (roll) {
+    if (!e.str && GL.str) { e.str = GL.str.scene.clone(true); shade(e.str); e.str.position.set(0, -0.77, -0.86); e.root.add(e.str); }
+    if (e.str) e.str.visible = true; cur.y = 0.77; e.inner.rotation.set(-Math.PI / 2, 0, 0); play(e, 'idle-a');
+  } else { if (e.str) e.str.visible = false; cur.y = 0; e.inner.rotation.set(0, 0, 0); play(e, 'walk'); }
 }
 function stepMovers(dt) {
   const speed = 3.2 * (api.speed ? api.speed() : 1);
   for (const e of ENT.values()) {
     if (!e.walking || !e.root) continue;
-    let left = speed * dt;
+    let left = speed * dt * (e.rolling ? 0.8 : 1);
     while (left > 0 && e.seg < e.path.length - 1) {
       const a = e.path[e.seg], b = e.path[e.seg + 1], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy);
       const p = e.root.position, cx = p.x, cy = -p.z, rem = Math.hypot(b[0] - cx, b[1] - cy);
@@ -217,13 +234,30 @@ function stepMovers(dt) {
       else { p.x += (b[0] - cx) / rem * left; p.z -= (b[1] - cy) / rem * left; left = 0; }
       if (d > 1e-4) e.root.rotation.y = Math.atan2(dx, dy) + Math.PI;   // face the way they walk (models face -y)
     }
-    if (e.seg >= e.path.length - 1) { e.walking = false; const w = e.want; e.root.position.copy(B2T(w.x, w.y, w.z || 0)); setPose(e, w); }
+    if (e.seg >= e.path.length - 1) { e.walking = false; const w = e.want; e.root.position.copy(B2T(w.x, w.y, w.z || 0)); setPose(e, w); if (e.str) e.str.visible = !!w.keepStr; }
   }
 }
 
 /* ---------- the snapshot from map.js ---------- */
+/* The light through the day (the flat map's dayTint, as a sun): warm morning, plain day, gold late afternoon, dusk
+   by 19:00. A power failure runs the department on generator light: dimmer, cooler. */
+const C1 = new THREE.Color(), C2 = new THREE.Color(), SKY = new THREE.Color();
+let HEMI = null, lightKey = '';
+function light(t, power) {
+  const k = Math.round(t / 3) + (power ? 'p' : ''); if (k === lightKey || !SUN) return; lightKey = k;
+  const day = '#fff6ea', warm = '#ffc07a', gold = '#ff9a48', dusk = '#7f86c8';
+  let col, f = 0, sun = 2.0, sky = '#5d6066';
+  if (t < 90) { f = 1 - t / 90; col = C1.set(day).lerp(C2.set(warm), f); sun = 2.0 - 0.4 * f; }
+  else if (t < 540) col = C1.set(day);
+  else if (t < 660) { f = (t - 540) / 120; col = C1.set(day).lerp(C2.set(gold), f * 0.8); }
+  else { f = Math.min(1, (t - 660) / 60); col = C1.set(gold).lerp(C2.set(dusk), f); sun = 2.0 - 1.1 * f; sky = '#' + SKY.set('#5d6066').lerp(C2.set('#242a44'), f).getHexString(); }
+  SUN.color.copy(col); SUN.intensity = sun; S.background = SKY.set(sky).clone();
+  if (power) { SUN.intensity *= 0.55; HEMI.intensity = 0.42; HEMI.color.set('#c8d4ff'); R.toneMappingExposure = 0.7; }
+  else { HEMI.intensity = 0.75; HEMI.color.set('#ffffff'); R.toneMappingExposure = 0.86; }
+}
 function apply(sn) {
   const seen = new Set();
+  if (sn.t != null) light(sn.t, sn.power);
   // rooms
   for (const rm of sn.rooms) {
     const R2 = ROOM[rm.id]; if (!R2) continue;
@@ -260,14 +294,16 @@ function apply(sn) {
       else { e.root.position.copy(B2T(want.x, want.y, want.z || 0)); setPose(e, want); }
       continue;
     }
-    if (e.where !== where) { moveTo(e, want, e.at2, [p.x, p.y]); e.where = where; e.at2 = [p.x, p.y]; }
+    if (e.where !== where) { moveTo(e, want, e.at2, [p.x, p.y], !!(e.want && e.want.lie)); e.where = where; e.at2 = [p.x, p.y]; }
     else if (!e.walking) { e.want = want; e.root.position.copy(B2T(want.x, want.y, want.z || 0)); setPose(e, want); }
   }
   for (const [key, e] of Array.from(ENT)) if (!seen.has(key)) {
     if (e.leaving) continue;
     if (e.meta && e.meta.kind === 'pt' && e.root && sn.left && sn.left[e.meta.id]) {   // walking out, or rolling up to the elevators or out to an ambulance
-      const how = sn.left[e.meta.id], dest = how === 'up' ? { x: 14.8, y: -14.6, anim: 'idle-a', rot: 0 } : how === 'bay' ? { x: -24.5, y: 8.0, anim: 'idle-a', rot: 0 } : { x: -24.6, y: -12.0, anim: 'idle-a', rot: 0 };
-      e.leaving = true; moveTo(e, dest, e.at2, e.at2); setTimeout(() => { S.remove(e.root); ENT.delete(key); }, 9000); continue;
+      const how = sn.left[e.meta.id], roll = how === 'up' || how === 'bay';   // admitted and transferred patients go on a stretcher
+      const dest = how === 'up' ? { x: 14.8, y: -14.6, anim: 'idle-a', rot: 0 } : how === 'bay' ? { x: -24.5, y: 8.0, anim: 'idle-a', rot: 0 } : { x: -24.6, y: -12.0, anim: 'idle-a', rot: 0 };
+      if (roll) Object.assign(dest, { z: 0.77, lie: true, keepStr: true });
+      e.leaving = true; moveTo(e, dest, e.at2, e.at2, roll); setTimeout(() => { S.remove(e.root); ENT.delete(key); }, 9000); continue;
     }
     if (e.root) S.remove(e.root); ENT.delete(key);
   }
@@ -432,11 +468,18 @@ function resize() {
   view.fit = fitDist(); if (keep) { Object.assign(view, old, { fit: view.fit }); clampView(); camSet(); } else camReset();
   return true;
 }
-function frame() {
+function frame(now) {
   raf = requestAnimationFrame(frame);
   if (!ready || !el.isConnected || document.hidden) return;
+  const lv = QL[qNow] || QL.med, idle = api.live && !api.live();   // behind the menu or the pause card: two frames a second
+  if (idle ? now - lastDraw < 500 : lv.fps < 60 && now - lastDraw < 1000 / lv.fps - 4) return;
+  const gap = lastDraw ? now - lastDraw : 16; lastDraw = now;
   if (!resize()) return;
   const dt = Math.min(0.1, clock.getDelta());
+  if (qWant === 'auto' && qNow !== 'low' && gap < 400 && !idle) {   // 4 s of slow frames: one step down
+    perf.t += gap; perf.n++; if (gap > 1000 / 38) perf.slow++;
+    if (perf.t > 4000) { if (perf.slow > perf.n * 0.5) setQuality(qNow === 'high' ? 'med' : 'low'); perf = { t: 0, n: 0, slow: 0 }; }
+  }
   for (const e of ENT.values()) if (e.mixer) e.mixer.update(dt);
   stepMovers(dt);
   for (const o of AMB.values()) { const p = o.g.position, t = B2T(o.to[0], o.to[1]); p.lerp(t, Math.min(1, dt * 1.5)); }
@@ -444,7 +487,7 @@ function frame() {
   RING.emissiveIntensity = 0.6 + 2.6 * blink;
   for (const R2 of Object.values(ROOM)) { R2.tint.material.opacity = R2.tintOn ? 0.18 + 0.14 * blink : 0; }
   labels();
-  R.render(S, CAM); R.autoClear = false; R.clearDepth(); R.render(HUD, CAM); R.autoClear = true;
+  R.info.reset(); R.render(S, CAM); R.autoClear = false; R.clearDepth(); R.render(HUD, CAM); R.autoClear = true;
 }
 
 /* ---------- the public face ---------- */
@@ -457,14 +500,14 @@ window.OC3D = {
     try {
       R = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     } catch (e) { failed = true; return false; }
-    dpr = Math.min(window.devicePixelRatio || 1, 2); R.setPixelRatio(dpr);
-    R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap; R.toneMapping = THREE.AgXToneMapping; R.toneMappingExposure = 0.86; R.outputColorSpace = THREE.SRGBColorSpace;
+    R.info.autoReset = false; R.toneMapping = THREE.AgXToneMapping; R.toneMappingExposure = 0.86; R.outputColorSpace = THREE.SRGBColorSpace;
     R.domElement.className = 'floor3d'; el.appendChild(R.domElement);
     S = new THREE.Scene(); HUD = new THREE.Scene(); S.background = new THREE.Color('#5d6066');
     S.environment = new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(), 0.04).texture; S.environmentIntensity = 0.3;
-    S.add(new THREE.HemisphereLight('#ffffff', '#8a8f96', 0.75));
-    const sun = new THREE.DirectionalLight('#fff6ea', 2.0); sun.position.set(-20, 45, 25); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+    HEMI = new THREE.HemisphereLight('#ffffff', '#8a8f96', 0.75); S.add(HEMI);
+    const sun = SUN = new THREE.DirectionalLight('#fff6ea', 2.0); sun.position.set(-20, 45, 25);
     Object.assign(sun.shadow.camera, { left: -45, right: 45, top: 30, bottom: -30, near: 1, far: 120 }); sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.02; sun.target.position.set(2, 0, 0); S.add(sun, sun.target);
+    setQuality(qStart());
     CAM = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
     bindInput(); build().catch(err => { failed = true; console.error('3D floor failed to load', err); if (api.fail) api.fail(err); });
     raf = requestAnimationFrame(frame); return true;
@@ -481,5 +524,7 @@ window.OC3D = {
     if (kind === 'room' && ROOM[id]) v.copy(B2T(ROOM[id].r.x, ROOM[id].r.y, 1)); else { const e = ENT.get((kind === 'staff' ? 's' : 'p') + id); if (!e || !e.root) return null; v.copy(e.root.position); v.y += 1; }
     v.project(CAM); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height };
   },
+  quality(q) { if (q) { qWant = q; if (R) setQuality(qStart()); } return { want: qWant, now: qNow }; },
+  info: () => (R ? { calls: R.info.render.calls, tris: R.info.render.triangles, dpr, q: qNow } : null),
   _view: view, find: (x, y) => find(x, y),
 };
