@@ -1,5 +1,5 @@
-commit e259ec6a1296fa51f943049272d9546923cc2a17
-date   2026-11-18 18:49 UTC
+commit 7818ddfa680e3520ddaaa24463f013a22332a7b7
+date   2026-11-18 18:54 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -12,34 +12,29 @@ ok   Run it back starts the same shift again in one tap
 No errors.
 
 === python test/ui_test.py ===
-FAIL
-1:report {"care": 1887, "wait": 14, "sat": 52, "stars": 2, "seen": 124, "dc": 54, "adm": 35, "lwbs": 0, "ama": 1, "returns": 3, "mtp": 3, "interp": 18, "pitSeen": 0}
-52:ERRORS:
-53:  CHECK FAILED: registration directed for 1, triage for 1 by tapping
-54:  CHECK FAILED: placed 1 triaged patients by tapping
+PASS
+1:report {"care": 1980, "wait": 17, "sat": 54, "stars": 2, "seen": 123, "dc": 57, "adm": 36, "lwbs": 0, "ama": 1, "returns": 2, "mtp": 4, "interp": 15, "pitSeen": 0}
+53:No errors.
+ok   report shows ED metrics, patient experience, and staffing hours
+ok   report walks through the worst moments (M&M)
 ok   back to the menu
-ERRORS:
-  CHECK FAILED: registration directed for 1, triage for 1 by tapping
-  CHECK FAILED: placed 1 triaged patients by tapping
+No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 810, 'stars': 1, 'wait': 22, 'left': 13} {'seen': 26, 'fast': 11, 'ordRight': 73, 'ordExtra': 3, 'ordMiss': 6, 'clean': 16, 'gaps': 4, 'harm': 0, 'untreated': 0, 'dispoRight': 21, 'dispoWrong': 1, 'log': [{'name': 'Lucia B.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Nadia A.', 'dx': 'Ankle sprain', 'miss': [], 'extra': [], 'fine': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}, {'name': 'Kwame T.', 'dx': 'Transient ischemic attack', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'CT rules out a bleed. ECG looks for A-fib. Labs check the sugar. Observe: stroke risk is highest in the first two days. Aspirin is reasonable.'}, {'name': 'Jean K.', 'dx': 'Chest pain, moderate risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Priya L.', 'dx': 'Chest pain, moderate risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Kwame B.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Rosa A.', 'dx': 'Urinary tract infection', 'miss': [], 'extra': [], 'fine': [], 'why': 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.'}, {'name': 'Joyce G.', 'dx': 'Cholecystitis', 'miss': ['Gallbladder ultrasound'], 'extra': [], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}]}
-28:ERRORS:
-29:  CHECK FAILED: picked 2 orders for Cellulitis
-30:  CHECK FAILED: signed a clean order set
-31:  CHECK FAILED: decision handled on the way ({'dsp': 'none', 'pick': None, 'want': 'admit', 'con': 'hosp', 'gray': None, 'loc': 'room'})
-ERRORS:
-  CHECK FAILED: picked 2 orders for Cellulitis
-  CHECK FAILED: signed a clean order set
-  CHECK FAILED: decision handled on the way ({'dsp': 'none', 'pick': None, 'want': 'admit', 'con': 'hosp', 'gray': None, 'loc': 'room'})
+1:report {'care': 1867, 'stars': 2, 'wait': 21, 'left': 9} {'seen': 41, 'fast': 14, 'ordRight': 122, 'ordExtra': 5, 'ordMiss': 1, 'clean': 33, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 34, 'dispoWrong': 1, 'log': [{'name': 'Olga J.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Raj P.', 'dx': 'Deep vein thrombosis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Ultrasound finds the clot. Labs check the kidneys. Then a blood thinner.'}, {'name': 'Kwame B.', 'dx': 'Medication refill', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Nothing to order. No symptoms: the refill is written at discharge.'}, {'name': 'Tyler C.', 'dx': 'Cellulitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Yara J.', 'dx': 'Behavioral health emergency', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs look for a medical cause. Then Psychiatry.'}, {'name': 'Joyce W.', 'dx': 'Pneumonia', 'miss': [], 'extra': [], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}]}
+30:No errors.
+ok   the team sheet has no nurse controls for the attending
+ok   the attending shift report
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1867)
+No errors.
 
 === MODE=rn python test/train_test.py ===
 PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:32, care 144, cards read 70, words 2507, longest 68
+taps: 77, game clock: 10:27, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -47,7 +42,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 42, game clock: 09:47, care 238, cards read 39, words 1412, longest 70
+taps: 42, game clock: 09:50, care 238, cards read 39, words 1412, longest 70
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -63,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:40, care 57, cards read 8, words 316, longest 58
+taps: 6, game clock: 07:41, care 57, cards read 8, words 316, longest 58
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -96,4 +91,4 @@ ok   and comes round to auto, and is saved
 ok   turning the 3D floor off shows the flat map
 No errors.
 
-SOME FAILED
+ALL PASS
