@@ -1,5 +1,5 @@
-commit 468c893b3acafa34cccfba6fde30ef32e9246fe3
-date   2026-11-18 10:57 UTC
+commit 7d8b0f468e465df4e1ead2f87427d67b9d7c33d6
+date   2026-11-18 15:48 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1884, 'stars': 2, 'wait': 19, 'left': 20} {'seen': 41, 'fast': 13, 'ordRight': 104, 'ordExtra': 8, 'ordMiss': 2, 'clean': 30, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 37, 'dispoWrong': 0, 'log': [{'name': 'Raj A.', 'dx': 'Kidney stone', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Malik F.', 'dx': 'Diabetic ketoacidosis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show the sugar, the acid, and the potassium. Fluids first. Insulin once the potassium is known. ICU.'}, {'name': 'Yara T.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Jamal A.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.'}, {'name': 'Tyler V.', 'dx': 'Medication refill', 'miss': [], 'extra': ['Labs'], 'fine': [], 'why': 'Nothing to order. No symptoms: the refill is written at discharge.'}, {'name': 'Walt C.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Omar G.', 'dx': 'NSTEMI (heart attack)', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG and troponin make the diagnosis. Aspirin and heparin. Cardiology. A chest X-ray is reasonable.'}, {'name': 'Carmen E.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}, {'name': 'Ana D.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Jim T.', 'dx': 'Opioid overdose', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'Naloxone first. Labs after. Then watch: naloxone wears off before the opioid does.'}]}
+1:report {'care': 2352, 'stars': 3, 'wait': 23, 'left': 29} {'seen': 46, 'fast': 24, 'ordRight': 114, 'ordExtra': 1, 'ordMiss': 5, 'clean': 39, 'gaps': 5, 'harm': 0, 'untreated': 0, 'dispoRight': 35, 'dispoWrong': 1, 'log': [{'name': 'Rosa M.', 'dx': 'Anterior STEMI', 'miss': [], 'extra': [], 'fine': [], 'why': 'The ECG is the diagnosis. Labs go, but do not wait for the troponin. Aspirin and heparin. Cardiology and the cath lab.'}, {'name': 'Raj E.', 'dx': 'Splenic laceration, hemorrhagic shock', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'X-ray and a bedside ultrasound look for blood in the chest and belly. Labs with a blood type. Massive transfusion. CT only if blood brings the pressure up. If it stays down: straight to the OR.'}, {'name': 'Bill H.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Olga L.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}, {'name': 'Mia E.', 'dx': 'RSV, tiring out', 'miss': [], 'extra': [], 'fine': [], 'why': "A blood gas shows the baby is tiring. High-flow oxygen. Transfer to a children's hospital."}, {'name': 'Zoe H.', 'dx': 'Ear infection, worse', 'miss': [], 'extra': [], 'fine': [], 'why': 'No tests. You can see the infection. Amoxicillin.'}]}
 31:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1884)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 2352)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:36, care 144, cards read 70, words 2507, longest 68
+taps: 77, game clock: 10:28, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:37, care 144, cards read 70, words 2506, longest 68
+taps: 78, game clock: 10:29, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -78,17 +78,19 @@ FAIL
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
 5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.18.0-9906a879fe']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
 9:ERRORS:
-10:  pageerror: Unexpected token '<'
-ok   with the network off, the game still loads
+10:  pageerror: Response served by service worker is an error
+11:  pageerror: Cannot load .
 ok   and a shift starts offline
 ERRORS:
-  pageerror: Unexpected token '<'
+  pageerror: Response served by service worker is an error
+  pageerror: Cannot load .
 
 === python test/map3d_test.py ===
-FAIL
+PASS
+10:No errors.
 ok   tapping nurse rnR1 in 3D opens or selects them ("staff")
 ok   the zoom button zooms the 3D floor
 ok   turning the 3D floor off shows the flat map
-console.error: Failed to load resource: the server responded with a status of 404 (File not found)
+No errors.
 
 SOME FAILED
