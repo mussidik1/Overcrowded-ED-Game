@@ -177,6 +177,8 @@ def run():
             rid = J("() => { const p = OC.inRooms().find(p => p.lang && p.interp === 'none' && p.dsp === 'none'); return p ? p.room : null; }")
             if rid: break
             sim(20, extra=', interp: 0')
+        if not rid:   # no such patient came this shift (arrivals are random): give one a language, so the card is still checked
+            rid = J("() => { const p = OC.inRooms().find(p => p.interp === 'none' && p.dsp === 'none'); if (!p) return null; p.lang = 'es'; OCUI.render(); return p.room; }")
         clear_modal()
         if rid:
             tap(f'#room-{rid}')
