@@ -2474,7 +2474,35 @@ function bind() {
   document.addEventListener('visibilitychange', () => { if (document.hidden) hush(); if (document.hidden && U.scene === 'game') { U.paused = true; save(true); render(); } });
   window.addEventListener('pagehide', () => save(true));
 }
-function boot(data) {
+/* ---------- private testing gate (v0.21.1) ----------
+   On edcodeblack.com the game asks for a password before it starts. The password is checked by the database
+   (cb_gate_check; only its bcrypt hash is stored) and the switch is there too (cb_gate_on), so the gate comes
+   down at launch without a new release. A device that has the right password remembers it and plays offline.
+   The game's files still load first, so this keeps out visitors, not someone set on reading the code. */
+const GATED = /(^|\.)edcodeblack\.(com|net)$/i.test(location.hostname) || /\.github\.io$/i.test(location.hostname);
+function gate(go) {
+  if (!GATED) { go(); return; }
+  document.body.classList.add('gated');
+  const el = document.createElement('div'); el.id = 'gate'; el.className = 'gate'; document.body.appendChild(el);
+  const open = () => { el.remove(); document.body.classList.remove('gated'); go(); };
+  const form = (msg, bad) => {
+    el.innerHTML = `<div class="gate-card"><div class="t-kicker">Emergency Department</div><h1 class="t-brand">Code Black</h1><p>In private testing. Enter the password to play.</p>`
+      + `<form id="gateF" autocomplete="on"><input id="gateP" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password" maxlength="200"><button type="submit" class="big act">Play</button></form>`
+      + `<p class="gate-msg${bad ? ' bad' : ''}" role="status">${esc(msg || '')}</p></div>`;
+    const p = el.querySelector('#gateP'); try { p.focus(); } catch (e) { /* no focus on some phones */ }
+    el.querySelector('#gateF').addEventListener('submit', ev => {
+      ev.preventDefault(); const v = p.value.trim(); if (!v) return;
+      el.querySelector('.gate-msg').textContent = 'Checking…';
+      cbFetch('/rest/v1/rpc/cb_gate_check', { p: v }).then(ok => { if (ok === true) { store('oc-gate', v); open(); } else form('That password isn’t right.', true); })
+        .catch(() => form('Can’t reach the server. Check the connection and try again.', true));
+    });
+  };
+  const kept = store('oc-gate');
+  if (kept) cbFetch('/rest/v1/rpc/cb_gate_check', { p: kept }).then(ok => { if (ok === true) open(); else { store('oc-gate', null); form('The password has changed. Enter the new one.', true); } }).catch(open);   // offline: this device already got in
+  else cbFetch('/rest/v1/rpc/cb_gate_on', {}).then(on => (on === false ? open() : form())).catch(() => form('Can’t reach the server. Check the connection and try again.', true));
+}
+function boot(data) { gate(() => boot2(data)); }
+function boot2(data) {
   data = data || {};
   if (store('oc-sound') === '0' || data.sound === false) U.sound = false;
   const pk = store('oc-pack'); if (pk && E.PACKS[pk]) U.pack = pk;

@@ -76,6 +76,8 @@ jobs:
           run python test/offline_test.py
           run python test/map3d_test.py
           run python test/imaging_test.py
+          run python test/gate_test.py
+          run python test/class_test.py
           echo "" >> results.txt
           if [ $fail = 0 ]; then echo "ALL PASS" >> results.txt; else echo "SOME FAILED" >> results.txt; fi
           cat results.txt
