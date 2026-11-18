@@ -1,5 +1,5 @@
 /* Overcrowded: plays offline once it has loaded once. Written by build.js; do not edit. */
-const CACHE = 'overcrowded-0.19.0-7faff5aca5';
+const CACHE = 'overcrowded-0.19.1-9d15e8030c';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 // Other pages on this site (other games, other tools) keep their own caches: only this game's old copies are cleared.

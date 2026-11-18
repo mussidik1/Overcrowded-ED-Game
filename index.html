@@ -934,9 +934,10 @@ body.ingame { touch-action: pan-x pan-y; }
 .rimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .rimg span { position: absolute; left: 0; right: 0; bottom: 0; padding: 1px 0; background: rgba(0, 0, 0, .65); color: #fff; font: 700 11px/1.2 var(--ui); text-align: center; }
 .rimg.none { display: none; }
-#viewer { position: fixed; inset: 0; z-index: 90; display: grid; grid-template-rows: minmax(0, 1fr) auto; background: #000; color: #fff; }
+#viewer { position: fixed; inset: 0; z-index: 2000; display: grid; grid-template-rows: minmax(0, 1fr) auto; background: #000; color: #fff; }
 #viewer .vw-img { display: grid; place-items: center; min-height: 0; padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)); }
 #viewer .vw-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+#viewer .vw-img { overflow: hidden; }
 #viewer .vw-cap { padding: 10px max(14px, env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)); background: #12161c; font: 500 15px/1.35 var(--body); }
 #viewer .vw-h { font: 500 14px/1.2 var(--ui); color: #c7ced8; }
 #viewer .vw-h b { color: #fff; font-size: 16px; }
@@ -946,9 +947,12 @@ body.ingame { touch-action: pan-x pan-y; }
 #viewer .vw-cr { margin-top: 6px; color: #8d96a3; font-size: 12px; }
 #viewer .vw-x { margin-top: 8px; width: 100%; }
 @media (orientation: landscape) and (max-height: 520px) {
-  #viewer { grid-template-rows: none; grid-template-columns: minmax(0, 1fr) 300px; }
+  #viewer { grid-template-rows: 100%; grid-template-columns: minmax(0, 1fr) 300px; }
+  #viewer .vw-img { height: 100%; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  #viewer .vw-img img { max-height: calc(100vh - 16px); }
   #viewer .vw-cap { overflow: auto; padding-top: max(10px, env(safe-area-inset-top)); }
 }
+#viewer .vw-cr a { color: #aeb8c6; }
 
 </style>
 </head>
@@ -5457,8 +5461,8 @@ function testsBlock(chip) {
    LOOK: what to look for, per picture. IMG_CREDIT: filled from img/credits.json at build time. */
 const LOOK = {
   cxr_normal: 'Dark, clear lungs out to the edges. A heart less than half the width of the chest.',
-  cxr_pna: 'A white, fluffy patch low on the right, where air spaces have filled with pus.',
-  cxr_edema: 'Hazy white lungs on both sides, worst near the middle, and a big heart: fluid backing up from a failing heart.',
+  cxr_pna: 'A white, fluffy patch low on the right (circled), where air spaces have filled with pus.',
+  cxr_edema: 'Fluid backing up from a failing heart: a big heart, vessels to the upper lungs standing out, short white Kerley B lines at the edges, and fluid at the base. The labels point to each one.',
   cxr_copd: 'Big, dark, over-inflated lungs and a flat diaphragm. No white patch of pneumonia.',
   cxr_tb: 'A hollow ring (a cavity) high in the lung, where tuberculosis has eaten the tissue.',
   xr_hipfx: 'A break across the neck of the femur, just below the ball of the hip.',
@@ -5467,7 +5471,7 @@ const LOOK = {
   ankle_normal: 'Smooth, unbroken bone edges and an even joint space.',
   hip_normal: 'A smooth curve from the ball of the hip down the neck of the femur.',
   pelvis_normal: 'An unbroken ring of bone.',
-  cthead_normal: 'Gray brain filling the skull evenly. No bright white blood.',
+  cthead_normal: 'Gray brain filling the skull evenly. No bright white blood. (This slice is low, at the level of the eyes.)',
   ct_sdh: 'A bright crescent of blood between the skull and the brain, pushing the brain over.',
   cta_normal: 'Bright, unbroken arteries filled with contrast.',
   cta_m1: 'The artery to one side of the brain stops short: contrast cannot get past the clot.',
@@ -5482,17 +5486,17 @@ const LOOK = {
   fast_negative: 'Liver and kidney touching, with no black stripe between them.',
   us_gallstones: 'Bright stones inside the gallbladder, dark shadows behind them, and a thick wall.',
   ruq_normal: 'A dark, thin-walled gallbladder with no stones.',
-  us_dvt: 'The vein does not squash flat when pressed: it is full of clot.',
+  us_dvt: 'Color is moving blood. The clotted femoral vein shows no color: it is filled with gray clot, between two vessels that still flow.',
   duplex_normal: 'The vein squashes flat under the probe: no clot.',
   pelus_normal: 'A normal uterus and ovaries.',
 };
-const IMG_CREDIT = {};   // a picture is shown only when it is in the game (and so has a credit)
+const IMG_CREDIT = {"ankle_normal":{"t":"Mikael Häggström, CC0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:X-ray_of_normal_ankle_-_frontal.jpg"},"ct_appy":{"t":"Cerevisae, CC BY-SA 4.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:CT_scan_of_the_abdomen_showing_acute_appendicitis.jpg"},"ct_sdh":{"t":"Lucien Monfils, CC BY-SA 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Ct-scan_of_the_brain_with_an_subdural_hematoma.jpg"},"ct_stone":{"t":"James Heilman, MD, CC BY-SA 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Midureterstonehydro.png"},"cthead_normal":{"t":"Mikael Häggström, CC0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:CT_of_a_normal_brain%2C_axial_27.png"},"cxr_copd":{"t":"James Heilman, MD, CC BY-SA 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:COPD.JPG"},"cxr_edema":{"t":"Mikael Häggström, CC0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Chest_radiograph_with_signs_of_congestive_heart_failure_-_annotated.jpg"},"cxr_normal":{"t":"Mikael Häggström, CC0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Normal_posteroanterior_%28PA%29_chest_radiograph_%28X-ray%29.jpg"},"cxr_pna":{"t":"James Heilman, MD, CC BY 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:RLL_pneumoniaM.jpg"},"cxr_tb":{"t":"Centers for Disease Control and Prevention, Public domain (US government), Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Tuberculosis-x-ray-1.jpg"},"fast_negative":{"t":"Drahreg01, CC BY-SA 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:MorisonNoText.png"},"fast_positive":{"t":"James Heilman, MD, CC BY-SA 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:FluidMorisonsPouchEctop.PNG"},"hip_normal":{"t":"M A Modi, A D Mate, Amrit Nasta, A K Gvalani, CC BY 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:X-ray_of_normal_hip.jpg"},"mrib_normal":{"t":"Novaksean, CC BY-SA 4.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Normal_axial_T2-weighted_MR_image_of_the_brain.jpg"},"ruq_normal":{"t":"Ptrump16, CC BY-SA 4.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Gallbladder_and_common_bile_duct_ultrasound.jpg"},"us_dvt":{"t":"Mikael Häggström, CC0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Ultrasonography_of_deep_vein_thrombosis_of_the_femoral_vein.jpg"},"us_gallstones":{"t":"James Heilman, MD, CC BY-SA 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Gallstones.PNG"},"xr_femur":{"t":"Marek2kkk, CC BY-SA 4.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Moje_zlomenina.jpg"},"xr_hipfx":{"t":"Booyabazooka, CC BY-SA 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Cdm_hip_fracture_343.jpg"},"xr_wrist":{"t":"Lucien Monfils, CC BY-SA 3.0, Wikimedia Commons","u":"https://commons.wikimedia.org/wiki/File:Collesfracture.jpg"}};   // a picture is shown only when it is in the game (and so has a credit)
 function openViewer(pid, d) {
   const p = E.pt(pid); if (!p) return;
   const [t, img] = (p.dres && p.dres[d]) || E.detResult(p, d); if (!img || !IMG_CREDIT[img]) return;
   closeViewer(); const v = document.createElement('div'); v.id = 'viewer'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-label', E.DET_NAME(d));
   const cr = IMG_CREDIT[img], pl = PLAIN() && E.FIND_PLAIN[t];
-  v.innerHTML = `<div class="vw-img"><img src="img/${img}.jpg" alt="${esc(E.DET_NAME(d))}: ${esc(t)}"></div><div class="vw-cap"><div class="vw-h"><b>${esc(E.DET_NAME(d))}</b> · ${esc(p.name)}</div><div class="vw-f">${esc(t)}${pl ? ` <small>${esc(pl)}</small>` : ''}</div>${LOOK[img] ? `<div class="vw-look"><b>Look for:</b> ${esc(LOOK[img])}</div>` : ''}${cr ? `<div class="vw-cr">Image: ${esc(cr)}</div>` : ''}<button type="button" class="big vw-x" data-vw="x">Close</button></div>`;
+  v.innerHTML = `<div class="vw-img"><img src="img/${img}.jpg" alt="${esc(E.DET_NAME(d))}: ${esc(t)}"></div><div class="vw-cap"><div class="vw-h"><b>${esc(E.DET_NAME(d))}</b> · ${esc(p.name)}</div><div class="vw-f">${esc(t)}${pl ? ` <small>${esc(pl)}</small>` : ''}</div>${LOOK[img] ? `<div class="vw-look"><b>Look for:</b> ${esc(LOOK[img])}</div>` : ''}${cr ? `<div class="vw-cr">Image: ${cr.u ? `<a href="${esc(cr.u)}" target="_blank" rel="noopener">${esc(cr.t)}</a>` : esc(cr.t)}</div>` : ''}<button type="button" class="big vw-x" data-vw="x">Close</button></div>`;
   v.addEventListener('click', e => { if (e.target.closest('[data-vw="x"]') || !e.target.closest('.vw-cap')) closeViewer(); });
   document.body.appendChild(v); U.viewer = { pid, d };
 }

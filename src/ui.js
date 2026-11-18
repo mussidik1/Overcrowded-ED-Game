@@ -894,8 +894,8 @@ function testsBlock(chip) {
    LOOK: what to look for, per picture. IMG_CREDIT: filled from img/credits.json at build time. */
 const LOOK = {
   cxr_normal: 'Dark, clear lungs out to the edges. A heart less than half the width of the chest.',
-  cxr_pna: 'A white, fluffy patch low on the right, where air spaces have filled with pus.',
-  cxr_edema: 'Hazy white lungs on both sides, worst near the middle, and a big heart: fluid backing up from a failing heart.',
+  cxr_pna: 'A white, fluffy patch low on the right (circled), where air spaces have filled with pus.',
+  cxr_edema: 'Fluid backing up from a failing heart: a big heart, vessels to the upper lungs standing out, short white Kerley B lines at the edges, and fluid at the base. The labels point to each one.',
   cxr_copd: 'Big, dark, over-inflated lungs and a flat diaphragm. No white patch of pneumonia.',
   cxr_tb: 'A hollow ring (a cavity) high in the lung, where tuberculosis has eaten the tissue.',
   xr_hipfx: 'A break across the neck of the femur, just below the ball of the hip.',
@@ -904,7 +904,7 @@ const LOOK = {
   ankle_normal: 'Smooth, unbroken bone edges and an even joint space.',
   hip_normal: 'A smooth curve from the ball of the hip down the neck of the femur.',
   pelvis_normal: 'An unbroken ring of bone.',
-  cthead_normal: 'Gray brain filling the skull evenly. No bright white blood.',
+  cthead_normal: 'Gray brain filling the skull evenly. No bright white blood. (This slice is low, at the level of the eyes.)',
   ct_sdh: 'A bright crescent of blood between the skull and the brain, pushing the brain over.',
   cta_normal: 'Bright, unbroken arteries filled with contrast.',
   cta_m1: 'The artery to one side of the brain stops short: contrast cannot get past the clot.',
@@ -919,7 +919,7 @@ const LOOK = {
   fast_negative: 'Liver and kidney touching, with no black stripe between them.',
   us_gallstones: 'Bright stones inside the gallbladder, dark shadows behind them, and a thick wall.',
   ruq_normal: 'A dark, thin-walled gallbladder with no stones.',
-  us_dvt: 'The vein does not squash flat when pressed: it is full of clot.',
+  us_dvt: 'Color is moving blood. The clotted femoral vein shows no color: it is filled with gray clot, between two vessels that still flow.',
   duplex_normal: 'The vein squashes flat under the probe: no clot.',
   pelus_normal: 'A normal uterus and ovaries.',
 };
@@ -929,7 +929,7 @@ function openViewer(pid, d) {
   const [t, img] = (p.dres && p.dres[d]) || E.detResult(p, d); if (!img || !IMG_CREDIT[img]) return;
   closeViewer(); const v = document.createElement('div'); v.id = 'viewer'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-label', E.DET_NAME(d));
   const cr = IMG_CREDIT[img], pl = PLAIN() && E.FIND_PLAIN[t];
-  v.innerHTML = `<div class="vw-img"><img src="img/${img}.jpg" alt="${esc(E.DET_NAME(d))}: ${esc(t)}"></div><div class="vw-cap"><div class="vw-h"><b>${esc(E.DET_NAME(d))}</b> · ${esc(p.name)}</div><div class="vw-f">${esc(t)}${pl ? ` <small>${esc(pl)}</small>` : ''}</div>${LOOK[img] ? `<div class="vw-look"><b>Look for:</b> ${esc(LOOK[img])}</div>` : ''}${cr ? `<div class="vw-cr">Image: ${esc(cr)}</div>` : ''}<button type="button" class="big vw-x" data-vw="x">Close</button></div>`;
+  v.innerHTML = `<div class="vw-img"><img src="img/${img}.jpg" alt="${esc(E.DET_NAME(d))}: ${esc(t)}"></div><div class="vw-cap"><div class="vw-h"><b>${esc(E.DET_NAME(d))}</b> · ${esc(p.name)}</div><div class="vw-f">${esc(t)}${pl ? ` <small>${esc(pl)}</small>` : ''}</div>${LOOK[img] ? `<div class="vw-look"><b>Look for:</b> ${esc(LOOK[img])}</div>` : ''}${cr ? `<div class="vw-cr">Image: ${cr.u ? `<a href="${esc(cr.u)}" target="_blank" rel="noopener">${esc(cr.t)}</a>` : esc(cr.t)}</div>` : ''}<button type="button" class="big vw-x" data-vw="x">Close</button></div>`;
   v.addEventListener('click', e => { if (e.target.closest('[data-vw="x"]') || !e.target.closest('.vw-cap')) closeViewer(); });
   document.body.appendChild(v); U.viewer = { pid, d };
 }
