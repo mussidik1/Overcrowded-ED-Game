@@ -1,4 +1,4 @@
-commit e180700fdb452c0520f59be9d0efce4265736d49
+commit 6abe2bb1f34702a88e1635aa6184a559f4231ded
 date   2026-11-18 21:41 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
@@ -13,7 +13,7 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1925, "wait": 13, "sat": 51, "stars": 2, "seen": 116, "dc": 47, "adm": 35, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 2, "interp": 14, "pitSeen": 0}
+1:report {"care": 1804, "wait": 13, "sat": 51, "stars": 2, "seen": 118, "dc": 46, "adm": 36, "lwbs": 0, "ama": 0, "returns": 2, "mtp": 2, "interp": 15, "pitSeen": 0}
 53:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1983, 'stars': 2, 'wait': 23, 'left': 16} {'seen': 42, 'fast': 12, 'ordRight': 124, 'ordExtra': 2, 'ordMiss': 5, 'clean': 35, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 38, 'dispoWrong': 0, 'log': [{'name': 'Kevin G.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Hector L.', 'dx': 'NSTEMI (heart attack)', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG and troponin make the diagnosis. Aspirin and heparin. Cardiology. A chest X-ray is reasonable.'}, {'name': 'Tyler K.', 'dx': 'Partial-thickness burns, 25%, airway injury', 'miss': [], 'extra': [], 'fine': [], 'why': 'Secure the airway before it swells shut: intubate, then the ventilator. Labs check for carbon monoxide. Fluids and pain control. Burn center.'}, {'name': 'Thi D.', 'dx': 'Upper GI bleed', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs with a blood type. Fluids, then blood. GI for a scope.'}, {'name': 'Omar P.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.'}]}
-31:No errors.
+1:report {'care': 1689, 'stars': 2, 'wait': 26, 'left': 21} {'seen': 44, 'fast': 19, 'ordRight': 132, 'ordExtra': 8, 'ordMiss': 5, 'clean': 30, 'gaps': 5, 'harm': 0, 'untreated': 0, 'dispoRight': 34, 'dispoWrong': 3, 'log': [{'name': 'Kwame C.', 'dx': 'Heart failure flare', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG looks for a heart attack as the cause. X-ray shows the fluid. Labs check the heart and kidneys. BiPAP, nitroglycerin, and a water pill.'}, {'name': 'Minh F.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Rosa A.', 'dx': 'Deep vein thrombosis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Ultrasound finds the clot. Labs check the kidneys. Then a blood thinner.'}, {'name': 'Bill S.', 'dx': 'Behavioral health emergency', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs look for a medical cause. Then Psychiatry.'}, {'name': 'Darnell G.', 'dx': 'Opioid overdose', 'miss': [], 'extra': [], 'fine': [], 'why': 'Naloxone first. Labs after. Then watch: naloxone wears off before the opioid does.'}, {'name': 'Tyler W.', 'dx': 'Behavioral health emergency', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs look for a medical cause. Then Psychiatry.'}, {'name': 'Joyce T.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Mei V.', 'dx': 'Medication refill', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Nothing to order. No symptoms: the refill is written at discharge.'}, {'name': 'Mei S.', 'dx': 'Cellulitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Frank D.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Joyce V.', 'dx': 'Anaphylaxis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.'}, {'name': 'Jean N.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.'}, {'name': 'Omar P.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}]}
+30:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1983)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1689)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:36, care 144, cards read 70, words 2507, longest 68
+taps: 77, game clock: 10:32, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:32, care 144, cards read 70, words 2506, longest 68
+taps: 78, game clock: 10:36, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:40, care -2, cards read 8, words 316, longest 58
+taps: 6, game clock: 07:41, care -2, cards read 8, words 316, longest 58
 No errors.
 
 === MODE=rn python test/finger_test.py ===
