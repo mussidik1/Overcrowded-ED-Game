@@ -44,6 +44,8 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 
 **Messages (v0.16.3).** On the floor plan, the five scores stay on screen while a message shows: they drop their labels and slide left, and the message takes the rest of the strip. Routine news (a goal met, staff arriving, a patient off to the OR) skips the strip and is kept under a bell beside the pause button, which counts what is unread. Bad news, anything to act on, and the answer to a tap still show. Orientation and lessons show every message. On the smallest phones, or with the Box ringing, there is no room for both, and a message covers the scores as before.
 
+**Safari's engine, spaced cases, earlier terms (v0.16.4).** A GitHub workflow (`.github/workflows/tests.yml`) runs the rule checks and the phone-size UI tests in WebKit, the engine behind Safari, on each push to `main`; the output is kept as `webkit.txt` on the `ci-results` branch. `BROWSER=webkit` runs any UI test in WebKit locally. A case that just arrived is unlikely to arrive again for 45 minutes, so a shift no longer brings three hip fractures before 08:00. Orientation explains EVS, the dots on a pod sign, CT, XR, LAB, RX, and the workup where they first appear; the card explains Experience and Mark STAT when Plain words is on.
+
 **What six reviewers found (v0.16).** Three lay players and three clinicians (an emergency physician, an EMS physician, an ED charge nurse) reviewed v0.15. This release builds their clinical fixes and the feedback they asked for.
 
 - **Trauma.** A bleeding patient in shock is no longer scored for a CT. X-ray, a bedside ultrasound, labs, blood, and the OR. The Bleeding lesson says so.
@@ -165,7 +167,7 @@ The build also writes `sw.js`, a small service worker that keeps a copy of the g
 ```sh
 npm install      # fonts used by the build
 npm run build    # writes index.html
-npm test         # rule checks (six suites, 309 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
+npm test         # rule checks (six suites, 310 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
 npm run sim      # simulated shifts at several player speeds
 npm run stress   # 188 shifts across every level and scenario: checks for stuck states and out-of-range vitals
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)

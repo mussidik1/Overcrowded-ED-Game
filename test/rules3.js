@@ -212,16 +212,19 @@ for (const sd of [701, 702, 703, 704]) {
 assert(missed > 0, `one PA with a line of ${Math.round(piled / 4)} misses things (${missed} missed diagnoses in 4 tries)`);
 
 // 14. A whole hard shift: door to balloon, M&M, ED metrics, staffing hours
-let cath = 0, d2b = 0, R = null, cathMsg = 0, cathOk = 0;
+let cath = 0, d2b = 0, R = null, cathMsg = 0, cathOk = 0, arrivals = 0, closePairs = 0;
 const heard = [], hook0 = OC.hooks.toast; OC.hooks.toast = (m, k, routine) => heard.push({ m, k, routine });
 for (const sd of [601, 602, 603]) {
   OC.newGame('hard', sd); let since = 0;
   while (!OC.G.over) { OC.step(0.1); since += 0.1; if (OC.G.card) OC.botStep({ budget: 0 }); if (since >= 1) { since = 0; OC.botStep({ budget: 1, acc: 0.7 });
     for (const l of OC.G.log) if (l.t > OC.G.t - 1 && /left for the cath lab/.test(l.msg)) { cathMsg++; if (/artery opens about \d+ min later/.test(l.msg)) cathOk++; } } }
   R = OC.G.report;
+  { const by = {}; for (const id of OC.G.order) { const p = OC.G.pts[id]; if (p.tArrive >= 0) { (by[p.ck] = by[p.ck] || []).push(p.tArrive); arrivals++; } }
+    for (const k in by) { const a = by[k].sort((x, y) => x - y); for (let i = 1; i < a.length; i++) if (a[i] - a[i - 1] < 45) closePairs++; } }
   for (const id of OC.G.order) { const p = OC.G.pts[id]; if (p.outcome === 'cath') { cath++; if (typeof p.goals.d2b90 === 'boolean') d2b++; } }
 }
 OC.hooks.toast = hook0;
+assert(arrivals > 250 && closePairs / arrivals < 0.08, `the same case rarely comes twice within 45 minutes (${closePairs} of ${arrivals} arrivals on three Full Moon Fridays)`);
 assert(heard.some(x => x.routine) && heard.filter(x => x.routine).every(x => x.k === 'good' || x.k === 'info') && heard.filter(x => /Goal met/.test(x.m)).every(x => x.routine) && heard.filter(x => /ROSC|fixed\.|alert/i.test(x.m)).every(x => !x.routine),
   `routine messages are marked for the bell: goals met are, bad news and anything to act on is not (${heard.filter(x => x.routine).length} of ${heard.length})`);
 assert(OC.ALERTS.stemi.goals.includes('d2b90') && OC.GOALS.d2b90.lim === 90, 'the STEMI goal is door to balloon under 90 minutes');

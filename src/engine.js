@@ -484,7 +484,14 @@ function step(dt) {
 }
 
 /* ---------- arrivals ---------- */
-function pickCase(srcs) { return wpick(CASES.filter(c => srcs.includes(c.src)), c => c.wt); }
+/* Which case comes through the door. A case that just came is unlikely to come again for 45 minutes, and less likely for two hours,
+   so a shift does not bring three hip fractures before 08:00. The weights are otherwise untouched: common cases stay common across the day. */
+function pickCase(srcs) {
+  const L = G.caseLog || (G.caseLog = {});
+  const c = wpick(CASES.filter(c => srcs.includes(c.src)), c => { const s = L[c.k]; if (!s) return c.wt; const ago = G.t - s.t; return c.wt * (ago < 45 ? 0.1 : ago < 120 ? 0.4 : 1); });
+  L[c.k] = { n: (L[c.k] ? L[c.k].n : 0) + 1, t: G.t };
+  return c;
+}
 function pickLang() { let r = rnd(); for (const [k, w] of LANG_W) { r -= w; if (r < 0) return k; } return null; }
 /* ---------- vitals: they drift while a patient waits and settle as treatment lands ----------
    Computed from the patient's state and the clock, so nothing here changes how a shift plays out.

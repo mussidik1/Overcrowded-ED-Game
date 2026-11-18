@@ -16,7 +16,10 @@ def run():
     with socket.socket() as s: s.bind(('127.0.0.1', 0)); port = s.getsockname()[1]
     srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(port), '--bind', '127.0.0.1'], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
-        time.sleep(0.8)
+        for _ in range(50):   # wait until the server answers (a cold Python start can take a few seconds)
+            try:
+                with socket.create_connection(('127.0.0.1', port), timeout=0.3): break
+            except OSError: time.sleep(0.2)
         url = f'http://127.0.0.1:{port}/'
         with sync_playwright() as pw:
             b = launch(pw)
@@ -24,7 +27,7 @@ def run():
             page = ctx.new_page()
             page.on('pageerror', lambda e: errors.append('pageerror: ' + str(e)))
             # other apps share this site's storage; an old copy of this game does too
-            page.goto(url + 'apple-touch-icon.png')   # any page on this site will do; Safari's engine downloads a manifest instead of showing it
+            page.goto(url + 'no-such-page', wait_until='domcontentloaded')   # any page on this site will do, even its 'not found' page: the game itself must not load before the old caches are planted
             page.evaluate("() => Promise.all([caches.open('another-app-v1').then(c => c.put('/another-app/index.html', new Response('theirs'))), caches.open('overcrowded-0.0.0-old').then(c => c.put('index.html', new Response('stale')))])")
             page.goto(url); page.wait_for_timeout(600)
             ok(page.locator('link[rel="manifest"]').count() == 1 and page.locator('link[rel="apple-touch-icon"]').count() == 1, 'on the web, the page links its manifest and home-screen icon')
