@@ -44,7 +44,7 @@ const intakeDone = p => p.loc === 'waiting' || p.loc === 'room' || (E.regQuick(p
 const regable = p => p.loc !== 'enroute' && (p.reg === 'none' || (p.reg === 'quick' && (p.loc === 'room' || p.loc === 'waiting')));
 const hasHold = () => E.holdNurses().length > 0;
 const GRAY_GUIDE = { 'HEART score': '0 to 3 is low risk (home). 4 to 6 is moderate (observation). 7 to 10 is high (admit).', 'Canadian Syncope Risk Score': '0 or below is low risk (home). 1 to 3 is medium. 4 to 5 is high (observation). 6 and up is very high (admit).', 'ABCD2 score': '0 to 3 is low risk (home with fast follow-up). 4 to 5 is moderate (observation). 6 to 7 is high (admit or observation).' };
-function istChip(lbl, st) { return `<i class="ist ${st === 'done' ? 'done' : st === 'doing' ? 'doing' : st === 'q' ? 'q' : 'need'}">${lbl}</i>`; }
+function istChip(lbl, st) { const k = st === 'done' ? 'done' : st === 'doing' ? 'doing' : st === 'q' ? 'q' : 'need'; return `<i class="ist ${k}">${k === 'need' ? 'NEEDS ' : ''}${lbl}${k === 'done' ? ' ✓' : k === 'doing' ? ' NOW' : k === 'q' ? ' IN LINE' : ''}</i>`; }   // needs it, in line for it, being done, done
 function intakeChips(p) { const reg = istChip('REG', E.regQuick(p) ? 'done' : p.reg); return p.loc === 'wall' ? istChip('REPORT', p.tri) + reg : reg + istChip('TRIAGE', p.tri); }   // on the wall, report comes first
 function alertTag(p) { return p.alertOn && p.alert ? `<i class="atag a-${p.alert}">${esc(E.ALERTS[p.alert].name)}</i>` : ''; }
 const LANG_SHORT = { es: 'Spanish', ht: 'Creole', zh: 'Mandarin', ar: 'Arabic', vi: 'Vietnamese', ru: 'Russian', asl: 'ASL' };   // "HT" and "ES" read as diagnoses
@@ -208,6 +208,7 @@ function render() {
   rs.setProperty('--dockH', (!rails && shown(dock) ? dock.offsetHeight : 0) + 'px');
   rs.setProperty('--railR', (rails && shown(dock) ? dock.offsetWidth : 0) + 'px');
   rs.setProperty('--railL', (rails && shown(rl) ? rl.offsetWidth : 0) + 'px');
+  { const nb = $('#needBtn'); rs.setProperty('--nbW', (U.view === 'map' && nb && !nb.classList.contains('inrail') && shown(nb) ? nb.offsetWidth + 8 : 0) + 'px'); }
   const sb = $('#selbar'); if (sb) rs.setProperty('--selH', (U.view === 'map' && !sb.hidden ? sb.offsetHeight + 8 : 0) + 'px');
   if (U.view === 'map') {   // messages sit over the scores: between the buttons and the Box, and clear of the preceptor when he is up there
     const pl = $('#top .pills'), pr = pl ? pl.getBoundingClientRect() : null, co = $('#coach'), cr = co && !co.hidden && co.classList.contains('beside') ? co.getBoundingClientRect() : null;
@@ -425,12 +426,14 @@ function treatReason(p) {
   return 'Treatment underway';
 }
 const LEAVING = ['dc', 'dcing', 'toproc', 'iftwait', 'iftreport', 'xportq', 'family', 'morgue', 'morguing'];
+/* How long the attending's own exam or code has left, in game minutes. */
+function myLeft(p) { const me = E.staff(g().me), k = me && me.q[0]; return k && k.started && k.pid === p.id ? Math.max(1, Math.ceil(k.left / E.provSpeed(me))) : 0; }
 /* What a room needs next: t = words, c = tone, i = the icon the floor plan shows. */
 function nextStep(p, r, G) {
   const pv = p.prov ? E.staff(p.prov) : null, nm = pv ? (isMe(pv) ? 'You' : esc(pv.short)) : '';
   if (mine(p) && !p.arrest) {
     if (p.ev === 'q') return { t: 'In your line', c: 'n-wait', i: 'steth' };
-    if (p.ev === 'doing') return { t: 'You are in the room', c: 'n-wait', i: 'steth' };
+    if (p.ev === 'doing') { const n = myLeft(p); return { t: 'You are in the room' + (n ? ` · ${n} min left` : ''), c: 'n-wait', i: 'steth' }; }
     if (p.ord === 'need') return { t: 'Write orders', c: 'n-act fl', i: 'orders' };
     if (p.ord === 'more') return { t: 'Add to the workup', c: 'n-act fl', i: 'orders' };
     if (p.dsp === 'mddecide' || p.dsp === 'decide') return { t: 'Your call', c: 'n-act fl', i: 'decide' };
@@ -803,7 +806,7 @@ function mdPrimary(p, G) {
     return `<p class="hint">${s ? esc(s.name) : 'Another provider'} has this patient${take ? ' but hasn\'t started' : ''}.</p>${take ? `<div class="prim"><button type="button" class="big" data-act="see" data-arg="${p.id}">Take over</button></div>` : ''}`;
   }
   if (p.ev === 'q') { const me = E.staff(G.me), i = me.q.findIndex(k => k.pid === p.id); return `<p class="hint">In your line${i > 0 ? `, #${i + 1}` : ''}. You'll see them after what you're doing now.</p>`; }
-  if (p.ev === 'doing') return `<p class="hint">${p.arrest ? 'You are running the code.' : 'You are in the room: history and exam.'}</p>`;
+  if (p.ev === 'doing') return `<p class="hint">${p.arrest ? 'You are running the code.' : `You are in the room: history and exam.${myLeft(p) ? ` About <b>${myLeft(p)} min</b> left.` : ''}`}</p>`;
   if (p.ord === 'need' || p.ord === 'more') return mtpBtn + ordersBlock(p, G);
   if (p.dsp === 'mddecide' || p.dsp === 'decide') {
     const call = p.dsp === 'mddecide' ? mdDecideBlock(p) : grayBlock(p);
@@ -1144,9 +1147,9 @@ function wordsHTML() {
 }
 /* What the floor plan's icons mean. */
 function legendHTML(md) {
-  const rows = md ? [['steth', 'act fl', 'Waiting for a doctor'], ['orders', 'act fl', 'Write orders'], ['decide', 'act fl', 'Your call to make'], ['alert', 'bad fl', 'Not improving'], ['code', 'code fl', 'Code'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['phone', 'wait', 'Consultant on the way'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['bed', 'board', 'Admitted, waiting for a bed']]
-    : [['steth', 'act fl', 'Needs a provider'], ['phone', 'act fl', 'Call a consult'], ['decide', 'act fl', 'Your call: home, obs, admit'], ['home', 'go fl', 'Ready to discharge'], ['up', 'act fl', 'Bed ready: send them up'], ['amb', 'act fl', 'Transfer: request or book'], ['card', 'act fl', 'Needs registration'], ['alert', 'bad fl', 'Trouble in the room'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['code', 'code fl', 'Code'], ['bed', 'board', 'Admitted, waiting for a bed'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['broom', 'dirty fl', 'Dirty: tap to send EVS'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']];
-  return `<p class="hint" style="margin-bottom:4px">Each room shows one icon for what it needs. Filled, pulsing icons need you. Gray ones are waiting on someone else. Pinch to zoom in and the icons turn into words.</p><div class="lgd">${rows.map(([k, c, t]) => `<span>${icoInline(k, c.replace(' fl', ''))}${t}</span>`).join('')}</div>`;
+  const rows = md ? [['steth', 'act fl', 'Waiting for a doctor'], ['orders', 'act fl', 'Write orders'], ['decide', 'act fl', 'Your call to make'], ['alert', 'bad fl', 'Not improving'], ['code', 'code fl', 'Code'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['phone', 'wait', 'Consultant on the way'], ['steth', 'wait', 'You or another doctor is with them'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['bed', 'board', 'Admitted, waiting for a bed'], ['home', 'go', 'Ready to go home'], ['broom', 'dirtyq', 'Dirty room'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']]
+    : [['steth', 'act fl', 'Needs a provider'], ['phone', 'act fl', 'Call a consult'], ['decide', 'act fl', 'Your call: home, obs, admit'], ['home', 'go fl', 'Ready to discharge'], ['up', 'act fl', 'Bed ready: send them up'], ['amb', 'act fl', 'Transfer: request or book'], ['card', 'act fl', 'Needs registration'], ['alert', 'bad fl', 'Trouble in the room'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['code', 'code fl', 'Code'], ['steth', 'wait', 'A provider has them'], ['bed', 'board', 'Admitted, waiting for a bed'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['broom', 'dirty fl', 'Dirty: tap to send EVS'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']];
+  return `<p class="hint" style="margin-bottom:4px">Each room shows one <b>square icon</b> for what it needs. Filled, pulsing icons need you. Gray ones are waiting on someone else. Pinch to zoom in and the icons turn into words.</p><div class="lgd">${rows.map(([k, c, t]) => `<span>${icoInline(k, c.replace(' fl', ''))}${t}</span>`).join('')}</div>`;
 }
 const WORDS_BTN = '<p class="wlink"><button type="button" data-act="words">New to the ED? What the words mean</button></p>';
 const shiftSpan = () => { const G = g(); return `07:00 to ${U.scene === 'game' && G && !G.train ? E.clock(G.shift) : '19:00'}`; };
@@ -1195,7 +1198,7 @@ function renderSheet(G) {
     else if (s.type === 'divert') h = divertSheet(G);
     else if (s.type === 'help') h = helpHTML();
     else if (s.type === 'words') h = wordsHTML();
-    else if (s.type === 'legend') h = head('What the map shows', 'One icon on each room: what it needs next.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The number in the circle is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient.' : ''}</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
+    else if (s.type === 'legend') h = head('What the map shows', 'One icon on each room: what it needs next.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The <b>number in the circle</b> is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient. The <b>gold star</b>: you.' : ''}</p><p class="hint"><b>Pod signs.</b> Each <b>purple dot</b> is a nurse. <b>3/4</b> is the pod's workload over what its nurses can carry safely. An <b>orange outline</b>: full. <b>Red</b>: over. <b>WALL</b>, <b>WAITING</b>, and <b>DOOR</b> show a count when someone is there.</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
     if (!h) U.sheet = null;
   } else if (s && s.type === 'help') h = helpHTML();
   else if (s && s.type === 'words') h = wordsHTML();
@@ -1684,6 +1687,7 @@ function mapAct(el, cx, cy) {
   const tg = U.tapGuard;   // a double tap: the second tap lands where the first one closed a sheet
   if (el && tg && performance.now() < tg.t && Math.hypot(cx - tg.x, cy - tg.y) < 40 && !el.closest('#sheet, #modal, #coach')) return;
   const hadSheet = !!U.sheet; setTimeout(() => { if (hadSheet && !U.sheet) U.tapGuard = { t: performance.now() + 400, x: cx, y: cy }; }, 0);
+  if (el && el.dataset.act === 'closeSheet') { const nb = $('#needBtn'), r = nb ? nb.getBoundingClientRect() : null; if (r && r.width && cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) el = nb; }   // Next shows through the dimmed side of an open card: a tap there goes to the next thing, not just the card closing
   if (!el || el.disabled) return;
   ensureAudio();
   const fn = ACT[el.dataset.act];

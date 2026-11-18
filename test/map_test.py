@@ -119,6 +119,22 @@ def run():
         bx = box('#boxbar')
         ok(J(f"(() => {{ const e = document.elementFromPoint({bx['x'] + bx['width'] / 2}, {bx['y'] + bx['height'] / 2}); return !!(e && e.closest('#boxbar')); }})()") and J("(() => { const e = document.elementFromPoint(40, 18); return !!(e && e.closest('#top')); })()"), 'with a card open, the clock and the Box stay in view and in reach')
         ok(page.locator('#sheet .vv').count() == 5 and page.locator('#sheet .vtrend').count() == 1 and '°F' in page.locator('#sheet .ph-cc').inner_text(), 'the card shows all five vitals, the temperature in Fahrenheit, and which way they are heading')
+        # v0.16.2: Next shows through the dimmed side of an open card. A tap there goes to the next thing; it does not just close the card.
+        nb = box('#needBtn'); J("() => { OCUI.U.needLast = null; }")
+        if nb and J("document.getElementById('needBtn').classList.contains('on')"):
+            page.touchscreen.tap(nb['x'] + nb['width'] / 2, nb['y'] + nb['height'] / 2); page.wait_for_timeout(450)
+            ok(J("OCUI.U.needLast != null && !!(OCUI.U.sheet || OCUI.U.sel || document.getElementById('toasts').textContent)"), 'with a card open, a tap on Next goes to the next thing')
+            J("() => { OCUI.U.sel = null; OCUI.U.sheet = null; OCUI.render(); }"); page.wait_for_timeout(450)
+        close_sheet()
+        ok(J("document.querySelectorAll('#mRooms .mico rect.ib').length") >= 1 and J("document.querySelectorAll('#mRooms .mico circle.ib').length") == 0, 'room icons are rounded squares, so a blue icon is not read as an ESI circle')
+        J(f"() => {{ OCUI.U.sel = {{ type: 'pt', pid: '{wall}' }}; OCUI.render(); }}"); page.wait_for_timeout(350); J("OCUI.render()"); page.wait_for_timeout(150)
+        sbx = box('#selbar'); r19 = box('#mroom-19')
+        ok(sbx and sbx['height'] <= 36 and sbx['y'] >= r19['y'] + r19['height'] - 1, f"the bedding bar is one line under the bottom row of rooms (bar top {round(sbx['y'])}, room 19 bottom {round(r19['y'] + r19['height'])})")
+        J("() => { OCUI.U.sel = null; OCUI.U.sheet = { type: 'zone', z: 'triage', at: 'door' }; OCUI.render(); }"); page.wait_for_timeout(350)
+        chips = J("[...document.querySelectorAll('#sheet .ist')].map(e => e.textContent)")
+        ok(len(chips) >= 2 and all(('✓' in c) or c.startswith('NEEDS ') or c.endswith(' NOW') or c.endswith(' IN LINE') for c in chips), f'intake tags say their state in words ({chips[:4]})')
+        lb = J("(() => { const a = document.getElementById('mDoorL').getBoundingClientRect(), w = document.getElementById('mWaitL').getBoundingClientRect(), hit = (r, sel) => [...document.querySelectorAll(sel)].some(n => { const b = n.getBoundingClientRect(); return b.width && !(b.right < r.left || b.left > r.right || b.bottom < r.top + 1 || b.top > r.bottom - 1); }); return { door: hit(a, '#mPtsWalk .wk, #mPeople .wk'), wait: hit(w, '#mPtsWalk .wk, #mPeople .wk') }; })()")
+        ok(not lb['door'] and not lb['wait'], 'nobody stands on the DOOR or WAITING label')
         close_sheet()
 
         # patient names: a highlighted tag in every occupied room, at both zoom levels, drawn above the staff

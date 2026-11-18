@@ -513,7 +513,7 @@ body.mapmode .boxbar .bx-btn { height: 36px; }
 /* things that float over the floor: goals, the selection, toasts, the preceptor */
 body.mapmode .objs { position: fixed; z-index: 27; top: calc(var(--topH, 60px) + 5px); right: calc(var(--railR, 0px) + 5px); flex-direction: column; align-items: flex-end; gap: 3px; max-width: 46vw; padding: 0; overflow: visible; border: 0; background: transparent; pointer-events: none; }
 body.mapmode .objs > * { pointer-events: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
-body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 131px); bottom: calc(var(--dockH, 0px) + 6px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + (100vw - var(--railL, 0px) - var(--railR, 0px)) * .36); padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
+body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 131px); bottom: calc(var(--dockH, 0px) + 3px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + var(--nbW, 0px) + 6px); max-width: 640px; padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
 body.mapmode .toasts { top: env(safe-area-inset-top); right: var(--tsR, 120px); bottom: auto; left: var(--tsL, 230px); display: grid; place-items: center; height: calc(var(--topH, 60px) - env(safe-area-inset-top)); padding: 2px 3px; gap: 0; }
 body.mapmode .toast { grid-area: 1 / 1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; width: 100%; max-width: 620px; max-height: 100%; padding: 4px 12px; border-radius: 9px; font-size: 14px; line-height: 1.22; text-align: center; box-shadow: 0 0 0 2px var(--frame), 0 2px 8px rgba(0, 0, 0, .35); }
 body.mapmode .coach { right: calc(var(--railR, 0px) + 10px); bottom: calc(var(--dockH, 70px) + 10px + env(safe-area-inset-bottom)); left: auto; width: min(420px, calc(100vw - 24px)); margin: 0; }
@@ -568,12 +568,12 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
   body.mapmode .ic small { font-size: 10px; }
   body.mapmode .objs { max-width: 170px; }
   body.mapmode .objs .ob { max-width: 100%; padding: 2px 7px; font-size: 11px; white-space: normal; text-align: right; }
-  body.mapmode .selbar { padding: 4px 6px 4px 10px; }
+  body.mapmode .selbar { bottom: calc(var(--dockH, 0px) + 2px + env(safe-area-inset-bottom)); padding: 2px 6px 2px 10px; }   /* one short line over the imaging strip, clear of the bottom row of rooms */
   body.mapmode .selbar > span { font-size: 12.5px; }
-  body.mapmode .selbar button { height: 30px; padding: 0 9px; font-size: 13px; }
+  body.mapmode .selbar button { height: 28px; padding: 0 10px; font-size: 13px; }
   body.mapmode .toast { padding: 2px 9px; border-radius: 8px; font-size: 12px; line-height: 1.18; }
   body.mapmode .toasts.tight .toast { padding: 1px 6px; font-size: 10.5px; line-height: 1.12; -webkit-line-clamp: 3; line-clamp: 3; }
-  body.mapmode .coach.calt { top: auto; bottom: calc(var(--dockH, 0px) + 6px + env(safe-area-inset-bottom)); }
+  body.mapmode .coach.calt { top: auto; bottom: calc(var(--dockH, 0px) + 6px + var(--selH, 0px) + env(safe-area-inset-bottom)); }
   body.mapmode .coach { top: calc(var(--topH, 40px) + 6px); bottom: auto; width: min(280px, calc((100vw - var(--railL, 0px) - var(--railR, 0px)) * .44)); max-height: calc(100vh - var(--topH, 40px) - var(--selH, 0px) - 14px); max-height: calc(100dvh - var(--topH, 40px) - var(--selH, 0px) - 14px); overflow: auto; border-radius: 14px; }
   body.mapmode .coach-c { padding: 8px 10px; }
   body.mapmode .coach-c.in { padding-right: 46px; }   /* clear of the card's close button */
@@ -650,8 +650,8 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 .mico.warn { --ib: #B76E00; }
 .mico.board { --ib: #ECE8F6; color: #5B4A8F; }
 .mico.board .ib { stroke: #A79CCB; }
-.mico.wait { --ib: #EEF1F5; color: #5E6878; }
-.mico.wait .ib { stroke: #B9C0CA; }
+.mico.wait { --ib: #EEF1F5; color: #465061; }
+.mico.wait .ib { stroke: #98A2B0; }
 .mico.off { --ib: #D5D9DF; color: #5E6878; }
 .mico.dirty { --ib: #8C6239; }
 .mico.dirtyq { --ib: #EFE4D3; color: #8C6239; }

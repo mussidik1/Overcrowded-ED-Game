@@ -2186,13 +2186,14 @@ function leave(p, outcome) {
   if (G.remote && G.remote.pid === p.id) G.remote = null;
   const wasLoc = p.loc;
   p.loc = 'gone'; p.tDone = G.t; p.outcome = outcome; p.room = null;
-  if (outcome === 'cath') goalHit(p, 'd2b90', G.t + randi(15, 25));  // balloon inflation, about 20 min after they reach the lab
+  const bal = outcome === 'cath' ? randi(15, 25) : 0, d2b = bal && 'd2b90' in p.goals && p.goals.d2b90 === null;   // balloon inflation, about 20 min after they reach the lab
+  if (bal) goalHit(p, 'd2b90', G.t + bal);
   if (G.pre) return;
   const S = G.stats;
   if (outcome === 'dc') { S.dc++; care(10, 'flow', p); if (p.tDone - p.tArrive <= 120) { care(5, 'flow', p); S.quick++; } }
   else if (outcome === 'admit' || outcome === 'icu' || outcome === 'bh' || outcome === 'obs') { S[outcome]++; care(12, 'flow', p); }
   else if (outcome === 'or') { S.or++; care(15, 'flow', p); toast(`${p.name} is off to the OR`, 'good'); }
-  else if (outcome === 'cath') { S.cath++; care(15, 'flow', p); toast(`${p.name} is in the cath lab, ${Math.round(p.tDone - p.tArrive)} min after arrival`, 'good'); }
+  else if (outcome === 'cath') { S.cath++; care(15, 'flow', p); toast(`${p.name} left for the cath lab ${Math.round(p.tDone - p.tArrive)} min after arrival${d2b ? `. The artery opens about ${bal} min later: that is the door-to-balloon time` : ''}`, 'good'); }   // one time for leaving, one for the balloon: say which is which
   else if (outcome === 'tx') { S.tx++; care(12, 'flow', p); note(`${p.name} transferred to ${p.txTo}`); }
   else if (outcome === 'lwbs') { S.lwbs++; care(-25, 'lwbs'); }
   else if (outcome === 'ama') { S.ama++; care(-15, 'ama'); if (G.mode === 'md' && p.mine) care(-15, 'md'); }
@@ -3392,6 +3393,6 @@ const RADIO_BTN = {
   miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
 };
 for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
-Object.assign(OC, { WATCH_WHY, missNow, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && EXAM[p.ck]) || '', whyOf: p => (p && ORD_WHY[p.ck]) || '' });
+Object.assign(OC, { WATCH_WHY, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && EXAM[p.ck]) || '', whyOf: p => (p && ORD_WHY[p.ck]) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);

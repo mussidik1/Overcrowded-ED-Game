@@ -212,14 +212,16 @@ for (const sd of [701, 702, 703, 704]) {
 assert(missed > 0, `one PA with a line of ${Math.round(piled / 4)} misses things (${missed} missed diagnoses in 4 tries)`);
 
 // 14. A whole hard shift: door to balloon, M&M, ED metrics, staffing hours
-let cath = 0, d2b = 0, R = null;
+let cath = 0, d2b = 0, R = null, cathMsg = 0, cathOk = 0;
 for (const sd of [601, 602, 603]) {
   OC.newGame('hard', sd); let since = 0;
-  while (!OC.G.over) { OC.step(0.1); since += 0.1; if (OC.G.card) OC.botStep({ budget: 0 }); if (since >= 1) { since = 0; OC.botStep({ budget: 1, acc: 0.7 }); } }
+  while (!OC.G.over) { OC.step(0.1); since += 0.1; if (OC.G.card) OC.botStep({ budget: 0 }); if (since >= 1) { since = 0; OC.botStep({ budget: 1, acc: 0.7 });
+    for (const l of OC.G.log) if (l.t > OC.G.t - 1 && /left for the cath lab/.test(l.msg)) { cathMsg++; if (/artery opens about \d+ min later/.test(l.msg)) cathOk++; } } }
   R = OC.G.report;
   for (const id of OC.G.order) { const p = OC.G.pts[id]; if (p.outcome === 'cath') { cath++; if (typeof p.goals.d2b90 === 'boolean') d2b++; } }
 }
 assert(OC.ALERTS.stemi.goals.includes('d2b90') && OC.GOALS.d2b90.lim === 90, 'the STEMI goal is door to balloon under 90 minutes');
+if (cathMsg) assert(cathOk > 0 && !OC.G.log.some(l => /is in the cath lab, \d+ min after arrival/.test(l.msg)), `the cath lab message gives the time they left and says the balloon comes later (${cathOk} of ${cathMsg})`);
 if (cath) assert(d2b === cath, `every STEMI that reached the cath lab was scored on door to balloon (${d2b} of ${cath})`);
 assert(R.mm.length > 0 && R.mm.length <= 3 && R.mm.every(x => x.what && x.why) && R.mm.every((x, i) => i === 0 || R.mm[i - 1].sev >= x.sev), 'M&M lists the worst moments, worst first, each with the reason');
 assert(['d2p', 'd2t', 'losDc', 'losAdm', 'board', 'lwbsPct', 'amaPct', 'admitPct', 'retPct', 'capHours'].every(k => k in R.m), 'the report has the ED metrics');

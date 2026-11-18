@@ -528,7 +528,7 @@ body.mapmode .boxbar .bx-btn { height: 36px; }
 /* things that float over the floor: goals, the selection, toasts, the preceptor */
 body.mapmode .objs { position: fixed; z-index: 27; top: calc(var(--topH, 60px) + 5px); right: calc(var(--railR, 0px) + 5px); flex-direction: column; align-items: flex-end; gap: 3px; max-width: 46vw; padding: 0; overflow: visible; border: 0; background: transparent; pointer-events: none; }
 body.mapmode .objs > * { pointer-events: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
-body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 131px); bottom: calc(var(--dockH, 0px) + 6px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + (100vw - var(--railL, 0px) - var(--railR, 0px)) * .36); padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
+body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 131px); bottom: calc(var(--dockH, 0px) + 3px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + var(--nbW, 0px) + 6px); max-width: 640px; padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
 body.mapmode .toasts { top: env(safe-area-inset-top); right: var(--tsR, 120px); bottom: auto; left: var(--tsL, 230px); display: grid; place-items: center; height: calc(var(--topH, 60px) - env(safe-area-inset-top)); padding: 2px 3px; gap: 0; }
 body.mapmode .toast { grid-area: 1 / 1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; width: 100%; max-width: 620px; max-height: 100%; padding: 4px 12px; border-radius: 9px; font-size: 14px; line-height: 1.22; text-align: center; box-shadow: 0 0 0 2px var(--frame), 0 2px 8px rgba(0, 0, 0, .35); }
 body.mapmode .coach { right: calc(var(--railR, 0px) + 10px); bottom: calc(var(--dockH, 70px) + 10px + env(safe-area-inset-bottom)); left: auto; width: min(420px, calc(100vw - 24px)); margin: 0; }
@@ -583,12 +583,12 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
   body.mapmode .ic small { font-size: 10px; }
   body.mapmode .objs { max-width: 170px; }
   body.mapmode .objs .ob { max-width: 100%; padding: 2px 7px; font-size: 11px; white-space: normal; text-align: right; }
-  body.mapmode .selbar { padding: 4px 6px 4px 10px; }
+  body.mapmode .selbar { bottom: calc(var(--dockH, 0px) + 2px + env(safe-area-inset-bottom)); padding: 2px 6px 2px 10px; }   /* one short line over the imaging strip, clear of the bottom row of rooms */
   body.mapmode .selbar > span { font-size: 12.5px; }
-  body.mapmode .selbar button { height: 30px; padding: 0 9px; font-size: 13px; }
+  body.mapmode .selbar button { height: 28px; padding: 0 10px; font-size: 13px; }
   body.mapmode .toast { padding: 2px 9px; border-radius: 8px; font-size: 12px; line-height: 1.18; }
   body.mapmode .toasts.tight .toast { padding: 1px 6px; font-size: 10.5px; line-height: 1.12; -webkit-line-clamp: 3; line-clamp: 3; }
-  body.mapmode .coach.calt { top: auto; bottom: calc(var(--dockH, 0px) + 6px + env(safe-area-inset-bottom)); }
+  body.mapmode .coach.calt { top: auto; bottom: calc(var(--dockH, 0px) + 6px + var(--selH, 0px) + env(safe-area-inset-bottom)); }
   body.mapmode .coach { top: calc(var(--topH, 40px) + 6px); bottom: auto; width: min(280px, calc((100vw - var(--railL, 0px) - var(--railR, 0px)) * .44)); max-height: calc(100vh - var(--topH, 40px) - var(--selH, 0px) - 14px); max-height: calc(100dvh - var(--topH, 40px) - var(--selH, 0px) - 14px); overflow: auto; border-radius: 14px; }
   body.mapmode .coach-c { padding: 8px 10px; }
   body.mapmode .coach-c.in { padding-right: 46px; }   /* clear of the card's close button */
@@ -665,8 +665,8 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 .mico.warn { --ib: #B76E00; }
 .mico.board { --ib: #ECE8F6; color: #5B4A8F; }
 .mico.board .ib { stroke: #A79CCB; }
-.mico.wait { --ib: #EEF1F5; color: #5E6878; }
-.mico.wait .ib { stroke: #B9C0CA; }
+.mico.wait { --ib: #EEF1F5; color: #465061; }
+.mico.wait .ib { stroke: #98A2B0; }
 .mico.off { --ib: #D5D9DF; color: #5E6878; }
 .mico.dirty { --ib: #8C6239; }
 .mico.dirtyq { --ib: #EFE4D3; color: #8C6239; }
@@ -3127,13 +3127,14 @@ function leave(p, outcome) {
   if (G.remote && G.remote.pid === p.id) G.remote = null;
   const wasLoc = p.loc;
   p.loc = 'gone'; p.tDone = G.t; p.outcome = outcome; p.room = null;
-  if (outcome === 'cath') goalHit(p, 'd2b90', G.t + randi(15, 25));  // balloon inflation, about 20 min after they reach the lab
+  const bal = outcome === 'cath' ? randi(15, 25) : 0, d2b = bal && 'd2b90' in p.goals && p.goals.d2b90 === null;   // balloon inflation, about 20 min after they reach the lab
+  if (bal) goalHit(p, 'd2b90', G.t + bal);
   if (G.pre) return;
   const S = G.stats;
   if (outcome === 'dc') { S.dc++; care(10, 'flow', p); if (p.tDone - p.tArrive <= 120) { care(5, 'flow', p); S.quick++; } }
   else if (outcome === 'admit' || outcome === 'icu' || outcome === 'bh' || outcome === 'obs') { S[outcome]++; care(12, 'flow', p); }
   else if (outcome === 'or') { S.or++; care(15, 'flow', p); toast(`${p.name} is off to the OR`, 'good'); }
-  else if (outcome === 'cath') { S.cath++; care(15, 'flow', p); toast(`${p.name} is in the cath lab, ${Math.round(p.tDone - p.tArrive)} min after arrival`, 'good'); }
+  else if (outcome === 'cath') { S.cath++; care(15, 'flow', p); toast(`${p.name} left for the cath lab ${Math.round(p.tDone - p.tArrive)} min after arrival${d2b ? `. The artery opens about ${bal} min later: that is the door-to-balloon time` : ''}`, 'good'); }   // one time for leaving, one for the balloon: say which is which
   else if (outcome === 'tx') { S.tx++; care(12, 'flow', p); note(`${p.name} transferred to ${p.txTo}`); }
   else if (outcome === 'lwbs') { S.lwbs++; care(-25, 'lwbs'); }
   else if (outcome === 'ama') { S.ama++; care(-15, 'ama'); if (G.mode === 'md' && p.mine) care(-15, 'md'); }
@@ -4333,7 +4334,7 @@ const RADIO_BTN = {
   miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
 };
 for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
-Object.assign(OC, { WATCH_WHY, missNow, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && EXAM[p.ck]) || '', whyOf: p => (p && ORD_WHY[p.ck]) || '' });
+Object.assign(OC, { WATCH_WHY, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && EXAM[p.ck]) || '', whyOf: p => (p && ORD_WHY[p.ck]) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -4385,7 +4386,7 @@ const intakeDone = p => p.loc === 'waiting' || p.loc === 'room' || (E.regQuick(p
 const regable = p => p.loc !== 'enroute' && (p.reg === 'none' || (p.reg === 'quick' && (p.loc === 'room' || p.loc === 'waiting')));
 const hasHold = () => E.holdNurses().length > 0;
 const GRAY_GUIDE = { 'HEART score': '0 to 3 is low risk (home). 4 to 6 is moderate (observation). 7 to 10 is high (admit).', 'Canadian Syncope Risk Score': '0 or below is low risk (home). 1 to 3 is medium. 4 to 5 is high (observation). 6 and up is very high (admit).', 'ABCD2 score': '0 to 3 is low risk (home with fast follow-up). 4 to 5 is moderate (observation). 6 to 7 is high (admit or observation).' };
-function istChip(lbl, st) { return `<i class="ist ${st === 'done' ? 'done' : st === 'doing' ? 'doing' : st === 'q' ? 'q' : 'need'}">${lbl}</i>`; }
+function istChip(lbl, st) { const k = st === 'done' ? 'done' : st === 'doing' ? 'doing' : st === 'q' ? 'q' : 'need'; return `<i class="ist ${k}">${k === 'need' ? 'NEEDS ' : ''}${lbl}${k === 'done' ? ' ✓' : k === 'doing' ? ' NOW' : k === 'q' ? ' IN LINE' : ''}</i>`; }   // needs it, in line for it, being done, done
 function intakeChips(p) { const reg = istChip('REG', E.regQuick(p) ? 'done' : p.reg); return p.loc === 'wall' ? istChip('REPORT', p.tri) + reg : reg + istChip('TRIAGE', p.tri); }   // on the wall, report comes first
 function alertTag(p) { return p.alertOn && p.alert ? `<i class="atag a-${p.alert}">${esc(E.ALERTS[p.alert].name)}</i>` : ''; }
 const LANG_SHORT = { es: 'Spanish', ht: 'Creole', zh: 'Mandarin', ar: 'Arabic', vi: 'Vietnamese', ru: 'Russian', asl: 'ASL' };   // "HT" and "ES" read as diagnoses
@@ -4549,6 +4550,7 @@ function render() {
   rs.setProperty('--dockH', (!rails && shown(dock) ? dock.offsetHeight : 0) + 'px');
   rs.setProperty('--railR', (rails && shown(dock) ? dock.offsetWidth : 0) + 'px');
   rs.setProperty('--railL', (rails && shown(rl) ? rl.offsetWidth : 0) + 'px');
+  { const nb = $('#needBtn'); rs.setProperty('--nbW', (U.view === 'map' && nb && !nb.classList.contains('inrail') && shown(nb) ? nb.offsetWidth + 8 : 0) + 'px'); }
   const sb = $('#selbar'); if (sb) rs.setProperty('--selH', (U.view === 'map' && !sb.hidden ? sb.offsetHeight + 8 : 0) + 'px');
   if (U.view === 'map') {   // messages sit over the scores: between the buttons and the Box, and clear of the preceptor when he is up there
     const pl = $('#top .pills'), pr = pl ? pl.getBoundingClientRect() : null, co = $('#coach'), cr = co && !co.hidden && co.classList.contains('beside') ? co.getBoundingClientRect() : null;
@@ -4766,12 +4768,14 @@ function treatReason(p) {
   return 'Treatment underway';
 }
 const LEAVING = ['dc', 'dcing', 'toproc', 'iftwait', 'iftreport', 'xportq', 'family', 'morgue', 'morguing'];
+/* How long the attending's own exam or code has left, in game minutes. */
+function myLeft(p) { const me = E.staff(g().me), k = me && me.q[0]; return k && k.started && k.pid === p.id ? Math.max(1, Math.ceil(k.left / E.provSpeed(me))) : 0; }
 /* What a room needs next: t = words, c = tone, i = the icon the floor plan shows. */
 function nextStep(p, r, G) {
   const pv = p.prov ? E.staff(p.prov) : null, nm = pv ? (isMe(pv) ? 'You' : esc(pv.short)) : '';
   if (mine(p) && !p.arrest) {
     if (p.ev === 'q') return { t: 'In your line', c: 'n-wait', i: 'steth' };
-    if (p.ev === 'doing') return { t: 'You are in the room', c: 'n-wait', i: 'steth' };
+    if (p.ev === 'doing') { const n = myLeft(p); return { t: 'You are in the room' + (n ? ` · ${n} min left` : ''), c: 'n-wait', i: 'steth' }; }
     if (p.ord === 'need') return { t: 'Write orders', c: 'n-act fl', i: 'orders' };
     if (p.ord === 'more') return { t: 'Add to the workup', c: 'n-act fl', i: 'orders' };
     if (p.dsp === 'mddecide' || p.dsp === 'decide') return { t: 'Your call', c: 'n-act fl', i: 'decide' };
@@ -5144,7 +5148,7 @@ function mdPrimary(p, G) {
     return `<p class="hint">${s ? esc(s.name) : 'Another provider'} has this patient${take ? ' but hasn\'t started' : ''}.</p>${take ? `<div class="prim"><button type="button" class="big" data-act="see" data-arg="${p.id}">Take over</button></div>` : ''}`;
   }
   if (p.ev === 'q') { const me = E.staff(G.me), i = me.q.findIndex(k => k.pid === p.id); return `<p class="hint">In your line${i > 0 ? `, #${i + 1}` : ''}. You'll see them after what you're doing now.</p>`; }
-  if (p.ev === 'doing') return `<p class="hint">${p.arrest ? 'You are running the code.' : 'You are in the room: history and exam.'}</p>`;
+  if (p.ev === 'doing') return `<p class="hint">${p.arrest ? 'You are running the code.' : `You are in the room: history and exam.${myLeft(p) ? ` About <b>${myLeft(p)} min</b> left.` : ''}`}</p>`;
   if (p.ord === 'need' || p.ord === 'more') return mtpBtn + ordersBlock(p, G);
   if (p.dsp === 'mddecide' || p.dsp === 'decide') {
     const call = p.dsp === 'mddecide' ? mdDecideBlock(p) : grayBlock(p);
@@ -5485,9 +5489,9 @@ function wordsHTML() {
 }
 /* What the floor plan's icons mean. */
 function legendHTML(md) {
-  const rows = md ? [['steth', 'act fl', 'Waiting for a doctor'], ['orders', 'act fl', 'Write orders'], ['decide', 'act fl', 'Your call to make'], ['alert', 'bad fl', 'Not improving'], ['code', 'code fl', 'Code'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['phone', 'wait', 'Consultant on the way'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['bed', 'board', 'Admitted, waiting for a bed']]
-    : [['steth', 'act fl', 'Needs a provider'], ['phone', 'act fl', 'Call a consult'], ['decide', 'act fl', 'Your call: home, obs, admit'], ['home', 'go fl', 'Ready to discharge'], ['up', 'act fl', 'Bed ready: send them up'], ['amb', 'act fl', 'Transfer: request or book'], ['card', 'act fl', 'Needs registration'], ['alert', 'bad fl', 'Trouble in the room'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['code', 'code fl', 'Code'], ['bed', 'board', 'Admitted, waiting for a bed'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['broom', 'dirty fl', 'Dirty: tap to send EVS'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']];
-  return `<p class="hint" style="margin-bottom:4px">Each room shows one icon for what it needs. Filled, pulsing icons need you. Gray ones are waiting on someone else. Pinch to zoom in and the icons turn into words.</p><div class="lgd">${rows.map(([k, c, t]) => `<span>${icoInline(k, c.replace(' fl', ''))}${t}</span>`).join('')}</div>`;
+  const rows = md ? [['steth', 'act fl', 'Waiting for a doctor'], ['orders', 'act fl', 'Write orders'], ['decide', 'act fl', 'Your call to make'], ['alert', 'bad fl', 'Not improving'], ['code', 'code fl', 'Code'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['phone', 'wait', 'Consultant on the way'], ['steth', 'wait', 'You or another doctor is with them'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['bed', 'board', 'Admitted, waiting for a bed'], ['home', 'go', 'Ready to go home'], ['broom', 'dirtyq', 'Dirty room'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']]
+    : [['steth', 'act fl', 'Needs a provider'], ['phone', 'act fl', 'Call a consult'], ['decide', 'act fl', 'Your call: home, obs, admit'], ['home', 'go fl', 'Ready to discharge'], ['up', 'act fl', 'Bed ready: send them up'], ['amb', 'act fl', 'Transfer: request or book'], ['card', 'act fl', 'Needs registration'], ['alert', 'bad fl', 'Trouble in the room'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['code', 'code fl', 'Code'], ['steth', 'wait', 'A provider has them'], ['bed', 'board', 'Admitted, waiting for a bed'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['broom', 'dirty fl', 'Dirty: tap to send EVS'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']];
+  return `<p class="hint" style="margin-bottom:4px">Each room shows one <b>square icon</b> for what it needs. Filled, pulsing icons need you. Gray ones are waiting on someone else. Pinch to zoom in and the icons turn into words.</p><div class="lgd">${rows.map(([k, c, t]) => `<span>${icoInline(k, c.replace(' fl', ''))}${t}</span>`).join('')}</div>`;
 }
 const WORDS_BTN = '<p class="wlink"><button type="button" data-act="words">New to the ED? What the words mean</button></p>';
 const shiftSpan = () => { const G = g(); return `07:00 to ${U.scene === 'game' && G && !G.train ? E.clock(G.shift) : '19:00'}`; };
@@ -5536,7 +5540,7 @@ function renderSheet(G) {
     else if (s.type === 'divert') h = divertSheet(G);
     else if (s.type === 'help') h = helpHTML();
     else if (s.type === 'words') h = wordsHTML();
-    else if (s.type === 'legend') h = head('What the map shows', 'One icon on each room: what it needs next.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The number in the circle is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient.' : ''}</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
+    else if (s.type === 'legend') h = head('What the map shows', 'One icon on each room: what it needs next.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The <b>number in the circle</b> is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient. The <b>gold star</b>: you.' : ''}</p><p class="hint"><b>Pod signs.</b> Each <b>purple dot</b> is a nurse. <b>3/4</b> is the pod's workload over what its nurses can carry safely. An <b>orange outline</b>: full. <b>Red</b>: over. <b>WALL</b>, <b>WAITING</b>, and <b>DOOR</b> show a count when someone is there.</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
     if (!h) U.sheet = null;
   } else if (s && s.type === 'help') h = helpHTML();
   else if (s && s.type === 'words') h = wordsHTML();
@@ -6025,6 +6029,7 @@ function mapAct(el, cx, cy) {
   const tg = U.tapGuard;   // a double tap: the second tap lands where the first one closed a sheet
   if (el && tg && performance.now() < tg.t && Math.hypot(cx - tg.x, cy - tg.y) < 40 && !el.closest('#sheet, #modal, #coach')) return;
   const hadSheet = !!U.sheet; setTimeout(() => { if (hadSheet && !U.sheet) U.tapGuard = { t: performance.now() + 400, x: cx, y: cy }; }, 0);
+  if (el && el.dataset.act === 'closeSheet') { const nb = $('#needBtn'), r = nb ? nb.getBoundingClientRect() : null; if (r && r.width && cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) el = nb; }   // Next shows through the dimmed side of an open card: a tap there goes to the next thing, not just the card closing
   if (!el || el.disabled) return;
   ensureAudio();
   const fn = ACT[el.dataset.act];
@@ -6594,9 +6599,10 @@ const TECH_SPOTS = [[1071, 322], [1120, 322], [1071, 376], [1120, 376]];
 const PROV_SEATS = [[752, 334], [796, 334], [840, 334], [884, 334], [752, 372], [796, 372], [840, 372], [884, 372]];
 const TRI_BAYS = [[340, 436, 468], [436, 436, 468]];   // triage booth: [x, nurse y, patient y]
 const WAIT_SEATS = [];
-for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) WAIT_SEATS.push([276 + c * 36, 530 + r * 38]);
+for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) WAIT_SEATS.push([276 + c * 36, 537 + r * 37]);
 const BREAK_SEATS = [[1236, 78], [1276, 78], [1236, 148], [1276, 148], [1198, 113], [1314, 113], [1262, 204], [1312, 204], [1362, 204]];
-const BEDSIDE = [[-34, 4], [34, 4], [-34, 30], [34, 30], [0, 44], [0, -30]];
+const BEDSIDE = [[-35, 6], [35, 6], [-15, 8], [15, 8], [0, 12], [0, 2]];   // beside the bed, then over it: never on the icon row or the name tag
+const BEDSIDE_S = [[2, 0], [-18, 4], [22, 4], [2, 8]];   // a hallway bed or a chair is short: stand over the stretcher, clear of the label, the ESI and the icon
 const WALL_Y = i => 62 + i * 46;
 const SKIN = ['#F1C7A5', '#E0A57E', '#C68642', '#8D5524', '#5C3A21'];
 const HAIR = ['#2B1D14', '#5A3825', '#8B4A2B', '#D2AE6D', '#1B1B1B', '#A7A7A7'];
@@ -6634,7 +6640,7 @@ const ICO = {
   lock: '<rect x="-6" y="-1.5" width="12" height="9.5" rx="2" fill="currentColor"/><path d="M-3.6 -1.5 v-3 a3.6 3.6 0 0 1 7.2 0 v3" fill="none" stroke="currentColor" stroke-width="2"/>',
   check: '<path d="M-6 0.5 l4 4.2 l8 -9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
 };
-const icoSVG = (key, cx, cy, r, cls) => `<g class="mico ${cls}" transform="translate(${cx} ${cy})">${/\bfl\b/.test(cls) ? `<circle class="ir" r="${r}"/>` : ''}<circle class="ib" r="${r}"/><g transform="scale(${(r / 13.5).toFixed(2)})">${ICO[key] || ICO.wait}</g></g>`;
+const icoSVG = (key, cx, cy, r, cls) => `<g class="mico ${cls}" transform="translate(${cx} ${cy})">${/\bfl\b/.test(cls) ? `<rect class="ir" x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" rx="${(r * 0.36).toFixed(1)}"/>` : ''}<rect class="ib" x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" rx="${(r * 0.36).toFixed(1)}"/><g transform="scale(${(r / 13.5).toFixed(2)})">${ICO[key] || ICO.wait}</g></g>`;
 /* The same icon as a small picture for sheets and help. */
 const icoInline = (key, cls) => `<svg class="lgi" viewBox="-15 -15 30 30" aria-hidden="true">${icoSVG(key, 0, 0, 14, cls)}</svg>`;
 const toneOf = c => (/n-code/.test(c) ? 'code' : /n-bad/.test(c) ? 'bad' : /n-act/.test(c) ? 'act' : /n-go/.test(c) ? 'go' : /n-warn/.test(c) ? 'warn' : /n-board/.test(c) ? 'board' : 'wait') + (/\bfl\b/.test(c) ? ' fl' : '');
@@ -6740,13 +6746,13 @@ function mapStatic() {
   s += '<rect x="262" y="384" width="26" height="16" rx="3" fill="#C8243A"/><rect x="262" y="389" width="26" height="3" fill="#F3D5D9"/><rect x="294" y="386" width="22" height="14" rx="3" fill="#AEB7C2"/>';
   // check-in desk, the line at the door, the front door
   s += '<rect x="122" y="374" width="120" height="20" rx="5" fill="#B98D5E"/><rect x="122" y="374" width="120" height="5" rx="2.5" fill="#D3AE82"/><rect x="142" y="380" width="16" height="10" rx="2" fill="#2F3A4A"/><rect x="196" y="380" width="16" height="10" rx="2" fill="#2F3A4A"/>';
-  s += '<g id="mDoor" data-act="cluster" data-arg="door" role="button" aria-label="The line at the door"><rect x="116" y="398" width="132" height="232" fill="transparent"/><path d="M130 664 H162 V434" fill="none" stroke="#C9B48F" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/><text id="mDoorL" x="172" y="646" font-size="16" font-weight="700" fill="#4F5A6B" letter-spacing="1">DOOR</text></g>';
+  s += '<g id="mDoor" data-act="cluster" data-arg="door" role="button" aria-label="The line at the door"><rect x="116" y="398" width="132" height="232" fill="transparent"/><path d="M130 664 H162 V434" fill="none" stroke="#C9B48F" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/><text id="mDoorL" x="172" y="624" font-size="16" font-weight="700" fill="#4F5A6B" letter-spacing="1">DOOR</text></g>';
   s += R(115, 634, 26, 58, '#8C5A4A', 'rx="3"') + plant(232, 694) + '<rect x="156" y="688" width="46" height="19" rx="3" fill="#33507A"/><rect x="160" y="691" width="26" height="13" rx="2" fill="#9FC3EA"/>';
   // triage booth: two bays behind a curtain
   s += '<g data-act="zone" data-arg="triage" role="button" aria-label="Triage"><rect x="258" y="410" width="220" height="78" rx="7" fill="#F8F4EA" stroke="#C9BFA8" stroke-width="2"/><path d="M388 414 V484" stroke="#9CCFC8" stroke-width="3" stroke-dasharray="4 5" stroke-linecap="round"/>';
   s += '<rect x="266" y="418" width="36" height="14" rx="3" fill="#C9A77C"/><rect x="270" y="421" width="12" height="8" rx="1.5" fill="#2F3A4A"/><rect x="396" y="418" width="14" height="14" rx="3" fill="#C9A77C"/>' + L(262, 482, 'TRIAGE', 15) + '</g>';
   // waiting room
-  s += `<g id="mWait" data-act="cluster" data-arg="wait" role="button" aria-label="Waiting room"><rect x="254" y="494" width="226" height="216" fill="transparent"/><text id="mWaitL" x="262" y="512" font-size="16" font-weight="700" fill="#4F5A6B" letter-spacing="1">WAITING</text>`;
+  s += `<g id="mWait" data-act="cluster" data-arg="wait" role="button" aria-label="Waiting room"><rect x="254" y="494" width="226" height="216" fill="transparent"/><text id="mWaitL" x="262" y="510" font-size="16" font-weight="700" fill="#4F5A6B" letter-spacing="1">WAITING</text>`;
   for (const [x, y] of WAIT_SEATS) s += seat(x, y);
   s += '<rect x="474.5" y="566" width="5" height="60" rx="2" fill="#1E2633"/><path class="tvglow" d="M474 566 l-14 -6 v72 l14 -6z" fill="rgba(143,208,240,.3)"/></g>';
   // nurses' station: a desk around the provider seats, with the Box on it
@@ -6767,7 +6773,7 @@ function mapStatic() {
   s += '<rect x="1194" y="72" width="124" height="82" rx="24" fill="#F3E8D2" opacity=".85"/><rect x="1214" y="92" width="84" height="42" rx="10" fill="#C9A77C" stroke="#A98456" stroke-width="1.5"/>';
   for (const [x, y] of BREAK_SEATS.slice(0, 6)) s += `<rect x="${x - 9}" y="${y - 7}" width="18" height="18" rx="5" fill="#8C6F4E" opacity=".45"/>`;
   s += '<rect x="1232" y="188" width="160" height="40" rx="10" fill="#7E8FA6"/><rect x="1232" y="214" width="160" height="14" rx="7" fill="#687A92"/><path d="M1286 192 v22 M1338 192 v22" stroke="#687A92" stroke-width="2"/>';
-  s += '<rect x="1146" y="84" width="5" height="56" rx="2" fill="#1E2633"/><path class="tvglow" d="M1151 84 l20 -8 v72 l-20 -8z" fill="rgba(143,208,240,.3)"/>' + L(1160, 52, 'BREAK ROOM', 18) + plant(1160, 222);
+  s += '<rect x="1146" y="84" width="5" height="56" rx="2" fill="#1E2633"/><path class="tvglow" d="M1151 84 l20 -8 v72 l-20 -8z" fill="rgba(143,208,240,.3)"/>' + L(1160, 181, 'BREAK ROOM', 18) + plant(1160, 222);
   // EVS and supply
   s += L(1160, 514, 'EVS', 18) + '<rect x="1160" y="640" width="58" height="28" rx="5" fill="#E3C23B"/><circle cx="1178" cy="654" r="9" fill="#6FA8C9"/><path d="M1204 642 v-20" stroke="#8E6A43" stroke-width="3" stroke-linecap="round"/><rect x="1236" y="640" width="40" height="30" rx="6" fill="#C9D2DE"/><rect x="1241" y="645" width="30" height="20" rx="4" fill="#EEF1F5"/>';
   s += '<rect x="1372" y="498" width="22" height="206" rx="3" fill="#B7BDC6"/>' + [0, 1, 2, 3, 4, 5, 6].map(i => `<rect x="1375" y="${504 + i * 28}" width="16" height="21" rx="2" fill="${['#EEF1F5', '#A9C3E8', '#F1DA86', '#EEF1F5', '#A9D6B5', '#F2BE8F', '#EEF1F5'][i]}"/>`).join('');
@@ -6784,7 +6790,7 @@ function staffSpot(s, G, sl) {
   const p = k && k.pid ? E.pt(k.pid) : null;
   if (p) {
     const r = p.room && RM[p.room];
-    if (r) { const o = sl.bed(p.id); return [r.x + r.w / 2 + o[0], r.y + r.h / 2 + o[1], 'room']; }
+    if (r) { const o = sl.bed(p.id, r.h < 60); return [r.x + r.w / 2 + o[0], r.y + r.h / 2 + o[1], 'room']; }
     const at = sl.by.get(p.id);   // beside them on the wall, in a triage bay, or in the waiting room
     if (at && !(s.role === 'reg' && p.loc === 'triage')) { const n = sl.cnt(p.id); return [at[0] + (n ? (n % 2 ? 34 : -34) : 0), at[1], 'with']; }
   }
@@ -7105,7 +7111,7 @@ function mapRender(G) {
     brkI: 0, prov: 0, tech: 0, by, regs: regIds,
     brk() { const b = BREAK_SEATS[this.brkI++ % BREAK_SEATS.length]; return [b[0], b[1]]; },
     near(b, dx, per) { dx = dx || 34; per = per || 4; const k = b.join(','); const n = (used[k] = (used[k] || 0) + 1) - 1; return [b[0] + (n % per) * dx, b[1] + Math.floor(n / per) * 24]; },
-    bed(pid) { const n = beds[pid] = (beds[pid] || 0) + 1; return BEDSIDE[Math.min(n, BEDSIDE.length) - 1]; },
+    bed(pid, small) { const n = beds[pid] = (beds[pid] || 0) + 1, B = small ? BEDSIDE_S : BEDSIDE; return B[Math.min(n, B.length) - 1]; },
     cnt(pid) { const n = seenPt[pid] || 0; seenPt[pid] = n + 1; return n; },
     freeBay() { for (let i = 0; i < TRI_BAYS.length; i++) if (!bayUsed.has(i)) { bayUsed.add(i); return i; } return null; },
   };
@@ -7135,17 +7141,16 @@ function mapRender(G) {
   // the door: in a triage bay, at the check-in desk, or in line
   const triaging = new Set(G.staff.filter(s => s.task && s.task.kind === 'triage').map(s => s.task.pid));
   const regBy = new Map(); for (const s of G.staff) if (s.role === 'reg' && s.task && s.task.kind === 'reg' && s.task.pid) regBy.set(s.task.pid, Math.max(0, regIds.indexOf(s.id)));
-  let door = 0, doorMore = 0;
+  let door = 0;
   for (const p of G.triageQ.map(E.pt).filter(Boolean)) {
     let at, extra = ', at the door';
     if (triaging.has(p.id) && bayOf.size < TRI_BAYS.length) { const b = bayOf.size; bayOf.set(p.id, b); bayUsed.add(b); at = [TRI_BAYS[b][0], TRI_BAYS[b][2]]; by.set(p.id, [TRI_BAYS[b][0], TRI_BAYS[b][1]]); extra = ', in triage'; }
     else if (regBy.has(p.id)) { at = [150 + 54 * regBy.get(p.id), 416]; extra = ', checking in'; }
-    else if (door < 12) { at = [138 + (door % 3) * 44, 446 + Math.floor(door / 3) * 46]; door++; }
-    else { doorMore++; continue; }
+    else if (door < 12) { at = [138 + (door % 3) * 44, 584 - Math.floor(door / 3) * 46]; door++; }   // the line forms at the door and grows toward the desk
+    else continue;   // the count on the DOOR label covers the ones not drawn
     walkers.push({ p, x: at[0], y: at[1], extra, clu: 'mDoor' });
     posNow.set(p.id, { x: at[0], y: at[1], kind: 'door' });
   }
-  if (doorMore) pts += `<text x="182" y="622" text-anchor="middle" font-size="14" font-weight="700" fill="#C8243A">+${doorMore} more</text>`;
 
   // the wall: a crew and a stretcher in each spot, with how long they've held it
   const wall = act.filter(p => p.loc === 'wall').sort((a, b) => a.tArrive - b.tArrive), inside = wall.slice(0, 6), outside = wall.slice(6);
@@ -7156,7 +7161,7 @@ function mapRender(G) {
     by.set(p.id, [196, y + 4]);
     posNow.set(p.id, { x: 195, y, kind: 'wall' });
     const badge = intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
-      : E.emergent(p) ? `<g class="mico bad fl" transform="translate(240 ${y + 9})"><circle class="ir" r="9"/><circle class="ib" r="9"/><g transform="scale(.7)">${ICO.alert}</g></g>` : '';
+      : E.emergent(p) ? icoSVG('alert', 240, y + 9, 9, 'bad fl') : '';
     pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${figSVG({ seed: p.id + 'm1', body: ROLEC.ems, stripe: '#E3BA12', k: 1.25, ring: sel && sel.pid === p.id })}</g>`
       + stretcherSVG(152, y - 13, 86, 26, p, esi) + (p.tag ? `<rect x="148" y="${y - 12}" width="9" height="24" rx="3" fill="${TAGC[p.tag]}" stroke="#fff" stroke-width="1.3"/>` : '')
       + `<g class="nearonly"><rect x="174" y="${y - 7}" width="62" height="14" rx="5" fill="#1B2230"/><text x="205" y="${y + 3.6}" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">${esc(p.name.length > 11 ? p.name.slice(0, 10) + '…' : p.name)}</text><text x="170" y="${y - 15.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#2B3240">${esc(p.unit || '')}</text></g>`

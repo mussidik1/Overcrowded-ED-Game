@@ -1,6 +1,6 @@
 {
   "name": "overcrowded-ed-game",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "private": true,
   "description": "Overcrowded: an ED shift survival game in one self-contained HTML file.",
   "scripts": {
