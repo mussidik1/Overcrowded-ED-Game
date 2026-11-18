@@ -922,6 +922,34 @@ body.ingame { touch-action: pan-x pan-y; }
   #title .card > .t-sets { grid-column: 2; grid-row: 1 / span 12; align-self: center; }
 }
 
+/* v0.19: the order sheet's labs and imaging */
+.o-sec { margin: 12px 0 2px; font: 700 13px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.o-grp { margin: 8px 0 4px; font: 700 13.5px/1.2 var(--ui); color: var(--ink-3); }
+.ogrid.o3 { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
+.ogrid.o3 .och { min-height: 40px; padding: 5px 8px; }
+.ogrid.o3 .och b { font-size: 14px; }
+.ogrid.o3 .och small { font-size: 11px; }
+/* the result row's picture, and the imaging viewer */
+.rimg { float: right; position: relative; width: 64px; height: 64px; margin: 0 0 4px 8px; padding: 0; border: 2px solid var(--ink); border-radius: 8px; overflow: hidden; background: #000; }
+.rimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rimg span { position: absolute; left: 0; right: 0; bottom: 0; padding: 1px 0; background: rgba(0, 0, 0, .65); color: #fff; font: 700 11px/1.2 var(--ui); text-align: center; }
+.rimg.none { display: none; }
+#viewer { position: fixed; inset: 0; z-index: 90; display: grid; grid-template-rows: minmax(0, 1fr) auto; background: #000; color: #fff; }
+#viewer .vw-img { display: grid; place-items: center; min-height: 0; padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)); }
+#viewer .vw-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+#viewer .vw-cap { padding: 10px max(14px, env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)); background: #12161c; font: 500 15px/1.35 var(--body); }
+#viewer .vw-h { font: 500 14px/1.2 var(--ui); color: #c7ced8; }
+#viewer .vw-h b { color: #fff; font-size: 16px; }
+#viewer .vw-f { margin-top: 3px; font: 700 18px/1.25 var(--ui); }
+#viewer .vw-f small { display: block; font: 500 14px/1.3 var(--body); color: #c7ced8; }
+#viewer .vw-look { margin-top: 6px; color: #e6eaf0; }
+#viewer .vw-cr { margin-top: 6px; color: #8d96a3; font-size: 12px; }
+#viewer .vw-x { margin-top: 8px; width: 100%; }
+@media (orientation: landscape) and (max-height: 520px) {
+  #viewer { grid-template-rows: none; grid-template-columns: minmax(0, 1fr) 300px; }
+  #viewer .vw-cap { overflow: auto; padding-top: max(10px, env(safe-area-inset-top)); }
+}
+
 </style>
 </head>
 <body>
@@ -1114,8 +1142,114 @@ const WORK = {
   xr:  { label: 'XR', by: 'img', scan: 6, read: 8 },
   ct:  { label: 'CT', by: 'img', scan: 7, read: 10 },
   us:  { label: 'US', by: 'img', scan: 12, read: 6 },
+  mri: { label: 'MRI', by: 'img', scan: 40, read: 25 },
 };
-const MISS_NAME = { ecg: 'an ECG', lab: 'labs', xr: 'the X-ray', ct: 'the CT', us: 'the ultrasound' };
+const MISS_NAME = { ecg: 'an ECG', lab: 'labs', xr: 'the X-ray', ct: 'the CT', us: 'the ultrasound', mri: 'the MRI' };
+
+/* ---------- v0.19: the attending orders single tests and named studies ----------
+   The engine still runs work by kind (lab, xr, ct, us, mri: one draw or one trip to the scanner covers everything of that
+   kind ordered together). The attending picks the tests inside each kind, and each case scores the ones it needs.
+   g: the group on the order sheet. p: a plain line. Imaging m: the kind of work it is. */
+const LABS = {
+  cbc: { n: 'CBC', g: 'Blood counts and chemistry', p: 'White count, hemoglobin, platelets' },
+  bmp: { n: 'BMP', g: 'Blood counts and chemistry', p: 'Sodium, potassium, kidneys, sugar' },
+  lft: { n: 'Liver tests', g: 'Blood counts and chemistry', p: 'Liver enzymes and bilirubin' },
+  lip: { n: 'Lipase', g: 'Blood counts and chemistry', p: 'The pancreas' },
+  trop: { n: 'Troponin', g: 'Heart and clots', p: 'Heart muscle damage' },
+  bnp: { n: 'BNP', g: 'Heart and clots', p: 'A strained, failing heart' },
+  ddim: { n: 'D-dimer', g: 'Heart and clots', p: 'Rules out a clot when it is low' },
+  lact: { n: 'Lactate', g: 'Infection and breathing', p: 'Tissues short of oxygen: shock' },
+  bcx: { n: 'Blood cultures', g: 'Infection and breathing', p: 'Bacteria in the blood, before antibiotics' },
+  vbg: { n: 'Blood gas (VBG)', g: 'Infection and breathing', p: 'Acid and CO2; carbon monoxide level' },
+  resp: { n: 'Viral swab', g: 'Infection and breathing', p: 'Flu, COVID, RSV' },
+  strep: { n: 'Rapid strep', g: 'Infection and breathing', p: 'Strep throat' },
+  coag: { n: 'Coags (PT/INR)', g: 'Bleeding', p: 'How fast blood clots; blood thinners' },
+  ts: { n: 'Type and screen', g: 'Bleeding', p: 'Blood type, so blood can be given' },
+  ua: { n: 'Urinalysis', g: 'Urine and other', p: 'Infection, blood in the urine' },
+  hcg: { n: 'Pregnancy test', g: 'Urine and other', p: 'Before a CT or some drugs' },
+  tox: { n: 'Tox screen and ethanol', g: 'Urine and other', p: 'Alcohol and drugs' },
+  ck: { n: 'CK', g: 'Urine and other', p: 'Muscle breakdown' },
+};
+const IMGS = {
+  cxr: { n: 'Chest X-ray', m: 'xr', p: 'Lungs, heart size, air outside the lung' },
+  pelxr: { n: 'Pelvis X-ray', m: 'xr', p: 'A broken pelvis in trauma' },
+  hipxr: { n: 'Hip X-ray', m: 'xr', p: 'A broken hip' },
+  extxr: { n: 'Limb X-ray', m: 'xr', p: 'The injured arm or leg' },
+  cthead: { n: 'CT head', m: 'ct', p: 'Bleeding in the brain' },
+  cta: { n: 'CT angiogram, head and neck', m: 'ct', p: 'A blocked artery to the brain' },
+  ctcs: { n: 'CT neck (C-spine)', m: 'ct', p: 'A broken neck' },
+  ctpe: { n: 'CT angiogram, chest', m: 'ct', p: 'A clot in the lungs (PE)' },
+  ctap: { n: 'CT abdomen and pelvis', m: 'ct', p: 'Appendix, kidney stones, the bowel' },
+  mrib: { n: 'MRI brain', m: 'mri', p: 'A small stroke; takes about an hour' },
+  mris: { n: 'MRI spine', m: 'mri', p: 'The spinal cord; takes about an hour' },
+  fast: { n: 'FAST exam', m: 'us', p: 'Bedside: blood in the belly or around the heart' },
+  ruq: { n: 'Gallbladder ultrasound', m: 'us', p: 'Gallstones, an inflamed gallbladder' },
+  duplex: { n: 'Leg vein ultrasound', m: 'us', p: 'A clot in a leg vein (DVT)' },
+  pelus: { n: 'Pelvic ultrasound', m: 'us', p: 'Pregnancy, ovaries' },
+};
+const DET_KIND = id => (LABS[id] ? 'lab' : IMGS[id] ? IMGS[id].m : WORK[id] ? id : null);
+const DET_NAME = id => (LABS[id] ? LABS[id].n : IMGS[id] ? IMGS[id].n : WK_NAME[id] || id);
+const DET_EXTRA = { lab: 1, xr: 2, us: 2, ct: 6, mri: 8, ecg: 3 };   // points off for a test the patient did not need
+const DET_RIGHT = { lab: 1, xr: 2, us: 2, ct: 2, mri: 2, ecg: 2 };
+/* What each case needs (n) and what is reasonable but not needed (ok). Anything else costs DET_EXTRA. */
+const NEED = {
+  strep: { n: ['strep'] }, ankle: { n: ['extxr'] }, uti: { n: ['ua'], ok: ['hcg'] }, gastro: { n: ['bmp'], ok: ['cbc', 'lip', 'ua', 'hcg'] },
+  appy: { n: ['cbc', 'bmp', 'ctap'], ok: ['lip', 'lft', 'ua', 'hcg'] }, chole: { n: ['cbc', 'lft', 'lip', 'ruq'], ok: ['bmp', 'hcg', 'ua'] },
+  hipfx: { n: ['cbc', 'bmp', 'ts', 'hipxr'], ok: ['coag', 'ck', 'ua', 'pelxr', 'cxr'] }, pna: { n: ['cbc', 'bmp', 'cxr'], ok: ['lact', 'bcx', 'resp', 'vbg'] },
+  copd: { n: ['vbg', 'cxr'], ok: ['cbc', 'bmp', 'bnp', 'resp', 'trop'] }, chf: { n: ['bnp', 'bmp', 'cxr'], ok: ['trop', 'cbc'] },
+  stone: { n: ['ua', 'bmp', 'ctap'], ok: ['cbc', 'hcg'] }, dvt: { n: ['bmp', 'duplex'], ok: ['cbc', 'coag'] }, tb: { n: ['cbc', 'cxr'], ok: ['bmp', 'resp'] },
+  bh: { n: ['tox'], ok: ['cbc', 'bmp', 'hcg', 'ua', 'ck'] }, etoh: { n: ['tox', 'bmp'], ok: ['cbc'] }, od: { n: ['tox'], ok: ['bmp', 'cbc', 'vbg', 'ck'] },
+  cell: { n: ['cbc'], ok: ['bmp', 'lact', 'bcx'] }, syncope: { n: ['cbc', 'bmp'], ok: ['trop', 'hcg'] }, synchigh: { n: ['cbc', 'bmp', 'trop'], ok: ['bnp', 'hcg'] },
+  tia: { n: ['cbc', 'bmp', 'cthead'], ok: ['coag', 'trop', 'cta', 'mrib'] }, dehyd: { n: ['bmp'], ok: ['cbc', 'ua'] },
+  cpmod: { n: ['trop', 'cbc', 'bmp', 'cxr'], ok: ['bnp', 'coag', 'lip'] }, cwp: { n: ['trop', 'cxr'], ok: ['cbc', 'bmp', 'ddim'] },
+  nstemi: { n: ['trop', 'cbc', 'bmp'], ok: ['coag', 'bnp', 'cxr'] }, afib: { n: ['bmp', 'trop'], ok: ['cbc', 'bnp', 'coag', 'cxr'] },
+  chb: { n: ['bmp', 'trop'], ok: ['cbc', 'cxr'] }, gib: { n: ['cbc', 'ts', 'coag'], ok: ['bmp', 'lft', 'lact'] },
+  dka: { n: ['bmp', 'vbg'], ok: ['cbc', 'ua', 'lact', 'hcg', 'bcx'] }, sepsisw: { n: ['lact', 'bcx', 'ua', 'cbc'], ok: ['bmp', 'lft', 'cxr'] },
+  strokew: { n: ['bmp', 'cthead'], ok: ['cbc', 'coag', 'trop', 'cta'] }, stroke: { n: ['bmp', 'cthead'], ok: ['cbc', 'coag', 'trop', 'cta'] },
+  lvo: { n: ['bmp', 'cthead', 'cta'], ok: ['cbc', 'coag'] }, stemi: { n: ['trop'], ok: ['cbc', 'bmp', 'coag', 'ts'] },
+  mvc: { n: ['cbc', 'ts', 'cxr', 'fast'], ok: ['pelxr', 'coag', 'lact'] }, tfall: { n: ['coag', 'cbc', 'cthead'], ok: ['bmp', 'ts', 'ctcs'] },
+  moto: { n: ['cbc', 'ts', 'extxr'], ok: ['bmp', 'coag', 'pelxr', 'cxr', 'lact'] }, shock: { n: ['lact', 'bcx', 'cbc', 'bmp'], ok: ['ua', 'lft', 'vbg', 'coag', 'cxr'] },
+  rsv: { n: ['vbg'], ok: ['resp', 'cxr'] }, burn: { n: ['vbg'], ok: ['cbc', 'bmp', 'ck', 'lact', 'cxr'] },
+  mcired: { n: ['cbc', 'ts', 'cxr', 'fast'], ok: ['pelxr', 'coag'] }, mciyel: { n: ['cbc', 'extxr'], ok: ['ts', 'bmp', 'coag', 'pelxr'] },
+  mcimin: { n: ['ctcs'] }, mciwr: { n: ['extxr'] },
+};
+/* Results. Defaults are normal; each case names what is not. img: a picture in img/ (see img/CREDITS.md). */
+const LAB_NORMAL = { cbc: 'WBC 8.1, Hgb 13.8, platelets 241', bmp: 'Na 139, K 4.1, creatinine 0.9, glucose 104', lft: 'Liver tests normal', lip: 'Lipase 32 (normal)', trop: 'Troponin below the cutoff', bnp: 'BNP 60 (normal)', ddim: 'D-dimer negative', lact: 'Lactate 1.1 (normal)', bcx: 'Sent. Results in 1 to 2 days', vbg: 'pH 7.39, pCO2 42', resp: 'Flu, COVID, RSV negative', strep: 'Rapid strep negative', coag: 'INR 1.0', ts: 'O positive, antibody screen negative', ua: 'No blood, no infection', hcg: 'Not pregnant', tox: 'Ethanol none, drug screen negative', ck: 'CK 140 (normal)' };
+const IMG_NORMAL = { cxr: ['Clear lungs', 'cxr_normal'], pelxr: ['No fracture', 'pelvis_normal'], hipxr: ['No fracture', 'hip_normal'], extxr: ['No fracture', 'ankle_normal'], cthead: ['No bleed, no acute findings', 'cthead_normal'], cta: ['Arteries open', 'cta_normal'], ctcs: ['No fracture', 'ctcs_normal'], ctpe: ['No clot in the lungs', 'ctpe_normal'], ctap: ['No acute findings', 'ctap_normal'], mrib: ['No stroke, no acute findings', 'mrib_normal'], mris: ['No acute findings', 'mris_normal'], fast: ['No free fluid', 'fast_negative'], ruq: ['Normal gallbladder', 'ruq_normal'], duplex: ['No clot', 'duplex_normal'], pelus: ['Normal ovaries and uterus', 'pelus_normal'] };
+const RES = {
+  strep: { strep: 'Rapid strep positive' }, ankle: { extxr: ['No fracture', 'ankle_normal'] }, uti: { ua: 'Nitrite positive, white cells, bacteria' }, gastro: { bmp: 'Na 136, K 3.6, BUN 24, creatinine 1.0: mildly dry' },
+  appy: { cbc: 'WBC 15.8, Hgb 13.9, platelets 280', ctap: ['Inflamed appendix', 'ct_appy'] }, chole: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', lft: 'ALT 88, alk phos 210, bilirubin 1.6', ruq: ['Gallstones, thick gallbladder wall', 'us_gallstones'] },
+  hipfx: { cbc: 'WBC 9.0, Hgb 11.9, platelets 220', hipxr: ['Femoral neck fracture', 'xr_hipfx'] }, pna: { cbc: 'WBC 17.2, Hgb 13.1, platelets 310', bmp: 'Na 134, K 4.0, creatinine 1.1, glucose 140', cxr: ['Right lower lobe pneumonia', 'cxr_pna'] },
+  copd: { vbg: 'pH 7.31, pCO2 58', cxr: ['Hyperinflated, no pneumonia', 'cxr_copd'] }, chf: { bnp: 'BNP 2,400', bmp: 'Na 133, K 4.6, creatinine 1.5', cxr: ['Pulmonary edema', 'cxr_edema'] },
+  stone: { ua: 'Blood in the urine, no infection', ctap: ['4 mm stone in the ureter', 'ct_stone'] }, dvt: { duplex: ['Clot in the femoral vein', 'us_dvt'] }, tb: { cbc: 'WBC 11.4, Hgb 11.8, platelets 300', cxr: ['Cavity in the upper lobe', 'cxr_tb'] },
+  etoh: { tox: 'Ethanol 280, drug screen negative', bmp: 'Glucose 96, Na 140, K 3.9' }, od: { tox: 'Fentanyl positive' }, cell: { cbc: 'WBC 14.0, Hgb 13.5, platelets 250' },
+  dehyd: { bmp: 'BUN 34, creatinine 1.4, Na 146' }, cpmod: { trop: 'First troponin below the cutoff; repeat in 3 hours' }, nstemi: { trop: 'Troponin elevated: 0.84' },
+  afib: { bmp: 'K 3.9, Mg 1.9, creatinine 1.0' }, chb: { bmp: 'K 4.4, creatinine 1.2' }, gib: { cbc: 'WBC 10.2, Hgb 6.8, platelets 190', coag: 'INR 1.3' },
+  dka: { bmp: 'Glucose 540, Na 131, K 4.8, bicarb 8, anion gap 26', vbg: 'pH 7.08, pCO2 22' }, sepsisw: { lact: 'Lactate 3.1', ua: 'Nitrite positive, many white cells', cbc: 'WBC 19.6, Hgb 12.4, platelets 160' },
+  strokew: { bmp: 'Glucose 118' }, stroke: { bmp: 'Glucose 132' }, lvo: { bmp: 'Glucose 141', cta: ['Left M1 occlusion', 'cta_m1'] }, stemi: { trop: 'Pending (do not wait for it)' },
+  mvc: { cbc: 'WBC 13.0, Hgb 8.1, platelets 180', fast: ['Blood in the belly (positive FAST)', 'fast_positive'], cxr: ['No pneumothorax', 'cxr_normal'], ctap: ['Grade IV splenic laceration', null] },
+  tfall: { coag: 'INR 2.9', cthead: ['Acute subdural hematoma', 'ct_sdh'] }, moto: { cbc: 'Hgb 9.4', extxr: ['Open femur fracture', 'xr_femur'] },
+  shock: { lact: 'Lactate 5.4', cbc: 'WBC 22.1, Hgb 11.9, platelets 98', bmp: 'Creatinine 2.1, bicarb 15' }, rsv: { vbg: 'pH 7.27, pCO2 61', resp: 'RSV positive' }, burn: { vbg: 'Carboxyhemoglobin 6%' },
+  mcired: { cbc: 'Hgb 7.9', fast: ['Blood in the belly (positive FAST)', 'fast_positive'], cxr: ['No pneumothorax', 'cxr_normal'] }, mciyel: { cbc: 'Hgb 11.2', extxr: ['Midshaft femur fracture', 'xr_femur'] },
+  mcimin: { ctcs: ['No fracture', 'ctcs_normal'] }, mciwr: { extxr: ['Distal radius fracture', 'xr_wrist'] },
+};
+/* Each named test has a result: [text, picture or null]. */
+function detResult(p, id) {
+  const r = (RES[p.ck] || {})[id];
+  if (r) return Array.isArray(r) ? r : [r, null];
+  if (id === 'hcg' && p.sex === 'M') return ['Not done: male patient', null];
+  if (LABS[id]) return [LAB_NORMAL[id], null];
+  return IMG_NORMAL[id] ? IMG_NORMAL[id].slice() : ['No acute findings', null];
+}
+/* What the case needs, in named tests: the attending's game. */
+function needOf(p) {
+  const N = NEED[p.ck], c = CASES.find(x => x.k === p.ck) || {};
+  if (N) return { n: N.n.slice(), ok: (N.ok || []).slice() };
+  // a case with no table (a return visit, an IFT): its kinds, as their usual tests
+  const n = []; for (const k of (c.wk || p.wk || [])) if (k !== 'ecg') n.push(...(DEFAULT_DET[k] || []));
+  return { n, ok: [] };
+}
+const DEFAULT_DET = { lab: ['cbc', 'bmp'], xr: ['cxr'], ct: ['cthead'], us: ['fast'], mri: ['mrib'] };
 /* by: who gives it. rx: pharmacist verifies first. gate: waits for something else. */
 const TREAT = {
   meds:    { label: 'Meds', by: 'rn', dur: 3, rx: true },
@@ -1381,7 +1515,7 @@ function newGame(level, seed, opts) {
     rooms: ROOMS.map(r => ({ id: r.id, z: r.z, kind: r.kind, iso: !!r.iso, safe: !!r.safe, st: 'clean', pid: null, dirt: 'std', closed: false })),
     pts: {}, order: [], enroute: [], triageQ: [], evsQ: [], errands: [],
     staff: [],
-    img: { xr: { busy: null, q: [], down: -1e9 }, ct: { busy: null, q: [], down: -1e9 }, us: { busy: null, q: [], down: -1e9 } },
+    img: { xr: { busy: null, q: [], down: -1e9 }, ct: { busy: null, q: [], down: -1e9 }, us: { busy: null, q: [], down: -1e9 }, mri: { busy: null, q: [], down: -1e9 } },
     box: { cur: null, q: [], nextC: 1e9, seq: 0, scen: [] },
     spec: {}, ev: { next: 1e9, used: {}, sick: 0, regionDue: false, regionFired: false, missedC: 0, lastAma: -1e9 },
     card: null, obj: [], sched: [], warn: {},
@@ -2234,8 +2368,8 @@ const DX_PLAIN = {
   'Anaphylactic shock': 'An allergic reaction that has dropped the blood pressure', 'Septic shock (urinary source)': 'A bladder infection that has dropped the blood pressure', 'Acute ischemic stroke, getting worse': 'A brain clot, and more brain is being lost',
   'Femur fracture with hemorrhagic shock': 'A broken thigh bone, bleeding heavily', 'ROSC after cardiac arrest': 'The heart is beating again after it stopped', 'Resuscitation unsuccessful': 'The team could not restart the heart',
 };
-const WK_NAME = { ecg: 'ECG', lab: 'Labs', xr: 'X-ray', ct: 'CT', us: 'Ultrasound' };
-const NORMAL = { ecg: 'Normal sinus rhythm', lab: 'Normal', xr: 'No acute findings', ct: 'No acute findings', us: 'Normal' };
+const WK_NAME = { ecg: 'ECG', lab: 'Labs', xr: 'X-ray', ct: 'CT', us: 'Ultrasound', mri: 'MRI' };
+const NORMAL = { ecg: 'Normal sinus rhythm', lab: 'Normal', xr: 'No acute findings', ct: 'No acute findings', us: 'Normal', mri: 'No acute findings' };
 const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU', or: 'the OR', cath: 'the cath lab', bh: 'psychiatric admission', transfer: 'a transfer', obs: 'observation' };
 // What the drug in "Medications" was, for each case that needs one.
 const RX = { refill: 'a dose of the usual pill', tia: 'aspirin', copd: 'a steroid', moto: 'pain control', rash: 'an antihistamine and steroid cream', otitis: 'amoxicillin', dental: 'an antibiotic and pain control', strep: 'penicillin', ankle: 'ibuprofen', uti: 'an antibiotic for the UTI',
@@ -2249,7 +2383,12 @@ const HARM = { tnk: [0.5, 50, 'bled after a thrombolytic they did not need'], in
   pressor: [0.25, 15, 'had a dangerous spike in blood pressure from a vasopressor they did not need'], reverse: [0.15, 20, 'had a clot from a reversal agent they did not need'],
   bp: [0.25, 12, 'dropped their blood pressure on a drug they did not need'], pace: [0.2, 8, 'was paced without needing it'] };
 function awaitOrders(p) {
-  if (!p.right) p.right = { wk: p.wk.slice(), tr: p.tr.filter(k => k !== 'vent'), ok: ((CASES.find(c => c.k === p.ck) || {}).ok || []).slice() };
+  if (!p.right) {
+    const N = needOf(p), kinds = new Set(N.n.map(DET_KIND));
+    if (p.wk.includes('ecg')) kinds.add('ecg');
+    p.right = { wk: Array.from(kinds), tr: p.tr.filter(k => k !== 'vent'), ok: ((CASES.find(c => c.k === p.ck) || {}).ok || []).slice(), det: N.n, detOk: N.ok };
+  }
+  p.det = p.det || [];
   p.wk = p.wk.filter(k => p.work[k]);          // anything triage already started stays (an ECG for chest pain)
   p.tr = p.tr.filter(k => p.treat[k] || (k === 'mtp' && p.bb && p.bb.mtp));
   p.ord = 'need';
@@ -2257,20 +2396,37 @@ function awaitOrders(p) {
 }
 /* What the right order set still lacks, by the names on the order sheet. Medications names its drug. */
 const trName = (p, k) => (k === 'meds' ? `Medications (${rxName(p)})` : TREAT[k].label);
-function missNow(p, testsOnly) { const R = p.right; return R ? R.wk.filter(k => !p.wk.includes(k)).map(k => WK_NAME[k]).concat(testsOnly ? [] : R.tr.filter(k => !p.tr.includes(k)).map(k => trName(p, k))) : []; }
+/* Named tests still missing (the ECG counts as one). Old saves without named tests fall back to kinds. */
+const detMiss = p => { const R = p.right; if (!R) return []; if (!R.det) return R.wk.filter(k => !p.wk.includes(k)); return (R.wk.includes('ecg') && !p.wk.includes('ecg') ? ['ecg'] : []).concat(R.det.filter(d => !(p.det || []).includes(d))); };
+function missNow(p, testsOnly) { const R = p.right; return R ? detMiss(p).map(DET_NAME).concat(testsOnly ? [] : R.tr.filter(k => !p.tr.includes(k)).map(k => trName(p, k))) : []; }
 function signOrders(pid, tests, treats) {
   const p = pt(pid);
   if (!p || !mdMine(p)) return { ok: false, why: 'That is not your patient' };
   if (p.ev !== 'done') return { ok: false, why: 'See the patient first' };
   const R = p.right, S = G.stats.md, first = p.ord === 'need';
-  const newT = (tests || []).filter(k => WORK[k] && !p.wk.includes(k));
+  if (!R.det) { R.det = needOf(p).n; R.detOk = needOf(p).ok; }
+  p.det = p.det || [];
+  // tests: named tests (cbc, ctap) from the order sheet; a kind (lab, ct) means its usual tests for this case
+  const want = [];
+  for (const k of tests || []) {
+    if (k === 'ecg' || LABS[k] || IMGS[k]) want.push(k);
+    else if (WORK[k]) { const mine2 = R.det.filter(d => DET_KIND(d) === k); want.push(...(mine2.length ? mine2 : DEFAULT_DET[k] || [])); }
+  }
+  const newT = Array.from(new Set(want)).filter(k => (k === 'ecg' ? !p.wk.includes('ecg') : !p.det.includes(k)));
   const newR = (treats || []).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
-  if (!newT.length && !newR.length && !(first && R.wk.every(k => p.wk.includes(k)) && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
+  if (!newT.length && !newR.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
   let pts = 0, extra = 0;
-  const xl = [], fl = [], OKL = R.ok || [];   // fl: reasonable orders. Not required, not counted against you.
+  const xl = [], fl = [], OKL = R.ok || [], OKD = R.detOk || [];   // fl: reasonable orders. Not required, not counted against you.
   for (const k of newT) {
-    p.wk.push(k);
-    if (R.wk.includes(k)) { pts += 2; S.ordRight++; } else if (OKL.includes(k)) { fl.push(WK_NAME[k]); if (!p.find[k]) p.find[k] = NORMAL[k]; } else { pts -= k === 'ct' ? 8 : 3; extra++; S.ordExtra++; xl.push(WK_NAME[k]); if (!p.find[k]) p.find[k] = NORMAL[k]; }
+    const kind = DET_KIND(k), nm = DET_NAME(k);
+    if (k !== 'ecg') { p.det.push(k); const r = detResult(p, k); (p.dres = p.dres || {})[k] = r; }
+    if (!p.wk.includes(kind)) p.wk.push(kind);
+    else if (p.work[kind] && p.work[kind].st !== 'todo') delete p.work[kind];   // more of a kind after the first draw or scan: another one
+    const need = k === 'ecg' ? R.wk.includes('ecg') : R.det.includes(k);
+    const fine = k === 'ecg' ? OKL.includes('ecg') : OKD.includes(k) || (k === 'hcg' && p.sex === 'F' && p.age >= 12 && p.age <= 55);
+    if (need) { pts += DET_RIGHT[kind] || 1; S.ordRight++; }
+    else if (fine) { fl.push(nm); if (!p.find[kind]) p.find[kind] = NORMAL[kind]; }
+    else { pts -= DET_EXTRA[kind] || 2; extra++; S.ordExtra++; xl.push(nm); if (!p.find[kind]) p.find[kind] = NORMAL[kind]; }
   }
   for (const k of newR) {
     if (k === 'mtp') { const r = activateMTP(p.id); if (!r.ok && p.bleed !== 'mtp') { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); continue; } }
@@ -2288,7 +2444,7 @@ function signOrders(pid, tests, treats) {
     note(`${label(p)}: thrombolytic ordered with the pressure over ${LYTIC_BP[0]}/${LYTIC_BP[1]}. The nurse is holding it.`, 'bad');
   }
   if (first) {
-    const miss = R.wk.filter(k => !p.wk.includes(k)).length + R.tr.filter(k => !p.tr.includes(k)).length;
+    const miss = detMiss(p).length + R.tr.filter(k => !p.tr.includes(k)).length;
     S.ordMiss += miss;
     if (!miss && !extra) { pts += 10; S.clean++; }
     p.ordLog = { name: p.name, dx: p.dx, miss: missNow(p), extra: xl.slice(), fine: fl.slice(), why: ORD_WHY[p.ck] || '' };
@@ -2308,11 +2464,12 @@ function signOrders(pid, tests, treats) {
   if (p.txGap && !p.txGap.length) p.txGap = null;
   if (newT.length && (p.dsp === 'mddecide' || p.dsp === 'decide')) p.dsp = 'none';
   const n = newT.length + newR.length;
+  if (newT.some(k => DET_KIND(k) === 'mri')) note(`${label(p)}: MRI ordered. It takes about an hour, and the patient leaves the department for it.`);
   return { ok: true, msg: `${n} order${n === 1 ? '' : 's'} signed for ${label(p)}${newR.includes('meds') ? ` (${rxName(p)})` : ''}${held ? '.' + held : ''}`, held: !!held };
 }
 // A workup that is missing a test the plan needs: the diagnosis waits until it's ordered.
 function workGap(p) {
-  const miss = p.right.wk.filter(k => !p.wk.includes(k));
+  const miss = detMiss(p);
   if (!miss.length) return false;
   p.re = 'none'; p.ord = 'more';
   if (!G.pre) { G.stats.md.gaps++; care(-5 * miss.length, 'orders', p); note(`${label(p)}: the workup isn't complete. Something the plan needs is missing.`, 'bad'); }
@@ -2890,7 +3047,8 @@ function interpTick() {
 
 /* ---------- imaging, results, consults ---------- */
 function imgTick(dt) {
-  for (const m of ['xr', 'ct', 'us']) {
+  if (!G.img.mri) G.img.mri = { busy: null, q: [], down: -1e9 };   // a save from before v0.19
+  for (const m of ['xr', 'ct', 'us', 'mri']) {
     const S = G.img[m];
     if (S.down > G.t || (m === 'ct' && (outActive('ct') || outActive('power')))) continue;
     if (S.busy) {
@@ -4375,6 +4533,7 @@ function mdPlay(o) {
 const OC = {
   hooks, get G() { return G; }, load(g) { G = g; }, newGame, step, botStep,
   LEVELS, STARS, STARS_MD, ZONES, ZONE_NAME, ROOMS, SPECS, WORK, TREAT, ALERTS, GOALS, SCEN, PACKS, CASES, LANGS,
+  LABS, IMGS, NEED, RES, IMG_NORMAL, detResult, DET_KIND, DET_NAME, needOf,
   pt, room, staff, roomOf, roomName, label, clock, active, inRooms, boarders, isProv, present,
   zoneLoad, zoneNurses, nurseLoad, zonePts, weight, staffSat, avgWait, waitingCount, hallCount, maxWallNow,
   canPlace, canAssign, needsProv, allWorkDone, preDone, treatsDone, pitDcReady,
@@ -5105,8 +5264,19 @@ function pathRows(p, G) {
   let keys = p.wk.slice(); if (p.work.ecg && !keys.includes('ecg')) keys.unshift('ecg');
   const unwritten = MD() && p.ev !== 'done' && !p.arrest;   // in the attending's game the orders are the player's to work out
   if (unwritten) { keys = keys.filter(k => p.work[k]); if (p.loc === 'room' || p.loc === 'wall' || p.loc === 'waiting' || p.loc === 'triage') rows.push(row('Orders', 'Written after the exam', 'idle')); }
+  const named = detShown(p);
   for (const k of keys) {
-    const w = p.work[k], nm = { ecg: 'ECG', lab: 'Labs', xr: 'X-ray', ct: 'CT', us: 'Ultrasound' }[k];
+    const w = p.work[k], nm = { ecg: 'ECG', lab: 'Labs', xr: 'X-ray', ct: 'CT', us: 'Ultrasound', mri: 'MRI' }[k];
+    const mineK = named.filter(d => E.DET_KIND(d) === k);
+    if (mineK.length) {   // named tests: one row each, with the picture for a study
+      const doneK = w && w.st === 'done';
+      for (const d of mineK) {
+        if (!doneK) { const v = !w ? 'Ordered after the provider sees them' : w.st === 'todo' ? (k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT to draw it' : 'Drawn once roomed') : k === 'mri' ? 'Waiting for the MRI scanner' : 'In line for the scanner') : w.st === 'doing' ? (k === 'lab' ? 'Drawing now' : 'Scanning now') : `Resulting in <span data-cd="${w.due}"></span>`; rows.push(row(E.DET_NAME(d), v, 'idle')); continue; }
+        const [t, img] = (p.dres && p.dres[d]) || E.detResult(p, d), pl = PLAIN() && E.FIND_PLAIN[t];
+        rows.push(row(E.DET_NAME(d), `${img && IMG_CREDIT[img] ? `<button type="button" class="rimg" data-act="img" data-arg="${p.id}|${d}" aria-label="Look at the ${esc(E.DET_NAME(d))}"><img src="img/${img}.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"><span>View</span></button>` : ''}<b>${esc(t)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`, 'ok'));
+      }
+      continue;
+    }
     let v, st = 'idle';
     if (!w) v = 'Ordered after the provider sees them';
     else if (w.st === 'todo') v = k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT (the nurse draws it if techs are tied up)' : 'Drawn once roomed') : k === 'ecg' ? 'Waiting for a PCT or nurse' : 'In line for the scanner';
@@ -5272,17 +5442,78 @@ const gapMsg = p => (E.vitalsOf(p).trend === 'better' ? 'Better, but something t
    While the workup is open it names the tests only: naming the drug would give the diagnosis away. */
 function gapHint(p) { const m = PLAIN() ? E.missNow(p, p.ord === 'more') : []; return m.length ? ` <b class="hintb">Still needed: ${esc(m.join(', '))}.</b>` : ''; }
 const lyticHeld = p => !!(p.treat.tnk && p.treat.tnk.st === 'wait' && !p.treat.bp && p.alert === 'stroke' && !E.bpOkForLytic(p));
+/* Tests on the order sheet: the ECG, single labs in their groups, and named studies by kind. */
+const IMG_KINDS = [['xr', 'X-ray'], ['ct', 'CT'], ['mri', 'MRI'], ['us', 'Ultrasound']];
+function testsBlock(chip) {
+  const pl = PLAIN(), labG = {};
+  for (const [k, L] of Object.entries(E.LABS)) (labG[L.g] = labG[L.g] || []).push(chip('t', k, L.n, pl ? L.p : ''));
+  let h = `<div class="ogrid">${chip('t', 'ecg', 'ECG', pl ? 'A tracing of the heart rhythm' : '')}</div><div class="o-sec">Labs</div>`;
+  for (const [g, chips] of Object.entries(labG)) h += `<div class="o-grp">${g}</div><div class="ogrid o3">${chips.join('')}</div>`;
+  h += '<div class="o-sec">Imaging</div>';
+  for (const [m, nm] of IMG_KINDS) h += `<div class="o-grp">${nm}</div><div class="ogrid o3">${Object.entries(E.IMGS).filter(([, I]) => I.m === m).map(([k, I]) => chip('t', k, I.n, pl ? I.p : '')).join('')}</div>`;
+  return h;
+}
+/* The imaging viewer: the study full screen, what it shows, what to look for, and whose picture it is.
+   LOOK: what to look for, per picture. IMG_CREDIT: filled from img/credits.json at build time. */
+const LOOK = {
+  cxr_normal: 'Dark, clear lungs out to the edges. A heart less than half the width of the chest.',
+  cxr_pna: 'A white, fluffy patch low on the right, where air spaces have filled with pus.',
+  cxr_edema: 'Hazy white lungs on both sides, worst near the middle, and a big heart: fluid backing up from a failing heart.',
+  cxr_copd: 'Big, dark, over-inflated lungs and a flat diaphragm. No white patch of pneumonia.',
+  cxr_tb: 'A hollow ring (a cavity) high in the lung, where tuberculosis has eaten the tissue.',
+  xr_hipfx: 'A break across the neck of the femur, just below the ball of the hip.',
+  xr_femur: 'The thigh bone broken through the middle.',
+  xr_wrist: 'The end of the radius, just above the wrist, broken and bent back.',
+  ankle_normal: 'Smooth, unbroken bone edges and an even joint space.',
+  hip_normal: 'A smooth curve from the ball of the hip down the neck of the femur.',
+  pelvis_normal: 'An unbroken ring of bone.',
+  cthead_normal: 'Gray brain filling the skull evenly. No bright white blood.',
+  ct_sdh: 'A bright crescent of blood between the skull and the brain, pushing the brain over.',
+  cta_normal: 'Bright, unbroken arteries filled with contrast.',
+  cta_m1: 'The artery to one side of the brain stops short: contrast cannot get past the clot.',
+  ctcs_normal: 'Neck bones lined up, edges unbroken.',
+  ctpe_normal: 'Lung arteries evenly bright with contrast. No dark clot inside them.',
+  ctap_normal: 'Normal bowel, kidneys, and fat.',
+  ct_appy: 'A swollen appendix with hazy, inflamed fat around it.',
+  ct_stone: 'A bright white dot in the ureter, the tube from the kidney, with the kidney swollen above it.',
+  mrib_normal: 'Even gray brain. No bright spot.',
+  mris_normal: 'A spinal cord with room around it.',
+  fast_positive: 'A black stripe between the liver and the kidney. Black on ultrasound is fluid: here, blood.',
+  fast_negative: 'Liver and kidney touching, with no black stripe between them.',
+  us_gallstones: 'Bright stones inside the gallbladder, dark shadows behind them, and a thick wall.',
+  ruq_normal: 'A dark, thin-walled gallbladder with no stones.',
+  us_dvt: 'The vein does not squash flat when pressed: it is full of clot.',
+  duplex_normal: 'The vein squashes flat under the probe: no clot.',
+  pelus_normal: 'A normal uterus and ovaries.',
+};
+const IMG_CREDIT = {};   // a picture is shown only when it is in the game (and so has a credit)
+function openViewer(pid, d) {
+  const p = E.pt(pid); if (!p) return;
+  const [t, img] = (p.dres && p.dres[d]) || E.detResult(p, d); if (!img || !IMG_CREDIT[img]) return;
+  closeViewer(); const v = document.createElement('div'); v.id = 'viewer'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-label', E.DET_NAME(d));
+  const cr = IMG_CREDIT[img], pl = PLAIN() && E.FIND_PLAIN[t];
+  v.innerHTML = `<div class="vw-img"><img src="img/${img}.jpg" alt="${esc(E.DET_NAME(d))}: ${esc(t)}"></div><div class="vw-cap"><div class="vw-h"><b>${esc(E.DET_NAME(d))}</b> · ${esc(p.name)}</div><div class="vw-f">${esc(t)}${pl ? ` <small>${esc(pl)}</small>` : ''}</div>${LOOK[img] ? `<div class="vw-look"><b>Look for:</b> ${esc(LOOK[img])}</div>` : ''}${cr ? `<div class="vw-cr">Image: ${esc(cr)}</div>` : ''}<button type="button" class="big vw-x" data-vw="x">Close</button></div>`;
+  v.addEventListener('click', e => { if (e.target.closest('[data-vw="x"]') || !e.target.closest('.vw-cap')) closeViewer(); });
+  document.body.appendChild(v); U.viewer = { pid, d };
+}
+function closeViewer() { const v = document.getElementById('viewer'); if (v) v.remove(); U.viewer = null; }
+/* The named tests a card shows: the attending's own orders, or (for the charge nurse) what the provider ordered. */
+function detShown(p) {
+  if (p.det && p.det.length) return p.det;
+  if (MD() && mine(p)) return [];
+  return E.needOf(p).n.filter(d => p.wk.includes(E.DET_KIND(d)));
+}
 function ordersBlock(p, G, add) {
   if (!U.ord || U.ord.pid !== p.id) U.ord = { pid: p.id, tests: [], treats: [] };
   const o = U.ord;
   const chip = (kind, key, lbl, sub) => {
-    const done = kind === 't' ? p.wk.includes(key) : p.tr.includes(key), on = (kind === 't' ? o.tests : o.treats).includes(key);
+    const done = kind === 't' ? (key === 'ecg' ? p.wk.includes('ecg') : (p.det || []).includes(key)) : p.tr.includes(key), on = (kind === 't' ? o.tests : o.treats).includes(key);
     return `<button type="button" class="och${done ? ' done' : on ? ' on' : ''}" data-act="ordT" data-arg="${p.id}|${kind}|${key}" ${done ? 'disabled' : ''} aria-pressed="${on}"><b>${lbl}</b>${done ? '<small>Ordered</small>' : sub ? `<small>${sub}</small>` : ''}</button>`;
   };
   const n = o.tests.length + o.treats.length, need = p.ord === 'need';
   const title = p.ord === 'more' ? `The workup is not complete. Add what is missing.${gapHint(p)}` : add ? 'Add orders' : 'Write orders';
   const lbl = n ? `Sign ${n} order${n > 1 ? 's' : ''}` : need ? 'Sign with no orders' : 'Pick orders to add';
-  return `<div class="prim"><div class="prim-l">${title}</div><div class="ogrid">${ORDER_TESTS.map(([k, l, sub]) => chip('t', k, l, sub)).join('')}</div><div class="prim-l">Treatment</div><div class="ogrid">${ORDER_TX.map(([k, l, sub]) => chip('r', k, l, sub)).join('')}</div><button type="button" class="big act" data-act="sign" data-arg="${p.id}" ${n || need ? '' : 'disabled'}>${lbl}</button><p class="hint" style="margin:0">Order what they need and nothing extra. Extra tests cost time, and some treatments hurt people who don't need them.</p></div>`;
+  return `<div class="prim"><div class="prim-l">${title}</div>${testsBlock(chip)}<div class="prim-l">Treatment</div><div class="ogrid">${ORDER_TX.map(([k, l, sub]) => chip('r', k, l, sub)).join('')}</div><button type="button" class="big act" data-act="sign" data-arg="${p.id}" ${n || need ? '' : 'disabled'}>${lbl}</button><p class="hint" style="margin:0">Order what they need and nothing extra. Extra tests cost time, and some treatments hurt people who don't need them.</p></div>`;
 }
 function mdDecideBlock(p) {
   const b = (k, l, sub) => `<button type="button" class="cbtn" data-act="mdd" data-arg="${p.id}|${k}"><b>${l}</b><small>${sub}</small></button>`;
@@ -5484,7 +5715,21 @@ const GLOSS = [
   ]],
   ['Tests', [
     ['Workup', 'The set of tests that finds out what is wrong.'],
-    ['Labs', 'Blood and urine tests.'],
+    ['Labs', 'Blood and urine tests. The attending orders them one at a time.'],
+    ['CBC', 'Complete blood count: white cells (infection), hemoglobin (blood loss), platelets (clotting).'],
+    ['BMP', 'Basic metabolic panel: sodium, potassium, kidney function, and blood sugar.'],
+    ['Lipase', 'An enzyme from the pancreas. High when the pancreas is inflamed.'],
+    ['BNP', 'A hormone the heart releases when it is stretched. High in heart failure.'],
+    ['D-dimer', 'A clot breakdown product. A low one helps rule out a clot; a high one proves nothing.'],
+    ['Blood cultures', 'Blood put in bottles to grow any bacteria. Drawn before antibiotics, read in a day or two.'],
+    ['Blood gas (VBG)', 'How acid the blood is and how much carbon dioxide it holds. It also gives the carbon monoxide level.'],
+    ['Coags (PT/INR)', 'How fast blood clots. The INR is high on the blood thinner warfarin.'],
+    ['Type and screen', 'The blood type and a check for antibodies, so the blood bank can match blood quickly.'],
+    ['Urinalysis', 'A urine test for infection and blood.'],
+    ['CK', 'Creatine kinase. Released by damaged muscle, after a long time on the floor or a crush.'],
+    ['FAST', 'Focused assessment with sonography in trauma: a bedside ultrasound for blood in the belly or around the heart.'],
+    ['CT angiogram (CTA)', 'A CT with dye in the arteries. It shows a blocked artery (a stroke) or a clot in the lungs.'],
+    ['MRI', 'Magnetic pictures with fine detail, best for the brain and spinal cord. It takes about an hour and the patient leaves the department.'],
     ['Flank', 'The side of the back, over the kidney.'],
     ['Guarding', 'Belly muscles that tighten when pressed. A sign of something serious inside.'],
     ['Crackles', 'A wet, crackling sound in the lungs: fluid or infection.'],
@@ -5638,7 +5883,7 @@ function helpHTML() {
 function helpMD() {
   return head('How to work a shift', `You are an attending from ${shiftSpan()}. The charge nurse runs the board. You run the medicine.`) + WORDS_BTN + (U.view === 'map' ? legendHTML(true) : '') + `<ol class="help">
 <li><b>Pick up patients.</b> ${U.view === 'map' ? (floor3d() ? 'Rooms showing a stethoscope' : 'Rooms with a blue stethoscope') : 'Rooms marked Needs a provider'} are waiting for a doctor. Tap one, then See this patient. See the sickest first. Anyone you leave too long goes to another provider.</li>
-<li><b>Write orders.</b> After the exam, pick tests and treatment, then Sign. Order what they need and nothing extra: extra tests cost time and points, a CT costs radiation, and some treatments hurt people who don't need them.</li>
+<li><b>Write orders.</b> After the exam, pick tests and treatment, then Sign. Labs are single tests (CBC, BMP, troponin, lactate), grouped by what they look for. Imaging is a named study (chest X-ray, CT head, CT abdomen and pelvis, MRI brain, FAST). Order what they need and nothing extra: extra tests cost time and points, a CT costs radiation, an MRI costs an hour, and some treatments hurt people who don't need them. When a study is back, tap its picture on the card to look at it.</li>
 <li><b>Close the gaps.</b> If the workup can't make the diagnosis, you'll hear that something is missing. Add it. If a patient isn't improving, they need a treatment you didn't order. Read the vital signs: a low oxygen level needs oxygen, a pressure that stays low after fluids needs a vasopressor, and a stroke over 185/110 needs blood pressure control before the nurse will give the thrombolytic.</li>
 <li><b>Make the call.</b> When the diagnosis is in, send them home, call the right consultant to admit them, or transfer them. Consultants want their results back before you call. Chest pain, fainting, and TIA come with a risk score for home, observation, or admit.</li>
 <li><b>Answer the radio.</b> When a medic needs medical direction, tap Answer, read the call, and approve or deny. Only you can do it, and the call rings out if you wait.</li>
@@ -5849,15 +6094,19 @@ const seeStep = (key) => ({
   spot: () => { const p = tid(key); return onSheet(p) ? ['#sheet [data-act="see"]'] : [roomSel(p)]; },
   done: () => tid(key).prov === me(), auto: () => E.assign(me(), tid(key).id),
 });
-const ordStep = (key, list) => ({     // list: [['t', 'lab'], ['r', 'meds']]
+/* list: [['t', 'lab'], ['r', 'meds']]. A kind of test (lab, xr, ct, us) means the named tests this patient's case needs of
+   that kind (a CBC and a BMP, the CT abdomen and pelvis), so the preceptor lights each one in turn. */
+const ordList = (p, list) => list.flatMap(([k, v]) => (k === 't' && v !== 'ecg' && E.WORK[v] ? E.needOf(p).n.filter(d => E.DET_KIND(d) === v).map(d => ['t', d]) : [[k, v]]));
+const ordHas = (p, k, v) => (k === 't' ? (v === 'ecg' ? p.wk.includes('ecg') : (p.det || []).includes(v)) : p.tr.includes(v));
+const ordStep = (key, list) => ({
   spot: () => {
     const p = tid(key); if (!onSheet(p)) return [roomSel(p)];
     const o = U.ord && U.ord.pid === p.id ? U.ord : { tests: [], treats: [] };
-    const next = list.find(([k, v]) => !(k === 't' ? o.tests : o.treats).includes(v) && !(k === 't' ? p.wk : p.tr).includes(v));
+    const next = ordList(p, list).find(([k, v]) => !(k === 't' ? o.tests : o.treats).includes(v) && !ordHas(p, k, v));
     return next ? [`#sheet [data-act="ordT"][data-arg="${p.id}|${next[0]}|${next[1]}"]`] : ['#sheet [data-act="sign"]'];
   },
-  done: () => { const p = tid(key); return p.ord === 'signed' && list.every(([k, v]) => (k === 't' ? p.wk : p.tr).includes(v)); },
-  auto: () => { const p = tid(key); U.ord = null; E.signOrders(p.id, list.filter(x => x[0] === 't').map(x => x[1]), list.filter(x => x[0] === 'r').map(x => x[1])); },
+  done: () => { const p = tid(key); return p.ord === 'signed' && ordList(p, list).every(([k, v]) => ordHas(p, k, v)); },
+  auto: () => { const p = tid(key), L = ordList(p, list); U.ord = null; E.signOrders(p.id, L.filter(x => x[0] === 't').map(x => x[1]), L.filter(x => x[0] === 'r').map(x => x[1])); },
 });
 const callStep = (key, pick, spec) => ({
   spot: () => { const p = tid(key); if (sheetIs('consult')) return [`#sheet [data-act="consultSpec"][data-arg="${spec}"]`]; return onSheet(p) ? [`#sheet [data-act="mdd"][data-arg="${p.id}|${pick}"]`] : [roomSel(p)]; },
@@ -5877,7 +6126,7 @@ const STEPS_MD = [
   { id: 'j2', wait: true, title: 'In the room', text: `You take a **history**, which is his own account of what happened, and you examine him.`, done: () => tid('jordan').ord === 'need' },
   { id: 'jv', title: 'His card', text: `Everything about a patient is on his **card**.\nTap **his room** to open it.`, spot: () => [roomSel(tid('jordan'))], done: () => onSheet(tid('jordan')), auto: () => { U.sel = null; U.sheet = { type: 'pt', pid: tid('jordan').id }; } },
   { id: 'jv2', next: true, keep: true, title: 'Vital signs', text: `**Vitals** are the body’s basic numbers. Normal for an adult:\n**HR**, heart rate: 60 to 100.\n**BP**, blood pressure: about 120/80.\n**RR**, breaths a minute: 12 to 20.\n**SpO2**, oxygen in the blood: 95% or more.\n**Temp**: 100.4 or higher is a fever.\nAnything **red** is out of range, like his fever. The tag beside them says which way he’s heading.`, spot: () => ['#sheet .ph-cc'] },
-  { id: 'j3', keep: true, title: 'Write orders', text: `**Orders** are your instructions: which tests to run and which treatments to give. The tests are the **workup**. Order what he needs and **nothing extra**, because extra tests cost time.\nFor a sore throat with fever that’s a **strep test**, under Labs, and antibiotic pills, under **Medications**.\nThe **Antibiotics** button is for serious infections. Those go into a vein.\nTap **Labs**, **Medications**, then **Sign**.`, ...ordStep('jordan', [['t', 'lab'], ['r', 'meds']]) },
+  { id: 'j3', keep: true, title: 'Write orders', text: `**Orders** are your instructions: which tests to run and which treatments to give. The tests are the **workup**. Order what he needs and **nothing extra**, because extra tests cost time.\nFor a sore throat with fever that’s a **rapid strep**, under Labs, and antibiotic pills, under **Medications**.\nThe **Antibiotics** button is for serious infections. Those go into a vein.\nTap **Rapid strep**, **Medications**, then **Sign**.`, ...ordStep('jordan', [['t', 'lab'], ['r', 'meds']]) },
   { id: 'j4', wait: true, title: 'Results', text: `A **tech**, a nurse’s assistant, swabs his throat. The result comes back to you.`, done: () => tid('jordan').dsp === 'mddecide' || !!tid('jordan').mdPick },
   { id: 'j5', title: 'Your call', text: `It’s **strep throat**, a throat infection that antibiotics cure.\nWhere a patient goes next is the **disposition**, and it’s your call: **home**, **admit** to this hospital, or **transfer** to another.\nHe can go home. Tap **his room**, then **Discharge home**.`, ...callStep('jordan', 'home') },
   { id: 'j6', wait: true, title: 'Going home', text: `His nurse gives him the prescription and the **warning signs** that mean come back.`, done: () => tid('jordan').loc === 'gone' },
@@ -5885,7 +6134,7 @@ const STEPS_MD = [
   { id: 'a1', title: 'Vomiting, sugar very high', text: `**Room 5** is [[Aisha]], 24. She’s an **ESI 2**: high risk, shouldn’t wait. She’s vomiting and her blood sugar is very high.\nTap **her room**, then **See this patient**.`,
     setup: () => ({ aisha: E.trainPatient('dka', 'room', { room: '5', name: 'Aisha K.', age: 24, sex: 'F' }) }), ...seeStep('aisha') },
   { id: 'a2', wait: true, title: 'In the room', text: `Her breath smells **fruity**. She’s breathing **fast and deep**, and her mouth is dry.`, done: () => tid('aisha').ord === 'need' },
-  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**, diabetic ketoacidosis. **Insulin** is the hormone that lets the body use sugar. Without it the body burns fat, and the blood turns acid.\nShe needs **labs** to prove it and to check her **potassium**, **IV fluids** (salt water into a vein), and an **insulin drip** (steady insulin into a vein).\nTap **her room**, **Labs**, **IV fluids**, **Insulin drip**, then **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin']]) },
+  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**, diabetic ketoacidosis. **Insulin** is the hormone that lets the body use sugar. Without it the body burns fat, and the blood turns acid.\nShe needs a **BMP** for her sugar and her **potassium**, a **blood gas** to show how acid her blood is, **IV fluids** (salt water into a vein), and an **insulin drip**.\nTap **her room**, **BMP**, **Blood gas**, **IV fluids**, **Insulin drip**, then **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin']]) },
   { id: 'a4', wait: true, title: 'Results', text: `Her **glucose**, the blood sugar, is **540**. Normal is about 100.\nHer **anion gap is 26**, which means acid in the blood. Normal is under 12.\nHer **potassium is 4.8**, safe for insulin. Insulin pushes potassium out of the blood, so a low one gets fixed first.\nThat’s DKA. Her nurse starts the drip.`, done: () => tid('aisha').dsp === 'mddecide' || !!tid('aisha').mdPick },
   { id: 'a5', title: 'Admit her', text: `Someone on an insulin drip gets checked every hour, so she goes to the **ICU**, the intensive care unit.\nTo admit a patient you call a **consult**, the specialists who take over her care.\nTap **her room**, **Admit: call a consult**, then **Critical Care**. They’re the ICU team.`, ...callStep('aisha', 'consult', 'icu') },
   { id: 'a6', wait: true, title: 'Admitted', text: `Critical Care comes down and **admits** her. From here the charge nurse handles the bed upstairs and the transport.`, done: () => E.isBoarder(tid('aisha')) || tid('aisha').loc === 'gone' },
@@ -5893,9 +6142,9 @@ const STEPS_MD = [
   { id: 'b1', title: 'Belly pain', text: `**Room 9** is [[Sam]], 19. His belly pain started in the middle and moved to the lower right.\nTap **his room**, then **See this patient**.`,
     setup: () => ({ sam: E.trainPatient('appy', 'room', { room: '9', name: 'Sam O.', age: 19, sex: 'M' }) }), ...seeStep('sam') },
   { id: 'b2', wait: true, title: 'In the room', text: `It hurts when you press on his lower right belly. That’s where the **appendix** sits, a small pouch off the bowel.`, done: () => tid('sam').ord === 'need' },
-  { id: 'b3', title: 'A thin workup', text: `The **workup** is the set of tests that finds the diagnosis. I want you to see what happens when one is missing.\nOrder only **Labs** and **Medications**, then **Sign**.`, ...ordStep('sam', [['t', 'lab'], ['r', 'meds']]) },
+  { id: 'b3', title: 'A thin workup', text: `The **workup** is the set of tests that finds the diagnosis. I want you to see what happens when one is missing.\nOrder only a **CBC**, a **BMP**, and **Medications**, then **Sign**.`, ...ordStep('sam', [['t', 'lab'], ['r', 'meds']]) },
   { id: 'b4', wait: true, title: 'Waiting on labs', text: `The labs come back.`, done: () => tid('sam').ord === 'more' || !!tid('sam').dxK },
-  { id: 'b5', title: 'Something is missing', text: `His white blood cell count, the **WBC**, is 15.8. It rises with infection, and normal is under 11.\nA blood test can’t tell you which organ is the trouble. A **CT** can. It’s a scanner that takes detailed pictures inside the body.\nTap **his room**, add **CT**, then **Sign**. Every gap like this costs time.`, ...ordStep('sam', [['t', 'ct']]) },
+  { id: 'b5', title: 'Something is missing', text: `His white blood cell count, the **WBC**, is 15.8. It rises with infection, and normal is under 11.\nA blood test can’t tell you which organ is the trouble. A **CT** can. It’s a scanner that takes detailed pictures inside the body.\nTap **his room**, add **CT abdomen and pelvis**, then **Sign**. Every gap like this costs time.`, ...ordStep('sam', [['t', 'ct']]) },
   { id: 'b6', wait: true, title: 'CT', text: `The CT shows an inflamed appendix. That’s **appendicitis**.`, done: () => tid('sam').dsp === 'mddecide' || !!tid('sam').mdPick },
   { id: 'b7', title: 'Call surgery', text: `Appendicitis gets fixed in the **OR**, the operating room.\nTap **his room**, **Admit: call a consult**, then **General Surgery**. They’re the belly surgeons.\nA word of advice: call before the results are back and the consultant gets angry and slow.`, ...callStep('sam', 'consult', 'surg') },
 
@@ -5910,7 +6159,7 @@ const STEPS_MD = [
   { id: 's2', title: 'Time is brain', text: () => `Brain cells die every minute that vessel stays blocked. A **thrombolytic** is a drug that can dissolve the clot, but only in the first few hours.\nTap **${E.roomName(tid('stroke').room || 'R1')}**, then **See this patient**.`, ...seeStep('stroke') },
   { id: 's3', wait: true, title: 'In the room', text: () => `His right side is weak and his speech is slurred.\n**Last known well: ${E.clock(tid('stroke').lkwT)}**. That’s the last time anyone saw him normal. It’s on his card, and it decides which treatments are still on the table.`, done: () => tid('stroke').ord === 'need' },
   { id: 's4a', next: true, title: 'CT first', text: `The thrombolytic is dangerous if the stroke is a **bleed**, so the **CT comes first**.\nThe nurse gives the drug once the CT shows no bleeding and neurology agrees.`},
-  { id: 's4', title: 'Stroke orders', text: `His blood pressure is under **185/110**, the limit for this drug. If it were over, you’d also order **blood pressure control**, and the nurse would hold the drug until the pressure came down.\nTap **his room**, **CT**, **Labs**, **Thrombolytic**, then **Sign**.`, ...ordStep('stroke', [['t', 'ct'], ['t', 'lab'], ['r', 'tnk']]) },
+  { id: 's4', title: 'Stroke orders', text: `His blood pressure is under **185/110**, the limit for this drug. If it were over, you’d also order **blood pressure control**, and the nurse would hold the drug until the pressure came down.\nTap **his room**, **CT head**, **BMP**, **Thrombolytic**, then **Sign**. The BMP gives his blood sugar.`, ...ordStep('stroke', [['t', 'ct'], ['t', 'lab'], ['r', 'tnk']]) },
   { id: 's5', wait: true, title: 'Door to needle', text: `Two goals: a **CT within 25 minutes** of arrival, and the drug **within 60**. The second one is called **door to needle**. You can watch both on his card.`, done: () => { const p = tid('stroke'); return (p.treat.tnk && p.treat.tnk.st === 'done') || p.loc === 'gone'; } },
   { id: 's6', wait: true, title: 'To the ICU', text: `Neurology admits him to the **ICU**, where he is watched closely for bleeding.`, done: () => E.isBoarder(tid('stroke')) || tid('stroke').loc === 'gone' },
 
@@ -5938,7 +6187,7 @@ const LESSONS = {
     { id: 'k3', wait: true, title: 'In the room', text: () => `Her right arm and leg are weak, and her speech is slurred.\n**Last known well: ${E.clock(LP().lkwT)}**. That’s the last time anyone saw her normal. The clot drug has to go in within **4½ hours** of it.`, done: lExamined },
     { id: 'k4', next: true, title: 'Clot or bleed', text: `A **CT** takes pictures inside the head and shows whether the stroke is a **clot** or a **bleed**.\nA **thrombolytic** is the drug that dissolves a clot. Give it to a bleed and you make things worse, so the **CT comes first**.`},
     { id: 'k5', next: true, title: 'Her pressure is too high', text: () => `Her blood pressure is **${lBP()}**. The limit for the clot drug is **185/110**.\nAbove that, the drug can make the brain bleed. So you also order **blood pressure control**, and the nurse holds the clot drug until the pressure is down.`},
-    { id: 'k6', title: 'Stroke orders', text: `Tap **her room**. Then **CT**, **Labs**, **Blood pressure control**, **Thrombolytic**, and **Sign**.\nThe labs check her blood sugar and her clotting. A low sugar can look exactly like a stroke, and it has fooled good doctors.`, ...ordStep('pt', [['t', 'ct'], ['t', 'lab'], ['r', 'bp'], ['r', 'tnk']]) },
+    { id: 'k6', title: 'Stroke orders', text: `Tap **her room**. Then **CT head**, **BMP**, **Blood pressure control**, **Thrombolytic**, and **Sign**.\nThe BMP checks her blood sugar. A low sugar can look exactly like a stroke, and it has fooled good doctors.`, ...ordStep('pt', [['t', 'ct'], ['t', 'lab'], ['r', 'bp'], ['r', 'tnk']]) },
     { id: 'k7', wait: true, title: 'Two clocks', text: `**Door to CT: 25 minutes.**\n**Door to needle: 60 minutes.** That is arrival to the clot drug going in.\nBoth are on her card. The nurse gives the drug once the CT shows no bleed, neurology agrees, and the pressure is under 185/110.`,
       done: () => { const p = LP(); return !!(p.treat.tnk && p.treat.tnk.st === 'done') || p.loc === 'gone'; } },
     { id: 'k8', wait: true, title: 'After the drug', text: `Neurology admits her to the **ICU**, the intensive care unit. Her nurses watch closely for bleeding.`, done: lLeft },
@@ -5950,7 +6199,7 @@ const LESSONS = {
       setup: () => ({ pt: E.trainPatient('stemi', 'alert', { name: 'Frank D.', age: 58, sex: 'M', unit: 'Medic 9', eta: 4 }) }), done: lRoomed },
     { id: 'h2', title: 'See him now', text: () => `He is **ESI 1**: the sickest level.\nTap **${lRoom()}**, then **See this patient**.`, ...seeStep('pt') },
     { id: 'h3', wait: true, title: 'In the room', text: `He’s gray and sweating, and the pressure in his chest runs down his left arm.\nA tech repeated the ECG at the door. The goal is **door to ECG in 10 minutes**.`, done: lExamined },
-    { id: 'h4', title: 'Heart attack orders', text: `The **ECG** is already done, so it shows as ordered.\n**Labs** include **troponin**, which rises when heart muscle is damaged.\n**Medications** here means aspirin and a blood thinner, so the clot stops growing.\nTap **his room**, **Labs**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'meds']]) },
+    { id: 'h4', title: 'Heart attack orders', text: `The **ECG** is already done, so it shows as ordered.\n**Troponin** rises when heart muscle is damaged. Order it, but don’t wait for it: the ECG already made the call.\n**Medications** here means aspirin and a blood thinner, so the clot stops growing.\nTap **his room**, **Troponin**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'meds']]) },
     { id: 'h5', wait: true, title: 'Door to balloon', text: `Cardiology takes him to the cath lab.\nThe goal is **door to balloon in 90 minutes**, counted from his arrival to the artery reopened.`, done: lLeft },
     { id: 'h6', next: true, title: 'Most chest pain is not this', text: `Most chest pain is **not** a STEMI. The ECG looks normal and the first troponin is negative.\nIt still gets an ECG, labs, a **chest X-ray**, and medication.\nThen the **HEART score** rates the risk from 0 to 10.\n**0 to 3**: home.\n**4 to 6**: **observation**, a day of watching and repeat tests.\n**7 and up**: admit.`},
     { id: 'h7', final: true, title: 'Heart attack: the short version', text: `**Looks like**: chest pressure, sweating, pain in the arm or jaw.\n**Order**: ECG, labs, medications (**aspirin**). Not a STEMI: add a **chest X-ray**.\n**Clock**: ECG in 10 minutes, artery open in 90.\n**As charge nurse**: an ECG at the door, a room now, and never the waiting room.` },
@@ -5962,7 +6211,7 @@ const LESSONS = {
     { id: 'p2', title: 'See her now', text: () => `She is **ESI 1**: the sickest level.\nTap **${lRoom()}**, then **See this patient**.`, ...seeStep('pt') },
     { id: 'p3', wait: true, title: 'In the room', text: `Her skin is **hot and blotchy** and she’s **breathing fast**. She doesn’t know what day it is.`, done: lExamined },
     { id: 'p4', next: true, title: 'What she needs', text: `**IV fluids**: salt water into a vein. It fills the blood vessels and lifts the pressure.\n**Antibiotics**: they kill the infection.\n**Vasopressor**: a drug that tightens the blood vessels, for a pressure that fluids can’t fix.\n**Oxygen**: hers is low.\n**Labs**: they find the germ and show how starved her organs are.` },
-    { id: 'p5', title: 'Sepsis orders', text: `Tap **her room**. Then **Labs**, **Oxygen**, **IV fluids**, **Antibiotics**, **Vasopressor**, and **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'o2'], ['r', 'fluids'], ['r', 'abx'], ['r', 'pressor']]) },
+    { id: 'p5', title: 'Sepsis orders', text: `Tap **her room**. Then **Lactate**, **Blood cultures**, **CBC**, **BMP**, **Oxygen**, **IV fluids**, **Antibiotics**, **Vasopressor**, and **Sign**.\nCultures go in before the antibiotics, so the lab can still grow the germ.`, ...ordStep('pt', [['t', 'lab'], ['r', 'o2'], ['r', 'fluids'], ['r', 'abx'], ['r', 'pressor']]) },
     { id: 'p6', wait: true, title: 'Watch the pressure', text: `Her **pressure climbs** as the fluids and the vasopressor go in, and her oxygen comes back up.\nThe **pharmacist** checks the antibiotic and the vasopressor before the nurse gives them.`, done: lResulted },
     { id: 'p7', title: 'Admit her', text: `A vasopressor drip has to be watched minute to minute. That means the **ICU**, the intensive care unit.\nTap **her room**, **Admit: call a consult**, then **Critical Care**.`, ...callStep('pt', 'consult', 'icu') },
     { id: 'p8', final: true, title: 'Sepsis: the short version', text: `**Looks like**: an infection with a fast heart, fast breathing, confusion, or a low pressure.\n**Order**: labs, IV fluids, antibiotics. Oxygen if it is low. A vasopressor if the pressure stays down.\n**Clock**: antibiotics in 60 minutes.\n**As charge nurse**: a Resus room and a second nurse.` },
@@ -5976,7 +6225,7 @@ const LESSONS = {
     { id: 't3', wait: true, title: 'Inbound', text: `The **blood bank** is packing the cooler. A tech will run it over.`, done: lRoomed },
     { id: 't4', title: 'See him now', text: () => `He is here, in **${lRoom()}**.\nTap **his room**, then **See this patient**.`, ...seeStep('pt') },
     { id: 't5', wait: true, title: 'In the room', text: `His belly is **hard and tender**, his heart is racing, and he’s **pale and cold**.\nThe trauma surgeon is at the bedside.`, done: lExamined },
-    { id: 't6', title: 'Trauma orders', text: `**X-ray** and a bedside ultrasound look for blood in his chest and belly.\n**Labs** match his blood type and count his blood.\n**No CT**: his pressure is too low to leave the room.\nMassive transfusion shows as ordered already.\nTap **his room**, **X-ray**, **Labs**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab']]) },
+    { id: 't6', title: 'Trauma orders', text: `A **chest X-ray** and a **FAST** exam, the bedside ultrasound, look for blood in his chest and belly.\n**Type and screen** matches his blood. The **CBC** counts it.\n**No CT**: his pressure is too low to leave the room.\nTap **his room**, **Chest X-ray**, **FAST exam**, **CBC**, **Type and screen**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'us'], ['t', 'lab']]) },
     { id: 't7', wait: true, title: 'To the OR', text: `His nurse starts the blood. Watch his pressure come up.\nThe ultrasound shows **blood in his belly**, so the surgeon takes him straight to the **OR**, the operating room, to stop the bleeding.`, done: lLeft },
     { id: 't8', final: true, title: 'Bleeding trauma: the short version', text: `**Looks like**: an injury with a fast heart, a falling pressure, and pale skin.\n**Order**: massive transfusion first. Then X-ray and labs. **No CT** while the pressure is down.\n**Clock**: the surgeon at the bedside in 15 minutes.\n**As charge nurse**: a Resus room, blood on the radio report, a second nurse.` },
   ] },
@@ -5987,7 +6236,7 @@ const LESSONS = {
     { id: 'b2', wait: true, title: 'In the room', text: `He’s **wheezing** and leaning forward to breathe. He can get out a few words at a time.`, done: lExamined },
     { id: 'b3', title: 'Read his numbers', text: `Tap **his room** to open his card.`, ...lCard },
     { id: 'b4', next: true, keep: true, title: 'Two numbers', text: () => { const v = E.vitalsOf(LP()); return `**SpO2** is the oxygen in his blood: **${v.spo2}%**. Normal is 95 or more.\n**RR** is his breaths a minute: **${v.rr}**. Normal is 12 to 20.\nHe’s working hard to breathe, and he’s **tiring**. The tiring is what worries me.`; }, spot: () => ['#sheet .ph-cc'] },
-    { id: 'b5', keep: true, title: 'Breathing orders', text: `**Nebulizer**: a mist of medicine that opens the airways.\n**BiPAP**: a tight mask that pushes air and oxygen in with each breath, so he can rest.\n**X-ray** and **Labs**: check for pneumonia or fluid.\nTap **X-ray**, **Labs**, **Nebulizer**, **BiPAP**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'nebs'], ['r', 'bipap']]) },
+    { id: 'b5', keep: true, title: 'Breathing orders', text: `**Nebulizer**: a mist of medicine that opens the airways.\n**BiPAP**: a tight mask that pushes air and oxygen in with each breath, so he can rest.\n**Chest X-ray**: pneumonia or fluid. **Blood gas**: how much CO2 he’s holding.\nTap **Chest X-ray**, **Blood gas**, **Nebulizer**, **BiPAP**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'nebs'], ['r', 'bipap']]) },
     { id: 'b6', wait: true, title: 'Watch him settle', text: `**RT**, the respiratory therapist, fits the mask. His oxygen comes up and his breathing slows.`, done: lResulted },
     { id: 'b7', title: 'Admit him', text: `He’ll need the mask for hours, so he stays. The **hospitalist** is the doctor who looks after admitted patients.\nTap **his room**, **Admit: call a consult**, then **Hospitalist**.`, ...callStep('pt', 'consult', 'hosp') },
     { id: 'b8', final: true, title: 'Trouble breathing: the short version', text: `**Wheezing**: nebulizer. Add BiPAP if he is tiring.\n**Wet lungs, can’t lie flat**: BiPAP and medications.\n**Fever and cough**: chest X-ray, labs, oxygen, and **Antibiotics**. Not Medications.\n**As charge nurse**: these are ESI 2. A room now.` },
@@ -5997,7 +6246,7 @@ const LESSONS = {
     { id: 'o1', title: 'Found unresponsive', text: `**Room 9**: [[Kevin]], 31. Found unresponsive. Paramedics gave **naloxone** and he woke up.\nTap **his room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('od', 'room', { room: '9', name: 'Kevin S.', age: 31, sex: 'M' }) }), ...seeStep('pt') },
     { id: 'o2', wait: true, title: 'In the room', text: () => `He’s drowsy again. His pupils are pinpoint, and he’s breathing **${E.vitalsOf(LP()).rr} times a minute** when normal is 12 to 20.\nHere’s the catch with naloxone: it **wears off before the opioid does**.`, done: lExamined },
-    { id: 'o3', title: 'Overdose orders', text: `**Naloxone** again.\n**Labs**: his blood sugar, and other drugs he may have taken.\nTap **his room**, **Labs**, **Naloxone**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'nalox']]) },
+    { id: 'o3', title: 'Overdose orders', text: `**Naloxone** again.\n**Tox screen**: alcohol and other drugs he may have taken.\nTap **his room**, **Tox screen**, **Naloxone**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'nalox']]) },
     { id: 'o4', wait: true, title: 'Watch him', text: `His breathing picks up. Now he gets **watched**. He can leave once he stays awake and keeps breathing well on his own.`, done: lResulted },
     { id: 'o5', title: 'Your call', text: `He’s awake, walking, and breathing normally.\nTap **his room**, then **Discharge home**.`, ...callStep('pt', 'home') },
     { id: 'o6', final: true, title: 'Overdose: the short version', text: `**Looks like**: hard to wake, slow breathing, pinpoint pupils.\n**Order**: naloxone and labs. Oxygen if it is low.\n**Watch**: naloxone wears off first. He can slip back.\n**As charge nurse**: ESI 2. A room where his nurse can see him.` },
@@ -6007,7 +6256,7 @@ const LESSONS = {
     { id: 'y1', title: 'Pain after meals', text: `**Room 5**: [[Maria]], 44. Pain under her right ribs since dinner.\nTap **her room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('chole', 'room', { room: '5', name: 'Maria G.', age: 44, sex: 'F' }) }), ...seeStep('pt') },
     { id: 'y2', wait: true, title: 'In the room', text: `She’s tender **under the right ribs**, and her breath catches when you press there.\nThat points at the **gallbladder**.`, done: lExamined },
-    { id: 'y3', title: 'Gallbladder orders', text: `**Ultrasound**: shows gallstones and a swollen gallbladder wall. It is the first test here, **not CT**.\n**Labs**: infection and the liver.\n**Medications**: pain control.\nTap **her room**, **Labs**, **Ultrasound**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
+    { id: 'y3', title: 'Gallbladder orders', text: `**Gallbladder ultrasound**: gallstones and a swollen wall. It is the first test here, **not CT**.\n**CBC**, **liver tests**, **lipase**: infection, the liver, and the pancreas next door.\nTap **her room**, those three, the **ultrasound**, **Medications** for pain, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
     { id: 'y4', wait: true, title: 'Results', text: `Ultrasound: **gallstones and a thick wall**. Her white cells are up.\nThat is an inflamed gallbladder: **cholecystitis**.`, done: lResulted },
     { id: 'y5', title: 'Call surgery', text: `An inflamed gallbladder has to come out, and **General Surgery** does that.\nTap **her room**, **Admit: call a consult**, then **General Surgery**.`, ...callStep('pt', 'consult', 'surg') },
     { id: 'y6', final: true, title: 'Belly pain: the short version', text: `**Upper right, after meals**: labs and **ultrasound**. General Surgery.\n**Lower right**: labs and **CT**. General Surgery.\n**Flank pain**: labs and **CT**. Usually home.\n**Soft belly, vomiting**: labs, fluids, nausea medication. **No CT.**\n**As charge nurse**: most are ESI 3. A rigid belly does not wait.` },
@@ -6017,7 +6266,7 @@ const LESSONS = {
     { id: 'f1', title: 'Fell, hip pain', text: `**Room 9**: [[Dorothy]], 81. She fell in her kitchen and could not get up.\nTap **her room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('hipfx', 'room', { room: '9', name: 'Dorothy K.', age: 81, sex: 'F' }) }), ...seeStep('pt') },
     { id: 'f2', wait: true, title: 'In the room', text: `Her leg is **shorter and turned outward**, and she can’t lift it.\nShe says she tripped on a rug and didn’t hit her head.`, done: lExamined },
-    { id: 'f3', title: 'Hip orders', text: `**X-ray**: shows the break.\n**Labs**: she is headed for surgery, and the surgeon needs them. An ECG is reasonable too.\n**Medications**: pain control. A broken hip hurts.\nTap **her room**, **X-ray**, **Labs**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'meds']]) },
+    { id: 'f3', title: 'Hip orders', text: `**Hip X-ray**: shows the break.\n**CBC**, **BMP**, **type and screen**: she’s headed for surgery, and the surgeon needs them. An ECG is reasonable too.\n**Medications**: pain control.\nTap **her room**, the **Hip X-ray**, those three, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'meds']]) },
     { id: 'f4', wait: true, title: 'Results', text: `X-ray: a **femoral neck fracture**. The femur is the thigh bone, and its neck is the top, at the hip.\nA **broken hip**.`, done: lResulted },
     { id: 'f5', title: 'Call Orthopedics', text: `**Orthopedics** are the bone surgeons. A broken hip is fixed in the operating room.\nTap **her room**, **Admit: call a consult**, then **Orthopedics**.`, ...callStep('pt', 'consult', 'ortho') },
     { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head injury on a blood thinner**: **CT** and labs. Reverse the thinner if it bleeds. **Trauma**.\n**Twisted ankle, tender on the bone**: X-ray. No break: ibuprofen and home.\n**As charge nurse**: a hip is ESI 3. A head injury on a blood thinner **does not wait**.` },
@@ -6331,6 +6580,7 @@ const ACT = {
   ordOpen: pid => { U.ordOpen = pid; U.ord = null; },
   mdd: a => { const [pid, k] = a.split('|'); if (k === 'consult') { U.sheet = { type: 'consult', pid }; return; } res(E.mdDecide(pid, k), true); },
   tmenu: a => { U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; } },
+  img: a => { const [pid, d] = a.split('|'); openViewer(pid, d); },
   q3d: () => { const o = ['auto', 'high', 'med', 'low']; U.q3d = o[(o.indexOf(U.q3d) + 1) % o.length]; store('oc-3dq', U.q3d); if (window.OC3D && OC3D.quality) OC3D.quality(U.q3d); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   three: () => { U.three = !U.three; store('oc-3d', U.three ? '1' : '0'); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   view: v => { U.view = v === 'list' || v === 'map' ? v : U.view === 'map' ? 'list' : 'map'; store('oc-view', U.view); if (U.scene === 'title') setH($('#title'), titleHTML()); },
@@ -7108,6 +7358,7 @@ function mapSpot(els, layerId, cls) {
 const D3 = { want: null, loading: false, failed: false };
 function use3d(G) {
   if (!U.three || !G || G.train || D3.failed || U.view !== 'map') return false;
+  if (U.scene !== 'game' && !window.OC3D) return false;   // not behind the menu: loading it there stalls the menu's taps
   if (!window.OC3D) { load3d(); return false; }
   const el = document.getElementById('map'); if (!el || !OC3D.ok) return false;
   if (!el.querySelector('canvas.floor3d')) { if (!OC3D.init(el, H3D)) { D3.failed = true; return false; } if (OC3D.quality) OC3D.quality(U.q3d); }
