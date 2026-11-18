@@ -320,16 +320,22 @@ function apply(sn) {
 }
 
 /* ---------- labels and markers ---------- */
+let fullLbl = false;
 function labels() {
   for (const l of LBL.values()) l.seen = false;
   const near = view.dist < view.fit * 0.45;
+  // a room's width on screen decides the label: the full one (number, icon, ESI, name) needs about 150 px;
+  // below that, a compact badge that fits inside the room (icon, ESI dot, number). Names come back as you zoom in.
+  const roomPx = 3.8 * H / (2 * Math.tan(CAM.fov * DEG / 2) * view.dist);
+  fullLbl = fullLbl ? roomPx > 135 : roomPx > 150;
   if (snap) {
     for (const rm of snap.rooms) {
       const R2 = ROOM[rm.id], sm = R2 ? null : smallSpot(rm.id); if (!R2 && !sm) continue;
       if (!rm.ico && !rm.name && !near) continue;   // zoomed out, an empty clean room says nothing
       const [x, y] = R2 ? [R2.r.x, R2.r.y] : [sm.x, sm.y];
       const l = sprite('r' + rm.id), icon = rm.ico, fl = rm.fl, name = rm.name || '', esi = rm.esi || 0;
-      const key = [rm.id, icon, fl, name, esi, rm.crit, rm.mine, near].join('|');
+      if (!fullLbl) { compactLabel(l, rm, roomPx * (R2 ? 1 : 0.7)); const pulse = fl ? 1 + 0.08 * Math.sin(performance.now() / 160) : 1; l.px *= pulse; l.s.position.copy(B2T(x, y, R2 ? 3.2 : 1.9)); l.tap = { kind: 'room', id: rm.id }; continue; }
+      const img0 = icon ? iconImg(icon) : null, key = [rm.id, icon, img0 && img0.complete, fl, name, esi, rm.crit, rm.mine, near].join('|'); l.icon = icon;
       const wName = name ? Math.min(230, 26 + name.length * 13) : 0, w = 104 + (esi ? 52 : 0) + wName, h = 64;
       setSprite(l, key, w * 2, h * 2, near ? 30 : 19, (g) => {
         g.scale(2, 2);
@@ -369,6 +375,21 @@ function labels() {
   }
   for (const [id, l] of Array.from(LBL)) if (!l.seen) { HUD.remove(l.s); if (l.s.material.map) l.s.material.map.dispose(); LBL.delete(id); }
   sizeSprites();
+}
+
+/* Zoomed out: the room's icon with its ESI dot on the corner, and the room number under it, in a badge narrower than
+   the room. A critical patient's badge has a red edge; the attending's own rooms a gold one. */
+function compactLabel(l, rm, roomPx) {
+  const icon = rm.ico, esi = rm.esi || 0, lab = String(rm.lab || rm.id), w = 100, h = 72;
+  const img = icon ? iconImg(icon) : null, key = ['c', rm.id, icon, img && img.complete, esi, rm.crit, rm.mine, lab].join('|'); l.icon = icon;
+  setSprite(l, key, w * 2, h * 2, Math.max(16, Math.min(30, roomPx * 0.55)), g => {
+    g.scale(2, 2);
+    pill(g, 3, 3, w - 6, h - 6, 12, 'rgba(255,255,255,.95)', rm.mine ? '#F2C230' : rm.crit ? '#C8243A' : '#1B2230', rm.mine || rm.crit ? 6 : 3);
+    if (img && img.complete) g.drawImage(img, 7, 7, 58, 58);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    if (esi) { g.beginPath(); g.arc(w - 18, 21, 14, 0, 7); g.fillStyle = ['', '#C8243A', '#E46A1C', '#F2C230', '#2FA35B', '#3B74C4'][esi] || '#5E6878'; g.fill(); g.lineWidth = 3; g.strokeStyle = '#fff'; g.stroke(); g.fillStyle = esi === 3 ? '#3A2F00' : '#fff'; g.font = FONT(19); g.fillText(esi, w - 18, 22); }
+    g.fillStyle = '#1B2230'; g.font = FONT(lab.length > 2 ? 15 : 20); g.fillText(lab, w - 18, esi ? 53 : h / 2);
+  });
 }
 
 /* ---------- camera: the whole floor by default, drag to pan, pinch or wheel to zoom ---------- */
@@ -502,6 +523,8 @@ window.OC3D = {
     } catch (e) { failed = true; return false; }
     R.info.autoReset = false; R.toneMapping = THREE.AgXToneMapping; R.toneMappingExposure = 0.86; R.outputColorSpace = THREE.SRGBColorSpace;
     R.domElement.className = 'floor3d'; el.appendChild(R.domElement);
+    // the 3D floor acts on pointerup; the click a browser makes afterwards would land on whatever just opened (and close it)
+    R.domElement.addEventListener('touchend', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
     S = new THREE.Scene(); HUD = new THREE.Scene(); S.background = new THREE.Color('#5d6066');
     S.environment = new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(), 0.04).texture; S.environmentIntensity = 0.3;
     HEMI = new THREE.HemisphereLight('#ffffff', '#8a8f96', 0.75); S.add(HEMI);
