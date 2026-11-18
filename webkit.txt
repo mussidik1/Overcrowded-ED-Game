@@ -1,5 +1,5 @@
-commit bc7632297c6283a674a6f2ed73961d00ab7ab0fe
-date   2026-11-18 22:57 UTC
+commit 4454c1717f32c9cf101b4fdcd40c8c252a39b1ba
+date   2026-11-18 23:01 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,8 +13,8 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 2077, "wait": 12, "sat": 51, "stars": 3, "seen": 116, "dc": 47, "adm": 34, "lwbs": 0, "ama": 0, "returns": 1, "mtp": 2, "interp": 14, "pitSeen": 0}
-53:No errors.
+1:report {"care": 2010, "wait": 13, "sat": 51, "stars": 3, "seen": 117, "dc": 49, "adm": 34, "lwbs": 0, "ama": 1, "returns": 1, "mtp": 2, "interp": 13, "pitSeen": 0}
+52:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 2158, 'stars': 3, 'wait': 22, 'left': 14} {'seen': 44, 'fast': 20, 'ordRight': 130, 'ordExtra': 1, 'ordMiss': 3, 'clean': 37, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 37, 'dispoWrong': 2, 'log': [{'name': 'Priya L.', 'dx': 'Cholecystitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Kwame M.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}, {'name': 'Carmen P.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Thi J.', 'dx': 'Septic shock', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.'}]}
+1:report {'care': 1991, 'stars': 2, 'wait': 20, 'left': 11} {'seen': 45, 'fast': 17, 'ordRight': 142, 'ordExtra': 8, 'ordMiss': 2, 'clean': 35, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 38, 'dispoWrong': 1, 'log': [{'name': 'Thi P.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Bill J.', 'dx': 'Anaphylaxis', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.'}, {'name': 'Malik P.', 'dx': 'Suspected tuberculosis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Chest X-ray and labs. Isolate first. Treatment starts upstairs.'}, {'name': 'Omar R.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Tyler B.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Rosa H.', 'dx': 'Hip fracture', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.'}, {'name': 'Lily L.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Dmitri F.', 'dx': 'Kidney stone', 'miss': ['CT abdomen and pelvis'], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}]}
 30:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 2158)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1991)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,85 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:37, care 144, cards read 70, words 2509, longest 68
+taps: 77, game clock: 10:29, care 144, cards read 70, words 2509, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
+PASS
+41:No errors.
+36/37 k1
+37/37 end
+taps: 42, game clock: 09:50, care 238, cards read 39, words 1411, longest 70
+No errors.
+
+=== MODE=rn VW=667 VH=375 python test/train_test.py ===
+PASS
+72:No errors.
+66/67 k3
+67/67 end
+taps: 78, game clock: 10:27, care 144, cards read 70, words 2508, longest 68
+No errors.
+
+=== LESSON=heart python test/train_test.py ===
+PASS
+11:No errors.
+ 7/8 h6
+ 8/8 h7
+taps: 6, game clock: 07:41, care -2, cards read 8, words 316, longest 58
+No errors.
+
+=== MODE=rn python test/finger_test.py ===
+PASS
+2:No errors.
+rn map 844x390, finger slides up to 12px: 67 steps, 110 taps, floor ignored 0, buttons ignored 0
+No errors.
+
+=== MODE=md python test/finger_test.py ===
+PASS
+2:No errors.
+md map 844x390, finger slides up to 12px: 37 steps, 66 taps, floor ignored 0, buttons ignored 8
+No errors.
+
+=== python test/offline_test.py ===
+PASS
+1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.21.1-b9cdf44db2']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+9:No errors.
+ok   it keeps a copy of the game (6 files)
+ok   with the network off, the game still loads
+ok   and a shift starts offline
+No errors.
+
+=== python test/map3d_test.py ===
+PASS
+15:No errors.
+ok   3D detail moves from battery saver to balanced in the menu
+ok   and comes round to battery saver, and is saved
+ok   turning the 3D floor off shows the flat map
+No errors.
+
+=== python test/imaging_test.py ===
+PASS
+10:No errors.
+ok   Close closes it
+ok   every credited picture is in img/ (25)
+ok   every picture has an author, an allowed licence, and a source link
+No errors.
+
+=== python test/gate_test.py ===
+PASS
+7:No errors.
+ok   the right password opens the game
+ok   this device remembers it
+ok   with the gate switched off in the database, anyone goes straight in
+No errors.
+
+=== python test/class_test.py ===
+PASS
+19:No errors.
+ok   Run it back replays the same class shift
+ok   the top-right menu offers Restart this shift and Main menu
+ok   Class results lists what was sent for the code, best first ([{'p_code': '1XY-804'}])
+No errors.
+
+ALL PASS
