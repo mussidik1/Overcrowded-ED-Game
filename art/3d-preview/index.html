@@ -1,0 +1,100 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as SU from 'three/addons/utils/SkeletonUtils.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const W = innerWidth, H = innerHeight;
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+R.setPixelRatio(devicePixelRatio); R.setSize(W, H); R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
+R.toneMapping = THREE.AgXToneMapping; R.toneMappingExposure = 1.05; R.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(R.domElement);
+const S = new THREE.Scene(), S2 = new THREE.Scene(); S.background = new THREE.Color('#5d6066');
+S.environment = new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(), .04).texture; S.environmentIntensity = .45;
+S.add(new THREE.HemisphereLight('#ffffff', '#8a8f96', .9));
+const sun = new THREE.DirectionalLight('#fff6ea', 2.2); sun.position.set(-20, 45, 25); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
+Object.assign(sun.shadow.camera, { left: -45, right: 45, top: 30, bottom: -30, near: 1, far: 120 }); sun.shadow.bias = -.0003; sun.shadow.normalBias = .02; sun.target.position.set(2, 0, 0); S.add(sun, sun.target);
+const CAM = new THREE.PerspectiveCamera(37, W / H, .1, 400);
+const LD = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), C = {};
+const get = u => (C[u] ||= LD.loadAsync(u));
+const B2T = (x, y, z = 0) => new THREE.Vector3(x, z, -y);   // Blender (Z up) to three (Y up)
+const shade = o => o.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+
+// ---- static department and rooms ----
+const L = await (await fetch('3d/layout.json')).json();
+shade((await get('3d/dept_static.glb')).scene); S.add((await get('3d/dept_static.glb')).scene);
+const ROOM = {};
+for (const r of L.rooms) {
+  const g = new THREE.Group(); g.position.copy(B2T(r.x, r.y)); g.rotation.y = THREE.MathUtils.degToRad(r.rot); S.add(g);
+  const src = (await get(`3d/room_${r.variant}.glb`)).scene; const inst = src.clone(true); shade(inst); g.add(inst); ROOM[r.id] = { g, r };
+}
+// ---- people ----
+const ANIM = {};
+for (const a of ['walk', 'idle-a', 'idle-talking', 'interact', 'sitting-idle']) ANIM[a] = (await get(`human/animations/${a}.glb`)).animations[0];
+const MIX = [];
+async function person(model, parent, x, y, rotz, anim, t, lie = false, z = 0) {
+  const g = await get(model.startsWith('raw:') ? `human/variations/${model.slice(4)}.glb` : `3d/people/${model}.glb`);
+  const o = SU.clone(g.scene); shade(o); o.traverse(m => { if (m.isMesh) m.frustumCulled = false; if (m.name.startsWith('Icosphere')) m.visible = false; });
+  let root = o; if (lie) { root = new THREE.Group(); root.add(o); o.rotation.x = -Math.PI / 2; }
+  root.position.copy(B2T(x, y, z)); root.rotation.y = THREE.MathUtils.degToRad(rotz); parent.add(root);
+  const mx = new THREE.AnimationMixer(o); mx.clipAction(ANIM[anim]).play(); mx.update(t); MIX.push(mx); return root;
+}
+const SX = -.25, SY = .35, PTS = ['pt_05', 'pt_06', 'pt_15', 'pt_32', 'pt_female-08', 'pt_female-09', 'pt_31-female', 'pt_10'];
+const M = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: .8 }, o));
+const box = (parent, w, h, d, mat, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, d, h), mat); m.position.copy(B2T(x, y, z)); m.castShadow = m.receiveShadow = true; parent.add(m); return m; };
+const RINGM = M('#ff1010', { emissive: '#ff0000', emissiveIntensity: 2.2 }), BLANK = M('#10347f', { roughness: .9 });
+const ICONT = {}; const iconTex = n => (ICONT[n] ||= new THREE.TextureLoader().load(`3d/icons/${n}.png`, t => (t.colorSpace = THREE.SRGBColorSpace)));
+let k = 0;
+for (const { g, r } of Object.values(ROOM)) {
+  const st = r.state;
+  if (['need', 'go', 'calm', 'board', 'bad'].includes(st)) {
+    await person(PTS[k++ % PTS.length], g, SX, SY - .95, 0, 'idle-a', 0, true, .83);
+    if (st !== 'bad') box(g, .8, .2, 1.05, BLANK, SX, SY - .55, .9);
+  }
+  if (st === 'bad') for (const [rad, w] of [[1.32, .07], [1.12, .03]]) { const t = new THREE.Mesh(new THREE.TorusGeometry(rad, w, 8, 96), RINGM); t.rotation.x = Math.PI / 2; t.scale.z = .15; t.position.copy(B2T(SX, SY, .012)); g.add(t); }
+  if (['need', 'go', 'dirty', 'board', 'bad'].includes(st)) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: iconTex(st), depthTest: false })); sp.scale.set(1.25, 1.25, 1); sp.position.copy(B2T(r.x, r.y, 3.4)); sp.renderOrder = 9; S2.add(sp); }
+}
+const RG = id => ROOM[id].g;
+await person('md', RG('R1'), -.3, 1.55, 180, 'idle-talking', .5); await person('t1', RG('R1'), .4, .45, 90, 'interact', .6); await person('rn1', RG('R1'), -.95, -.2, -80, 'interact', .9); await person('rn2', RG('R1'), .55, -.9, 40, 'idle-talking', 1.2);
+await person('reg1', RG('1'), .45, .3, 75, 'idle-talking', .8); await person('ev1', RG('4'), .45, -.6, 40, 'idle-a', .3);
+await person('rn4', RG('8'), .45, .3, 70, 'interact', .9); await person('rn1', RG('14'), .45, .3, 70, 'interact', .4); await person('ev2', RG('FT1'), .45, -.5, 30, 'idle-a', .6); await person('rn3', RG('R2'), .45, .3, 70, 'idle-talking', 1);
+// hallway beds, the wall, ambulances
+const STR = (await get('3d/stretcher.glb')).scene, AMB = (await get('3d/ambulance.glb')).scene;
+const place = (src, x, y, rotz) => { const o = src.clone(true); shade(o); o.position.copy(B2T(x, y)); o.rotation.y = THREE.MathUtils.degToRad(rotz); S.add(o); return o; };
+const Xm = u => (u - 700) * .04;
+for (const [hx, pt] of [[Xm(538), 1], [Xm(642), 0], [Xm(972), 1], [Xm(1076), 0]]) { const s = place(STR, hx, 3.6, 90); if (pt) { await person('pt_10', s, 0, -.86, 0, 'idle-a', 0, true, .77); box(s, .74, .16, .95, BLANK, 0, -.45, .82); } }
+for (const [yy, pm, crew] of [[12.4, 'raw:psx-06', ['ems1', 'ems3']], [10.65, 'raw:psx-female-08', ['ems2']]]) {
+  const s = place(STR, -20.7, yy, 90); await person(pm, s, 0, -.86, 0, 'idle-a', 0, true, .77);
+  for (const [j, c] of crew.entries()) await person(c, S, -21.2 + j * 1.6, yy - .75 + j * .4, j ? 90 : 0, j ? 'idle-a' : 'idle-talking', .3 + j);
+}
+// more than two ambulances: two at the bay, three queued on the drive
+for (const [ax, ay, ar] of [[-27, 10.2, 90], [-27, 5.4, 90], [-33.5, 2.0, 180], [-33.5, -5.0, 180], [-33.5, -12.0, 180]]) place(AMB, ax, ay, ar);
+// front of house
+await person('reg1', S, -22.0, -.15, 180, 'idle-a', .2); await person('reg2', S, -19.6, -.15, 180, 'idle-talking', .9);
+await person('raw:psx-15', S, -21.6, -9.4, 180, 'idle-a', .3); await person('raw:psx-female-08', S, -21.6, -8.4, 180, 'idle-a', 1.1);
+await person('rn1', S, -15.6, -3.0, 180, 'idle-talking', .3); await person('raw:psx-32', S, -16.0, -3.95, 180, 'sitting-idle', .5);
+for (const [j, [r, c, v]] of [[0, 1, 'psx-06'], [0, 4, 'psx-female-09'], [1, 2, 'psx-10'], [2, 0, 'psx-female-08'], [2, 5, 'psx-15'], [3, 3, 'psx-05'], [4, 1, 'psx-32']].entries())
+  await person('raw:' + v, S, -16.8 + c * 1.25, -7.0 - r * 1.35, 180, 'sitting-idle', .3 + j * .2);
+// station and hall
+await person('md', S, 3.0, .9, 0, 'idle-talking', .4); await person('pa', S, 4.6, .9, 0, 'idle-a', .8); await person('np', S, 6.2, .9, 0, 'idle-talking', 1.3); await person('rn3', S, 4.6, -.6, 180, 'idle-talking', 1.5);
+await person('md', S, -5.5, -1.6, 90, 'walk', .5); await person('t1', S, 12.0, -1.8, -90, 'walk', .2); await person('rn2', S, 14.0, .9, 200, 'idle-a', .9);
+await person('tp', S, 14.8, -14.3, 0, 'idle-a', .5); await person('t2', S, 21.6, 9.12, 0, 'sitting-idle', .7); await person('rn4', S, 23.2, 10.88, 180, 'sitting-idle', 1.1);
+await person('raw:psx-15', S, 18.1, 3.0, 180, 'sitting-idle', .4); await person('raw:psx-female-09', S, 25.7, .6, 180, 'sitting-idle', .9); await person('ev1', S, 21.5, -10.5, 0, 'idle-talking', .6);
+
+// render
+const comp = new EffectComposer(R, new THREE.WebGLRenderTarget(W * R.getPixelRatio(), H * R.getPixelRatio(), { samples: 4, type: THREE.HalfFloatType }));
+comp.addPass(new RenderPass(S, CAM)); const ao = new GTAOPass(S, CAM, W, H); ao.updateGtaoMaterial({ radius: .5, scale: 1.0, thickness: 1.0 }); comp.addPass(ao); comp.addPass(new OutputPass());
+window.shot = (mode) => {
+  const V = { god: [[2.5, 46, 36], [2.5, 0, .5], 36.9], pods: [[1, 12, 12], [0, .5, -5.5], 39.8], lobby: [[-15, 14, 21], [-16.5, 0, 3], 36.9], right: [[25, 14, 18], [22.5, 0, -1], 36.9] }[mode];
+  CAM.position.set(...V[0]); CAM.lookAt(...V[1]); CAM.fov = V[2]; CAM.updateProjectionMatrix();
+  comp.render(); R.autoClear = false; R.render(S2, CAM); R.autoClear = true; return true;
+};
+window.ready = true;
+</script></body></html>
