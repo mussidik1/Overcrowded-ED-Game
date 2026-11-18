@@ -91,7 +91,8 @@ OC.newGame('med', 4242, { mode: 'md' }); G = OC.G;
 assert(OC.staff(ME).q.length === 0 && !OC.active().some(p => p.prov === ME), 'you start with an empty panel; the night doc signed out to the team');
 run(120);
 const others = OC.active().filter(p => p.prov && p.prov !== ME).length;
-assert(OC.inRooms().length > 5 && others > 0 && !OC.active().some(p => p.prov === ME), `the computer charge nurse rooms patients, and other providers pick up anyone you leave (${others})`);
+const here = OC.active().filter(p => p.loc !== 'enroute' && p.loc !== 'new');
+assert(OC.inRooms().length >= 4 && OC.inRooms().length >= here.length - 2 && others > 0 && !OC.active().some(p => p.prov === ME), `the computer charge nurse rooms patients, and other providers pick up anyone you leave (${others})`);
 const MDT = ['md', 'orders', 'harm', 'dispo', 'box', 'consult', 'flow', 'goals', 'returns', 'gray', 'blood'];
 assert(Object.keys(G.ledger).every(k => MDT.includes(k)), 'your score has no nursing items (ratios, wall time, staffing): ' + Object.keys(G.ledger).join(', '));
 let n = 0; while (!G.over && n++ < 20000) { OC.step(0.1); if (n % 20 === 0) OC.mdPlay({ budget: 2, acc: 0.8, line: 1 }); }

@@ -85,7 +85,8 @@ def run():
         mt = page.inner_text('#modal')
         ok('He may refuse' in mt and 'No: transport' in mt and 'Approve' not in mt and 'They ask if he can refuse' in mt, 'a refusal call asks "Can he refuse?" and its buttons say the action')
         J("OCUI.U.modal = null; OCUI.render()"); page.wait_for_timeout(150)
-        right = J(f"(() => {{ const p = OC.pt('{pid}'); return {{ wk: p.right.wk.filter(k => !p.wk.includes(k)), tr: p.right.tr.filter(k => !p.tr.includes(k)), dx: p.dx }}; }})()")
+        # since v0.19 tests are named (CBC, chest X-ray); only the ECG is still ordered by kind
+        right = J(f"(() => {{ const p = OC.pt('{pid}'); return {{ wk: [...OC.needOf(p).n.filter(d => !(p.det || []).includes(d)), ...(p.right.wk.includes('ecg') && !p.wk.includes('ecg') ? ['ecg'] : [])], tr: p.right.tr.filter(k => !p.tr.includes(k)), dx: p.dx }}; }})()")
         for k in right['wk']: tap(f'#sheet [data-act="ordT"][data-arg="{pid}|t|{k}"]')
         for k in right['tr']: tap(f'#sheet [data-act="ordT"][data-arg="{pid}|r|{k}"]')
         n = len(right['wk']) + len(right['tr'])
@@ -102,7 +103,7 @@ def run():
             open_pt(pid)
             why = J(f"OC.whyOf(OC.pt('{pid}'))")
             ok(why and why in page.inner_text('#sheet'), 'with the diagnosis in, the card says why that workup was the right one')
-            pl = J(f"(() => {{ const p = OC.pt('{pid}'); return Object.keys(p.find).filter(k => p.wk.includes(k)).map(k => OC.FIND_PLAIN[p.find[k]]).filter(Boolean); }})()")   # only the tests that were ordered: a reasonable extra (an ECG in DKA) has a result line only if someone ordered it
+            pl = J(f"(() => {{ const p = OC.pt('{pid}'); const named = (p.det || []).map(d => OC.FIND_PLAIN[((p.dres && p.dres[d]) || OC.detResult(p, d))[0]]); const kinds = Object.keys(p.find).filter(k => p.wk.includes(k) && !(p.det || []).some(d => OC.DET_KIND(d) === k)).map(k => OC.FIND_PLAIN[p.find[k]]); return [...named, ...kinds].filter(Boolean); }})()")   # v0.19: named tests show their own results   # only the tests that were ordered: a reasonable extra (an ECG in DKA) has a result line only if someone ordered it
             ok(all(x in page.inner_text('#sheet') for x in pl), f'results carry plain words: {pl}')
         if st['dsp'] in ('mddecide', 'decide'):
             open_pt(pid)

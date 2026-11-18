@@ -50,6 +50,8 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .hud-btns { display: flex; gap: 6px; }
 .hb { min-width: 40px; height: 36px; padding: 0 9px; border: 1.5px solid rgba(255, 255, 255, .28); border-radius: 9px; background: transparent; color: #fff; font-weight: 700; font-size: 14px; }
 .hb.on { background: #F2C230; border-color: #F2C230; color: var(--ink); }
+.hb-menu { display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; }
+.hb-menu svg { width: 20px; height: 20px; }
 .hb-msg { display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 0 7px; }
 .hb-msg svg { flex: none; width: 17px; height: 17px; opacity: .75; }
 .hb-msg.new svg { opacity: 1; }
@@ -523,6 +525,9 @@ body.mapmode .toast.long { -webkit-line-clamp: 3; line-clamp: 3; padding-top: 1p
 body.mapmode .shiftbar { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; margin: 0; }
 body.mapmode .boxbar { flex: 0 1 auto; min-width: 0; min-height: 0; padding: 5px max(10px, env(safe-area-inset-right)) 6px 12px; border-bottom: 0; border-left: 1px solid rgba(255, 255, 255, .12); }
 body.mapmode .boxbar .bx-btn { height: 36px; }
+/* the menu sits in the top-right corner, past the Box */
+body.mapmode #btnPause { position: absolute; z-index: 2; top: calc(5px + env(safe-area-inset-top)); right: max(8px, env(safe-area-inset-right)); background: var(--frame, #1B2230); }
+body.mapmode .boxbar { margin-right: 46px; }
 .bx-short { display: none; overflow: hidden; font-size: 14px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 999px) { body.mapmode .brand { display: none; } }
 @media (max-width: 700px) { body.mapmode.boxring .hb-msg { display: none; } }   /* the smallest phones: a ringing Box needs the room */
@@ -559,6 +564,7 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
   body.mapmode .hud-top { gap: 6px; }
   body.mapmode .clock { font-size: 20px; }
   body.mapmode .hb { min-width: 36px; height: 31px; padding: 0 8px; font-size: 13px; }
+  body.mapmode #btnPause { top: calc(3px + env(safe-area-inset-top)); }
   body.mapmode .hb-msg { position: relative; min-width: 31px; padding: 0 6px; }   /* on a phone the count rides the bell's corner, so the button stays narrow */
   body.mapmode .hb-msg b { position: absolute; top: -3px; right: -5px; min-width: 15px; padding: 0 3px; font-size: 10.5px; line-height: 1.35; box-shadow: 0 0 0 1.5px var(--frame, #1B2230); }
   body.mapmode.msgon:not(.msgover) .pill { min-width: 0; padding: 2px 5px 3px; }
@@ -658,6 +664,12 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 @keyframes critStroke { 50% { stroke: #F2B8C0; } }
 .map .mroom.crit .mr-f { stroke: #C8243A; stroke-width: 3.5px; vector-effect: non-scaling-stroke; animation: critStroke 1s ease-in-out infinite; }
 .map .spotring { fill: rgba(242, 194, 48, .16); stroke: #E9A800; stroke-width: 3px; vector-effect: non-scaling-stroke; pointer-events: none; animation: spotring 1.1s ease-in-out infinite; }
+.ring3d { position: fixed; z-index: 20; pointer-events: none; border-radius: 12px; border: 3px solid #E9A800; background: rgba(242, 194, 48, .14); animation: ring3d 1.1s ease-in-out infinite; }
+.ring3d.needring { border-color: #1E5BC6; background: rgba(30, 91, 198, .12); animation-name: ring3dn; }
+.ring3d[hidden], body:not(.ingame) .ring3d, body:not(.mapmode) .ring3d { display: none; }
+@keyframes ring3d { 50% { border-color: rgba(233, 168, 0, .35); background: rgba(242, 194, 48, .04); } }
+@keyframes ring3dn { 50% { border-color: rgba(30, 91, 198, .35); background: rgba(30, 91, 198, .03); } }
+@media (prefers-reduced-motion: reduce) { .ring3d { animation: none; } }
 @keyframes spotring { 50% { stroke: rgba(233, 168, 0, .35); fill: rgba(242, 194, 48, .05); } }
 #map .coach-spot { outline: none; animation: none; }
 /* status icons (the floor, the help sheet) */
@@ -938,3 +950,14 @@ body.ingame { touch-action: pan-x pan-y; }
   #viewer .vw-cap { overflow: auto; padding-top: max(10px, env(safe-area-inset-top)); }
 }
 #viewer .vw-cr a { color: #aeb8c6; }
+
+/* v0.20: class codes */
+.cc-box { display: grid; gap: 6px; margin: 10px 0; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); }
+.cc-box small { color: var(--ink-2); font-size: 13px; line-height: 1.3; }
+.cc-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cc-row .big { flex: 1 1 auto; margin: 0; min-width: 96px; }
+.cc-in { flex: 1 1 140px; min-width: 0; height: 48px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 10px; font: 700 24px/1 var(--ui); letter-spacing: .12em; text-transform: uppercase; }
+.cc-lv { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+.cc-made { display: grid; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed #9AA3AD; }
+.cc-code { font: 700 40px/1.1 var(--ui); letter-spacing: .14em; text-align: center; }
+.rep-class b { letter-spacing: .08em; }

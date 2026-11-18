@@ -234,7 +234,8 @@ assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[
   // a watch period before an overdose goes home (a real shift, not Orientation)
   OC.newGame('easy', 79, { mode: 'rn' });
   const until = (cond, max) => { const t = OC.G.t; let n = 0; while (!cond() && OC.G.t - t < max && n++ < 20000) { if (OC.G.card) OC.botStep({ budget: 0 }); OC.step(0.5); } };   // a decision card stops the clock: let the autopilot answer it
-  const ox = OC.trainPatient('od', 'room', { room: '5' }), op = typeof ox === 'string' ? OC.pt(ox) : ox;
+  const freeRoom = (OC.G.rooms.find(r => !r.pid && /^[0-9]+$/.test(r.id) && r.st === 'clean' && !r.closed) || {}).id;
+  const ox = OC.trainPatient('od', 'room', { room: freeRoom }), op = typeof ox === 'string' ? OC.pt(ox) : ox;
   assert(op && op.loc === 'room' && OC.roomOf(op).kind !== 'resus', 'an overdose is ESI 1 but may take a monitored room');
   const doc = OC.G.staff.find(s => s.role === 'md' && s.st === 'on'); OC.assign(doc.id, op.id);
   until(() => op.dsp === 'watch' || op.loc !== 'room', 240);
@@ -242,7 +243,7 @@ assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[
   assert(OC.canPlace(op, OC.G.rooms.find(r => r.kind === 'chair' && !r.pid)).ok, 'a watched patient can wait in a chair');
   const d = OC.discharge(op.id);
   assert(d.ok && op.earlyDc && op.earlyDc.left > 60 && /naloxone/.test(op.earlyDc.why), 'the charge nurse may discharge early, and the reason is kept for the return');
-  const ax = OC.trainPatient('asthma', 'room', { room: '6' }), ap = typeof ax === 'string' ? OC.pt(ax) : ax;
+  const ax = OC.trainPatient('asthma', 'room', { room: (OC.G.rooms.find(r => !r.pid && /^[0-9]+$/.test(r.id) && r.st === 'clean' && !r.closed) || {}).id }), ap = typeof ax === 'string' ? OC.pt(ax) : ax;
   const doc2 = OC.G.staff.filter(s => s.role === 'md' && s.st === 'on')[1] || doc; OC.assign(doc2.id, ap.id);
   until(() => ap.dsp === 'watch' || ap.loc !== 'room', 300);
   const t0 = OC.G.t; until(() => ap.dsp !== 'watch', 90);

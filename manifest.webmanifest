@@ -1,6 +1,6 @@
 {
-  "name": "Overcrowded: an ED shift survival game",
-  "short_name": "Overcrowded",
+  "name": "Emergency Department: Code Black",
+  "short_name": "Code Black",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
