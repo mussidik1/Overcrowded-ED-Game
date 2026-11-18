@@ -101,7 +101,7 @@ def run():
             open_pt(pid)
             why = J(f"OC.whyOf(OC.pt('{pid}'))")
             ok(why and why in page.inner_text('#sheet'), 'with the diagnosis in, the card says why that workup was the right one')
-            pl = J(f"(() => {{ const p = OC.pt('{pid}'); return Object.values(p.find).map(f => OC.FIND_PLAIN[f]).filter(Boolean); }})()")
+            pl = J(f"(() => {{ const p = OC.pt('{pid}'); return Object.keys(p.find).filter(k => p.wk.includes(k)).map(k => OC.FIND_PLAIN[p.find[k]]).filter(Boolean); }})()")   # only the tests that were ordered: a reasonable extra (an ECG in DKA) has a result line only if someone ordered it
             ok(all(x in page.inner_text('#sheet') for x in pl), f'results carry plain words: {pl}')
         if st['dsp'] in ('mddecide', 'decide'):
             open_pt(pid)
@@ -165,7 +165,7 @@ def run():
         page.set_viewport_size({'width': 390, 'height': 844})
         R = J('OC.G.report')
         print('report', {k: R[k] for k in ['care', 'stars', 'wait', 'left']}, R['md'])
-        ok(J("localStorage.getItem('oc-best-md-med')") is not None, 'best score kept for the attending')
+        ok(R['care'] <= 0 or J("localStorage.getItem('oc-best-md-med')") is not None, f"best score kept for the attending (a shift that ends at zero or below sets none; this one: {R['care']})")
         b.close()
 
 run()

@@ -29,7 +29,11 @@ def run():
             # other apps share this site's storage; an old copy of this game does too
             page.goto(url + 'no-such-page', wait_until='domcontentloaded')   # any page on this site will do, even its 'not found' page: the game itself must not load before the old caches are planted
             page.evaluate("() => Promise.all([caches.open('another-app-v1').then(c => c.put('/another-app/index.html', new Response('theirs'))), caches.open('overcrowded-0.0.0-old').then(c => c.put('index.html', new Response('stale')))])")
-            planted = page.evaluate("() => caches.open('another-app-v1').then(c => c.match('/another-app/index.html')).then(r => r ? r.text() : null)") == 'theirs'   # Safari's engine keeps the cache but not an entry written this way: then only the cache itself can be checked
+            read_theirs = "() => caches.open('another-app-v1').then(c => c.match('/another-app/index.html')).then(r => r ? r.text() : null)"
+            planted = page.evaluate(read_theirs) == 'theirs'
+            # Does the entry outlive a plain page change, with the game and its service worker never loaded? If not, the engine dropped it, not the game.
+            page.goto(url + 'still-no-such-page', wait_until='domcontentloaded')
+            kept = page.evaluate(read_theirs) == 'theirs'
             page.goto(url); page.wait_for_timeout(600)
             ok(page.locator('link[rel="manifest"]').count() == 1 and page.locator('link[rel="apple-touch-icon"]').count() == 1, 'on the web, the page links its manifest and home-screen icon')
             ready = page.evaluate("() => Promise.race([navigator.serviceWorker.ready.then(r => !!r.active), new Promise(r => setTimeout(() => r(false), 8000))])")
@@ -39,7 +43,8 @@ def run():
             mine = [k for k in keys if k.startswith('overcrowded-')]
             ok(len(mine) == 1 and 'overcrowded-0.0.0-old' not in keys, 'an old copy of the game is cleared')
             theirs = page.evaluate("() => caches.open('another-app-v1').then(c => Promise.all([c.match('/another-app/index.html').then(r => r ? r.text() : null), c.keys().then(a => a.map(q => q.url))]))")
-            ok('another-app-v1' in keys and (theirs[0] == 'theirs' or not planted), f"another app's saved files on the same site are left alone (caches: {keys}; its file reads {theirs[0]!r}; its entries: {theirs[1]}; planted: {planted})")
+            ok('another-app-v1' in keys and (theirs[0] == 'theirs' or not kept), f"another app's saved files on the same site are left alone (caches: {keys}; its file reads {theirs[0]!r}; its entries: {theirs[1]}; planted: {planted}; still there after a page change, before the game loaded: {kept})")
+            if not kept: print('note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked')
             n = page.evaluate("(k) => caches.open(k).then(c => c.keys()).then(a => a.length)", mine[0] if mine else '')
             ok(n >= 5, f'it keeps a copy of the game ({n} files)')
             ctx.set_offline(True)

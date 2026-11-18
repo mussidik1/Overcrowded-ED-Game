@@ -61,7 +61,7 @@ jobs:
             echo "" >> results.txt
             echo "=== $* ===" >> results.txt
             if env "$@" > out.txt 2>&1; then echo "PASS" >> results.txt; else echo "FAIL" >> results.txt; fail=1; fi
-            grep -n "^not ok\|^ERRORS\|^No errors\|^  \|Traceback\|Error" out.txt | head -60 >> results.txt || true
+            grep -n "^not ok\|^ERRORS\|^No errors\|^  \|Traceback\|Error\|another app\|^note:\|^report" out.txt | head -60 >> results.txt || true
             tail -4 out.txt >> results.txt
           }
           run python test/map_test.py
