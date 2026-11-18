@@ -1,11 +1,11 @@
-commit 7d8b0f468e465df4e1ead2f87427d67b9d7c33d6
-date   2026-11-18 15:48 UTC
+commit 8b7272774a2f5632f45049f3e5da106e0de9f8d2
+date   2026-11-18 17:05 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
 === python test/map_test.py ===
 PASS
-104:No errors.
+105:No errors.
 ok   after leaving the report, the menu offers the last report
 ok   it survives a reload, scenario and all, and can still be printed
 ok   Run it back starts the same shift again in one tap
@@ -13,8 +13,8 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1747, "wait": 13, "sat": 52, "stars": 2, "seen": 123, "dc": 52, "adm": 35, "lwbs": 0, "ama": 1, "returns": 3, "mtp": 2, "interp": 16, "pitSeen": 0}
-52:No errors.
+1:report {"care": 1818, "wait": 14, "sat": 55, "stars": 2, "seen": 109, "dc": 52, "adm": 35, "lwbs": 0, "ama": 1, "returns": 2, "mtp": 2, "interp": 13, "pitSeen": 0}
+53:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 2352, 'stars': 3, 'wait': 23, 'left': 29} {'seen': 46, 'fast': 24, 'ordRight': 114, 'ordExtra': 1, 'ordMiss': 5, 'clean': 39, 'gaps': 5, 'harm': 0, 'untreated': 0, 'dispoRight': 35, 'dispoWrong': 1, 'log': [{'name': 'Rosa M.', 'dx': 'Anterior STEMI', 'miss': [], 'extra': [], 'fine': [], 'why': 'The ECG is the diagnosis. Labs go, but do not wait for the troponin. Aspirin and heparin. Cardiology and the cath lab.'}, {'name': 'Raj E.', 'dx': 'Splenic laceration, hemorrhagic shock', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'X-ray and a bedside ultrasound look for blood in the chest and belly. Labs with a blood type. Massive transfusion. CT only if blood brings the pressure up. If it stays down: straight to the OR.'}, {'name': 'Bill H.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Olga L.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}, {'name': 'Mia E.', 'dx': 'RSV, tiring out', 'miss': [], 'extra': [], 'fine': [], 'why': "A blood gas shows the baby is tiring. High-flow oxygen. Transfer to a children's hospital."}, {'name': 'Zoe H.', 'dx': 'Ear infection, worse', 'miss': [], 'extra': [], 'fine': [], 'why': 'No tests. You can see the infection. Amoxicillin.'}]}
-31:No errors.
+1:report {'care': 1883, 'stars': 2, 'wait': 19, 'left': 15} {'seen': 46, 'fast': 14, 'ordRight': 110, 'ordExtra': 3, 'ordMiss': 9, 'clean': 32, 'gaps': 9, 'harm': 0, 'untreated': 0, 'dispoRight': 38, 'dispoWrong': 3, 'log': [{'name': 'Ivan N.', 'dx': 'Kidney stone', 'miss': [], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Malik M.', 'dx': 'Upper GI bleed', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs with a blood type. Fluids, then blood. GI for a scope.'}, {'name': 'Brenda V.', 'dx': 'Cholecystitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Jamal A.', 'dx': 'Strep throat', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'A rapid strep swab proves it. Then penicillin.'}, {'name': 'Fatima S.', 'dx': 'Acute ischemic stroke', 'miss': [], 'extra': [], 'fine': [], 'why': 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology. An ECG is reasonable.'}, {'name': 'Nadia P.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Helen V.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Omar A.', 'dx': 'COPD flare', 'miss': [], 'extra': [], 'fine': [], 'why': 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP. A steroid is reasonable.'}, {'name': 'Walt H.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Wei W.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Wei E.', 'dx': 'Dehydration', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show the kidneys are dry. Fluids fix it.'}, {'name': 'Tyler C.', 'dx': 'Subdural hematoma', 'miss': [], 'extra': [], 'fine': [], 'why': 'Head CT finds the bleed. Labs with an INR show the blood thinner. Reverse it. Trauma.'}]}
+30:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 2352)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1883)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:28, care 144, cards read 70, words 2507, longest 68
+taps: 77, game clock: 10:32, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:29, care 144, cards read 70, words 2506, longest 68
+taps: 78, game clock: 10:36, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -74,23 +74,21 @@ md map 844x390, finger slides up to 12px: 37 steps, 64 taps, floor ignored 0, bu
 No errors.
 
 === python test/offline_test.py ===
-FAIL
+PASS
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.18.0-9906a879fe']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
-9:ERRORS:
-10:  pageerror: Response served by service worker is an error
-11:  pageerror: Cannot load .
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.18.1-9d9497f9a3']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+9:No errors.
+ok   it keeps a copy of the game (51 files)
+ok   with the network off, the game still loads
 ok   and a shift starts offline
-ERRORS:
-  pageerror: Response served by service worker is an error
-  pageerror: Cannot load .
+No errors.
 
 === python test/map3d_test.py ===
 PASS
-10:No errors.
-ok   tapping nurse rnR1 in 3D opens or selects them ("staff")
-ok   the zoom button zooms the 3D floor
+14:No errors.
+ok   3D detail moves from auto to sharp in the pause menu
+ok   and comes round to auto, and is saved
 ok   turning the 3D floor off shows the flat map
 No errors.
 
-SOME FAILED
+ALL PASS
