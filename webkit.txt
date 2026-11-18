@@ -1,5 +1,5 @@
-commit 976b0068adf4401570fe404390b7a50e3d118301
-date   2026-11-18 03:45 UTC
+commit 05cad92ad2df6dd66592bfe4d96fee0887f0632b
+date   2026-11-18 03:56 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -12,21 +12,22 @@ ok   Run it back starts the same shift again in one tap
 No errors.
 
 === python test/ui_test.py ===
-FAIL
-52:ERRORS:
-53:  CHECK FAILED: found a patient who needs an interpreter
+PASS
+52:No errors.
+ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
-ERRORS:
-  CHECK FAILED: found a patient who needs an interpreter
+No errors.
 
 === python test/md_ui_test.py ===
 PASS
-31:No errors.
-ok   the team sheet has no nurse controls for the attending
-ok   the attending shift report
-ok   best score kept for the attending
-No errors.
+31:ERRORS:
+32:  CHECK FAILED: results carry plain words: ['sugar very high; acid in the blood; potassium safe for insulin', 'fast and regular; no sign of high potassium']
+33:  CHECK FAILED: best score kept for the attending
+FAIL best score kept for the attending
+ERRORS:
+  CHECK FAILED: results carry plain words: ['sugar very high; acid in the blood; potassium safe for insulin', 'fast and regular; no sign of high potassium']
+  CHECK FAILED: best score kept for the attending
 
 === MODE=rn python test/train_test.py ===
 PASS
@@ -41,7 +42,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 40, game clock: 09:47, care 240, cards read 39, words 1350, longest 64
+taps: 40, game clock: 09:49, care 240, cards read 39, words 1350, longest 64
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -49,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:32, care 144, cards read 70, words 2287, longest 68
+taps: 78, game clock: 10:27, care 144, cards read 70, words 2287, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -75,10 +76,10 @@ No errors.
 === python test/offline_test.py ===
 FAIL
 8:ERRORS:
-9:  CHECK FAILED: another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.16.4-61646993ea']; its file reads None; its entries: [])
+9:  CHECK FAILED: another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.16.4-61646993ea']; its file reads None; its entries: []; planted: True)
 ok   with the network off, the game still loads
 ok   and a shift starts offline
 ERRORS:
-  CHECK FAILED: another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.16.4-61646993ea']; its file reads None; its entries: [])
+  CHECK FAILED: another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.16.4-61646993ea']; its file reads None; its entries: []; planted: True)
 
 SOME FAILED
