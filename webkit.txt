@@ -1,5 +1,5 @@
-commit d4d4277290748f26ca299543be3f90d8133a39a7
-date   2026-11-18 21:30 UTC
+commit e180700fdb452c0520f59be9d0efce4265736d49
+date   2026-11-18 21:41 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,7 +13,7 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1882, "wait": 13, "sat": 51, "stars": 2, "seen": 116, "dc": 45, "adm": 36, "lwbs": 0, "ama": 0, "returns": 1, "mtp": 2, "interp": 14, "pitSeen": 0}
+1:report {"care": 1925, "wait": 13, "sat": 51, "stars": 2, "seen": 116, "dc": 47, "adm": 35, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 2, "interp": 14, "pitSeen": 0}
 53:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1670, 'stars': 2, 'wait': 25, 'left': 18} {'seen': 39, 'fast': 16, 'ordRight': 108, 'ordExtra': 5, 'ordMiss': 2, 'clean': 31, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 31, 'dispoWrong': 2, 'log': [{'name': 'Fatima E.', 'dx': 'Ankle sprain', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}, {'name': 'Mei F.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Lucia W.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Aisha W.', 'dx': 'Urinary tract infection', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.'}, {'name': 'Jen C.', 'dx': 'Behavioral health emergency', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs look for a medical cause. Then Psychiatry.'}, {'name': 'Shanice H.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}]}
+1:report {'care': 1983, 'stars': 2, 'wait': 23, 'left': 16} {'seen': 42, 'fast': 12, 'ordRight': 124, 'ordExtra': 2, 'ordMiss': 5, 'clean': 35, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 38, 'dispoWrong': 0, 'log': [{'name': 'Kevin G.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Hector L.', 'dx': 'NSTEMI (heart attack)', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG and troponin make the diagnosis. Aspirin and heparin. Cardiology. A chest X-ray is reasonable.'}, {'name': 'Tyler K.', 'dx': 'Partial-thickness burns, 25%, airway injury', 'miss': [], 'extra': [], 'fine': [], 'why': 'Secure the airway before it swells shut: intubate, then the ventilator. Labs check for carbon monoxide. Fluids and pain control. Burn center.'}, {'name': 'Thi D.', 'dx': 'Upper GI bleed', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs with a blood type. Fluids, then blood. GI for a scope.'}, {'name': 'Omar P.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.'}]}
 31:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1670)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1983)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:37, care 144, cards read 70, words 2507, longest 68
+taps: 77, game clock: 10:36, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -42,7 +42,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 42, game clock: 09:49, care 238, cards read 39, words 1412, longest 70
+taps: 42, game clock: 09:47, care 238, cards read 39, words 1412, longest 70
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:36, care 144, cards read 70, words 2506, longest 68
+taps: 78, game clock: 10:32, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:41, care -2, cards read 8, words 316, longest 58
+taps: 6, game clock: 07:40, care -2, cards read 8, words 316, longest 58
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -84,3 +84,19 @@ ok   and a shift starts offline
 No errors.
 
 === python test/map3d_test.py ===
+PASS
+14:No errors.
+ok   3D detail moves from auto to sharp in the pause menu
+ok   and comes round to auto, and is saved
+ok   turning the 3D floor off shows the flat map
+No errors.
+
+=== python test/imaging_test.py ===
+PASS
+10:No errors.
+ok   Close closes it
+ok   every credited picture is in img/ (20)
+ok   every picture has an author, an allowed licence, and a source link
+No errors.
+
+ALL PASS
