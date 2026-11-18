@@ -1,4 +1,4 @@
-commit 315c6fe75b37db261f69013fc5dce3f6ae795781
+commit bc7632297c6283a674a6f2ed73961d00ab7ab0fe
 date   2026-11-18 22:57 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
@@ -13,8 +13,8 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1939, "wait": 13, "sat": 51, "stars": 2, "seen": 116, "dc": 43, "adm": 36, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 2, "interp": 14, "pitSeen": 0}
-52:No errors.
+1:report {"care": 2077, "wait": 12, "sat": 51, "stars": 3, "seen": 116, "dc": 47, "adm": 34, "lwbs": 0, "ama": 0, "returns": 1, "mtp": 2, "interp": 14, "pitSeen": 0}
+53:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -22,11 +22,19 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 2127, 'stars': 3, 'wait': 20, 'left': 25} {'seen': 44, 'fast': 20, 'ordRight': 141, 'ordExtra': 7, 'ordMiss': 2, 'clean': 34, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 38, 'dispoWrong': 0, 'log': [{'name': 'Mei V.', 'dx': 'Sepsis (urinary source)', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs with a lactate. Fluids and antibiotics inside the hour.'}, {'name': 'Frank G.', 'dx': 'Pneumonia', 'miss': [], 'extra': [], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Andre C.', 'dx': 'Dehydration', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs show the kidneys are dry. Fluids fix it.'}, {'name': 'Priya H.', 'dx': 'Appendicitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs and a CT find the appendix. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Priya W.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Nadia G.', 'dx': 'Chest pain, moderate risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Nora V.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Sofia L.', 'dx': 'Subdural hematoma', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Head CT finds the bleed. Labs with an INR show the blood thinner. Reverse it. Trauma.'}, {'name': 'Lucia F.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}]}
-28:No errors.
+1:report {'care': 2158, 'stars': 3, 'wait': 22, 'left': 14} {'seen': 44, 'fast': 20, 'ordRight': 130, 'ordExtra': 1, 'ordMiss': 3, 'clean': 37, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 37, 'dispoWrong': 2, 'log': [{'name': 'Priya L.', 'dx': 'Cholecystitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Kwame M.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}, {'name': 'Carmen P.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Thi J.', 'dx': 'Septic shock', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.'}]}
+30:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 2127)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 2158)
 No errors.
 
 === MODE=rn python test/train_test.py ===
+PASS
+72:No errors.
+66/67 k3
+67/67 end
+taps: 77, game clock: 10:37, care 144, cards read 70, words 2509, longest 68
+No errors.
+
+=== MODE=md python test/train_test.py ===
