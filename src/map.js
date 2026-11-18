@@ -402,6 +402,7 @@ function mapSpot(els, layerId, cls) {
 const D3 = { want: null, loading: false, failed: false };
 function use3d(G) {
   if (!U.three || !G || G.train || D3.failed || U.view !== 'map') return false;
+  if (U.scene !== 'game' && !window.OC3D) return false;   // not behind the menu: loading it there stalls the menu's taps
   if (!window.OC3D) { load3d(); return false; }
   const el = document.getElementById('map'); if (!el || !OC3D.ok) return false;
   if (!el.querySelector('canvas.floor3d')) { if (!OC3D.init(el, H3D)) { D3.failed = true; return false; } if (OC3D.quality) OC3D.quality(U.q3d); }

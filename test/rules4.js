@@ -21,7 +21,8 @@ assert(j.ord === 'need' && !j.wk.length && !j.tr.length, 'after your exam, nothi
 assert(!OC.signOrders(j.id, [], []).ok, 'signing nothing for a patient who needs a workup is refused');
 let c0 = G.care;
 r = OC.signOrders(j.id, ['lab'], ['meds']);
-assert(r.ok && j.ord === 'signed' && G.stats.md.clean === 1 && G.care - c0 === 15, `exactly what they need: +2 test, +3 treatment, +10 clean (${G.care - c0})`);
+assert(r.ok && j.ord === 'signed' && G.stats.md.clean === 1 && G.care - c0 === 14, `exactly what they need: +1 lab test (the rapid strep), +3 treatment, +10 clean (${G.care - c0})`);
+assert(j.det.join() === 'strep' && j.dres.strep[0] === 'Rapid strep positive', 'the Labs kind means this case\'s own test: the rapid strep, positive');
 assert(/penicillin/.test(r.msg), 'Medications names the drug: ' + r.msg);
 run(90, () => j.dsp === 'mddecide');
 assert(j.dsp === 'mddecide', 'results back: the disposition waits for your call');
@@ -49,7 +50,7 @@ assert(r.ok && s.mdPick === 'consult' && G.stats.md.dispoRight === 2, 'calling s
 const x = seen(room('strep', '2'));
 c0 = G.care;
 OC.signOrders(x.id, ['lab', 'ct'], ['meds']);
-assert(G.care - c0 === -3 && G.stats.md.ordExtra === 1, `an unneeded CT costs 8: +2 +3 -8 (${G.care - c0})`);
+assert(G.care - c0 === -2 && G.stats.md.ordExtra === 1, `an unneeded CT costs 6: +1 +3 -6 (${G.care - c0})`);
 
 // 5. Untreated: DKA without insulin gets worse
 const d = seen(room('dka', '5'));
@@ -127,3 +128,30 @@ run(600);
 assert(OC.staff(ME).st !== 'break' && G.staff.filter(s => s.role === 'md' && s.id !== ME).some(s => s.lastBreak > 0), 'the computer charge nurse sends the other doctors on break, never you');
 const names = Object.values(G.pts).map(p => p.name);
 assert(new Set(names).size === names.length, `no repeated patient names (${names.length} patients)`);
+
+// v0.19: named tests. The attending picks single labs and named studies; each case scores the ones it needs.
+OC.newGame('train', 19, { mode: 'md' }); G = OC.G;
+const ap = seen(room('appy', '3'));
+let a0 = G.care;
+r = OC.signOrders(ap.id, ['cbc', 'bmp', 'ctap', 'lip'], ['meds']);
+assert(r.ok && G.care - a0 === 1 + 1 + 2 + 3 + 10 && G.stats.md.clean === 1, `appendicitis: CBC, BMP, CT abdomen and pelvis (+1 +1 +2), lipase is reasonable (0), meds +3, clean +10 (${G.care - a0})`);
+assert(ap.wk.includes('lab') && ap.wk.includes('ct') && ap.dres.ctap[0] === 'Inflamed appendix' && ap.dres.ctap[1] === 'ct_appy', 'the CT result names the finding and its picture');
+const ap2 = seen(room('appy', '4')); a0 = G.care;
+OC.signOrders(ap2.id, ['cbc', 'bmp', 'cthead'], ['meds']);
+assert(ap2.ord === 'signed' && OC.missNow(ap2, true).includes('CT abdomen and pelvis') && G.care - a0 === 1 + 1 - 6 + 3, `the wrong CT costs 6 and the right one is still missing (${G.care - a0}; missing: ${OC.missNow(ap2, true)})`);
+run(60, () => ap2.ord === 'more');
+assert(ap2.ord === 'more' && !ap2.dxK, 'with the right study missing, the diagnosis waits');
+r = OC.signOrders(ap2.id, ['ctap'], []);
+run(90, () => ap2.dxK);
+assert(ap2.dxK, 'ordering the CT abdomen and pelvis lets the diagnosis come');
+const st = seen(room('stone', '5')); a0 = G.care;
+OC.signOrders(st.id, ['ua', 'bmp', 'ctap', 'mrib'], ['meds', 'fluids']);
+assert(G.care - a0 === 1 + 1 + 2 - 8 + 3 + 3 && st.wk.includes('mri'), `an MRI nobody needed costs 8 and an hour (${G.care - a0})`);
+const ex = OC.pt(OC.trainPatient('hipfx', 'room', { room: '6' })); ex.sex = 'M'; seen(ex); a0 = G.care;
+OC.signOrders(ex.id, ['cbc', 'bmp', 'ts', 'hipxr', 'hcg'], ['meds']);
+assert(G.care - a0 === 1 + 1 + 1 + 2 - 1 + 3 && ex.dres.hcg[0].startsWith('Not done'), `a pregnancy test on a man is not needed (${G.care - a0})`);
+assert(Object.keys(OC.NEED).every(k => OC.CASES.find(c => c.k === k)) && OC.NEED.appy.n.every(d => OC.LABS[d] || OC.IMGS[d]), 'every case in the needs table exists, and every test it names is on the order sheet');
+const bad = []; for (const [k, N] of Object.entries(OC.NEED)) for (const d of N.n.concat(N.ok || [])) if (!OC.LABS[d] && !OC.IMGS[d]) bad.push(k + ':' + d);
+assert(!bad.length, `every named test exists (${bad.join(', ')})`);
+const kinds = []; for (const c of OC.CASES) { const N = OC.NEED[c.k]; if (!N) { if (c.wk.some(k => k !== 'ecg')) kinds.push(c.k); continue; } const have = new Set(N.n.map(OC.DET_KIND)); for (const k of c.wk) if (k !== 'ecg' && !have.has(k) && !(k === 'ct' && c.k === 'mvc') && !(k === 'ct' && c.k === 'mcired')) kinds.push(c.k + ':' + k); }
+assert(!kinds.length, `every kind of test a case needs has a named test (${kinds.join(', ')})`);

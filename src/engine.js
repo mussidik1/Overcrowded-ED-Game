@@ -118,8 +118,114 @@ const WORK = {
   xr:  { label: 'XR', by: 'img', scan: 6, read: 8 },
   ct:  { label: 'CT', by: 'img', scan: 7, read: 10 },
   us:  { label: 'US', by: 'img', scan: 12, read: 6 },
+  mri: { label: 'MRI', by: 'img', scan: 40, read: 25 },
 };
-const MISS_NAME = { ecg: 'an ECG', lab: 'labs', xr: 'the X-ray', ct: 'the CT', us: 'the ultrasound' };
+const MISS_NAME = { ecg: 'an ECG', lab: 'labs', xr: 'the X-ray', ct: 'the CT', us: 'the ultrasound', mri: 'the MRI' };
+
+/* ---------- v0.19: the attending orders single tests and named studies ----------
+   The engine still runs work by kind (lab, xr, ct, us, mri: one draw or one trip to the scanner covers everything of that
+   kind ordered together). The attending picks the tests inside each kind, and each case scores the ones it needs.
+   g: the group on the order sheet. p: a plain line. Imaging m: the kind of work it is. */
+const LABS = {
+  cbc: { n: 'CBC', g: 'Blood counts and chemistry', p: 'White count, hemoglobin, platelets' },
+  bmp: { n: 'BMP', g: 'Blood counts and chemistry', p: 'Sodium, potassium, kidneys, sugar' },
+  lft: { n: 'Liver tests', g: 'Blood counts and chemistry', p: 'Liver enzymes and bilirubin' },
+  lip: { n: 'Lipase', g: 'Blood counts and chemistry', p: 'The pancreas' },
+  trop: { n: 'Troponin', g: 'Heart and clots', p: 'Heart muscle damage' },
+  bnp: { n: 'BNP', g: 'Heart and clots', p: 'A strained, failing heart' },
+  ddim: { n: 'D-dimer', g: 'Heart and clots', p: 'Rules out a clot when it is low' },
+  lact: { n: 'Lactate', g: 'Infection and breathing', p: 'Tissues short of oxygen: shock' },
+  bcx: { n: 'Blood cultures', g: 'Infection and breathing', p: 'Bacteria in the blood, before antibiotics' },
+  vbg: { n: 'Blood gas (VBG)', g: 'Infection and breathing', p: 'Acid and CO2; carbon monoxide level' },
+  resp: { n: 'Viral swab', g: 'Infection and breathing', p: 'Flu, COVID, RSV' },
+  strep: { n: 'Rapid strep', g: 'Infection and breathing', p: 'Strep throat' },
+  coag: { n: 'Coags (PT/INR)', g: 'Bleeding', p: 'How fast blood clots; blood thinners' },
+  ts: { n: 'Type and screen', g: 'Bleeding', p: 'Blood type, so blood can be given' },
+  ua: { n: 'Urinalysis', g: 'Urine and other', p: 'Infection, blood in the urine' },
+  hcg: { n: 'Pregnancy test', g: 'Urine and other', p: 'Before a CT or some drugs' },
+  tox: { n: 'Tox screen and ethanol', g: 'Urine and other', p: 'Alcohol and drugs' },
+  ck: { n: 'CK', g: 'Urine and other', p: 'Muscle breakdown' },
+};
+const IMGS = {
+  cxr: { n: 'Chest X-ray', m: 'xr', p: 'Lungs, heart size, air outside the lung' },
+  pelxr: { n: 'Pelvis X-ray', m: 'xr', p: 'A broken pelvis in trauma' },
+  hipxr: { n: 'Hip X-ray', m: 'xr', p: 'A broken hip' },
+  extxr: { n: 'Limb X-ray', m: 'xr', p: 'The injured arm or leg' },
+  cthead: { n: 'CT head', m: 'ct', p: 'Bleeding in the brain' },
+  cta: { n: 'CT angiogram, head and neck', m: 'ct', p: 'A blocked artery to the brain' },
+  ctcs: { n: 'CT neck (C-spine)', m: 'ct', p: 'A broken neck' },
+  ctpe: { n: 'CT angiogram, chest', m: 'ct', p: 'A clot in the lungs (PE)' },
+  ctap: { n: 'CT abdomen and pelvis', m: 'ct', p: 'Appendix, kidney stones, the bowel' },
+  mrib: { n: 'MRI brain', m: 'mri', p: 'A small stroke; takes about an hour' },
+  mris: { n: 'MRI spine', m: 'mri', p: 'The spinal cord; takes about an hour' },
+  fast: { n: 'FAST exam', m: 'us', p: 'Bedside: blood in the belly or around the heart' },
+  ruq: { n: 'Gallbladder ultrasound', m: 'us', p: 'Gallstones, an inflamed gallbladder' },
+  duplex: { n: 'Leg vein ultrasound', m: 'us', p: 'A clot in a leg vein (DVT)' },
+  pelus: { n: 'Pelvic ultrasound', m: 'us', p: 'Pregnancy, ovaries' },
+};
+const DET_KIND = id => (LABS[id] ? 'lab' : IMGS[id] ? IMGS[id].m : WORK[id] ? id : null);
+const DET_NAME = id => (LABS[id] ? LABS[id].n : IMGS[id] ? IMGS[id].n : WK_NAME[id] || id);
+const DET_EXTRA = { lab: 1, xr: 2, us: 2, ct: 6, mri: 8, ecg: 3 };   // points off for a test the patient did not need
+const DET_RIGHT = { lab: 1, xr: 2, us: 2, ct: 2, mri: 2, ecg: 2 };
+/* What each case needs (n) and what is reasonable but not needed (ok). Anything else costs DET_EXTRA. */
+const NEED = {
+  strep: { n: ['strep'] }, ankle: { n: ['extxr'] }, uti: { n: ['ua'], ok: ['hcg'] }, gastro: { n: ['bmp'], ok: ['cbc', 'lip', 'ua', 'hcg'] },
+  appy: { n: ['cbc', 'bmp', 'ctap'], ok: ['lip', 'lft', 'ua', 'hcg'] }, chole: { n: ['cbc', 'lft', 'lip', 'ruq'], ok: ['bmp', 'hcg', 'ua'] },
+  hipfx: { n: ['cbc', 'bmp', 'ts', 'hipxr'], ok: ['coag', 'ck', 'ua', 'pelxr', 'cxr'] }, pna: { n: ['cbc', 'bmp', 'cxr'], ok: ['lact', 'bcx', 'resp', 'vbg'] },
+  copd: { n: ['vbg', 'cxr'], ok: ['cbc', 'bmp', 'bnp', 'resp', 'trop'] }, chf: { n: ['bnp', 'bmp', 'cxr'], ok: ['trop', 'cbc'] },
+  stone: { n: ['ua', 'bmp', 'ctap'], ok: ['cbc', 'hcg'] }, dvt: { n: ['bmp', 'duplex'], ok: ['cbc', 'coag'] }, tb: { n: ['cbc', 'cxr'], ok: ['bmp', 'resp'] },
+  bh: { n: ['tox'], ok: ['cbc', 'bmp', 'hcg', 'ua', 'ck'] }, etoh: { n: ['tox', 'bmp'], ok: ['cbc'] }, od: { n: ['tox'], ok: ['bmp', 'cbc', 'vbg', 'ck'] },
+  cell: { n: ['cbc'], ok: ['bmp', 'lact', 'bcx'] }, syncope: { n: ['cbc', 'bmp'], ok: ['trop', 'hcg'] }, synchigh: { n: ['cbc', 'bmp', 'trop'], ok: ['bnp', 'hcg'] },
+  tia: { n: ['cbc', 'bmp', 'cthead'], ok: ['coag', 'trop', 'cta', 'mrib'] }, dehyd: { n: ['bmp'], ok: ['cbc', 'ua'] },
+  cpmod: { n: ['trop', 'cbc', 'bmp', 'cxr'], ok: ['bnp', 'coag', 'lip'] }, cwp: { n: ['trop', 'cxr'], ok: ['cbc', 'bmp', 'ddim'] },
+  nstemi: { n: ['trop', 'cbc', 'bmp'], ok: ['coag', 'bnp', 'cxr'] }, afib: { n: ['bmp', 'trop'], ok: ['cbc', 'bnp', 'coag', 'cxr'] },
+  chb: { n: ['bmp', 'trop'], ok: ['cbc', 'cxr'] }, gib: { n: ['cbc', 'ts', 'coag'], ok: ['bmp', 'lft', 'lact'] },
+  dka: { n: ['bmp', 'vbg'], ok: ['cbc', 'ua', 'lact', 'hcg', 'bcx'] }, sepsisw: { n: ['lact', 'bcx', 'ua', 'cbc'], ok: ['bmp', 'lft', 'cxr'] },
+  strokew: { n: ['bmp', 'cthead'], ok: ['cbc', 'coag', 'trop', 'cta'] }, stroke: { n: ['bmp', 'cthead'], ok: ['cbc', 'coag', 'trop', 'cta'] },
+  lvo: { n: ['bmp', 'cthead', 'cta'], ok: ['cbc', 'coag'] }, stemi: { n: ['trop'], ok: ['cbc', 'bmp', 'coag', 'ts'] },
+  mvc: { n: ['cbc', 'ts', 'cxr', 'fast'], ok: ['pelxr', 'coag', 'lact'] }, tfall: { n: ['coag', 'cbc', 'cthead'], ok: ['bmp', 'ts', 'ctcs'] },
+  moto: { n: ['cbc', 'ts', 'extxr'], ok: ['bmp', 'coag', 'pelxr', 'cxr', 'lact'] }, shock: { n: ['lact', 'bcx', 'cbc', 'bmp'], ok: ['ua', 'lft', 'vbg', 'coag', 'cxr'] },
+  rsv: { n: ['vbg'], ok: ['resp', 'cxr'] }, burn: { n: ['vbg'], ok: ['cbc', 'bmp', 'ck', 'lact', 'cxr'] },
+  mcired: { n: ['cbc', 'ts', 'cxr', 'fast'], ok: ['pelxr', 'coag'] }, mciyel: { n: ['cbc', 'extxr'], ok: ['ts', 'bmp', 'coag', 'pelxr'] },
+  mcimin: { n: ['ctcs'] }, mciwr: { n: ['extxr'] },
+};
+/* Results. Defaults are normal; each case names what is not. img: a picture in img/ (see img/CREDITS.md). */
+const LAB_NORMAL = { cbc: 'WBC 8.1, Hgb 13.8, platelets 241', bmp: 'Na 139, K 4.1, creatinine 0.9, glucose 104', lft: 'Liver tests normal', lip: 'Lipase 32 (normal)', trop: 'Troponin below the cutoff', bnp: 'BNP 60 (normal)', ddim: 'D-dimer negative', lact: 'Lactate 1.1 (normal)', bcx: 'Sent. Results in 1 to 2 days', vbg: 'pH 7.39, pCO2 42', resp: 'Flu, COVID, RSV negative', strep: 'Rapid strep negative', coag: 'INR 1.0', ts: 'O positive, antibody screen negative', ua: 'No blood, no infection', hcg: 'Not pregnant', tox: 'Ethanol none, drug screen negative', ck: 'CK 140 (normal)' };
+const IMG_NORMAL = { cxr: ['Clear lungs', 'cxr_normal'], pelxr: ['No fracture', 'pelvis_normal'], hipxr: ['No fracture', 'hip_normal'], extxr: ['No fracture', 'ankle_normal'], cthead: ['No bleed, no acute findings', 'cthead_normal'], cta: ['Arteries open', 'cta_normal'], ctcs: ['No fracture', 'ctcs_normal'], ctpe: ['No clot in the lungs', 'ctpe_normal'], ctap: ['No acute findings', 'ctap_normal'], mrib: ['No stroke, no acute findings', 'mrib_normal'], mris: ['No acute findings', 'mris_normal'], fast: ['No free fluid', 'fast_negative'], ruq: ['Normal gallbladder', 'ruq_normal'], duplex: ['No clot', 'duplex_normal'], pelus: ['Normal ovaries and uterus', 'pelus_normal'] };
+const RES = {
+  strep: { strep: 'Rapid strep positive' }, ankle: { extxr: ['No fracture', 'ankle_normal'] }, uti: { ua: 'Nitrite positive, white cells, bacteria' }, gastro: { bmp: 'Na 136, K 3.6, BUN 24, creatinine 1.0: mildly dry' },
+  appy: { cbc: 'WBC 15.8, Hgb 13.9, platelets 280', ctap: ['Inflamed appendix', 'ct_appy'] }, chole: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', lft: 'ALT 88, alk phos 210, bilirubin 1.6', ruq: ['Gallstones, thick gallbladder wall', 'us_gallstones'] },
+  hipfx: { cbc: 'WBC 9.0, Hgb 11.9, platelets 220', hipxr: ['Femoral neck fracture', 'xr_hipfx'] }, pna: { cbc: 'WBC 17.2, Hgb 13.1, platelets 310', bmp: 'Na 134, K 4.0, creatinine 1.1, glucose 140', cxr: ['Right lower lobe pneumonia', 'cxr_pna'] },
+  copd: { vbg: 'pH 7.31, pCO2 58', cxr: ['Hyperinflated, no pneumonia', 'cxr_copd'] }, chf: { bnp: 'BNP 2,400', bmp: 'Na 133, K 4.6, creatinine 1.5', cxr: ['Pulmonary edema', 'cxr_edema'] },
+  stone: { ua: 'Blood in the urine, no infection', ctap: ['4 mm stone in the ureter', 'ct_stone'] }, dvt: { duplex: ['Clot in the femoral vein', 'us_dvt'] }, tb: { cbc: 'WBC 11.4, Hgb 11.8, platelets 300', cxr: ['Cavity in the upper lobe', 'cxr_tb'] },
+  etoh: { tox: 'Ethanol 280, drug screen negative', bmp: 'Glucose 96, Na 140, K 3.9' }, od: { tox: 'Fentanyl positive' }, cell: { cbc: 'WBC 14.0, Hgb 13.5, platelets 250' },
+  dehyd: { bmp: 'BUN 34, creatinine 1.4, Na 146' }, cpmod: { trop: 'First troponin below the cutoff; repeat in 3 hours' }, nstemi: { trop: 'Troponin elevated: 0.84' },
+  afib: { bmp: 'K 3.9, Mg 1.9, creatinine 1.0' }, chb: { bmp: 'K 4.4, creatinine 1.2' }, gib: { cbc: 'WBC 10.2, Hgb 6.8, platelets 190', coag: 'INR 1.3' },
+  dka: { bmp: 'Glucose 540, Na 131, K 4.8, bicarb 8, anion gap 26', vbg: 'pH 7.08, pCO2 22' }, sepsisw: { lact: 'Lactate 3.1', ua: 'Nitrite positive, many white cells', cbc: 'WBC 19.6, Hgb 12.4, platelets 160' },
+  strokew: { bmp: 'Glucose 118' }, stroke: { bmp: 'Glucose 132' }, lvo: { bmp: 'Glucose 141', cta: ['Left M1 occlusion', 'cta_m1'] }, stemi: { trop: 'Pending (do not wait for it)' },
+  mvc: { cbc: 'WBC 13.0, Hgb 8.1, platelets 180', fast: ['Blood in the belly (positive FAST)', 'fast_positive'], cxr: ['No pneumothorax', 'cxr_normal'], ctap: ['Grade IV splenic laceration', null] },
+  tfall: { coag: 'INR 2.9', cthead: ['Acute subdural hematoma', 'ct_sdh'] }, moto: { cbc: 'Hgb 9.4', extxr: ['Open femur fracture', 'xr_femur'] },
+  shock: { lact: 'Lactate 5.4', cbc: 'WBC 22.1, Hgb 11.9, platelets 98', bmp: 'Creatinine 2.1, bicarb 15' }, rsv: { vbg: 'pH 7.27, pCO2 61', resp: 'RSV positive' }, burn: { vbg: 'Carboxyhemoglobin 6%' },
+  mcired: { cbc: 'Hgb 7.9', fast: ['Blood in the belly (positive FAST)', 'fast_positive'], cxr: ['No pneumothorax', 'cxr_normal'] }, mciyel: { cbc: 'Hgb 11.2', extxr: ['Midshaft femur fracture', 'xr_femur'] },
+  mcimin: { ctcs: ['No fracture', 'ctcs_normal'] }, mciwr: { extxr: ['Distal radius fracture', 'xr_wrist'] },
+};
+/* Each named test has a result: [text, picture or null]. */
+function detResult(p, id) {
+  const r = (RES[p.ck] || {})[id];
+  if (r) return Array.isArray(r) ? r : [r, null];
+  if (id === 'hcg' && p.sex === 'M') return ['Not done: male patient', null];
+  if (LABS[id]) return [LAB_NORMAL[id], null];
+  return IMG_NORMAL[id] ? IMG_NORMAL[id].slice() : ['No acute findings', null];
+}
+/* What the case needs, in named tests: the attending's game. */
+function needOf(p) {
+  const N = NEED[p.ck], c = CASES.find(x => x.k === p.ck) || {};
+  if (N) return { n: N.n.slice(), ok: (N.ok || []).slice() };
+  // a case with no table (a return visit, an IFT): its kinds, as their usual tests
+  const n = []; for (const k of (c.wk || p.wk || [])) if (k !== 'ecg') n.push(...(DEFAULT_DET[k] || []));
+  return { n, ok: [] };
+}
+const DEFAULT_DET = { lab: ['cbc', 'bmp'], xr: ['cxr'], ct: ['cthead'], us: ['fast'], mri: ['mrib'] };
 /* by: who gives it. rx: pharmacist verifies first. gate: waits for something else. */
 const TREAT = {
   meds:    { label: 'Meds', by: 'rn', dur: 3, rx: true },
@@ -385,7 +491,7 @@ function newGame(level, seed, opts) {
     rooms: ROOMS.map(r => ({ id: r.id, z: r.z, kind: r.kind, iso: !!r.iso, safe: !!r.safe, st: 'clean', pid: null, dirt: 'std', closed: false })),
     pts: {}, order: [], enroute: [], triageQ: [], evsQ: [], errands: [],
     staff: [],
-    img: { xr: { busy: null, q: [], down: -1e9 }, ct: { busy: null, q: [], down: -1e9 }, us: { busy: null, q: [], down: -1e9 } },
+    img: { xr: { busy: null, q: [], down: -1e9 }, ct: { busy: null, q: [], down: -1e9 }, us: { busy: null, q: [], down: -1e9 }, mri: { busy: null, q: [], down: -1e9 } },
     box: { cur: null, q: [], nextC: 1e9, seq: 0, scen: [] },
     spec: {}, ev: { next: 1e9, used: {}, sick: 0, regionDue: false, regionFired: false, missedC: 0, lastAma: -1e9 },
     card: null, obj: [], sched: [], warn: {},
@@ -1238,8 +1344,8 @@ const DX_PLAIN = {
   'Anaphylactic shock': 'An allergic reaction that has dropped the blood pressure', 'Septic shock (urinary source)': 'A bladder infection that has dropped the blood pressure', 'Acute ischemic stroke, getting worse': 'A brain clot, and more brain is being lost',
   'Femur fracture with hemorrhagic shock': 'A broken thigh bone, bleeding heavily', 'ROSC after cardiac arrest': 'The heart is beating again after it stopped', 'Resuscitation unsuccessful': 'The team could not restart the heart',
 };
-const WK_NAME = { ecg: 'ECG', lab: 'Labs', xr: 'X-ray', ct: 'CT', us: 'Ultrasound' };
-const NORMAL = { ecg: 'Normal sinus rhythm', lab: 'Normal', xr: 'No acute findings', ct: 'No acute findings', us: 'Normal' };
+const WK_NAME = { ecg: 'ECG', lab: 'Labs', xr: 'X-ray', ct: 'CT', us: 'Ultrasound', mri: 'MRI' };
+const NORMAL = { ecg: 'Normal sinus rhythm', lab: 'Normal', xr: 'No acute findings', ct: 'No acute findings', us: 'Normal', mri: 'No acute findings' };
 const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU', or: 'the OR', cath: 'the cath lab', bh: 'psychiatric admission', transfer: 'a transfer', obs: 'observation' };
 // What the drug in "Medications" was, for each case that needs one.
 const RX = { refill: 'a dose of the usual pill', tia: 'aspirin', copd: 'a steroid', moto: 'pain control', rash: 'an antihistamine and steroid cream', otitis: 'amoxicillin', dental: 'an antibiotic and pain control', strep: 'penicillin', ankle: 'ibuprofen', uti: 'an antibiotic for the UTI',
@@ -1253,7 +1359,12 @@ const HARM = { tnk: [0.5, 50, 'bled after a thrombolytic they did not need'], in
   pressor: [0.25, 15, 'had a dangerous spike in blood pressure from a vasopressor they did not need'], reverse: [0.15, 20, 'had a clot from a reversal agent they did not need'],
   bp: [0.25, 12, 'dropped their blood pressure on a drug they did not need'], pace: [0.2, 8, 'was paced without needing it'] };
 function awaitOrders(p) {
-  if (!p.right) p.right = { wk: p.wk.slice(), tr: p.tr.filter(k => k !== 'vent'), ok: ((CASES.find(c => c.k === p.ck) || {}).ok || []).slice() };
+  if (!p.right) {
+    const N = needOf(p), kinds = new Set(N.n.map(DET_KIND));
+    if (p.wk.includes('ecg')) kinds.add('ecg');
+    p.right = { wk: Array.from(kinds), tr: p.tr.filter(k => k !== 'vent'), ok: ((CASES.find(c => c.k === p.ck) || {}).ok || []).slice(), det: N.n, detOk: N.ok };
+  }
+  p.det = p.det || [];
   p.wk = p.wk.filter(k => p.work[k]);          // anything triage already started stays (an ECG for chest pain)
   p.tr = p.tr.filter(k => p.treat[k] || (k === 'mtp' && p.bb && p.bb.mtp));
   p.ord = 'need';
@@ -1261,20 +1372,37 @@ function awaitOrders(p) {
 }
 /* What the right order set still lacks, by the names on the order sheet. Medications names its drug. */
 const trName = (p, k) => (k === 'meds' ? `Medications (${rxName(p)})` : TREAT[k].label);
-function missNow(p, testsOnly) { const R = p.right; return R ? R.wk.filter(k => !p.wk.includes(k)).map(k => WK_NAME[k]).concat(testsOnly ? [] : R.tr.filter(k => !p.tr.includes(k)).map(k => trName(p, k))) : []; }
+/* Named tests still missing (the ECG counts as one). Old saves without named tests fall back to kinds. */
+const detMiss = p => { const R = p.right; if (!R) return []; if (!R.det) return R.wk.filter(k => !p.wk.includes(k)); return (R.wk.includes('ecg') && !p.wk.includes('ecg') ? ['ecg'] : []).concat(R.det.filter(d => !(p.det || []).includes(d))); };
+function missNow(p, testsOnly) { const R = p.right; return R ? detMiss(p).map(DET_NAME).concat(testsOnly ? [] : R.tr.filter(k => !p.tr.includes(k)).map(k => trName(p, k))) : []; }
 function signOrders(pid, tests, treats) {
   const p = pt(pid);
   if (!p || !mdMine(p)) return { ok: false, why: 'That is not your patient' };
   if (p.ev !== 'done') return { ok: false, why: 'See the patient first' };
   const R = p.right, S = G.stats.md, first = p.ord === 'need';
-  const newT = (tests || []).filter(k => WORK[k] && !p.wk.includes(k));
+  if (!R.det) { R.det = needOf(p).n; R.detOk = needOf(p).ok; }
+  p.det = p.det || [];
+  // tests: named tests (cbc, ctap) from the order sheet; a kind (lab, ct) means its usual tests for this case
+  const want = [];
+  for (const k of tests || []) {
+    if (k === 'ecg' || LABS[k] || IMGS[k]) want.push(k);
+    else if (WORK[k]) { const mine2 = R.det.filter(d => DET_KIND(d) === k); want.push(...(mine2.length ? mine2 : DEFAULT_DET[k] || [])); }
+  }
+  const newT = Array.from(new Set(want)).filter(k => (k === 'ecg' ? !p.wk.includes('ecg') : !p.det.includes(k)));
   const newR = (treats || []).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
-  if (!newT.length && !newR.length && !(first && R.wk.every(k => p.wk.includes(k)) && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
+  if (!newT.length && !newR.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
   let pts = 0, extra = 0;
-  const xl = [], fl = [], OKL = R.ok || [];   // fl: reasonable orders. Not required, not counted against you.
+  const xl = [], fl = [], OKL = R.ok || [], OKD = R.detOk || [];   // fl: reasonable orders. Not required, not counted against you.
   for (const k of newT) {
-    p.wk.push(k);
-    if (R.wk.includes(k)) { pts += 2; S.ordRight++; } else if (OKL.includes(k)) { fl.push(WK_NAME[k]); if (!p.find[k]) p.find[k] = NORMAL[k]; } else { pts -= k === 'ct' ? 8 : 3; extra++; S.ordExtra++; xl.push(WK_NAME[k]); if (!p.find[k]) p.find[k] = NORMAL[k]; }
+    const kind = DET_KIND(k), nm = DET_NAME(k);
+    if (k !== 'ecg') { p.det.push(k); const r = detResult(p, k); (p.dres = p.dres || {})[k] = r; }
+    if (!p.wk.includes(kind)) p.wk.push(kind);
+    else if (p.work[kind] && p.work[kind].st !== 'todo') delete p.work[kind];   // more of a kind after the first draw or scan: another one
+    const need = k === 'ecg' ? R.wk.includes('ecg') : R.det.includes(k);
+    const fine = k === 'ecg' ? OKL.includes('ecg') : OKD.includes(k) || (k === 'hcg' && p.sex === 'F' && p.age >= 12 && p.age <= 55);
+    if (need) { pts += DET_RIGHT[kind] || 1; S.ordRight++; }
+    else if (fine) { fl.push(nm); if (!p.find[kind]) p.find[kind] = NORMAL[kind]; }
+    else { pts -= DET_EXTRA[kind] || 2; extra++; S.ordExtra++; xl.push(nm); if (!p.find[kind]) p.find[kind] = NORMAL[kind]; }
   }
   for (const k of newR) {
     if (k === 'mtp') { const r = activateMTP(p.id); if (!r.ok && p.bleed !== 'mtp') { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); continue; } }
@@ -1292,7 +1420,7 @@ function signOrders(pid, tests, treats) {
     note(`${label(p)}: thrombolytic ordered with the pressure over ${LYTIC_BP[0]}/${LYTIC_BP[1]}. The nurse is holding it.`, 'bad');
   }
   if (first) {
-    const miss = R.wk.filter(k => !p.wk.includes(k)).length + R.tr.filter(k => !p.tr.includes(k)).length;
+    const miss = detMiss(p).length + R.tr.filter(k => !p.tr.includes(k)).length;
     S.ordMiss += miss;
     if (!miss && !extra) { pts += 10; S.clean++; }
     p.ordLog = { name: p.name, dx: p.dx, miss: missNow(p), extra: xl.slice(), fine: fl.slice(), why: ORD_WHY[p.ck] || '' };
@@ -1312,11 +1440,12 @@ function signOrders(pid, tests, treats) {
   if (p.txGap && !p.txGap.length) p.txGap = null;
   if (newT.length && (p.dsp === 'mddecide' || p.dsp === 'decide')) p.dsp = 'none';
   const n = newT.length + newR.length;
+  if (newT.some(k => DET_KIND(k) === 'mri')) note(`${label(p)}: MRI ordered. It takes about an hour, and the patient leaves the department for it.`);
   return { ok: true, msg: `${n} order${n === 1 ? '' : 's'} signed for ${label(p)}${newR.includes('meds') ? ` (${rxName(p)})` : ''}${held ? '.' + held : ''}`, held: !!held };
 }
 // A workup that is missing a test the plan needs: the diagnosis waits until it's ordered.
 function workGap(p) {
-  const miss = p.right.wk.filter(k => !p.wk.includes(k));
+  const miss = detMiss(p);
   if (!miss.length) return false;
   p.re = 'none'; p.ord = 'more';
   if (!G.pre) { G.stats.md.gaps++; care(-5 * miss.length, 'orders', p); note(`${label(p)}: the workup isn't complete. Something the plan needs is missing.`, 'bad'); }
@@ -1894,7 +2023,8 @@ function interpTick() {
 
 /* ---------- imaging, results, consults ---------- */
 function imgTick(dt) {
-  for (const m of ['xr', 'ct', 'us']) {
+  if (!G.img.mri) G.img.mri = { busy: null, q: [], down: -1e9 };   // a save from before v0.19
+  for (const m of ['xr', 'ct', 'us', 'mri']) {
     const S = G.img[m];
     if (S.down > G.t || (m === 'ct' && (outActive('ct') || outActive('power')))) continue;
     if (S.busy) {
@@ -3379,6 +3509,7 @@ function mdPlay(o) {
 const OC = {
   hooks, get G() { return G; }, load(g) { G = g; }, newGame, step, botStep,
   LEVELS, STARS, STARS_MD, ZONES, ZONE_NAME, ROOMS, SPECS, WORK, TREAT, ALERTS, GOALS, SCEN, PACKS, CASES, LANGS,
+  LABS, IMGS, NEED, RES, IMG_NORMAL, detResult, DET_KIND, DET_NAME, needOf,
   pt, room, staff, roomOf, roomName, label, clock, active, inRooms, boarders, isProv, present,
   zoneLoad, zoneNurses, nurseLoad, zonePts, weight, staffSat, avgWait, waitingCount, hallCount, maxWallNow,
   canPlace, canAssign, needsProv, allWorkDone, preDone, treatsDone, pitDcReady,

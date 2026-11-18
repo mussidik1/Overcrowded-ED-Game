@@ -44,7 +44,7 @@ assert(OC.consult(sp.id, 'neuro').ok, 'the stroke team is called');
 OC.assign(ME, sp.id); run(40, () => sp.ord === 'need');
 let c0 = G.care;
 let r = OC.signOrders(sp.id, ['ct', 'lab'], ['tnk']);
-assert(r.ok && r.held && /holding the thrombolytic/.test(r.msg) && G.care - c0 === 2 + 2 + 3 - 8, `thrombolytic without pressure control, over the limit: the nurse holds it and it costs points (${G.care - c0}): ${r.msg}`);
+assert(r.ok && r.held && /holding the thrombolytic/.test(r.msg) && G.care - c0 === 2 + 1 + 3 - 8, `thrombolytic without pressure control, over the limit: the nurse holds it and it costs points (${G.care - c0}): ${r.msg}`);
 run(60, () => sp.work.ct && sp.work.ct.st === 'done' && sp.consult.st === 'here');
 run(10);
 assert(sp.treat.tnk.st === 'wait' && !done(sp, 'tnk'), `CT read and neurology here, and the drug is still held at ${bp(sp)}`);
@@ -55,7 +55,7 @@ assert(done(sp, 'bp') && done(sp, 'tnk') && OC.vitalsOf(sp, sp.treat.tnk.tDone).
 const su = OC.pt(OC.trainPatient('stroke', 'room', { room: 'R2', age: 66 }));
 su.alertOn = true; su.dxK = true; OC.consult(su.id, 'neuro'); OC.assign(ME, su.id); run(40, () => su.ord === 'need');
 c0 = G.care; r = OC.signOrders(su.id, ['ct', 'lab'], ['tnk', 'bp']);
-assert(r.ok && !r.held && G.care - c0 === 2 + 2 + 3 - 3 && su.extraTr.includes('bp'), `pressure control for a stroke already under the limit is an extra order (${G.care - c0})`);
+assert(r.ok && !r.held && G.care - c0 === 2 + 1 + 3 - 3 && su.extraTr.includes('bp'), `pressure control for a stroke already under the limit is an extra order (${G.care - c0})`);
 
 // 4. Oxygen, a vasopressor, pacing, and a reversal agent: each has a patient who needs it
 OC.newGame('train', 34, { mode: 'md' }); G = OC.G;
@@ -74,7 +74,7 @@ assert(done(pn, 'o2') && s1.spo2 >= 94 && s1.o2 && s1.signs.includes('on oxygen'
 const st = OC.pt(OC.trainPatient('strep', 'room', { room: '2', age: 20 }));
 OC.assign(ME, st.id); run(40, () => st.ord === 'need');
 c0 = G.care; OC.signOrders(st.id, ['lab'], ['meds', 'o2']);
-assert(G.care - c0 === 2 + 3 - 3, `oxygen for a normal sat is an extra order (${G.care - c0})`);
+assert(G.care - c0 === 1 + 3 - 3, `oxygen for a normal sat is an extra order (${G.care - c0})`);
 const as = OC.pt(OC.trainPatient('asthma', 'room', { room: '3', age: 22 }));
 OC.assign(ME, as.id); run(40, () => as.ord === 'need');
 c0 = G.care; OC.signOrders(as.id, [], ['nebs', 'meds', 'o2']);
@@ -205,7 +205,7 @@ assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[
   OC.assign(OC.G.me, p.id); let n = 0; while (p.ord !== 'need' && n++ < 4000) OC.step(0.1);
   assert(p.ev === 'done' && OC.examOf(p) === OC.EXAM.chole, 'the exam finding belongs to the patient once examined');
   const r = OC.signOrders(p.id, ['lab', 'ct'], ['meds']);
-  assert(r.ok && p.ordLog && p.ordLog.miss.join() === 'Ultrasound' && p.ordLog.extra.join() === 'CT' && p.ordLog.why === OC.ORD_WHY.chole, 'signing records what was missed and what was not needed: missed ' + p.ordLog.miss + ', extra ' + p.ordLog.extra);
+  assert(r.ok && p.ordLog && p.ordLog.miss.join() === 'Gallbladder ultrasound' && p.ordLog.extra.join() === 'CT head' && p.ordLog.why === OC.ORD_WHY.chole, 'signing records what was missed and what was not needed: missed ' + p.ordLog.miss + ', extra ' + p.ordLog.extra);
   assert(OC.G.stats.md.log.length === 1 && OC.G.stats.md.log[0] === p.ordLog, 'and the shift keeps it for the report');
   n = 0; while (p.dsp !== 'mddecide' && n++ < 20000) { OC.step(0.1); if (p.ord === 'signed' && p.txGap && p.txGap.length) OC.signOrders(p.id, ['us'], []); if (p.wkGap || (p.gap && p.gap.length)) OC.signOrders(p.id, ['us'], []); }
   const w = OC.consult ? OC.consult(p.id, 'ortho') : null;
