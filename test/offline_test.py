@@ -37,7 +37,8 @@ def run():
             keys = page.evaluate("() => caches.keys()")
             mine = [k for k in keys if k.startswith('overcrowded-')]
             ok(len(mine) == 1 and 'overcrowded-0.0.0-old' not in keys, 'an old copy of the game is cleared')
-            ok('another-app-v1' in keys and page.evaluate("() => caches.open('another-app-v1').then(c => c.match('/another-app/index.html')).then(r => r ? r.text() : null)") == 'theirs', "another app's saved files on the same site are left alone")
+            theirs = page.evaluate("() => caches.open('another-app-v1').then(c => Promise.all([c.match('/another-app/index.html').then(r => r ? r.text() : null), c.keys().then(a => a.map(q => q.url))]))")
+            ok('another-app-v1' in keys and theirs[0] == 'theirs', f"another app's saved files on the same site are left alone (caches: {keys}; its file reads {theirs[0]!r}; its entries: {theirs[1]})")
             n = page.evaluate("(k) => caches.open(k).then(c => c.keys()).then(a => a.length)", mine[0] if mine else '')
             ok(n >= 5, f'it keeps a copy of the game ({n} files)')
             ctx.set_offline(True)
