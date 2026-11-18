@@ -357,11 +357,12 @@ function camBind(el) {
 }
 function mapZoom(f) {
   const el = document.getElementById('map'); if (!el) return;
+  if (el.classList.contains('three') && window.OC3D) { OC3D.zoom(f); return; }
   if (!f) { camReset(el); return; }
   const cx = CAM.x + CAM.w / 2, cy = CAM.y + CAM.h / 2;
   CAM.w /= f; camClamp(el); CAM.x = cx - CAM.w / 2; CAM.y = cy - CAM.h / 2; camClamp(el); camApply(el); CAM.auto = false;
 }
-const mapZoomed = () => { const el = document.getElementById('map'), r = el && el.getBoundingClientRect(); return !!(r && r.width && CAM.w < Math.max(MW + 14, (MH + 14) * r.width / r.height) * 0.97); };
+const mapZoomed = () => { const el = document.getElementById('map'), r = el && el.getBoundingClientRect(); if (el && el.classList.contains('three') && window.OC3D) return OC3D.zoomed(); return !!(r && r.width && CAM.w < Math.max(MW + 14, (MH + 14) * r.width / r.height) * 0.97); };
 /* Bring something on the floor into view (the Orientation uses this). */
 function mapFocus(x) {
   const el = document.getElementById('map'); if (!el || !x) return;
@@ -395,6 +396,42 @@ function mapSpot(els, layerId, cls) {
   setH(layer, h);
 }
 
+/* ---------- the 3D floor (v0.18): src3d/map3d.js, loaded on demand from 3d/map3d.js ----------
+   The flat map keeps deciding everything; the 3D floor draws it. Orientation and lessons stay on the flat map,
+   because the preceptor points at things on it. If WebGL or the files are missing, the flat map shows as before. */
+const D3 = { want: null, loading: false, failed: false };
+function use3d(G) {
+  if (!U.three || !G || G.train || D3.failed || U.view !== 'map') return false;
+  if (!window.OC3D) { load3d(); return false; }
+  const el = document.getElementById('map'); if (!el || !OC3D.ok) return false;
+  if (!OC3D.init(el, H3D)) { D3.failed = true; return false; }
+  if (!el.classList.contains('three')) el.classList.add('three');
+  return OC3D.ready();
+}
+function load3d() {
+  if (D3.loading || window.OC3D) return; D3.loading = true;
+  const s = document.createElement('script'); s.src = '3d/map3d.js'; s.async = true;
+  s.onerror = () => { D3.failed = true; }; document.head.appendChild(s);
+}
+const floor3d = () => !!(U.three && U.view === 'map' && !D3.failed && !(window.OC && OC.G && OC.G.train));   // the 3D floor is (or is about to be) what the player sees
+function off3d() { const el = document.getElementById('map'); if (el) el.classList.remove('three'); }
+const H3D = {
+  RM, icon: k => ICO[k] || ICO.wait, route: (a, b) => routeTo(a, b), speed: () => Math.min(4, U.speed || 1),
+  drag: () => { U.mapDrag = performance.now() + 250; },
+  fail: () => { D3.failed = true; off3d(); },
+  tap(kind, id, cx, cy, far) {
+    let n = null;
+    if (kind === 'room') n = document.getElementById('mroom-' + id);
+    else if (kind === 'zone') n = document.getElementById('mzh-' + id);
+    else if (kind === 'clu' || kind === 'box') n = document.getElementById(id);
+    else if (kind === 'pt') n = document.querySelector(`#map [data-act="pt"][data-arg="${id}"]`);
+    else if (kind === 'staff') n = document.querySelector(`#map [data-id="s-${id}"]`);
+    if (n && far && n.dataset && n.dataset.clu) n = document.getElementById(n.dataset.clu) || n;   // zoomed out, a crowd opens its list
+    U.mapTap = { t: performance.now() + 1500, x: cx, y: cy, x0: cx, y0: cy };   // the browser's own click for this tap comes later and lands on whatever opened: drop it (a busy 3D frame can delay it)
+    mapAct(n, cx, cy);
+  },
+};
+
 function mapRender(G) {
   const el = document.getElementById('map'); if (!el) return;
   if (!el._built) {
@@ -408,6 +445,7 @@ function mapRender(G) {
 <g id="mStatic">${mapStatic()}</g><g id="mSvc"></g><g id="mRooms">${G.rooms.filter(r => RM[r.id]).map(r => `<g id="mroom-${r.id}" data-act="room" data-arg="${r.id}" transform="translate(${RM[r.id].x} ${RM[r.id].y})" role="button"></g>`).join('')}</g><g id="mSigns"></g><g id="mAmbs"></g><g id="mPts"><g id="mPtsWall"></g><g id="mPtsWalk"></g></g><g id="mAmb"></g><g id="mMove"></g><g id="mPeople"></g><g id="mNames"></g><g id="mFx"></g><g id="mNeed"></g><g id="mSpot"></g></svg>`;
     el._built = true; camBind(el);
   }
+  const on3d = use3d(G); if (!on3d) off3d();
   const rr = el.getBoundingClientRect();
   if (rr.width && !CAM.set) camReset(el);
   else if (rr.width && (Math.abs(rr.width - CAM.rw) > 2 || Math.abs(rr.height - CAM.rh) > 2)) {   // the screen changed shape: keep looking at the same spot
@@ -418,6 +456,7 @@ function mapRender(G) {
   const sel = U.sel, selP = sel && sel.pid ? E.pt(sel.pid) : null, selS = sel && sel.type === 'prov' ? E.staff(sel.sid) : null;
   const act = E.active(), md = MD();
   const setA = (n, k, v) => { const c = n._a || (n._a = {}); if (c[k] !== v) { n.setAttribute(k, v); c[k] = v; } };
+  const SN = on3d ? { rooms: [], staff: [], pts: [], amb: [], signs: [], counts: [], left: {} } : null;   // what the 3D floor draws this frame
 
   // a new shift or a loaded save: forget where people were
   const nowMs = performance.now(), key = G.seed + '|' + G.level + '|' + G.mode;
@@ -429,6 +468,7 @@ function mapRender(G) {
     const R = RM[r.id]; if (!R || !r.pid) continue;
     const c = [R.x + R.w / 2, R.y + R.h / 2], prev = LAST.get(r.pid), p = E.pt(r.pid);
     posNow.set(r.pid, { x: c[0], y: c[1], kind: 'room', room: r.id });
+    if (SN && p) SN.pts.push({ id: p.id, kind: 'room', room: r.id, x: c[0], y: c[1], esi: p.tri === 'done' || p.room ? ve(p) : 0, name: p.name });
     if (motion && p && prev && (prev.kind !== 'room' || prev.room !== r.id) && !ARRIVE.has(r.pid)) {   // walking or rolling to the bed
       const roll = prev.kind === 'wall' || prev.kind === 'amb' || (prev.kind === 'room' && ve(p) <= 2);
       const d = mapMove([prev.x, prev.y], routeTo([prev.x, prev.y], c), roll ? 'stretcher' : 'walk', p, prev.kind === 'room' ? ROLEC.rn : null);
@@ -445,6 +485,7 @@ function mapRender(G) {
     const over = (!ns.length && n > 0) || load > cap, full = ns.length && load === cap;
     const lt = ns.length ? `${fl(load)}/${cap}` : closed ? (z === 'ft' && G.t < 120 ? '09:00' : 'closed') : n ? 'no RN!' : 'no RN';
     const fg = over ? '#FFFFFF' : '#1B2230';
+    if (SN) SN.signs.push({ z, x, y, w, over, full: !!full, text: `${ZSHORTN[z]}${ZRANGE[z] ? ' ' + ZRANGE[z] : ''} · ${lt}` });
     signs += `<g class="msign${over ? ' over' : ''}" id="mzh-${z}" data-act="zone" data-arg="${z}" transform="translate(${x} ${y})" role="button" aria-label="${esc(zn)}: ${ns.length ? esc(ns.map(s => s.short).join(' and ')) + `, load ${fl(load)} of ${cap}` : 'no nurse'}"><rect x="-3" y="${y > 400 ? -26 : -8}" width="${w + 6}" height="${y < 100 ? 58 : y > 400 ? 64 : 46}" fill="transparent"/>`
       + `<rect width="${w}" height="30" rx="15" fill="${over ? '#C8243A' : closed && !ns.length ? '#E6E8EB' : '#FFFFFF'}" stroke="${over ? '#C8243A' : full ? '#B76E00' : '#8E97A4'}" stroke-width="${full ? 2.4 : 1.6}"/>`
       + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}${ZRANGE[z] ? `<tspan dx="7" font-size="17" fill="${over ? '#FFE3E6' : '#3D4757'}">${ZRANGE[z]}</tspan>` : ''}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
@@ -519,6 +560,7 @@ function mapRender(G) {
       if (small) names += tagN(3, h - 19, w - 30, 17, 13, 'faronly') + tagN(26, 2, w - 52, 14, 11, 'nearonly');
       else names += tagN(3, h - 25, w - 6, 22, 16.5, 'faronly') + tagN(5, h - 41 - (two ? lh : 0), w - 10, 17, 13, 'nearonly');
     }
+    if (SN) SN.rooms.push({ id: r.id, cat, ico, fl: /\bfl\b/.test(tone), pid: r.pid || null, name: p ? p.name : '', esi, crit: !!crit, arrest: !!(p && p.arrest), selc: selc.trim(), mine: !!(md && p && mine(p)), lab: rlab });
     setA(n, 'class', `mroom${selc}${crit ? ' crit' : ''}`);
     setA(n, 'aria-label', `${E.roomName(r.id)}${p ? `: ${p.name}, ${E.ageSex(p)}, ${p.cc}${esi ? `, ESI ${esi}` : ''}` : ''}. ${plain}`);
     setH(n, g);
@@ -581,6 +623,7 @@ function mapRender(G) {
     const y = WALL_Y(i), esi = p.tri === 'done' ? ve(p) : 0, mins = Math.round(G.t - p.tArrive);
     by.set(p.id, [196, y + 4]);
     posNow.set(p.id, { x: 195, y, kind: 'wall' });
+    if (SN) SN.pts.push({ id: p.id, kind: 'wall', x: 195, y, esi, name: p.name, sel: !!(sel && sel.pid === p.id) });
     const badge = intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
       : E.emergent(p) ? icoSVG('alert', 240, y + 9, 9, 'bad fl') : '';
     pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${crewSVG(!!(sel && sel.pid === p.id))}</g>`
@@ -594,6 +637,7 @@ function mapRender(G) {
   for (const w of walkers) {
     const p = w.p, id = 'w-' + p.id, tr = `translate(${w.x}px, ${w.y}px)`; seenW.add(id);
     const ok = sel && sel.type === 'reg' ? regable(p) : sel && sel.type === 'tri' ? p.tri === 'none' && (p.loc === 'wall' || p.loc === 'triage') : null;
+    if (SN) { const pk = posNow.get(p.id); SN.pts.push({ id: p.id, kind: pk ? pk.kind : 'door', x: w.x, y: w.y, esi: p.tri === 'done' ? ve(p) : 0, name: p.name, sel: !!(sel && sel.pid === p.id), ok: ok === true, fresh: !LAST.get(p.id) && p.loc === 'triage' && G.t - p.tArrive < 3 }); }
     let n = wl.querySelector(`[data-id="${id}"]`);
     if (!n) {
       n = document.createElementNS(SVGNS, 'g'); n.setAttribute('data-id', id); n.setAttribute('data-act', 'pt'); n.setAttribute('data-arg', p.id); n.setAttribute('role', 'button');
@@ -620,6 +664,7 @@ function mapRender(G) {
   wall.forEach((p, i) => { if (i < 3) ambAt.set(p.id, [56, 96 + i * 56, 'bay']); else if (i >= 6 && i < 10) { ambAt.set(p.id, [56, 306 + (i - 6) * 56, 'out']); posNow.set(p.id, { x: 56, y: 306 + (i - 6) * 56, kind: 'amb' }); } });
   G.enroute.map(E.pt).filter(Boolean).slice(0, 2).forEach((p, i) => ambAt.set(p.id, [56, i ? 562 : 32, 'in']));
   const ambL = document.getElementById('mAmbs'), seenA = new Set();
+  if (SN) { const k = { bay: 0, out: 0, in: 0 }; for (const [pid, at] of ambAt) SN.amb.push({ pid, mode: at[2], i: k[at[2]]++ }); }
   for (const [pid, at] of ambAt) {
     const p = E.pt(pid), id = 'a-' + pid, mins = Math.round(G.t - p.tArrive); seenA.add(id);
     let n = ambL.querySelector(`[data-id="${id}"]`);
@@ -646,6 +691,14 @@ function mapRender(G) {
   if (G.pizza) svc += '<rect x="1240" y="100" width="32" height="26" rx="2" fill="#E9DCC0" stroke="#B89B6A"/><circle cx="1256" cy="113" r="9.5" fill="#E8B04A"/><circle cx="1252.5" cy="110" r="2" fill="#C8243A"/><circle cx="1259.5" cy="115.5" r="2" fill="#C8243A"/><circle cx="1258" cy="108.5" r="1.6" fill="#C8243A"/>';
   if (G.box.cur && !G.box.cur.taken) svc += '<g class="boxring" transform="translate(721 350)"><circle r="10"/><circle class="r2" r="10"/></g>';
   setH(document.getElementById('mSvc'), svc);
+  if (SN) {
+    SN.counts.push({ id: 'wall', text: wall.length ? `WALL · ${wall.length}` : 'THE WALL', bad: wall.length > 5, tap: 'mWall' }, { id: 'wait', text: waiting.length ? `WAITING · ${waiting.length}` : 'WAITING', bad: false, tap: 'mWait' }, { id: 'door', text: G.triageQ.length ? `DOOR · ${G.triageQ.length}` : 'DOOR', bad: false, tap: 'mDoor' });
+    if (outside.length) SN.counts.push({ id: 'out', text: `${outside.length} outside`, bad: true });
+    if (G.enroute.length) SN.counts.push({ id: 'in', text: `${G.enroute.length} inbound`, bad: false });
+    if (G.box.cur && !G.box.cur.taken) SN.counts.push({ id: 'box', text: 'The Box is ringing', bad: true, tap: 'mBox' });
+    if (out('ct') || out('power')) SN.counts.push({ id: 'ct', text: 'CT down', bad: true });
+    if (out('lab')) SN.counts.push({ id: 'lab', text: 'Lab down', bad: true });
+  }
   const [tc, ta] = dayTint(G.t);   // the light changes through the day
   setH(document.getElementById('mFx'), (ta > 0.004 ? `<rect x="-900" y="-700" width="${MW + 1800}" height="${MH + 1400}" fill="${tc}" opacity="${ta.toFixed(2)}" pointer-events="none"/>` : '') + (out('power') ? `<rect x="112" y="0" width="${MW - 112}" height="${MH}" fill="#0A1024" opacity=".3" pointer-events="none"/>` : ''));
 
@@ -656,6 +709,7 @@ function mapRender(G) {
     const id = 's-' + s.id, inRoom = at[2] === 'room' || at[2] === 'with', me = isMe(s);
     const svg = (inRoom ? '' : '<circle r="22" fill="transparent"/>') + '<g class="wk">' + chipSVG({ label: roleLab(s), body: ROLEC[s.role], tag: at[2] === 'seat' ? '' : me ? 'You' : s.short, tagFg: ROLEC[s.role], ring: !!(sel && sel.sid === s.id), me }) + '</g>';
     const actn = E.isProv(s) ? 'prov' : s.role === 'reg' ? 'regSel' : s.role === 'rn' && s.zones.includes('triage') ? 'triSel' : 'staffOpen';
+    if (SN) SN.staff.push({ id: s.id, role: s.role, title: s.title, label: roleLab(s), at: [at[0], at[1], at[2] || ''], inRoom, me, sel: !!(sel && sel.sid === s.id), seat: at[2] === 'seat' ? Math.max(0, PROV_SEATS.findIndex(q => q[1] === at[1] && Math.abs(q[0] - at[0]) % 14 === 0 && at[0] >= q[0])) : null, brk: s.st === 'break' ? Math.max(0, BREAK_SEATS.findIndex(q => q[0] === at[0] && q[1] === at[1])) : null });
     seen.add(id);
     let n = layer.querySelector(`[data-id="${id}"]`);
     if (!n) { n = document.createElementNS('http://www.w3.org/2000/svg', 'g'); n.setAttribute('data-id', id); n.setAttribute('class', 'mp'); n.style.transform = `translate(${at[0]}px, ${at[1]}px)`; layer.appendChild(n); }
@@ -674,9 +728,11 @@ function mapRender(G) {
     const p = E.pt(pid);
     if (motion && p && p.loc === 'gone' && p.outcome && p.outcome !== 'expired') {
       const how = ['dc', 'lwbs', 'ama'].includes(p.outcome) ? 'door' : p.outcome === 'tx' ? 'bay' : 'up';
+      if (SN) SN.left[pid] = how;
       mapMove([prev.x, prev.y], routeOut([prev.x, prev.y], how), how === 'door' ? 'walk' : 'stretcher', p, how === 'bay' ? null : ROLEC.tp);
     }
     LAST.delete(pid);
   }
   for (const [pid, at] of posNow) LAST.set(pid, at);
+  if (SN) window.OC3D.sync(SN);
 }

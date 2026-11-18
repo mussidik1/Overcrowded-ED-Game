@@ -1,0 +1,256 @@
+{
+ "rooms": [
+  {
+   "id": "1",
+   "x": -6.48,
+   "y": 11.7,
+   "rot": 0,
+   "variant": "POD_FAR",
+   "D": 3.8,
+   "state": "need"
+  },
+  {
+   "id": "2",
+   "x": -2.32,
+   "y": 11.7,
+   "rot": 0,
+   "variant": "POD_FAR",
+   "D": 3.8,
+   "state": "calm"
+  },
+  {
+   "id": "3",
+   "x": -6.48,
+   "y": 6.6,
+   "rot": 0,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "go"
+  },
+  {
+   "id": "4",
+   "x": -2.32,
+   "y": 6.6,
+   "rot": 0,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "dirty"
+  },
+  {
+   "id": "5",
+   "x": 2.2,
+   "y": 11.7,
+   "rot": 0,
+   "variant": "POD_FAR",
+   "D": 3.8,
+   "state": "board"
+  },
+  {
+   "id": "6",
+   "x": 6.36,
+   "y": 11.7,
+   "rot": 0,
+   "variant": "POD_FAR",
+   "D": 3.8,
+   "state": "calm"
+  },
+  {
+   "id": "7",
+   "x": 2.2,
+   "y": 6.6,
+   "rot": 0,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "empty"
+  },
+  {
+   "id": "8",
+   "x": 6.36,
+   "y": 6.6,
+   "rot": 0,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "need"
+  },
+  {
+   "id": "9",
+   "x": 10.88,
+   "y": 11.7,
+   "rot": 0,
+   "variant": "POD_FAR",
+   "D": 3.8,
+   "state": "calm"
+  },
+  {
+   "id": "10",
+   "x": 15.040000000000001,
+   "y": 11.7,
+   "rot": 0,
+   "variant": "POD_FAR",
+   "D": 3.8,
+   "state": "empty"
+  },
+  {
+   "id": "11",
+   "x": 10.88,
+   "y": 6.6,
+   "rot": 0,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "go"
+  },
+  {
+   "id": "12",
+   "x": 15.040000000000001,
+   "y": 6.6,
+   "rot": 0,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "calm"
+  },
+  {
+   "id": "13",
+   "x": -6.48,
+   "y": -5.4,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "calm"
+  },
+  {
+   "id": "14",
+   "x": -2.32,
+   "y": -5.4,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "need"
+  },
+  {
+   "id": "15",
+   "x": -6.48,
+   "y": -10.5,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "dirty"
+  },
+  {
+   "id": "16",
+   "x": -2.32,
+   "y": -10.5,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "board"
+  },
+  {
+   "id": "17",
+   "x": 2.2,
+   "y": -5.4,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "calm"
+  },
+  {
+   "id": "18",
+   "x": 6.36,
+   "y": -5.4,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "empty"
+  },
+  {
+   "id": "19",
+   "x": 2.2,
+   "y": -10.5,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "calm"
+  },
+  {
+   "id": "20",
+   "x": 6.36,
+   "y": -10.5,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "go"
+  },
+  {
+   "id": "FT1",
+   "x": 10.88,
+   "y": -5.4,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "dirty"
+  },
+  {
+   "id": "FT2",
+   "x": 15.040000000000001,
+   "y": -5.4,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "calm"
+  },
+  {
+   "id": "FT3",
+   "x": 10.88,
+   "y": -10.5,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "empty"
+  },
+  {
+   "id": "FT4",
+   "x": 15.040000000000001,
+   "y": -10.5,
+   "rot": 180,
+   "variant": "POD",
+   "D": 3.8,
+   "state": "need"
+  },
+  {
+   "id": "R1",
+   "x": -15.6,
+   "y": 12.3,
+   "rot": 0,
+   "variant": "RES_FAR",
+   "D": 4.6,
+   "state": "bad"
+  },
+  {
+   "id": "R2",
+   "x": -11.040000000000001,
+   "y": 12.3,
+   "rot": 0,
+   "variant": "RES_FAR",
+   "D": 4.6,
+   "state": "calm"
+  },
+  {
+   "id": "R3",
+   "x": -15.6,
+   "y": 7.0,
+   "rot": 0,
+   "variant": "RES",
+   "D": 4.6,
+   "state": "empty"
+  },
+  {
+   "id": "R4",
+   "x": -11.040000000000001,
+   "y": 7.0,
+   "rot": 0,
+   "variant": "RES",
+   "D": 4.6,
+   "state": "need"
+  }
+ ]
+}
