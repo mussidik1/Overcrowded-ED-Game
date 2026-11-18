@@ -94,7 +94,7 @@ function emsCount(on) {
   for (let i = 0; i < 6000; i++) { clearCard(); OC.G.mods.noDivert = -1e9; OC.G.region.susp = -1e9; if (on) { OC.G.dv.yellow.on = true; OC.G.dv.red.on = true; } OC.step(0.1); }
   return OC.G.stats.diverted;
 }
-assert(emsCount(true) > 3, 'Yellow and Red Alert divert ambulances');
+assert(emsCount(true) > 3, 'ED Full and No Monitored Beds divert ambulances');
 
 // 7. AMA leaves and bounces back
 G = fresh(77);

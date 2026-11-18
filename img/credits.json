@@ -138,5 +138,40 @@
   "source": "Wikimedia Commons",
   "file": "Collesfracture.jpg",
   "url": "https://commons.wikimedia.org/wiki/File:Collesfracture.jpg"
+ },
+ "ctap_normal": {
+  "author": "Mikael Häggström",
+  "license": "CC0",
+  "source": "Wikimedia Commons",
+  "file": "CT of a normal abdomen and pelvis, coronal plane 61.png",
+  "url": "https://commons.wikimedia.org/wiki/File:CT_of_a_normal_abdomen_and_pelvis%2C_coronal_plane_61.png"
+ },
+ "pelvis_normal": {
+  "author": "Department of Radiology, UC San Diego Health (bonepit.com)",
+  "license": "Public domain",
+  "source": "Wikimedia Commons",
+  "file": "X-ray of the pelvis of an 18 year old male - case 3 - anteroposterior.jpg",
+  "url": "https://commons.wikimedia.org/wiki/File:X-ray_of_the_pelvis_of_an_18_year_old_male_-_case_3_-_anteroposterior.jpg"
+ },
+ "ctcs_normal": {
+  "author": "Mikael Häggström",
+  "license": "CC0",
+  "source": "Wikimedia Commons",
+  "file": "Computed tomographs of normal cervical vertebrae, sagittal plane 22.jpg",
+  "url": "https://commons.wikimedia.org/wiki/File:Computed_tomographs_of_normal_cervical_vertebrae%2C_sagittal_plane_22.jpg"
+ },
+ "mris_normal": {
+  "author": "Stillwaterising",
+  "license": "CC0",
+  "source": "Wikimedia Commons",
+  "file": "Lumbar MRI t2-tse-rst-sagittal 06.jpg",
+  "url": "https://commons.wikimedia.org/wiki/File:Lumbar_MRI_t2-tse-rst-sagittal_06.jpg"
+ },
+ "cta_m1": {
+  "author": "Liu J, Oorloff MD, Nadella A, Yan Y, Zhou N",
+  "license": "CC BY 4.0",
+  "source": "BMC neurology (2025), via Open-i (NLM)",
+  "file": "Tirofiban-induced acute profound thrombocytopenia in endovascular therapy for acute ischemic stroke: a rare case report, figure 1b",
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12382289"
  }
 }

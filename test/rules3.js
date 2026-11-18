@@ -177,11 +177,11 @@ if (e2) {
 // 11. The region
 G = fresh(512);
 for (const h of G.region.hosps.slice(0, 2)) { h.st = 'yellow'; h.hold = G.t + 200; }
-assert(OC.setDivert('yellow', true).ok, 'Yellow Alert on');
+assert(OC.setDivert('yellow', true).ok, 'ED Full on');
 run(1.2);
 assert(!G.dv.yellow.on && G.region.susp > G.t && G.stats.suspended === 1, 'three hospitals on alert: the region suspends them all');
 const sy = OC.setDivert('yellow', true);
-assert(!sy.ok && /region/.test(sy.why), 'no Yellow Alert during the suspension: ' + sy.why);
+assert(!sy.ok && /region/.test(sy.why), 'no ED Full during the suspension: ' + sy.why);
 
 // 12. Updates and patient experience
 G = fresh(513);

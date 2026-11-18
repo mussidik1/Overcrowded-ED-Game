@@ -170,7 +170,8 @@ ppl('psx-15', (-21.6, -9.4, 0), 180, None, 'idle-a', 6); ppl('psx-female-08', (-
 floor(-17.9, -5.3, -10.5, -2.0, mat('triage_floor', (.8, .76, .66), .4))
 for bx in (-15.6, -12.1):
     box('tri_desk', (1.4, .6, .75), (bx, -2.5, .375), WOOD2, .02); box('tri_vitals', (.3, .25, .3), (bx + .4, -2.5, .9), PLW, .02); seat(bx - .4, -3.9, 180)
-box('tri_curtain', (.03, 2.6, 1.9), (-13.85, -3.7, 1.05), CURT, 0)
+# v0.21: no triage curtain. Seen from the game's camera it read as a floating diamond and hid the TRIAGE lettering.
+# box('tri_curtain', (.03, 2.6, 1.9), (-13.85, -3.7, 1.05), CURT, 0)
 ppl('psx-31-female', (-15.6, -3.0, 0), 180, 'RN', 'idle-talking', 5); ppl('psx-32', (-16.0, -3.95, 0), 0, None, 'sitting-idle', 10)
 for r in range(5):
     for c in range(6): seat(-16.8 + c * 1.25, -7.0 - r * 1.35, 180)

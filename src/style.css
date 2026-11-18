@@ -664,6 +664,15 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 @keyframes critStroke { 50% { stroke: #F2B8C0; } }
 .map .mroom.crit .mr-f { stroke: #C8243A; stroke-width: 3.5px; vector-effect: non-scaling-stroke; animation: critStroke 1s ease-in-out infinite; }
 .map .spotring { fill: rgba(242, 194, 48, .16); stroke: #E9A800; stroke-width: 3px; vector-effect: non-scaling-stroke; pointer-events: none; animation: spotring 1.1s ease-in-out infinite; }
+.cb-send { margin: 10px 0; padding: 10px 12px; border: 1.5px solid var(--line, #D5DAE1); border-radius: 12px; }
+.cb-send small, .cc-box small.cb-err { display: block; margin: 2px 0 6px; }
+.cb-send.ok { border-color: #12813A; color: #12813A; }
+.cb-err { color: #A51D2F; }
+.cb-name { flex: 1; min-width: 0; font: 400 18px/1.2 var(--ui); padding: 8px 10px; border: 1.5px solid var(--line, #C5CCD6); border-radius: 9px; }
+.cb-tab { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 15px; }
+.cb-tab th, .cb-tab td { padding: 4px 6px; text-align: left; border-bottom: 1px solid var(--line, #E1E5EA); }
+.cb-tab td small { opacity: .7; }
+@media print { .cb-send { display: none; } }
 .ring3d { position: fixed; z-index: 20; pointer-events: none; border-radius: 12px; border: 3px solid #E9A800; background: rgba(242, 194, 48, .14); animation: ring3d 1.1s ease-in-out infinite; }
 .ring3d.needring { border-color: #1E5BC6; background: rgba(30, 91, 198, .12); animation-name: ring3dn; }
 .ring3d[hidden], body:not(.ingame) .ring3d, body:not(.mapmode) .ring3d { display: none; }
@@ -956,7 +965,7 @@ body.ingame { touch-action: pan-x pan-y; }
 .cc-box small { color: var(--ink-2); font-size: 13px; line-height: 1.3; }
 .cc-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .cc-row .big { flex: 1 1 auto; margin: 0; min-width: 96px; }
-.cc-in { flex: 1 1 140px; min-width: 0; height: 48px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 10px; font: 700 24px/1 var(--ui); letter-spacing: .12em; text-transform: uppercase; }
+.cc-in, .cb-code { flex: 1 1 140px; min-width: 0; height: 48px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 10px; font: 700 24px/1 var(--ui); letter-spacing: .12em; text-transform: uppercase; }
 .cc-lv { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 .cc-made { display: grid; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed #9AA3AD; }
 .cc-code { font: 700 40px/1.1 var(--ui); letter-spacing: .14em; text-align: center; }

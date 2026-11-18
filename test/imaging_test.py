@@ -54,7 +54,7 @@ import json, re
 root = os.path.join(os.path.dirname(__file__), '..')
 cred = json.load(open(os.path.join(root, 'img', 'credits.json')))
 ok(all(os.path.exists(os.path.join(root, 'img', k + '.jpg')) for k in cred), f'every credited picture is in img/ ({len(cred)})')
-ok(all(c['license'] in ('CC0', 'Public domain (US government)', 'CC BY 3.0', 'CC BY-SA 3.0', 'CC BY-SA 4.0') and c['author'] and c['url'] for c in cred.values()), 'every picture has an author, an allowed licence, and a source link')
+ok(all(c['license'] in ('CC0', 'Public domain', 'Public domain (US government)', 'CC BY 3.0', 'CC BY 4.0', 'CC BY-SA 3.0', 'CC BY-SA 4.0') and c['author'] and c['url'] for c in cred.values()), 'every picture has an author, an allowed licence, and a source link')
 print('\n'.join(checks))
 if errors: print('\n'.join(errors[:20])); sys.exit(1)
 print('No errors.')

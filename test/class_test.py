@@ -35,7 +35,7 @@ with sync_playwright() as pw:
     bad = code[:6] + ('A' if code[6] != 'A' else 'B')
     page.locator('#sheet .cc-in').fill(bad); page.wait_for_timeout(200)
     st = J("(() => { const b = document.querySelector('#sheet .cc-box [data-act=\"codePlay\"]'); return { dis: b && b.disabled, what: document.querySelector('#sheet .cc-what').textContent, ok: !!OC.readCode(document.querySelector('#sheet .cc-in').value) }; })()")
-    ok(st['ok'] or (st['dis'] and 'not look right' in st['what']), f'a mistyped code is caught before Start ({bad}: {st})')
+    ok(st['ok'] or (st['dis'] and 'look right' in st['what']), f'a mistyped code is caught before Start ({bad}: {st})')
     page.locator('#sheet .cc-in').fill(code); page.wait_for_timeout(150)
     page.locator('#sheet .cc-box [data-act="codePlay"]').first.tap(); page.wait_for_timeout(700)
     ok(J('OC.G.level') == 'rush' and J('OC.G.code') == code, 'Start plays the shift with that code')
@@ -63,9 +63,38 @@ with sync_playwright() as pw:
     rc = J("(document.querySelector('#report .rep-class') || {}).textContent || ''")
     ok(f'Class code {code}' in rc and 'Played in' in rc, f'the summary shows the class code and the real time played ({rc})')
     ok(page.locator('#report [data-act="shareResult"]').count() == 1, 'and has a Share result button')
+    # v0.21 class results: the summary sends the result; the class code sheet reads them back. The network is stubbed here.
+    sent = []
+    import json as _json
+    def on_post(route):
+        sent.append(_json.loads(route.request.post_data or '{}')); route.fulfill(status=201, body='')
+    page.route('**/rest/v1/cb_results', on_post)
+    ok(page.locator('#report .cb-send input.cb-name').count() == 1, 'a class shift summary offers to send the result to the class')
+    page.locator('#report [data-act="cbSend"]').tap(); page.wait_for_timeout(300)
+    ok('name first' in page.locator('#report .cb-send').inner_text() and not sent, 'it asks for a name before sending')
+    page.locator('#report input.cb-name').fill('Sam R'); page.locator('#report [data-act="cbSend"]').tap(); page.wait_for_timeout(600)
+    s0 = sent[0] if sent else {}
+    ok(s0.get('code') == code and s0.get('name') == 'Sam R' and s0.get('role') == 'rn' and s0.get('level') == 'rush' and isinstance(s0.get('score'), int) and 'wait' in (s0.get('stats') or {}), f'it sends the code, name, role, shift, points and numbers ({s0})')
+    ok('Sent to class' in page.locator('#report .cb-send').inner_text(), 'and says it went')
     page.screenshot(path=os.path.join(os.path.dirname(__file__), 'shots', 'class-report.png'))
+    rows = [{'name': 'Sam R', 'role': 'rn', 'level': 'rush', 'score': 312, 'stars': 2, 'real_sec': 330, 'stats': {'wait': 14, 'lwbs': 1}, 'created_at': '2026-11-18T22:00:00Z'},
+            {'name': 'Ana', 'role': 'rn', 'level': 'rush', 'score': 120, 'stars': 1, 'real_sec': 290, 'stats': {'wait': 31, 'lwbs': 3}, 'created_at': '2026-11-18T22:01:00Z'}]
+    asked = []
+    def on_rpc(route):
+        asked.append(_json.loads(route.request.post_data or '{}')); route.fulfill(status=200, content_type='application/json', body=_json.dumps(rows))
+    page.route('**/rest/v1/rpc/cb_class', on_rpc)
     clear(); page.locator('#report [data-act="again"]').tap(); page.wait_for_timeout(600)
     ok(J('OC.G.code') == code and J('OC.G.seed') == seed1, 'Run it back replays the same class shift')
+    clear(); page.locator('#btnPause').tap(); page.wait_for_timeout(300)
+    ok(page.locator('#modal [data-act="restart"]').count() == 1 and page.locator('#modal [data-act="menu"]').count() == 1, 'the top-right menu offers Restart this shift and Main menu')
+    page.locator('#modal [data-act="menu"]').tap(); page.wait_for_timeout(400)
+    page.locator('[data-act="tmenu"][data-arg="play"]').first.tap(); page.wait_for_timeout(300)
+    page.locator('[data-act="classCode"]').first.tap(); page.wait_for_timeout(400)
+    page.locator('#sheet input.cb-code').fill(code.lower().replace('-', '')); page.locator('#sheet [data-act="cbShow"]').tap(); page.wait_for_timeout(600)
+    tab = page.locator('#sheet .cb-tab')
+    ok(asked and asked[0].get('p_code') == code and tab.count() == 1 and tab.locator('tr').count() == 3 and 'Sam R' in tab.inner_text() and '312' in tab.inner_text(), f'Class results lists what was sent for the code, best first ({asked})')
+    page.screenshot(path=os.path.join(os.path.dirname(__file__), 'shots', 'class-results.png'))
+
     b.close()
 print('\n'.join(checks))
 if errors: print('\n'.join(errors[:20])); sys.exit(1)

@@ -5,7 +5,7 @@ const E = window.OC;
 const $ = (s, r) => (r || document).querySelector(s);
 const SPEEDS = [1, 2, 3, 4];
 const BASE = 0.4; // game minutes per real second at 1×: a 12-hour shift takes about 30 minutes
-const U = { tm: 'main', scene: 'title', lvl: 'med', mode: 'rn', view: 'map', three: location.protocol !== 'file:', q3d: 'auto', scen: 'none', ord: null, ordOpen: null, pack: 'national', sel: null, sheet: null, modal: null, speed: 1, paused: false, sound: true, ringId: null, ringT: 0, wide: false, lastSave: 0, hold: false, ff: 0, coachKey: null };
+const U = { tm: 'main', scene: 'title', lvl: 'med', mode: 'rn', view: 'map', three: location.protocol !== 'file:', q3d: 'low', scen: 'none', ord: null, ordOpen: null, pack: 'national', sel: null, sheet: null, modal: null, speed: 1, paused: false, sound: true, ringId: null, ringT: 0, wide: false, lastSave: 0, hold: false, ff: 0, coachKey: null };
 let audio = null;
 
 /* ---------- small helpers ---------- */
@@ -350,7 +350,7 @@ function renderObjs(G) {
   if (G.mods.bbSlow > t) it.push(`<span class="ob bad">Blood bank slow · <span data-cd="${G.mods.bbSlow}"></span></span>`);
   if (G.mods.interpDown > t) it.push(`<span class="ob bad">Interpreter line down · <span data-cd="${G.mods.interpDown}"></span></span>`);
   if (!G.staff.some(s => s.role === 'rph' && s.st === 'on')) it.push(`<span class="ob bad">${G.mods.remoteRph ? 'Remote pharmacy only' : 'No pharmacist'}</span>`);
-  for (const h of G.region.hosps) if (h.st !== 'open') it.push(`<span class="ob warn">${esc(h.name)} on Yellow Alert</span>`);
+  for (const h of G.region.hosps) if (h.st !== 'open') it.push(`<span class="ob warn">${esc(h.name)} on ED Full</span>`);
   if (G.region.susp > t) it.push(`<span class="ob bad">Region: no capacity alerts · <span data-cd="${G.region.susp}"></span></span>`);
   if (G.mods.noReport > t) it.push(`<span class="ob bad">Floors not taking report · <span data-cd="${G.mods.noReport}"></span></span>`);
   if (G.obsUnit.filled >= G.obsUnit.cap) it.push('<span class="ob warn">Obs unit full</span>');
@@ -474,7 +474,7 @@ function nextStep(p, r, G) {
   const pv = p.prov ? E.staff(p.prov) : null, nm = pv ? (isMe(pv) ? 'You' : esc(pv.short)) : '';
   if (mine(p) && !p.arrest) {
     if (p.ev === 'q') return { t: 'In your line', c: 'n-wait', i: 'steth' };
-    if (p.ev === 'doing') { const n = myLeft(p); return { t: 'You are in the room' + (n ? ` · ${n} min left` : ''), c: 'n-wait', i: 'steth' }; }
+    if (p.ev === 'doing') { const n = myLeft(p); return { t: 'You’re in the room' + (n ? ` · ${n} min left` : ''), c: 'n-wait', i: 'steth' }; }
     if (p.ord === 'need') return { t: 'Write orders', c: 'n-act fl', i: 'orders' };
     if (p.ord === 'more') return { t: 'Add to the workup', c: 'n-act fl', i: 'orders' };
     if (p.dsp === 'mddecide' || p.dsp === 'decide') return { t: 'Your call', c: 'n-act fl', i: 'decide' };
@@ -559,7 +559,7 @@ function renderBoard(G) {
     const st = !ns.length ? (n ? 'none' : 'empty') : load > cap ? 'over' : load === cap ? 'full' : 'ok';
     setC(h, 'zh zs-' + st);
     const shut = z.id === 'ft' && closed && G.t < 120 ? 'Opens 09:00' : 'Closed';
-    setH(h, `<span class="zn">${z.name}</span><span class="zr">${ns.length ? 'RN ' + ns.map(s => esc(s.short)).join(' + ') + ` · <b>${fl(load)}/${cap}</b>` : closed ? shut : n ? 'No nurse — tap to assign' : 'No nurse'}</span>`);
+    setH(h, `<span class="zn">${z.name}</span><span class="zr">${ns.length ? 'RN ' + ns.map(s => esc(s.short)).join(' + ') + ` · <b>${fl(load)}/${cap}</b>` : closed ? shut : n ? 'No nurse. Tap to assign' : 'No nurse'}</span>`);
     h.setAttribute('aria-label', `${z.name} nurses`);
   }
   for (const r of G.rooms) {
@@ -748,7 +748,7 @@ function primary(p, G) {
   if (p.dsp === 'readytx') return `<div class="prim"><button type="button" class="big act" data-act="tx" data-arg="${p.id}">Request transfer to ${esc(p.txTo)}</button></div>`;
   if (p.dsp === 'decide') return grayBlock(p);
   if (p.dsp === 'board') return p.obsWait ? '<p class="hint">The obs unit is full. The next obs discharge frees a bed for them.</p>' : `<div class="prim"><button type="button" class="big" data-act="esc" data-arg="${p.id}" ${G.house.esc ? '' : 'disabled'}>Push the House Supervisor for a bed (${G.house.esc} left)</button></div>`;
-  if (p.dsp === 'callrep' || p.dsp === 'reporting') return `<p class="hint">Their nurse calls report to the floor, then you send them up.${hasHold() ? ' Your hold nurse has them.' : ''}${E.roomOf(p).kind === 'chair' ? ' They are in a chair: move them to a bed if one opens.' : ''}</p>`;
+  if (p.dsp === 'callrep' || p.dsp === 'reporting') return `<p class="hint">Their nurse calls report to the floor, then you send them up.${hasHold() ? ' Your hold nurse has them.' : ''}${E.roomOf(p).kind === 'chair' ? ' They’re in a chair: move them to a bed if one opens.' : ''}</p>`;
   if (p.dsp === 'bedready') return `<div class="prim"><div class="prim-l">Bed ready upstairs. Who takes them?</div><div class="pgrid">${upButtons(p, G)}</div>${p.dispo === 'icu' ? '<p class="hint" style="margin:0">ICU patient: their nurse goes along for about 10 minutes.</p>' : ''}</div>`;
   if (p.dsp === 'txok') return `<div class="prim"><div class="prim-l">${esc(cap(p.txTo))} accepted. Book the ambulance</div><div class="cgrid">${iftButtons(p, G)}</div><p class="hint" style="margin:0">ICU-level patients need critical care transport. The patient keeps the room until the crew arrives.</p></div>`;
   const regBlk = p.reg === 'none' ? `<div class="prim"><div class="prim-l">Register them at the bedside${p.bedFirst ? '' : ' before they leave the ED'}</div><div class="pgrid">${regButtons(p, G)}</div></div>` : '';
@@ -787,7 +787,7 @@ function triButtons(p, G) {
 function intakeBlock(p, G, mtpBtn) {
   let h = `<div class="prim">${mtpBtn}`;
   if (E.emergent(p)) h += `<button type="button" class="big bad" data-act="placeSel" data-arg="${p.id}">Straight to a room</button><p class="hint" style="margin:0">Critical: skip the line. The nurse triages at the bedside. Register them before they leave the ED.</p>`;
-  else if (E.sickEnough(p) && p.reg === 'none') h += `<button type="button" class="big act" data-act="placeSel" data-arg="${p.id}">Bed first</button><p class="hint" style="margin:0">${p.tri === 'done' ? `ESI ${E.vEsi(p)}` : '<b>Looks sick.</b> They'} can go to a bed before registration. Then send a registrar to the room: nobody leaves the ED until they are registered.</p>`;
+  else if (E.sickEnough(p) && p.reg === 'none') h += `<button type="button" class="big act" data-act="placeSel" data-arg="${p.id}">Bed first</button><p class="hint" style="margin:0">${p.tri === 'done' ? `ESI ${E.vEsi(p)}` : '<b>Looks sick.</b> They'} can go to a bed before registration. Then send a registrar to the room: nobody leaves the ED until they’re registered.</p>`;
   const wall = p.loc === 'wall', em = E.emergent(p);   // at the front door registration comes first; on the wall the crew's report does
   const regB = p.reg === 'none' ? `<div class="prim-l">${em ? '' : wall ? '2 · ' : '1 · '}Register</div><div class="pgrid">${regButtons(p, G)}</div>` : '';
   const triB = p.tri === 'none' && !em ? `<div class="prim-l">${wall ? '1' : '2'} · ${wall ? `Take report from ${esc(p.unit)} and triage` : 'Triage'}</div><div class="pgrid">${triButtons(p, G)}</div>` : '';
@@ -860,7 +860,7 @@ function mdPrimary(p, G) {
     return `<p class="hint">${s ? esc(s.name) : 'Another provider'} has this patient${take ? ' but hasn\'t started' : ''}.</p>${take ? `<div class="prim"><button type="button" class="big" data-act="see" data-arg="${p.id}">Take over</button></div>` : ''}`;
   }
   if (p.ev === 'q') { const me = E.staff(G.me), i = me.q.findIndex(k => k.pid === p.id); return `<p class="hint">In your line${i > 0 ? `, #${i + 1}` : ''}. You'll see them after what you're doing now.</p>`; }
-  if (p.ev === 'doing') return `<p class="hint">${p.arrest ? 'You are running the code.' : `You are in the room: history and exam.${myLeft(p) ? ` About <b>${myLeft(p)} min</b> left.` : ''}`}</p>`;
+  if (p.ev === 'doing') return `<p class="hint">${p.arrest ? 'You’re running the code.' : `You are in the room: history and exam.${myLeft(p) ? ` About <b>${myLeft(p)} min</b> left.` : ''}`}</p>`;
   if (p.ord === 'need' || p.ord === 'more') return mtpBtn + ordersBlock(p, G);
   if (p.dsp === 'mddecide' || p.dsp === 'decide') {
     const call = p.dsp === 'mddecide' ? mdDecideBlock(p) : grayBlock(p);
@@ -875,7 +875,7 @@ function mdPrimary(p, G) {
   }
   return h;
 }
-const gapMsg = p => (E.vitalsOf(p).trend === 'better' ? 'Better, but something they need is still not ordered.' : 'Not improving. Something they need is not ordered.') + gapHint(p);
+const gapMsg = p => (E.vitalsOf(p).trend === 'better' ? 'Better, but something they need is still not ordered.' : 'Not improving. Something they need isn’t ordered.') + gapHint(p);
 /* With Plain words on, a gap names what is still needed. The points are already gone; this is the lesson.
    While the workup is open it names the tests only: naming the drug would give the diagnosis away. */
 function gapHint(p) { const m = PLAIN() ? E.missNow(p, p.ord === 'more') : []; return m.length ? ` <b class="hintb">Still needed: ${esc(m.join(', '))}.</b>` : ''; }
@@ -904,11 +904,15 @@ const LOOK = {
   xr_wrist: 'The end of the radius, just above the wrist, broken and bent back.',
   ankle_normal: 'Smooth, unbroken bone edges and an even joint space.',
   hip_normal: 'A smooth curve from the ball of the hip down the neck of the femur.',
+  pelvis_normal: 'An unbroken ring of bone. Both hip joints the same, and the joints at the back of the pelvis even on each side.',
+  ctcs_normal: 'The fronts of the vertebrae line up in a smooth curve, and so do their backs. No step, no crack, and even gaps between the bones.',
+  ctap_normal: 'Liver, kidneys, and bowel all where they belong. No free fluid or air, no swollen appendix. (This is one slice, front to back.)',
+  mris_normal: 'The spinal cord and nerves sit in a clear, bright channel of fluid. Nothing pushes into it. (The discs at the bottom are a little worn, which is common.)',
   pelvis_normal: 'An unbroken ring of bone.',
   cthead_normal: 'Gray brain filling the skull evenly. No bright white blood. (This slice is low, at the level of the eyes.)',
   ct_sdh: 'A bright crescent of blood between the skull and the brain, pushing the brain over.',
   cta_normal: 'Bright, unbroken arteries filled with contrast.',
-  cta_m1: 'The artery to one side of the brain stops short: contrast cannot get past the clot.',
+  cta_m1: 'A 3D picture of the arteries, seen from the front (R and L mark the sides). On the left the main artery to the side of the brain stops short at the arrow: the clot. On the right it runs out into its branches.',
   ctcs_normal: 'Neck bones lined up, edges unbroken.',
   ctpe_normal: 'Lung arteries evenly bright with contrast. No dark clot inside them.',
   ctap_normal: 'Normal bowel, kidneys, and fat.',
@@ -920,7 +924,7 @@ const LOOK = {
   fast_negative: 'Liver and kidney touching, with no black stripe between them.',
   us_gallstones: 'Bright stones inside the gallbladder, dark shadows behind them, and a thick wall.',
   ruq_normal: 'A dark, thin-walled gallbladder with no stones.',
-  us_dvt: 'Color is moving blood. The clotted femoral vein shows no color: it is filled with gray clot, between two vessels that still flow.',
+  us_dvt: 'Color is moving blood. The clotted femoral vein shows no color: it’s filled with gray clot, between two vessels that still flow.',
   duplex_normal: 'The vein squashes flat under the probe: no clot.',
   pelus_normal: 'A normal uterus and ovaries.',
 };
@@ -949,7 +953,7 @@ function ordersBlock(p, G, add) {
     return `<button type="button" class="och${done ? ' done' : on ? ' on' : ''}" data-act="ordT" data-arg="${p.id}|${kind}|${key}" ${done ? 'disabled' : ''} aria-pressed="${on}"><b>${lbl}</b>${done ? '<small>Ordered</small>' : sub ? `<small>${sub}</small>` : ''}</button>`;
   };
   const n = o.tests.length + o.treats.length, need = p.ord === 'need';
-  const title = p.ord === 'more' ? `The workup is not complete. Add what is missing.${gapHint(p)}` : add ? 'Add orders' : 'Write orders';
+  const title = p.ord === 'more' ? `The workup isn’t complete. Add what is missing.${gapHint(p)}` : add ? 'Add orders' : 'Write orders';
   const lbl = n ? `Sign ${n} order${n > 1 ? 's' : ''}` : need ? 'Sign with no orders' : 'Pick orders to add';
   return `<div class="prim"><div class="prim-l">${title}</div>${testsBlock(chip)}<div class="prim-l">Treatment</div><div class="ogrid">${ORDER_TX.map(([k, l, sub]) => chip('r', k, l, sub)).join('')}</div><button type="button" class="big act" data-act="sign" data-arg="${p.id}" ${n || need ? '' : 'disabled'}>${lbl}</button><p class="hint" style="margin:0">Order what they need and nothing extra. Extra tests cost time, and some treatments hurt people who don't need them.</p></div>`;
 }
@@ -1054,21 +1058,21 @@ function boxDocSheet(G) {
   const c = G.box.cur;
   if (!c || c.kind !== 'consult' || c.taken) return '';
   let h = head('Find a doctor', `${esc(c.unit)} needs medical direction. The ring timer is still running.`);
-  h += '<p class="hint">A medic needs orders, and only an attending can give them. Whoever takes the call handles it, and stops what they are doing for about 5 minutes. Pick someone who is not in a code.</p><div class="pgrid">';
+  h += '<p class="hint">A medic needs orders, and only an attending can give them. Whoever takes the call handles it, and stops what they’re doing for about 5 minutes. Pick someone who isn’t in a code.</p><div class="pgrid">';
   for (const s of G.staff.filter(x => x.role === 'md' && E.present(x))) h += `<button type="button" class="pbtn r-md" data-act="boxDoc" data-arg="${s.id}" ${s.st === 'on' ? '' : 'disabled'}><b>${esc(s.name)}</b><small>${s.st === 'on' ? `<span data-stx="${s.id}"></span>` : stLabel(s)}</small></button>`;
   return h + '</div>';
 }
 function divertSheet(G) {
   const outs = Object.keys(G.out).filter(k => G.out[k].until > G.t);
-  let h = head('Diversion status', 'Tell EMS what this ED cannot take right now');
-  h += outs.length ? `<div class="dv-out"><b>Broken right now</b>${outs.map(k => `<span>${E.OUTAGES[k].name} · back in about <span data-cd="${G.out[k].until}"></span></span>`).join('')}</div>` : '<p class="hint">Nothing is broken right now. Use Yellow or Red Alert only when the department is full.</p>';
+  let h = head('Diversion status', 'Tell EMS what this ED can’t take right now');
+  h += outs.length ? `<div class="dv-out"><b>Broken right now</b>${outs.map(k => `<span>${E.OUTAGES[k].name} · back in about <span data-cd="${G.out[k].until}"></span></span>`).join('')}</div>` : '<p class="hint">Nothing is broken right now. Use ED Full or No Monitored Beds only when the department is full.</p>';
   const card = k => {
     const D = E.DIVERTS[k], d = G.dv[k], susp = D.capacity && G.region.susp > G.t, blocked = D.capacity && (G.mods.noDivert > G.t || susp) && !d.on;
     return `<div class="dv ${k}${d.on ? ' on' : ''}${D.capacity ? ' cap' : ''}"><b>${D.name}${d.on ? ` · on for ${fm(G.t - d.since)}` : ''}</b><p><i>${D.when}.</i> ${D.what}</p><button type="button" data-act="divertSet" data-arg="${k}|${d.on ? 0 : 1}" ${blocked ? 'disabled' : ''}>${d.on ? `Lift ${D.name}` : susp ? 'The region suspended alerts' : blocked ? 'Administration blocked divert' : `Go on ${D.name}`}</button></div>`;
   };
   h += '<h4>When something breaks</h4>' + ['ct', 'stemi', 'trauma', 'disaster'].map(card).join('');
-  h += '<h4>When you are full</h4>' + ['yellow', 'red'].map(card).join('');
-  const nb = G.region.hosps.map(x => `${esc(x.name)}: ${x.st === 'open' ? 'open' : 'Yellow'}`).join(' · ');
+  h += '<h4>When you’re full</h4>' + ['yellow', 'red'].map(card).join('');
+  const nb = G.region.hosps.map(x => `${esc(x.name)}: ${x.st === 'open' ? 'open' : 'ED Full'}`).join(' · ');
   h += `<div class="dv region"><b>The region</b><p>${nb}.${G.region.susp > G.t ? ` <b>Capacity alerts are suspended for <span data-cd="${G.region.susp}"></span>.</b>` : ''} Neighbors on alert send you more ambulances. If three hospitals are on capacity alerts at once, the region suspends all of them and everyone takes ambulances.</p></div>`;
   const ready = G.t - G.fcp.last >= 240;
   h += `<div class="dv fcp"><b>Full-capacity protocol</b><p><i>The ED is packed and admitted patients are holding its beds.</i> Up to 4 admitted floor patients go to inpatient hallway beds now. Their nurses still call report. Once every 4 hours; the hospitalists won't love it.</p><button type="button" data-act="fcp" ${ready ? '' : 'disabled'}>${ready ? 'Run the full-capacity protocol' : `Available at ${E.clock(G.fcp.last + 240)}`}</button></div>`;
@@ -1095,7 +1099,7 @@ const GLOSS = [
     ['Transport', 'Staff who wheel patients to their bed upstairs, so nurses and techs can stay in the department.'],
     ['EMS, medic', 'Emergency medical services: the ambulance side of medicine. A medic is a paramedic. “Medic 7” is an ambulance crew.'],
     ['Consultant', 'A specialist, such as a surgeon or cardiologist, called to see a patient and usually to admit them.'],
-    ['Hospitalist', 'The doctor who looks after most patients once they are admitted. Call the hospitalist for infections, breathing trouble, and heart failure.'],
+    ['Hospitalist', 'The doctor who looks after most patients once they’re admitted. Call the hospitalist for infections, breathing trouble, and heart failure.'],
     ['Cardiology, neurology, and the rest', 'The services you call to admit a patient. Cardiology: the heart. Neurology: the brain. General surgery: the belly. Trauma surgery: serious injuries. Orthopedics: bones. Gastroenterology: bleeding in the stomach or bowel. Psychiatry: mental health. Critical care: the ICU.'],
     ['House Supervisor', 'The nurse who manages beds for the whole hospital. The one to push when no bed opens upstairs.'],
     ['Preceptor', 'The experienced nurse or doctor who trains a new one.'],
@@ -1137,7 +1141,7 @@ const GLOSS = [
     ['RR', 'Respiratory rate, in breaths a minute. An adult at rest runs 12 to 20.'],
     ['SpO2', 'Oxygen saturation: how much oxygen the blood is carrying. Normal is 95% or more.'],
     ['Temp', 'Temperature, in Fahrenheit. 100.4 or more is a fever.'],
-    ['Alert', 'A warning an ambulance calls in for a patient who cannot wait (trauma, stroke, heart attack, sepsis), so the right team is standing in the room.'],
+    ['Alert', 'A warning an ambulance calls in for a patient who can’t wait (trauma, stroke, heart attack, sepsis), so the right team is standing in the room.'],
     ['Code', 'A cardiac arrest: the heart has stopped. The team does CPR.'],
     ['Shock', 'Too little blood reaching the organs. Fast heart rate, low blood pressure.'],
     ['Recheck', 'Repeating the vital signs of someone in the waiting room, to catch people who are sicker than their triage level.'],
@@ -1157,7 +1161,7 @@ const GLOSS = [
     ['CBC', 'Complete blood count: white cells (infection), hemoglobin (blood loss), platelets (clotting).'],
     ['BMP', 'Basic metabolic panel: sodium, potassium, kidney function, and blood sugar.'],
     ['Lipase', 'An enzyme from the pancreas. High when the pancreas is inflamed.'],
-    ['BNP', 'A hormone the heart releases when it is stretched. High in heart failure.'],
+    ['BNP', 'A hormone the heart releases when it’s stretched. High in heart failure.'],
     ['D-dimer', 'A clot breakdown product. A low one helps rule out a clot; a high one proves nothing.'],
     ['Blood cultures', 'Blood put in bottles to grow any bacteria. Drawn before antibiotics, read in a day or two.'],
     ['Blood gas (VBG)', 'How acid the blood is and how much carbon dioxide it holds. It also gives the carbon monoxide level.'],
@@ -1194,7 +1198,7 @@ const GLOSS = [
     ['O-negative', 'The blood type that can be given to anyone, before their own type is known.'],
     ['Thrombolytic', 'A drug that dissolves the clot in a stroke. It only works in the first few hours.'],
     ['Naloxone', 'The drug that reverses an opioid overdose.'],
-    ['Aspirin', 'Keeps a clot in a heart artery from growing. Given for chest pain that may be the heart. It is inside the Medications order.'],
+    ['Aspirin', 'Keeps a clot in a heart artery from growing. Given for chest pain that may be the heart. It’s inside the Medications order.'],
     ['Analgesia', 'Pain control.'],
     ['Epinephrine', 'Adrenaline. The treatment for a severe allergic reaction.'],
     ['Insulin drip', 'Insulin given steadily into a vein, for dangerously high blood sugar.'],
@@ -1203,7 +1207,7 @@ const GLOSS = [
     ['High-flow oxygen', 'Warm, fast oxygen through the nose. Often used for babies.'],
     ['Intubation, ventilator', 'A breathing tube in the windpipe, and the machine that breathes for the patient.'],
     ['Oxygen', 'Extra oxygen through small prongs in the nose or a mask, for a low oxygen level.'],
-    ['Vasopressor', 'A drug given by drip that tightens the blood vessels to hold the blood pressure up, when fluids alone are not enough.'],
+    ['Vasopressor', 'A drug given by drip that tightens the blood vessels to hold the blood pressure up, when fluids alone aren’t enough.'],
     ['Atropine and pacing', 'For a heart beating far too slowly: a drug to speed it up, and pads on the chest that make it beat on time.'],
     ['Blood pressure control', 'A drug that brings a dangerously high pressure down. A stroke patient has to be under 185/110 before the thrombolytic can go in.'],
     ['Reversal agent', 'Undoes a blood thinner, so a patient who is bleeding can clot again.'],
@@ -1237,7 +1241,7 @@ const GLOSS = [
     ['Monitored bed', 'A hospital bed where the heart rhythm is watched around the clock. Also called telemetry.'],
     ['Boarding', 'An admitted patient still in an ED bed because no bed is open upstairs. The main reason emergency departments back up.'],
     ['Report', 'The hand-off from one nurse or crew to the next: who the patient is, what was found, what was done.'],
-    ['Transfer center', 'The hospital office that calls other hospitals to find a bed for a patient you cannot treat here.'],
+    ['Transfer center', 'The hospital office that calls other hospitals to find a bed for a patient you can’t treat here.'],
     ['Offload', 'Moving an ambulance patient off the crew’s stretcher into your bed or waiting room.'],
     ['Transfer', 'Sending the patient to another hospital that has what they need.'],
     ['ALS, critical care transport', 'Ambulances for a transfer. ALS, advanced life support, has paramedics. Critical care transport adds a nurse and ICU equipment.'],
@@ -1251,7 +1255,7 @@ const GLOSS = [
   ]],
   ['When the department is in trouble', [
     ['Divert', 'Asking ambulances to take some or all patients to another hospital.'],
-    ['Yellow Alert, Red Alert', 'Yellow: the ED is full. Red: the hospital has no monitored beds left. Both send ambulances elsewhere.'],
+    ['ED Full, No Monitored Beds', 'Capacity alerts. ED Full: the ED has no room for more ambulance patients. No Monitored Beds: the hospital has no beds with heart monitors left. Both ask ambulances to go elsewhere when they can. Places name them differently: Yellow and Red Alert, saturation and critical care divert, advisory levels.'],
     ['CT, STEMI, Trauma Divert', 'Sending one kind of patient elsewhere because what they need is broken or busy.'],
     ['Internal Disaster', 'The hospital itself is in trouble, such as no power or no lab. Almost every ambulance goes elsewhere.'],
     ['Full-capacity protocol', 'Moving admitted patients to hallways upstairs, to free ED beds.'],
@@ -1285,12 +1289,12 @@ function legendHTML(md) {
     : [['steth', 'act fl', 'Needs a provider'], ['phone', 'act fl', 'Call a consult'], ['decide', 'act fl', 'Your call: home, obs, admit'], ['home', 'go fl', 'Ready to discharge'], ['up', 'act fl', 'Bed ready: send them up'], ['amb', 'act fl', 'Transfer: request or book'], ['card', 'act fl', 'Needs registration'], ['alert', 'bad fl', 'Trouble in the room'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['code', 'code fl', 'Code'], ['steth', 'wait', 'A provider has them'], ['bed', 'board', 'Admitted, waiting for a bed'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['broom', 'dirty fl', 'Dirty: tap to send EVS'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']];
   const tiles = [['#1648C8', 'Blue', 'needs you'], ['#D11A2F', 'Red', 'trouble: go now'], ['#12813A', 'Green', 'ready to go'], ['#7A4A1E', 'Brown', 'dirty'], ['#E3D7FA', 'Purple', 'admitted, waiting for a bed upstairs'], ['#FFFFFF', 'White', 'someone else has it'], ['#E7EAEE', 'Gray', 'empty']];
   const who = [['MD', 'md', 'Attending: a fully trained emergency doctor'], ['PA', 'app', 'Physician assistant'], ['NP', 'app', 'Nurse practitioner'], ['RN', 'rn', 'Nurse'], ['T', 'pct', 'Tech: the nurses’ extra hands'], ['R', 'reg', 'Registration'], ['EV', 'evs', 'EVS: housekeeping'], ['RT', 'rt', 'Respiratory therapist'], ['Rx', 'rph', 'Pharmacist'], ['TP', 'tp', 'Transport']];
-  if (floor3d()) {   // the 3D floor: no colour coding. Icons, the call light, the red ring, and uniforms.
+  if (floor3d()) {   // the 3D floor: since v0.20 the flat map's colours on each room's floor and badge, plus icons, the call light, the red ring, and uniforms
     const uni = [['#F4F4F2', 'MD', 'white coat: attending'], ['#7A0A1A', 'PA', 'burgundy scrubs'], ['#4F1580', 'NP', 'purple scrubs'], ['#0B2DBF', 'RN', 'royal blue scrubs: nurse'], ['#0A6B24', 'T', 'green scrubs: tech'], ['#9C7A3A', 'R', 'shirt and slacks: registration'], ['#2B2E34', 'EV', 'charcoal: EVS'], ['#0F5F70', 'RT', 'teal: respiratory'], ['#5E2F14', 'TP', 'brown: transport'], ['#0A1430', 'EMS', 'navy: ambulance crews']];
     return `<h4 class="lgh">Rooms</h4><p class="hint" style="margin:0 0 4px">Each room shows its <b>number</b>, the patient’s <b>ESI</b> and <b>name</b>, and one <b>icon</b> for what it needs next. A <b>pulsing</b> icon and a <b>lit call light</b> by the door are waiting on you. A <b>flashing red ring</b> on the floor is a patient crashing. Rooms that can take a selected patient <b>glow green</b>.</p>`
       + `<h4 class="lgh">Icons</h4><div class="lgd">${rows.map(([k, c, t]) => `<span>${icoInline(k, c.replace(' fl', ''))}${t}</span>`).join('')}</div>`
       + `<h4 class="lgh">People</h4><p class="hint" style="margin:0 0 4px">A <b>tag</b> over each person says their role, and their <b>uniform</b> says it too. Patients on their feet carry a circle with their <b>ESI</b> (<b>?</b> before triage). Patients in a room wear a gown.</p><div class="lgd">${uni.map(([c, l, t]) => `<span><i class="lgsw" style="background:${c}"></i><b>${l}</b>&nbsp;${t}</span>`).join('')}</div>`
-      + `<p class="hint">Drag to move around, pinch or use <b>+</b> and <b>−</b> to zoom. The pause menu can switch to the flat map.</p>`;
+      + `<p class="hint">Drag to move around, pinch or use <b>+</b> and <b>−</b> to zoom. The menu, top right, can switch to the flat map.</p>`;
   }
   return `<h4 class="lgh">Rooms</h4><p class="hint" style="margin:0 0 4px">A room’s <b>colour</b> is its state. A <b>solid</b> colour is waiting on you.</p><div class="lgd">${tiles.map(([c, n, t]) => `<span><i class="lgsw" style="background:${c}"></i><b>${n}</b>&nbsp;${t}</span>`).join('')}</div>`
     + `<h4 class="lgh">Icons</h4><p class="hint" style="margin:0 0 4px">One <b>square icon</b> says what the room needs next. Zoom in and it turns into words.</p><div class="lgd">${rows.map(([k, c, t]) => `<span>${icoInline(k, c.replace(' fl', ''))}${t}</span>`).join('')}</div>`
@@ -1301,26 +1305,26 @@ const shiftSpan = () => { const G = g(); return `07:00 to ${U.scene === 'game' &
 function helpHTML() {
   if ((U.scene === 'game' && MD()) || (U.scene !== 'game' && U.mode === 'md')) return helpMD();
   const fp = U.view === 'map';
-  return head('How to run the board', `You are the charge nurse from ${shiftSpan()}. Keep patients moving, staff upright, and the Box answered.`) + WORDS_BTN + (fp ? legendHTML(false) : '') + `<ol class="help">
+  return head('How to run the board', `You’re the charge nurse from ${shiftSpan()}. Keep patients moving, staff upright, and the Box answered.`) + WORDS_BTN + (fp ? legendHTML(false) : '') + `<ol class="help">
 <li><b>Intake.</b> Patients come in two doors: EMS and walk-in. Every one needs a quick registration and triage, and you direct both. Tap a registrar or triage nurse ${fp ? (U.rails ? 'on the left' : 'at the bottom left') : 'in the intake row'}, then tap patients; or tap a patient for options. EMS crews wait on the wall to give report until a nurse triages them. Walk-ins go to the waiting room after triage. Alerts and crashing patients can go straight to a room. Full registration happens later at the bedside, and nobody leaves the ED until it's done.</li>
-<li><b>Bed first.</b> A patient who looks sick (ESI 1 or 2) can go straight to a bed before registration. Send a registrar to the room afterward: nobody can be discharged, admitted, or transferred until they are registered.</li>
+<li><b>Bed first.</b> A patient who looks sick (ESI 1 or 2) can go straight to a bed before registration. Send a registrar to the room afterward: nobody can be discharged, admitted, or transferred until they’re registered.</li>
 <li><b>The waiting room.</b> Triage isn't perfect: now and then someone is sicker than their ESI says. Have the triage nurse recheck people who have waited a while. Walk the waiting room (tap ${fp ? 'the waiting room' : 'the lane header'}) and update people on the wait; fewer walk out.</li>
 <li><b>Bed patients.</b> Tap a patient ${fp ? 'on the wall with a green check' : 'marked READY FOR A BED'}, or one in the waiting room, then a green room. EMS patients who are ESI 3 to 5 can be handed off to the waiting room instead. ESI 1 goes to Resus. Fast Track opens at 09:00 and takes ESI 4 and 5. Airborne isolation needs Room 8 or 16. Rooms 19 and 20 are safe rooms for behavioral health. The six chairs are for patients a provider has seen who are waiting on results or a ride: move them out of a bed to free it.</li>
 <li><b>Get them seen.</b> Nobody sees a provider until you assign one. Tap a provider ${SIDE()}, then tap every patient you want them to take. PAs and NPs take ESI 2 to 5; an attending co-signs their ESI 2 patients. Intubations need an attending and an RT. A provider with a long line makes more mistakes. Station a provider in triage from their card to work the waiting room.</li>
 <li><b>Gray-zone calls.</b> Chest pain, fainting, and TIA patients come back with a risk score. You decide: home, observation, or admit. Too cautious wastes beds; too bold brings people back.</li>
-<li><b>Answer the Box.</b> Take alert reports so the team is ready. When a medic needs medical direction, find an attending fast: tap Find a doctor and pick one who is not in a code. The doctor gives the orders.</li>
+<li><b>Answer the Box.</b> Take alert reports so the team is ready. When a medic needs medical direction, find an attending fast: tap Find a doctor and pick one who isn’t in a code. The doctor gives the orders.</li>
 <li><b>Consult at the right time.</b> Results show up on the patient card. Call the right service once the results they need are back, or they get angry and slow.</li>
 <li><b>Meds, breathing, blood.</b> The pharmacist verifies most meds before the nurse can give them; override if you have to, at a risk. Respiratory therapy runs nebs, BiPAP, high-flow, and vents. Bleeding trauma needs the massive transfusion protocol fast. Other bleeders get crossmatched blood, or emergency-release O-negative. A stroke over 185/110 gets blood pressure control before the thrombolytic.</li>
 <li><b>Interpreters.</b> Patients with a language tag, such as Spanish or ASL, need one. Without it, care is slower, they're likelier to leave, and they come back more often.</li>
 <li><b>Send them on.</b> When an inpatient bed is assigned, the nurse calls report to the floor; then choose a transporter or one of your techs to take them up. ICU patients take their nurse along. A hold nurse can take every admitted patient in the ED. For transfers, request the transfer as soon as the diagnosis is clear, then book an ALS ambulance, critical care transport, or a helicopter. The patient holds the room until the crew arrives and takes report.</li>
 <li><b>Turn rooms.</b> Nothing gets cleaned until you send EVS. Tap a dirty room to put it in the EVS line; tap it again to move it to the front, like a resus bay before a trauma arrives.</li>
 <li><b>Watch your nurses.</b> Each nurse handles 4 points, and an active resuscitation takes a nurse and a half. Tap a pod ${fp ? 'sign' : 'header'} to move nurses. Casey is your resource nurse. Reyes is a new grad: not ready for Resus or triage. Send people on breaks.</li>
-<li><b>Divert.</b> When something breaks, go on the matching diversion: CT Divert when the scanner is down, STEMI Divert when the cath lab is down, Trauma Divert when there's no trauma surgeon or OR, and Internal Disaster when the lab or power fails. Lift it as soon as the fix is in. Yellow Alert (ED saturated) and Red Alert (no monitored beds) are for when you're full. Watch the neighbors: if too many hospitals are on alert, the region suspends everyone. The full-capacity protocol moves admitted patients to inpatient hallways.</li>
+<li><b>Divert.</b> When something breaks, go on the matching diversion: CT Divert when the scanner is down, STEMI Divert when the cath lab is down, Trauma Divert when there's no trauma surgeon or OR, and Internal Disaster when the lab or power fails. Lift it as soon as the fix is in. ED Full and No Monitored Beds are for when you're full. Watch the neighbors: if too many hospitals are on alert, the region suspends everyone. The full-capacity protocol moves admitted patients to inpatient hallways.</li>
 <li><b>Your scores.</b> Avg wait is door to provider. Pt mgmt is your patient management score. Staff is worker satisfaction. Avoid LWBS, AMA, 72-hour returns, and ambulances stuck on the wall. The shift summary shows the metrics an ED director answers for, and walks you through your three worst moments.</li>
 </ol>`;
 }
 function helpMD() {
-  return head('How to work a shift', `You are an attending from ${shiftSpan()}. The charge nurse runs the board. You run the medicine.`) + WORDS_BTN + (U.view === 'map' ? legendHTML(true) : '') + `<ol class="help">
+  return head('How to work a shift', `You’re an attending from ${shiftSpan()}. The charge nurse runs the board. You run the medicine.`) + WORDS_BTN + (U.view === 'map' ? legendHTML(true) : '') + `<ol class="help">
 <li><b>Pick up patients.</b> ${U.view === 'map' ? (floor3d() ? 'Rooms showing a stethoscope' : 'Rooms with a blue stethoscope') : 'Rooms marked Needs a provider'} are waiting for a doctor. Tap one, then See this patient. See the sickest first. Anyone you leave too long goes to another provider.</li>
 <li><b>Write orders.</b> After the exam, pick tests and treatment, then Sign. Labs are single tests (CBC, BMP, troponin, lactate), grouped by what they look for. Imaging is a named study (chest X-ray, CT head, CT abdomen and pelvis, MRI brain, FAST). Order what they need and nothing extra: extra tests cost time and points, a CT costs radiation, an MRI costs an hour, and some treatments hurt people who don't need them. When a study is back, tap its picture on the card to look at it.</li>
 <li><b>Close the gaps.</b> If the workup can't make the diagnosis, you'll hear that something is missing. Add it. If a patient isn't improving, they need a treatment you didn't order. Read the vital signs: a low oxygen level needs oxygen, a pressure that stays low after fluids needs a vasopressor, and a stroke over 185/110 needs blood pressure control before the nurse will give the thrombolytic.</li>
@@ -1345,7 +1349,7 @@ function renderSheet(G) {
     else if (s.type === 'help') h = helpHTML();
     else if (s.type === 'words') h = wordsHTML();
     else if (s.type === 'msgs') h = msgsHTML(s);
-    else if (s.type === 'legend') h = head('What the map shows', 'Colours, icons, and who is who.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The <b>number in the circle</b> is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient. The <b>gold star</b>: you.' : ''}</p><p class="hint"><b>The bell</b> at the top keeps every message. Its number is the routine news you have not read.</p><p class="hint"><b>Pod signs.</b> Each <b>purple dot</b> is a nurse. <b>3/4</b> is the pod's workload over what its nurses can carry safely. An <b>orange outline</b>: full. <b>Red</b>: over. <b>WALL</b>, <b>WAITING</b>, and <b>DOOR</b> show a count when someone is there.</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
+    else if (s.type === 'legend') h = head('What the map shows', 'Colours, icons, and who is who.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The <b>number in the circle</b> is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient. The <b>gold star</b>: you.' : ''}</p><p class="hint"><b>The bell</b> at the top keeps every message. Its number is the routine news you haven’t read.</p><p class="hint"><b>Pod signs.</b> Each <b>purple dot</b> is a nurse. <b>3/4</b> is the pod's workload over what its nurses can carry safely. An <b>orange outline</b>: full. <b>Red</b>: over. <b>WALL</b>, <b>WAITING</b>, and <b>DOOR</b> show a count when someone is there.</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
     if (!h) U.sheet = null;
   } else if (s && s.type === 'help') h = helpHTML();
   else if (s && s.type === 'words') h = wordsHTML();
@@ -1527,7 +1531,7 @@ const STEPS = [
 
   { id: 'k1', next: true, title: 'Alerts you will hear', text: `The Box calls in more than trauma. Each alert has a **time goal** on the patient’s card.\n**STEMI**: a heart attack. The **cath lab** opens the blocked artery with a thin tube.\n**Stroke**: a clot or a bleed in the brain.\n**Sepsis**: an infection overwhelming the body. Antibiotics within the hour.\n**Code**: a heart that has stopped.`},
   { id: 'k2', next: true, title: 'People who leave', text: `Patients leave badly in three ways, and each one costs you.\n**LWBS**: left without being seen, from the waiting room.\n**AMA**: against medical advice. Left a room before care was finished.\n**72-hour return**: sent home, came back sicker.\nThe first two usually come down to waiting.`},
-  { id: 'k3', next: true, title: 'When you are full', text: `**Yellow Alert** tells ambulances your ED is full.\n**Red Alert** means the hospital has no beds with heart monitors left.\nSave them for when you really are full. The hospital and EMS will both push back.\nOn a real shift **Next** stays where it is, and **Words** lives behind the pause button, **II**.`, spot: () => ['#needBtn'] },
+  { id: 'k3', next: true, title: 'When you’re full', text: `**ED Full** tells ambulances your ED has no room.\n**No Monitored Beds** means the hospital has no beds with heart monitors left.\nSave them for when you really are full. The hospital and EMS will both push back.\nOn a real shift **Next** stays where it is, and **Words** lives in the **menu**, top right.`, spot: () => ['#needBtn'] },
   { id: 'end', final: true, title: 'You’re ready', text: `That’s the job. A real shift throws it all at you at once. Afterward, the shift summary walks you through your **three worst moments**. That’s where you learn the most.\nStart with **Quiet Tuesday**.`},
 ];
 const me = () => g().me;
@@ -1605,7 +1609,7 @@ const STEPS_MD = [
   { id: 's6', wait: true, title: 'To the ICU', text: `Neurology admits him to the **ICU**, where he is watched closely for bleeding.`, done: () => E.isBoarder(tid('stroke')) || tid('stroke').loc === 'gone' },
 
   { id: 'k0', next: true, title: 'A few last things', text: () => `**Next**, in the corner, jumps to whatever is waiting on you.\nA patient who is **not improving** is missing a treatment. Read the vital signs and add it.\nSome chest pain and fainting come with a **risk score**. It points you to home, **observation** (a day of watching), or admit.${FP() ? '\n**+** zooms in, and the icons turn into words.' : ''}`, spot: () => ['#needBtn'] },
-  { id: 'k1', next: true, title: 'Words for a real shift', text: `**STEMI**: a heart attack. The **cath lab** opens the blocked artery with a thin tube.\n**Sepsis**: an infection overwhelming the body. Antibiotics within the hour.\n**MTP**, massive transfusion: coolers of blood for a patient who is bleeding out.\n**Code**: a heart that has stopped.\n**Intubation**: a breathing tube.\n**Words**, in the pause menu, has the rest.`},
+  { id: 'k1', next: true, title: 'Words for a real shift', text: `**STEMI**: a heart attack. The **cath lab** opens the blocked artery with a thin tube.\n**Sepsis**: an infection overwhelming the body. Antibiotics within the hour.\n**MTP**, massive transfusion: coolers of blood for a patient who is bleeding out.\n**Code**: a heart that has stopped.\n**Intubation**: a breathing tube.\n**Words**, in the menu, has the rest.`},
   { id: 'end', final: true, title: 'You’re ready, Doctor', text: `That’s the job. See the sickest first. Order what they need and no more. Close the gaps, make the call, and answer the radio.\nPatients who sit waiting on your orders or your decision **cost points**.\nStart with **Quiet Tuesday**.`},
 ];
 /* ---------- Lessons: one condition, one patient, about two minutes each. The player is the attending. ----------
@@ -1629,7 +1633,7 @@ const LESSONS = {
     { id: 'k4', next: true, title: 'Clot or bleed', text: `A **CT** takes pictures inside the head and shows whether the stroke is a **clot** or a **bleed**.\nA **thrombolytic** is the drug that dissolves a clot. Give it to a bleed and you make things worse, so the **CT comes first**.`},
     { id: 'k5', next: true, title: 'Her pressure is too high', text: () => `Her blood pressure is **${lBP()}**. The limit for the clot drug is **185/110**.\nAbove that, the drug can make the brain bleed. So you also order **blood pressure control**, and the nurse holds the clot drug until the pressure is down.`},
     { id: 'k6', title: 'Stroke orders', text: `Tap **her room**. Then **CT head**, **BMP**, **Blood pressure control**, **Thrombolytic**, and **Sign**.\nThe BMP checks her blood sugar. A low sugar can look exactly like a stroke, and it has fooled good doctors.`, ...ordStep('pt', [['t', 'ct'], ['t', 'lab'], ['r', 'bp'], ['r', 'tnk']]) },
-    { id: 'k7', wait: true, title: 'Two clocks', text: `**Door to CT: 25 minutes.**\n**Door to needle: 60 minutes.** That is arrival to the clot drug going in.\nBoth are on her card. The nurse gives the drug once the CT shows no bleed, neurology agrees, and the pressure is under 185/110.`,
+    { id: 'k7', wait: true, title: 'Two clocks', text: `**Door to CT: 25 minutes.**\n**Door to needle: 60 minutes.** That’s arrival to the clot drug going in.\nBoth are on her card. The nurse gives the drug once the CT shows no bleed, neurology agrees, and the pressure is under 185/110.`,
       done: () => { const p = LP(); return !!(p.treat.tnk && p.treat.tnk.st === 'done') || p.loc === 'gone'; } },
     { id: 'k8', wait: true, title: 'After the drug', text: `Neurology admits her to the **ICU**, the intensive care unit. Her nurses watch closely for bleeding.`, done: lLeft },
     { id: 'k9', final: true, title: 'Stroke: the short version', text: `**Looks like**: sudden face droop, a weak arm or leg, slurred speech.\n**Order**: CT, labs, thrombolytic. Blood pressure control too if over 185/110.\n**Clock**: CT in 25 minutes, drug in 60.\n**As charge nurse**: take the alert, room her at once, keep CT free.` },
@@ -1642,7 +1646,7 @@ const LESSONS = {
     { id: 'h3', wait: true, title: 'In the room', text: `He’s gray and sweating, and the pressure in his chest runs down his left arm.\nA tech repeated the ECG at the door. The goal is **door to ECG in 10 minutes**.`, done: lExamined },
     { id: 'h4', title: 'Heart attack orders', text: `The **ECG** is already done, so it shows as ordered.\n**Troponin** rises when heart muscle is damaged. Order it, but don’t wait for it: the ECG already made the call.\n**Medications** here means aspirin and a blood thinner, so the clot stops growing.\nTap **his room**, **Troponin**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'meds']]) },
     { id: 'h5', wait: true, title: 'Door to balloon', text: `Cardiology takes him to the cath lab.\nThe goal is **door to balloon in 90 minutes**, counted from his arrival to the artery reopened.`, done: lLeft },
-    { id: 'h6', next: true, title: 'Most chest pain is not this', text: `Most chest pain is **not** a STEMI. The ECG looks normal and the first troponin is negative.\nIt still gets an ECG, labs, a **chest X-ray**, and medication.\nThen the **HEART score** rates the risk from 0 to 10.\n**0 to 3**: home.\n**4 to 6**: **observation**, a day of watching and repeat tests.\n**7 and up**: admit.`},
+    { id: 'h6', next: true, title: 'Most chest pain isn’t this', text: `Most chest pain is **not** a STEMI. The ECG looks normal and the first troponin is negative.\nIt still gets an ECG, labs, a **chest X-ray**, and medication.\nThen the **HEART score** rates the risk from 0 to 10.\n**0 to 3**: home.\n**4 to 6**: **observation**, a day of watching and repeat tests.\n**7 and up**: admit.`},
     { id: 'h7', final: true, title: 'Heart attack: the short version', text: `**Looks like**: chest pressure, sweating, pain in the arm or jaw.\n**Order**: ECG, labs, medications (**aspirin**). Not a STEMI: add a **chest X-ray**.\n**Clock**: ECG in 10 minutes, artery open in 90.\n**As charge nurse**: an ECG at the door, a room now, and never the waiting room.` },
   ] },
   sepsis: { name: 'Sepsis', blurb: 'Infection and a low pressure. Antibiotics within the hour.', steps: [
@@ -1655,7 +1659,7 @@ const LESSONS = {
     { id: 'p5', title: 'Sepsis orders', text: `Tap **her room**. Then **Lactate**, **Blood cultures**, **CBC**, **BMP**, **Oxygen**, **IV fluids**, **Antibiotics**, **Vasopressor**, and **Sign**.\nCultures go in before the antibiotics, so the lab can still grow the germ.`, ...ordStep('pt', [['t', 'lab'], ['r', 'o2'], ['r', 'fluids'], ['r', 'abx'], ['r', 'pressor']]) },
     { id: 'p6', wait: true, title: 'Watch the pressure', text: `Her **pressure climbs** as the fluids and the vasopressor go in, and her oxygen comes back up.\nThe **pharmacist** checks the antibiotic and the vasopressor before the nurse gives them.`, done: lResulted },
     { id: 'p7', title: 'Admit her', text: `A vasopressor drip has to be watched minute to minute. That means the **ICU**, the intensive care unit.\nTap **her room**, **Admit: call a consult**, then **Critical Care**.`, ...callStep('pt', 'consult', 'icu') },
-    { id: 'p8', final: true, title: 'Sepsis: the short version', text: `**Looks like**: an infection with a fast heart, fast breathing, confusion, or a low pressure.\n**Order**: labs, IV fluids, antibiotics. Oxygen if it is low. A vasopressor if the pressure stays down.\n**Clock**: antibiotics in 60 minutes.\n**As charge nurse**: a Resus room and a second nurse.` },
+    { id: 'p8', final: true, title: 'Sepsis: the short version', text: `**Looks like**: an infection with a fast heart, fast breathing, confusion, or a low pressure.\n**Order**: labs, IV fluids, antibiotics. Oxygen if it’s low. A vasopressor if the pressure stays down.\n**Clock**: antibiotics in 60 minutes.\n**As charge nurse**: a Resus room and a second nurse.` },
   ] },
   bleed: { name: 'Bleeding trauma', blurb: 'Shock. Blood before he arrives. To the OR.', steps: [
     { id: 't0', next: true, title: 'Bleeding inside', text: `After a crash or a fall, the danger you can’t see is **bleeding inside**, into the belly or the chest.\nLook for a **fast heart**, a **falling blood pressure**, and **pale, cold skin**.\nThat picture is **shock**: too little blood reaching the organs.`},
@@ -1690,27 +1694,27 @@ const LESSONS = {
     { id: 'o3', title: 'Overdose orders', text: `**Naloxone** again.\n**Tox screen**: alcohol and other drugs he may have taken.\nTap **his room**, **Tox screen**, **Naloxone**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'nalox']]) },
     { id: 'o4', wait: true, title: 'Watch him', text: `His breathing picks up. Now he gets **watched**. He can leave once he stays awake and keeps breathing well on his own.`, done: lResulted },
     { id: 'o5', title: 'Your call', text: `He’s awake, walking, and breathing normally.\nTap **his room**, then **Discharge home**.`, ...callStep('pt', 'home') },
-    { id: 'o6', final: true, title: 'Overdose: the short version', text: `**Looks like**: hard to wake, slow breathing, pinpoint pupils.\n**Order**: naloxone and labs. Oxygen if it is low.\n**Watch**: naloxone wears off first. He can slip back.\n**As charge nurse**: ESI 2. A room where his nurse can see him.` },
+    { id: 'o6', final: true, title: 'Overdose: the short version', text: `**Looks like**: hard to wake, slow breathing, pinpoint pupils.\n**Order**: naloxone and labs. Oxygen if it’s low.\n**Watch**: naloxone wears off first. He can slip back.\n**As charge nurse**: ESI 2. A room where his nurse can see him.` },
   ] },
   belly: { name: 'Belly pain', blurb: 'Where it hurts picks the test: ultrasound, CT, or neither.', steps: [
     { id: 'y0', next: true, title: 'Belly pain', text: `Where it hurts points to the organ. The organ picks the test.\n**Upper right, after meals**: the **gallbladder**, a small sac under the liver. **Ultrasound**.\n**Lower right**: the **appendix**. **CT**.\n**Flank, can’t hold still**: a **kidney stone**. **CT**.\n**Soft belly, vomiting**: a stomach bug. **Labs**, fluids, and nausea medication. No scan.` },
     { id: 'y1', title: 'Pain after meals', text: `**Room 5**: [[Maria]], 44. Pain under her right ribs since dinner.\nTap **her room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('chole', 'room', { room: '5', name: 'Maria G.', age: 44, sex: 'F' }) }), ...seeStep('pt') },
     { id: 'y2', wait: true, title: 'In the room', text: `She’s tender **under the right ribs**, and her breath catches when you press there.\nThat points at the **gallbladder**.`, done: lExamined },
-    { id: 'y3', title: 'Gallbladder orders', text: `**Gallbladder ultrasound**: gallstones and a swollen wall. It is the first test here, **not CT**.\n**CBC**, **liver tests**, **lipase**: infection, the liver, and the pancreas next door.\nTap **her room**, those three, the **ultrasound**, **Medications** for pain, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
+    { id: 'y3', title: 'Gallbladder orders', text: `**Gallbladder ultrasound**: gallstones and a swollen wall. It’s the first test here, **not CT**.\n**CBC**, **liver tests**, **lipase**: infection, the liver, and the pancreas next door.\nTap **her room**, those three, the **ultrasound**, **Medications** for pain, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
     { id: 'y4', wait: true, title: 'Results', text: `Ultrasound: **gallstones and a thick wall**. Her white cells are up.\nThat is an inflamed gallbladder: **cholecystitis**.`, done: lResulted },
     { id: 'y5', title: 'Call surgery', text: `An inflamed gallbladder has to come out, and **General Surgery** does that.\nTap **her room**, **Admit: call a consult**, then **General Surgery**.`, ...callStep('pt', 'consult', 'surg') },
-    { id: 'y6', final: true, title: 'Belly pain: the short version', text: `**Upper right, after meals**: labs and **ultrasound**. General Surgery.\n**Lower right**: labs and **CT**. General Surgery.\n**Flank pain**: labs and **CT**. Usually home.\n**Soft belly, vomiting**: labs, fluids, nausea medication. **No CT.**\n**As charge nurse**: most are ESI 3. A rigid belly does not wait.` },
+    { id: 'y6', final: true, title: 'Belly pain: the short version', text: `**Upper right, after meals**: labs and **ultrasound**. General Surgery.\n**Lower right**: labs and **CT**. General Surgery.\n**Flank pain**: labs and **CT**. Usually home.\n**Soft belly, vomiting**: labs, fluids, nausea medication. **No CT.**\n**As charge nurse**: most are ESI 3. A rigid belly doesn’t wait.` },
   ] },
   falls: { name: 'Falls', blurb: 'The hip, the head, and the blood thinner.', steps: [
     { id: 'f0', next: true, title: 'Falls', text: `A fall in an older adult hides three things.\n**The hip**: a leg that is **shorter and turned out** is broken until proven otherwise. **X-ray** first. A clean film in someone who can’t stand: CT or MRI.\n**The head**: on a **blood thinner**, a small bump can bleed. That needs a **CT**.\n**The reason**: ask why they fell. A faint needs an **ECG**.` },
-    { id: 'f1', title: 'Fell, hip pain', text: `**Room 9**: [[Dorothy]], 81. She fell in her kitchen and could not get up.\nTap **her room**, then **See this patient**.`,
+    { id: 'f1', title: 'Fell, hip pain', text: `**Room 9**: [[Dorothy]], 81. She fell in her kitchen and couldn’t get up.\nTap **her room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('hipfx', 'room', { room: '9', name: 'Dorothy K.', age: 81, sex: 'F' }) }), ...seeStep('pt') },
     { id: 'f2', wait: true, title: 'In the room', text: `Her leg is **shorter and turned outward**, and she can’t lift it.\nShe says she tripped on a rug and didn’t hit her head.`, done: lExamined },
     { id: 'f3', title: 'Hip orders', text: `**Hip X-ray**: shows the break.\n**CBC**, **BMP**, **type and screen**: she’s headed for surgery, and the surgeon needs them. An ECG is reasonable too.\n**Medications**: pain control.\nTap **her room**, the **Hip X-ray**, those three, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'meds']]) },
     { id: 'f4', wait: true, title: 'Results', text: `X-ray: a **femoral neck fracture**. The femur is the thigh bone, and its neck is the top, at the hip.\nA **broken hip**.`, done: lResulted },
     { id: 'f5', title: 'Call Orthopedics', text: `**Orthopedics** are the bone surgeons. A broken hip is fixed in the operating room.\nTap **her room**, **Admit: call a consult**, then **Orthopedics**.`, ...callStep('pt', 'consult', 'ortho') },
-    { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head injury on a blood thinner**: **CT** and labs. Reverse the thinner if it bleeds. **Trauma**.\n**Twisted ankle, tender on the bone**: X-ray. No break: ibuprofen and home.\n**As charge nurse**: a hip is ESI 3. A head injury on a blood thinner **does not wait**.` },
+    { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head injury on a blood thinner**: **CT** and labs. Reverse the thinner if it bleeds. **Trauma**.\n**Twisted ankle, tender on the bone**: X-ray. No break: ibuprofen and home.\n**As charge nurse**: a hip is ESI 3. A head injury on a blood thinner **doesn’t wait**.` },
   ] },
 };
 const LESSON_KEYS = Object.keys(LESSONS);
@@ -1736,10 +1740,48 @@ function classHTML() {
   return head('Class code', 'Everyone who enters the same code plays the same shift: the same patients and events, at the same times. What each player does with them is theirs.')
     + `<div class="cc-box"><label for="ccIn"><b>Play a code</b></label><div class="cc-row"><input id="ccIn" class="cc-in" data-pick="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="9" placeholder="ABC-DEF" value="${esc(U.codeIn || '')}" aria-describedby="ccWhat"><button type="button" class="big act" data-act="codePlay" ${typed ? '' : 'disabled'}>Start</button></div><small id="ccWhat" class="cc-what">${esc(codeHint(U.codeIn || ''))}</small></div>`
     + `<div class="cc-box"><b>Make one (instructors)</b><small>It uses the role${U.mode === 'md' ? ', radio calls' : ''} and scenario set on the menu (now: ${esc(codeDesc({ mode: U.mode, level: 'med', scen: U.scen, pack: U.pack }).replace(/ · Manic Monday/, ''))}). Pick the shift:</small><div class="cgrid cc-lv">${lv}</div>`
+    + cbListHTML()
     + (made ? `<div class="cc-made"><div class="cc-code" aria-label="Class code ${esc(made.code.split('').join(' '))}">${esc(made.code)}</div><small>${esc(codeDesc(made))}</small><div class="cc-row"><button type="button" class="big" data-act="codeCopy">Copy</button>${navigator.share ? '<button type="button" class="big" data-act="codeShare">Share</button>' : ''}<button type="button" class="big act" data-act="codePlay" data-arg="${esc(made.code)}">Play it</button></div><small>Students: Play a shift, then Class code. Each summary shows the code, the real time played, and the speed used, and has a Share button for sending you the result.</small></div>` : '')
     + '</div>';
 }
-const codeHint = v => { const c = E.readCode(v); return c ? codeDesc(c) : v.replace(/[^0-9a-z]/gi, '').length >= 6 ? 'That code does not look right. Check each letter.' : 'Six letters and numbers, from your instructor.'; };
+/* ---------- class results (v0.21): a student sends a class-code shift's result; the instructor reads them back by code ----------
+   Supabase (the Case Room project, table cb_results). The key below is the publishable one: it can only add a result
+   and read results for a code it names (the table's row-level security and the cb_class function). */
+const CB = { url: 'https://ecpxhcqvgxizdadwumqt.supabase.co', key: 'sb_publishable___VN24arBpZ8osEXV3G75w_JgU5zAyk' };
+function cbFetch(path, body) {
+  return fetch(CB.url + path, { method: 'POST', headers: { apikey: CB.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(body) })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.status === 204 ? null : r.text().then(t => (t ? JSON.parse(t) : null)); });
+}
+const cbName = () => (U.cbName != null ? U.cbName : store('oc-cb-name') || '');
+function cbSendHTML(R, at) {
+  if (!R.code || R.level === 'train' || at == null) return '';
+  const st = (U.cbSent || {})[at] || null;
+  if (st === 'sent') return `<div class="cb-send ok"><b>Sent to class ${esc(R.code)}.</b> Your instructor sees it under Play a shift, Class code, Class results.</div>`;
+  return `<div class="cb-send"><label for="cbName"><b>Send this to your class</b></label><small>Your instructor sees it with everyone else who played ${esc(R.code)}. Use your first name or initials.</small>`
+    + `<div class="cc-row"><input id="cbName" class="cb-name" data-pick="cbname" type="text" maxlength="30" autocomplete="given-name" placeholder="Your name" value="${esc(cbName())}"><button type="button" class="big act" data-act="cbSend" data-arg="${esc(String(at))}">Send</button></div>`
+    + (st && st !== 'sending' ? `<small class="cb-err">${esc(st)}</small>` : st === 'sending' ? '<small>Sending…</small>' : '') + '</div>';
+}
+function cbRedraw() {   // the summary is drawn once; the send box redraws it when its state changes
+  const d = lastReport(), el = $('#report'); if (!d || !el || el.hidden) return;
+  const y = el.scrollTop; setH(el, reportHTML(d.R, d.led, d.at)); el.scrollTop = y;
+}
+function cbListHTML() {
+  const L = U.cbList, code = L ? L.code : (U.codeMade || (lastReport() && lastReport().R.code) || '');
+  let h = `<div class="cc-box"><label for="cbCode"><b>Class results (instructors)</b></label><small>Type the code to see every result sent for it, best score first.</small>`
+    + `<div class="cc-row"><input id="cbCode" class="cb-code" data-pick="cbcode" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="8" placeholder="ABC-DEF" value="${esc(code || '')}"><button type="button" class="big" data-act="cbShow">Show</button></div>`;
+  if (L && L.loading) h += '<small>Loading…</small>';
+  else if (L && L.err) h += `<small class="cb-err">${esc(L.err)}</small>`;
+  else if (L && L.rows) {
+    const c = E.readCode(L.code);
+    h += `<small>${esc(L.code)}${c ? ' · ' + esc(codeDesc(c)) : ''} · ${L.rows.length} result${L.rows.length === 1 ? '' : 's'}</small>`;
+    if (L.rows.length) h += `<table class="cb-tab"><tr><th>#</th><th>Name</th><th>Points</th><th>Stars</th><th>Played</th><th>Wait</th><th>LWBS</th></tr>${L.rows.map((r, i) => {
+      const s = r.stats || {}, m = Math.round((r.real_sec || 0) / 60);
+      return `<tr><td>${i + 1}</td><td>${esc(r.name)}${r.role === 'md' ? ' <small>MD</small>' : ''}</td><td>${r.score}</td><td>${'★'.repeat(r.stars)}${'☆'.repeat(3 - r.stars)}</td><td>${m}m</td><td>${s.wait != null ? s.wait + 'm' : ''}</td><td>${s.lwbs != null ? s.lwbs : ''}</td></tr>`; }).join('')}</table>`;
+    else h += '<p class="hint">No results sent for this code yet.</p>';
+  }
+  return h + '</div>';
+}
+const codeHint = v => { const c = E.readCode(v); return c ? codeDesc(c) : v.replace(/[^0-9a-z]/gi, '').length >= 6 ? 'That code doesn’t look right. Check each letter.' : 'Six letters and numbers, from your instructor.'; };
 const codeText = c => `Code Black class code ${c.code}: ${codeDesc(c)}. Play at ${location.origin}${location.pathname}, then Play a shift, then Class code.`;
 function copyText(t) { try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t); return true; } } catch (e) { /* no clipboard */ } return false; }
 function lessonsHTML() {
@@ -1885,8 +1927,8 @@ function renderModal(G) {
   } else if (U.modal && U.modal.type === 'first') {
     const md = MD(), lines = md
       ? [U.view === 'map' && floor3d() ? 'A room showing the **stethoscope** is a patient waiting for a doctor. Tap it, then **See this patient**.' : U.view === 'map' ? 'A **blue room** is a patient waiting for a doctor. Tap it, then **See this patient**.' : 'A room marked **Needs a provider** is waiting for a doctor. Tap it, then **See this patient**.', 'After your exam, **write the orders**. When the results are back, **make the call**: home, admit, or transfer.', 'Lost? **Next** jumps to whatever is waiting on you.']
-      : [U.view === 'map' && floor3d() ? 'A room with a **pulsing icon** over it is waiting on you. A **flashing red ring** is a patient crashing.' : U.view === 'map' ? 'A **solid-coloured room** is waiting on you. A **white** one is someone else’s move.' : '**Blue** words on a room are waiting on you. **Gray** is waiting on someone else.', `**Next**${U.view === 'map' && U.rails ? ', bottom left,' : ''} jumps to the most urgent thing. **Red** means go now.`, 'A **card that stops the clock** wants a decision from you. Every choice costs something.'];
-    h = `<div class="mc-who">${esc(E.LEVELS[G.level].name)} · your first shift as ${md ? 'the attending' : 'charge nurse'}</div><h3>Three things to know</h3><ol class="first">${lines.map(x => `<li>${fmt(x)}</li>`).join('')}</ol><p class="hint" style="margin:-4px 0 10px">The pause button has How to play and what the words mean.</p><div class="mc-ch"><button type="button" class="go" data-act="modalOk"><b>Start the shift</b></button><button type="button" data-act="firstHelp"><b>How to play</b><small>The full guide</small></button>${store(trainedKey(md ? 'md' : 'rn')) ? '' : '<button type="button" data-act="firstTrain"><b>Do Orientation first</b><small>A preceptor walks you through it</small></button>'}</div>`;
+      : [U.view === 'map' && floor3d() ? 'A room with a **pulsing icon** over it’s waiting on you. A **flashing red ring** is a patient crashing.' : U.view === 'map' ? 'A **solid-coloured room** is waiting on you. A **white** one is someone else’s move.' : '**Blue** words on a room are waiting on you. **Gray** is waiting on someone else.', `**Next**${U.view === 'map' && U.rails ? ', bottom left,' : ''} jumps to the most urgent thing. **Red** means go now.`, 'A **card that stops the clock** wants a decision from you. Every choice costs something.'];
+    h = `<div class="mc-who">${esc(E.LEVELS[G.level].name)} · your first shift as ${md ? 'the attending' : 'charge nurse'}</div><h3>Three things to know</h3><ol class="first">${lines.map(x => `<li>${fmt(x)}</li>`).join('')}</ol><p class="hint" style="margin:-4px 0 10px">The menu, top right, has How to play and what the words mean.</p><div class="mc-ch"><button type="button" class="go" data-act="modalOk"><b>Start the shift</b></button><button type="button" data-act="firstHelp"><b>How to play</b><small>The full guide</small></button>${store(trainedKey(md ? 'md' : 'rn')) ? '' : '<button type="button" data-act="firstTrain"><b>Do Orientation first</b><small>A preceptor walks you through it</small></button>'}</div>`;
   } else if (U.scene === 'game' && U.paused && !U.sheet) {
     h = `<div class="mc-who">${lessonKey() ? 'Lesson: ' + esc(LESSONS[lessonKey()].name) : esc(E.LEVELS[G.level].name)}${G.scen && G.scen !== 'none' && E.SCENS[G.scen] ? ' · ' + esc(E.SCENS[G.scen].name) + ' scenario' : ''} · ${E.clock()}</div><h3>Menu</h3><p>The shift is paused and saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="restart"><b>${U.armR && performance.now() - U.armR < 3000 ? 'Tap again to restart' : 'Restart this shift'}</b></button><button type="button" data-act="menu"><b>Main menu</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="words"><b>What the words mean</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="plain"><b>Plain words: ${PLAIN() ? 'on' : 'off'}</b></button><button type="button" data-act="view"><b>${U.view === 'map' ? 'Switch to the list board' : 'Switch to the floor plan'}</b></button>${U.view === 'map' ? `<button type="button" data-act="three"><b>${U.three ? '3D floor: on' : '3D floor: off'}</b></button>` : ''}${U.view === 'map' && U.three ? `<button type="button" data-act="q3d"><b>3D detail: ${Q3D_NAME[U.q3d]}</b></button>` : ''}${document.fullscreenEnabled ? `<button type="button" data-act="fullscreen"><b>${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</b></button>` : ''}</div>`;
   }
@@ -2036,12 +2078,12 @@ const ACT = {
   mdd: a => { const [pid, k] = a.split('|'); if (k === 'consult') { U.sheet = { type: 'consult', pid }; return; } res(E.mdDecide(pid, k), true); },
   tmenu: a => { U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; } },
   img: a => { const [pid, d] = a.split('|'); openViewer(pid, d); },
-  q3d: () => { const o = ['auto', 'high', 'med', 'low']; U.q3d = o[(o.indexOf(U.q3d) + 1) % o.length]; store('oc-3dq', U.q3d); if (window.OC3D && OC3D.quality) OC3D.quality(U.q3d); if (U.scene === 'title') setH($('#title'), titleHTML()); },
+  q3d: () => { const o = ['low', 'med', 'high', 'auto']; U.q3d = o[(o.indexOf(U.q3d) + 1) % o.length]; store('oc-3dq', U.q3d); if (window.OC3D && OC3D.quality) OC3D.quality(U.q3d); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   three: () => { U.three = !U.three; store('oc-3d', U.three ? '1' : '0'); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   view: v => { U.view = v === 'list' || v === 'map' ? v : U.view === 'map' ? 'list' : 'map'; store('oc-view', U.view); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   mode: m => { U.mode = m === 'md' ? 'md' : 'rn'; store('oc-mode', U.mode); setH($('#title'), titleHTML()); },
   scenario: k => { U.scen = E.SCENS[k] ? k : 'none'; store('oc-scen', U.scen); setH($('#title'), titleHTML()); },
-  print: () => { document.querySelectorAll('details.rep-more').forEach(d => { d.open = true; }); try { window.print(); } catch (e) { toast('Printing is not available here. Open the game in your browser to print.', 'info'); } },
+  print: () => { document.querySelectorAll('details.rep-more').forEach(d => { d.open = true; }); try { window.print(); } catch (e) { toast('Printing isn’t available here. Open the game in your browser to print.', 'info'); } },
   coachNext: () => { const t = TR(); if (t && t.brk != null) { t.brk = null; t.t0 = g().t; U.coachKey = null; } else coachAdvance(); },
   chapter: k => { start('train', null, +k || 0); },
   chapters: () => { U.sheet = { type: 'chapters' }; },
@@ -2052,12 +2094,27 @@ const ACT = {
   lessons: () => { U.sheet = { type: 'lessons' }; },
   classCode: () => { U.sheet = { type: 'class' }; },
   codeMake: lvl => { U.codeMade = E.classCode({ mode: U.mode, level: lvl, scen: U.scen, pack: U.pack, seed: (Math.random() * 131072) | 0 }); },
-  codeCopy: () => { const c = E.readCode(U.codeMade); if (c) res(copyText(codeText(c)) ? { ok: true, msg: `Copied ${c.code} and how to play it` } : { ok: false, why: `Copy did not work here. The code is ${c.code}.` }, true); },
+  codeCopy: () => { const c = E.readCode(U.codeMade); if (c) res(copyText(codeText(c)) ? { ok: true, msg: `Copied ${c.code} and how to play it` } : { ok: false, why: `Copy didn’t work here. The code is ${c.code}.` }, true); },
   codeShare: () => { const c = E.readCode(U.codeMade); if (c && navigator.share) navigator.share({ title: 'Code Black class code', text: codeText(c) }).catch(() => {}); },
   codePlay: a => {
-    const c = E.readCode(a || U.codeIn); if (!c) { res({ ok: false, why: 'That code does not look right. It is six letters and numbers, like ABC-DEF.' }); return; }
+    const c = E.readCode(a || U.codeIn); if (!c) { res({ ok: false, why: 'That code doesn’t look right. It’s six letters and numbers, like ABC-DEF.' }); return; }
     U.mode = c.mode; U.scen = c.scen; U.pack = c.pack; store('oc-mode', c.mode); store('oc-scen', c.scen); store('oc-pack', c.pack);
     U.sheet = null; start(c.level, null, null, c);
+  },
+  cbSend: at => {
+    const d = lastReport(); if (!d || String(d.at) !== String(at) || !d.R.code) return;
+    const name = (cbName() || '').trim().slice(0, 30); U.cbSent = U.cbSent || {};
+    if (!name) { U.cbSent[at] = 'Type your name first.'; cbRedraw(); return; }
+    store('oc-cb-name', name); U.cbSent[at] = 'sending'; cbRedraw();
+    const R = d.R, body = { code: R.code, name, role: R.mode === 'md' ? 'md' : 'rn', level: R.level, score: Math.round(R.care), stars: R.stars | 0, real_sec: Math.min(86400, R.realSec | 0),
+      stats: { wait: R.wait, lwbs: R.lwbs, seen: R.seen, ama: R.ama, expired: R.expired, bedFirst: R.bedFirst, scen: R.scen } };
+    cbFetch('/rest/v1/cb_results', body).then(() => { U.cbSent[at] = 'sent'; cbRedraw(); }).catch(() => { U.cbSent[at] = 'Could not send. Check the connection and tap Send again.'; cbRedraw(); });
+  },
+  cbShow: () => {
+    const el = document.getElementById('cbCode'), c = E.readCode(el ? el.value : '');
+    if (!c) { U.cbList = { code: el ? el.value : '', err: 'That code doesn’t look right. Check each letter.' }; return; }
+    U.cbList = { code: c.code, loading: true };
+    cbFetch('/rest/v1/rpc/cb_class', { p_code: c.code }).then(rows => { U.cbList = { code: c.code, rows: rows || [] }; render(); }).catch(() => { U.cbList = { code: c.code, err: 'Could not load results. Check the connection and try again.' }; render(); });
   },
   shareResult: () => {
     const d = lastReport(); if (!d) return; const R = d.R, L = E.LEVELS[R.level];
@@ -2112,8 +2169,8 @@ const ACT = {
   fullscreen: () => {
     const d = document, el = d.documentElement;
     if (d.fullscreenElement) { d.exitFullscreen(); return; }
-    if (!el.requestFullscreen) { toast('Full screen is not available in this browser', 'info'); return; }
-    el.requestFullscreen({ navigationUI: 'hide' }).then(() => { if (U.view === 'map' && screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); }).catch(() => toast('Full screen is not available here', 'info'));
+    if (!el.requestFullscreen) { toast('Full screen isn’t available in this browser', 'info'); return; }
+    el.requestFullscreen({ navigationUI: 'hide' }).then(() => { if (U.view === 'map' && screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); }).catch(() => toast('Full screen isn’t available here', 'info'));
   },
   team: () => { U.sheet = { type: 'team' }; },
   staffOpen: id => { U.sheet = { type: 'staff', sid: id }; },
@@ -2297,7 +2354,7 @@ ${R.mode === 'md' ? mdDeptHTML(R, t) : `<h4>Patients</h4><table>${t('Arrived thi
 <h4>Services</h4><table>${t('Interpreters requested', `${R.interp} for ${R.lep} patient${R.lep === 1 ? '' : 's'} who needed one`)}${t('Massive transfusions', `${R.mtp}${R.mtpWaste ? ` (${R.mtpWaste} not needed)` : ''}`)}${t('Patients who went into shock', R.shock)}${t('O-negative units used', R.oneg)}${t('Meds pulled on override', `${R.overrides} (${R.medErrors} errors)`)}${t('Seen by a provider in triage', R.pitSeen)}${t('Registered / triaged', `${R.registered} / ${R.triaged}`)}${t('Sent upstairs by transporter / tech', `${R.transports.tp} / ${R.transports.pct}`)}${t('Interfacility ambulances', `${R.ift.als} ALS · ${R.ift.cct} CCT · ${R.ift.air} air${R.iftRefused ? ` (${R.iftRefused} wrong level)` : ''}`)}</table>
 <h4>Team</h4><table>${t('Angry consultants', R.angry + R.wrongSpec)}${t('Nurse-minutes over ratio', R.ratioMin)}${t('Safety events', R.adverse)}${t('Agency nurses / mandates', `${R.agency} / ${R.mandates}`)}${R.staffH ? t('RN hours (staff / agency / mandated)', `${R.staffH.rn} / ${R.staffH.agency} / ${R.staffH.mandated}`) + t('RN hours per patient', R.staffH.rnPerVisit) + t('Attending / PA and NP hours', `${R.staffH.md} / ${R.staffH.app}`) : ''}</table>`}
 </details>
-<div class="rep-btns"><button type="button" class="big act" data-act="again">Run it back</button><button type="button" class="big" data-act="menu">Menu</button><button type="button" class="big" data-act="shareResult">Share result</button><button type="button" class="big" data-act="print">Print or save as PDF</button></div></div>`;
+${cbSendHTML(R, at)}<div class="rep-btns"><button type="button" class="big act" data-act="again">Run it back</button><button type="button" class="big" data-act="menu">Menu</button><button type="button" class="big" data-act="shareResult">Share result</button><button type="button" class="big" data-act="print">Print or save as PDF</button></div></div>`;
 }
 /* Morbidity and mortality: the three worst moments of the shift, and the decision behind each. */
 function mdDeptHTML(R, t) {
@@ -2347,8 +2404,9 @@ function showReport() {
   clearToasts(); hush();
   store('oc-save', null);
   if (!R.fail && (!R.scen || R.scen === 'none') && R.care > bestOf(R.level, R.mode)) store('oc-best-' + (R.mode === 'md' ? 'md-' : '') + R.level, String(R.care));
-  try { store('oc-last-report', JSON.stringify({ R, led: G.ledger, at: Date.now() })); } catch (e) { /* a full or blocked store: the report still shows now */ }
-  const el = $('#report'); el.hidden = false; setH(el, reportHTML(R)); el.scrollTop = 0; window.scrollTo(0, 0);
+  const at = Date.now(); let kept = true;
+  try { store('oc-last-report', JSON.stringify({ R, led: G.ledger, at })); } catch (e) { kept = false; /* a full or blocked store: the report still shows now */ }
+  const el = $('#report'); el.hidden = false; setH(el, reportHTML(R, undefined, kept ? at : undefined)); el.scrollTop = 0; window.scrollTo(0, 0);
   render();
 }
 function showLastReport() {
@@ -2393,6 +2451,8 @@ function bind() {
     if (go) go.disabled = !c;
     if (w) w.textContent = codeHint(el.value);
   });
+  document.addEventListener('input', e => { const el = e.target; if (el && el.matches && el.matches('input[data-pick="cbname"]')) U.cbName = el.value; });   // the class results name box
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('input[data-pick="cbcode"]')) { ACT.cbShow(); render(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('input[data-pick="code"]')) { const c = E.readCode(e.target.value); if (c) ACT.codePlay(c.code); } });
   document.addEventListener('input', e => {   // the Words search: hide what does not match, without redrawing the box being typed in
     const el = e.target && e.target.matches && e.target.matches('input[data-wq]') ? e.target : null; if (!el) return;
