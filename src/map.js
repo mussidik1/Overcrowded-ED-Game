@@ -5,7 +5,6 @@
    and do what the list board's tiles and chips do. People walk between spots. */
 const MW = 1400, MH = 712;
 const LOD_NEAR = 0.62;   // screen pixels per floor unit; below this, icons instead of words
-const FIG_K = 1.4;
 const RM = {};
 {
   const put = (id, x, y, w, h) => { RM[id] = { x, y, w, h }; };
@@ -36,14 +35,18 @@ const TRI_BAYS = [[340, 436, 468], [436, 436, 468]];   // triage booth: [x, nurs
 const WAIT_SEATS = [];
 for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) WAIT_SEATS.push([276 + c * 36, 537 + r * 37]);
 const BREAK_SEATS = [[1236, 78], [1276, 78], [1236, 148], [1276, 148], [1198, 113], [1314, 113], [1262, 204], [1312, 204], [1362, 204]];
-const BEDSIDE = [[-35, 6], [35, 6], [-15, 8], [15, 8], [0, 12], [0, 2]];   // beside the bed, then over it: never on the icon row or the name tag
+const BEDSIDE = [[-35, -5], [35, -5], [-35, 15], [35, 15], [-35, 5], [35, 5]];   // either side of the big icon: never on the top row, the icon or the name tag
 const BEDSIDE_S = [[2, 0], [-18, 4], [22, 4], [2, 8]];   // a hallway bed or a chair is short: stand over the stretcher, clear of the label, the ESI and the icon
 const WALL_Y = i => 62 + i * 46;
 const SKIN = ['#F1C7A5', '#E0A57E', '#C68642', '#8D5524', '#5C3A21'];
 const HAIR = ['#2B1D14', '#5A3825', '#8B4A2B', '#D2AE6D', '#1B1B1B', '#A7A7A7'];
-const CLOTHES = ['#6E8FB7', '#B5835A', '#7D9A6B', '#A86F8F', '#5C6B7A', '#C29A3B', '#8A6FB0'];
 const ESIC = { 1: '#E7A2AB', 2: '#F2BE8F', 3: '#F1DA86', 4: '#A9D6B5', 5: '#A9C3E8' };
-const ROLEC = { md: '#22306C', app: '#0D716E', rn: '#66399A', pct: '#9C5418', evs: '#4F5F68', rt: '#1E7896', rph: '#7B4A73', reg: '#5E6C12', tp: '#A3417A', ems: '#1F2A44' };
+const ROLEC = { md: '#1A2B8F', app: '#007A70', rn: '#7A2BC4', pct: '#C24400', evs: '#37474F', rt: '#0E7490', rph: '#7A1F3D', reg: '#B5126F', tp: '#6B4423', ems: '#1F2A44' };   // one strong colour a role; the side buttons use the same ones (style.css)
+const ROLE_LAB = { md: 'MD', rn: 'RN', pct: 'T', reg: 'R', evs: 'EV', rt: 'RT', rph: 'Rx', tp: 'TP' };
+const roleLab = s => (s.role === 'app' ? (s.title === 'NP' ? 'NP' : 'PA') : ROLE_LAB[s.role] || '?');   // what a staff chip says
+/* A room is a tile. Its colour is its state: [fill, outline, solid]. Solid tiles are the ones waiting on the player. */
+const TILE = { need: ['#1648C8', '#0A2470', 1], bad: ['#D11A2F', '#7A0A17', 1], go: ['#12813A', '#07461E', 1], warn: ['#B45309', '#6B3005', 1], dirty: ['#7A4A1E', '#40250D', 1],
+  board: ['#E3D7FA', '#6D3FC0', 0], calm: ['#FFFFFF', '#1B2230', 0], empty: ['#E7EAEE', '#B8C0CA', 0], dirtyq: ['#EADCC4', '#9A7B55', 0], cleaning: ['#D5F0EE', '#2A9D94', 0], closed: ['url(#closedP)', '#7F8A99', 0] };
 const hsh = s => { let h = 7; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
 const pickH = (arr, s, salt) => arr[hsh(String(s) + (salt || '')) % arr.length];
 const SEAT = new Map();   // waiting-room seats stay put: patient id -> seat number
@@ -80,33 +83,29 @@ const icoSVG = (key, cx, cy, r, cls) => `<g class="mico ${cls}" transform="trans
 const icoInline = (key, cls) => `<svg class="lgi" viewBox="-15 -15 30 30" aria-hidden="true">${icoSVG(key, 0, 0, 14, cls)}</svg>`;
 const toneOf = c => (/n-code/.test(c) ? 'code' : /n-bad/.test(c) ? 'bad' : /n-act/.test(c) ? 'act' : /n-go/.test(c) ? 'go' : /n-warn/.test(c) ? 'warn' : /n-board/.test(c) ? 'board' : 'wait') + (/\bfl\b/.test(c) ? ' fl' : '');
 
-/* A person seen from above: shadow, shoulders, hands, head, hair. */
-function figSVG(o) {
-  const skin = pickH(SKIN, o.seed), hair = pickH(HAIR, o.seed, 'h'), style = hsh(o.seed + 'st') % 4, body = o.body || '#888', coat = o.coat;
-  let s = `<g class="fg" transform="scale(${o.k || FIG_K})">`;
-  if (o.ring) s += '<circle r="18" fill="rgba(242,194,48,.35)" stroke="#F2C230" stroke-width="3"/>';
-  s += '<ellipse cx="1.5" cy="4" rx="13" ry="8" fill="rgba(0,0,0,.17)"/>';
-  s += `<circle cx="-11.5" cy="1.5" r="3.3" fill="${skin}"/><circle cx="11.5" cy="1.5" r="3.3" fill="${skin}"/>`;
-  s += `<ellipse cx="0" cy="0.5" rx="11.5" ry="7.4" fill="${coat || body}" stroke="${coat ? '#AEB6C0' : 'rgba(0,0,0,.28)'}" stroke-width="1"/>`;
-  if (coat) s += `<path d="M-4 -6 L0 3 L4 -6Z" fill="${body}"/><path d="M-4.6 -3 q4.6 7 9.2 0" fill="none" stroke="#2B3240" stroke-width="1.1"/>`;
-  if (o.stripe) s += `<rect x="-11" y="-0.8" width="22" height="2.6" fill="${o.stripe}"/>`;
-  s += `<circle cx="0" cy="-1" r="6.3" fill="${skin}" stroke="rgba(0,0,0,.22)" stroke-width=".8"/>`;
-  if (style === 3) s += `<path d="M-6 -2.6 A6.3 6.3 0 0 1 6 -2.6 A6.3 2.2 0 0 0 -6 -2.6Z" fill="${hair}" opacity=".75"/>`;
-  else s += `<path d="M-6.3 -1.2 A6.3 6.3 0 0 1 6.3 -1.2 A6.3 ${style === 2 ? 5 : 3.2} 0 0 0 -6.3 -1.2Z" fill="${hair}"/>`;
-  if (style === 1) s += `<circle cx="0" cy="-7.6" r="2.7" fill="${hair}"/>`;
-  if (o.me) s += '<path d="M0 -19 l2 4.1 4.5.6 -3.3 3.2 .8 4.5 -4 -2.1 -4 2.1 .8 -4.5 -3.3 -3.2 4.5 -.6z" fill="#F2C230" stroke="#8A6400" stroke-width=".8"/>';
-  if (o.tag) s += `<g class="nearonly" transform="translate(0 15)"><rect x="-${o.tag.length * 2.6 + 3.5}" y="-6" width="${o.tag.length * 5.2 + 7}" height="11.5" rx="5.7" fill="${o.tagFg || '#1B2230'}"/><text x="0" y="3" text-anchor="middle" font-size="8.6" font-weight="700" fill="#FFFFFF">${esc(o.tag)}</text></g>`;
+/* People are chips. Staff: a pill in the role's colour with its letters (MD, RN, T). The player's own chip has a gold edge and a star. */
+function chipSVG(o) {
+  const t = o.label || '', w = t.length > 2 ? 42 : t.length === 2 ? 35 : 27, h = 24;
+  let s = '<g class="fg">';
+  if (o.ring) s += `<rect x="${-w / 2 - 6}" y="${-h / 2 - 6}" width="${w + 12}" height="${h + 12}" rx="${h / 2 + 6}" fill="rgba(242,194,48,.4)" stroke="#F2C230" stroke-width="3"/>`;
+  s += `<rect x="${-w / 2 + 1.5}" y="${-h / 2 + 3}" width="${w}" height="${h}" rx="${h / 2}" fill="rgba(0,0,0,.25)"/>`;
+  s += `<rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" rx="${h / 2}" fill="${o.body || '#444'}" stroke="${o.me ? '#F2C230' : '#FFFFFF'}" stroke-width="${o.me ? 3.4 : 2.4}"/>`;
+  s += `<text y="${t.length > 2 ? 4.8 : 5.8}" text-anchor="middle" font-size="${t.length > 2 ? 13 : t.length === 2 ? 16 : 17.5}" font-weight="700" fill="#FFFFFF">${esc(t)}</text>`;
+  if (o.me) s += '<path d="M0 -27 l2.4 4.9 5.4.7 -4 3.8 1 5.4 -4.8 -2.5 -4.8 2.5 1 -5.4 -4 -3.8 5.4 -.7z" fill="#F2C230" stroke="#8A6400" stroke-width=".9"/>';
+  if (o.tag) s += `<g class="nearonly" transform="translate(0 21)"><rect x="-${o.tag.length * 2.6 + 3.5}" y="-6" width="${o.tag.length * 5.2 + 7}" height="11.5" rx="5.7" fill="${o.tagFg || '#1B2230'}"/><text x="0" y="3" text-anchor="middle" font-size="8.6" font-weight="700" fill="#FFFFFF">${esc(o.tag)}</text></g>`;
   return s + '</g>';
 }
-/* A bed seen from above, head at the top, with the patient in it. */
-function bedSVG(cx, y, bw, bh, p, esi, dirty) {
-  const x = cx - bw / 2;
-  let s = `<rect x="${x - 1.5}" y="${y - 1.5}" width="${bw + 3}" height="${bh + 3}" rx="7.5" fill="#BFC6D0"/><rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="6" fill="${dirty ? '#EFE8DC' : '#FFFFFF'}"/>`;
-  s += `<rect x="${x + 5}" y="${y + 3.5}" width="${bw - 10}" height="13" rx="4.5" fill="#E9EDF3" stroke="#D3D9E2" stroke-width=".8"/>`;
-  if (dirty) return s + `<path d="M${x + 4} ${y + 27} q8 -7 15 1 t${bw - 23} 3 q-2 12 -${bw - 20} 10 t-12 -8z" fill="#D9CFBF"/>`;
-  if (!p) return s + `<path d="M${x + 3} ${y + 23} h${bw - 6}" stroke="#E1E6ED" stroke-width="2.2"/>`;
-  s += `<rect x="${x + 2.5}" y="${y + 20}" width="${bw - 5}" height="${bh - 23}" rx="5" fill="${esi ? ESIC[esi] : '#D5DAE1'}"/><path d="M${x + 2.5} ${y + 27} h${bw - 5}" stroke="rgba(255,255,255,.75)" stroke-width="3.5"/>`;
-  return s + `<circle cx="${cx}" cy="${y + 12}" r="7.6" fill="${pickH(SKIN, p.id)}" stroke="rgba(0,0,0,.18)" stroke-width=".7"/><path d="M${cx - 7.6} ${y + 10.5} a7.6 7.6 0 0 1 15.2 0 a7.6 3.8 0 0 0 -15.2 0z" fill="${pickH(HAIR, p.id, 'h')}"/>`;
+/* The same chips as small pictures for the map key. */
+const chipInline = (label, role) => `<svg class="lgc" viewBox="-25 -16 50 34" aria-hidden="true">${chipSVG({ label, body: ROLEC[role] })}</svg>`;
+const ptChipInline = (e) => `<svg class="lgc" viewBox="-25 -16 50 34" aria-hidden="true">${ptChipSVG({ tri: e ? 'done' : 'none', acu: e, esi: e, vesi: e, _key: e })}</svg>`;
+/* A patient on their feet (the door, the waiting room, walking to a bed): a circle with the triage level, or ? before triage. */
+function ptChipSVG(p, ring) {
+  const tri = p.tri === 'done' || !!p.room, e = !tri ? 0 : p._key != null ? p._key : E.vEsi(p);
+  return `${ring ? '<circle r="18.5" fill="rgba(242,194,48,.4)" stroke="#F2C230" stroke-width="3"/>' : ''}<circle cx="1.5" cy="2.8" r="12.5" fill="rgba(0,0,0,.24)"/><circle r="12.5" fill="${tri ? `var(--e${e})` : '#77818F'}" stroke="#FFFFFF" stroke-width="2.4"/><text y="5.7" text-anchor="middle" font-size="16.5" font-weight="700" fill="${e === 3 ? '#3A2F00' : '#FFFFFF'}">${tri ? e : '?'}</text>`;
+}
+/* An ambulance crew member: a dark chip with the yellow stripe of a turnout coat. */
+function crewSVG(ring, body) {
+  return `${ring ? '<circle r="17" fill="rgba(242,194,48,.4)" stroke="#F2C230" stroke-width="3"/>' : ''}<circle cx="1.2" cy="2.4" r="11" fill="rgba(0,0,0,.24)"/><circle r="11" fill="${body || ROLEC.ems}" stroke="#FFFFFF" stroke-width="2.2"/>${body ? '' : '<rect x="-9.6" y="-2.2" width="19.2" height="4.4" rx="1.5" fill="#E3BA12"/>'}`;
 }
 /* A stretcher on its wheels, head to the left. */
 function stretcherSVG(x, y, w, h, p, esi) {
@@ -116,14 +115,6 @@ function stretcherSVG(x, y, w, h, p, esi) {
   s += `<rect x="${x + 21}" y="${y + 2.5}" width="${w - 24}" height="${h - 5}" rx="5" fill="${esi ? ESIC[esi] : '#D5DAE1'}"/>`;
   return s + `<circle cx="${x + 11}" cy="${y + h / 2}" r="7" fill="${pickH(SKIN, p.id)}" stroke="rgba(0,0,0,.18)" stroke-width=".7"/><path d="M${x + 9.5} ${y + h / 2 - 7} a7 7 0 0 0 0 14 a3.5 7 0 0 1 0 -14z" fill="${pickH(HAIR, p.id, 'h')}"/>`;
 }
-function reclinerSVG(cx, cy, p) {
-  let s = `<rect x="${cx - 17}" y="${cy - 17}" width="34" height="36" rx="9" fill="#8FA3B8"/><rect x="${cx - 17}" y="${cy - 17}" width="34" height="10" rx="5" fill="#71879E"/><rect x="${cx - 21}" y="${cy - 9}" width="6" height="22" rx="3" fill="#71879E"/><rect x="${cx + 15}" y="${cy - 9}" width="6" height="22" rx="3" fill="#71879E"/>`;
-  if (p) s += `<g transform="translate(${cx} ${cy + 3})">${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15 })}</g>`;
-  return s;
-}
-const monSVG = (x, y, st) => `<rect x="${x}" y="${y}" width="18" height="13" rx="2.5" fill="${st === 'off' ? '#AEB6C0' : '#1E2633'}" stroke="${st === 'off' ? '#8E97A4' : '#566070'}" stroke-width=".8"/>` + (st === 'off' ? '' : st === 'flat' ? `<path class="ecg flat" d="M${x + 2} ${y + 7} h14" fill="none" stroke="#FF6B7A" stroke-width="1.4"/>` : `<path class="ecg" d="M${x + 2} ${y + 7.5} h3 l1.4 -4.5 l2 8 l1.4 -3.5 h6.2" fill="none" stroke="${st === 'bad' ? '#FFB13B' : '#5BE38B'}" stroke-width="1.3" stroke-linejoin="round"/>`);
-const ivSVG = (x, y, on) => `<path d="M${x - 4.5} ${y} h9" stroke="#8E97A4" stroke-width="1.4"/><circle cx="${x}" cy="${y}" r="2.2" fill="#8E97A4"/>` + (on ? `<rect x="${x + 1.5}" y="${y - 8}" width="6.5" height="9.5" rx="2" fill="#8FD0F0" stroke="#5FA9CC" stroke-width=".7"/>` : '');
-const curtainSVG = (x, y, n) => `<path d="M${x} ${y}${' q5 3 0 6'.repeat(n)}" fill="none" stroke="#9CCFC8" stroke-width="2.2" stroke-linecap="round"/>`;
 const unitCode = p => String(p.unit || '').replace(/^Medic\s*/, 'M').replace(/^Ambulance\s*/, 'A').replace(/\s+/g, '').slice(0, 4);
 /* An ambulance seen from above, cab to the left, back doors toward the building. */
 function ambSVG(o) {
@@ -276,7 +267,7 @@ function mapMove(from, pts, kind, p, pusher) {
   const dur = Math.max(650, Math.min(2800, len / 0.45));
   const n = document.createElementNS(SVGNS, 'g'); n.setAttribute('class', 'mmove');
   const esi = p.tri === 'done' || p.room ? ve(p) : 0;
-  n.innerHTML = kind === 'stretcher' ? `<g transform="translate(-32 0)">${figSVG({ seed: p.id + 'm1', body: pusher || ROLEC.ems, stripe: pusher ? null : '#E3BA12', k: 1.15 })}</g>${stretcherSVG(-16, -11, 54, 22, p, esi)}` : `<g class="wk">${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15 })}</g>`;
+  n.innerHTML = kind === 'stretcher' ? `<g transform="translate(-32 0)">${crewSVG(false, pusher)}</g>${stretcherSVG(-16, -11, 54, 22, p, esi)}` : `<g class="wk">${ptChipSVG(p)}</g>`;
   n.style.transform = `translate(${from[0]}px, ${from[1]}px)`;
   layer.appendChild(n);
   let acc = 0;
@@ -473,41 +464,36 @@ function mapRender(G) {
     else if (sel && sel.type === 'tri') selc = ' no';
     else if (selS) selc = p && E.needsProv(p) && E.canAssign(selS, p).ok ? ' ok' : ' no';
     const crit = p && (p.crash || p.arrest || p.shock || (p.bleed === 'mtp' && !p.bb));
-    const fill = r.closed ? 'url(#closedP)' : dirty ? '#F1E7DA' : empty && r.st === 'cleaning' ? '#E3F0F0' : p ? '#FFFFFF' : '#E6F4EA';
+    const nfl = !!(ns && /\bfl\b/.test(ns.c)), ntn = ns ? toneOf(ns.c).replace(' fl', '') : '';
+    const cat = r.closed ? 'closed' : p ? (!nfl ? (ntn === 'board' ? 'board' : 'calm') : ntn === 'bad' || ntn === 'code' ? 'bad' : ntn === 'go' ? 'go' : ntn === 'warn' ? 'warn' : ntn === 'act' ? 'need' : ntn === 'board' ? 'board' : 'calm')
+      : dirty ? (G.evsQ.indexOf(r.id) < 0 && !md ? 'dirty' : 'dirtyq') : r.st === 'cleaning' ? 'cleaning' : 'empty';
+    const TL = TILE[cat], solid = !!TL[2], fill = TL[0];
     const words = String(ns ? ns.t : r.closed ? 'Closed' : r.st === 'dirty' ? (G.evsQ.indexOf(r.id) >= 0 ? 'EVS line #' + (G.evsQ.indexOf(r.id) + 1) : 'Dirty') : r.st === 'cleaning' ? 'Cleaning' : 'Clean');
     const plain = words.replace(/<[^>]+>/g, '');
-    const sw = p ? 4 : 3, hallE = kind === 'hall' && !p && !r.closed && r.st === 'clean';
-    let g = `<rect class="mr-f" x="${sw / 2}" y="${sw / 2}" width="${w - sw}" height="${h - sw}" rx="6" fill="${hallE ? 'rgba(255,255,255,.4)' : fill}" stroke="${p ? '#2B3240' : r.closed ? '#7F8A99' : hallE ? '#8A94A3' : r.st === 'clean' ? '#3F8F63' : '#8A7A62'}" stroke-width="${sw}"${hallE ? ' stroke-dasharray="7 5"' : ''}/>`;
-    if (dirty) g += `<rect width="${w}" height="${h}" rx="7" fill="url(#dirt)"/>`;
+    const sw = solid ? 4 : cat === 'empty' ? 2 : 3, hallE = kind === 'hall' && !p && !r.closed && r.st === 'clean';
+    let g = `<rect class="mr-f" x="${sw / 2}" y="${sw / 2}" width="${w - sw}" height="${h - sw}" rx="9" fill="${hallE ? 'rgba(255,255,255,.4)' : fill}" stroke="${hallE ? '#8A94A3' : TL[1]}" stroke-width="${sw}"${hallE ? ' stroke-dasharray="7 5"' : ''}/>`;
+    if (cat === 'dirtyq') g += `<rect width="${w}" height="${h}" rx="9" fill="url(#dirt)"/>`;
     if (r.safe) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#3F7FC4" stroke-width="3.6" stroke-dasharray="3 5"/>`;
     if (r.iso) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#E0A21A" stroke-width="2.4" stroke-dasharray="7 5"/>`;
     if (p && p.arrest) g += `<rect class="codefl" width="${w}" height="${h}" rx="7" fill="#C8243A"/>`;
     if (md && p && mine(p)) g += `<rect x="5.5" y="5.5" width="${w - 11}" height="${h - 11}" rx="4" fill="none" stroke="#F2C230" stroke-width="4.5"/><path d="M0 ${h - 30} V${h - 7} a7 7 0 0 0 7 7 H30Z" fill="#F2C230"/>`;
-    const vt = p ? E.vitalsOf(p) : null, bp = p && !ARRIVE.has(p.id) ? p : null;   // bp: the patient once they are actually in the bed
-    const mon = !bp ? 'off' : p.arrest ? 'flat' : crit || vt.s >= 1.25 ? 'bad' : 'ok', iv = !!(bp && p.tr && p.tr.length && !E.treatsDone(p));
-    if (kind === 'chair') g += reclinerSVG(cx, h / 2 + 3, bp);
-    else if (kind === 'hall') g += stretcherSVG(28, 11, 49, 25, bp, esi);
-    else if (kind === 'resus') {
-      g += `<circle cx="${cx - 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/><circle cx="${cx + 27}" cy="42" r="4.6" fill="#F7E7A6" stroke="#C9B26A"/>` + bedSVG(cx, 44, 44, 84, bp, esi, dirty);
-      g += `<g class="nearonly">${monSVG(6, 52, mon) + ivSVG(w - 16, 58, iv)}<rect x="7" y="${h - 30}" width="15" height="22" rx="3" fill="#C8243A"/><rect x="7" y="${h - 22}" width="15" height="3" fill="#F3D5D9"/><rect x="${w - 22}" y="${h - 30}" width="15" height="22" rx="3" fill="#7F93AB"/><rect x="${w - 20}" y="${h - 28}" width="11" height="7" rx="1.5" fill="#263042"/></g>`;
-    } else {
-      g += bedSVG(cx, 38, 38, 54, bp, esi, dirty);
-      if (!r.safe) g += `<g class="nearonly">${curtainSVG(5, 38, 9) + monSVG(10, 40, mon) + ivSVG(w - 15, 46, iv)}</g>`;
-    }
+    const vt = p ? E.vitalsOf(p) : null;
     if (p && p.arrest) g += `<g class="beacon" transform="translate(${w - 13} ${h - 13})"><circle r="8" fill="#C8243A" stroke="#fff" stroke-width="1.2"/><path class="bspin" d="M0 0 L8 -3.4 A8.7 8.7 0 0 1 8 3.4Z" fill="#FFE3E6"/></g>`;
     // the info band: number, what it needs, ESI
     const small = kind === 'hall' || kind === 'chair', idf = small ? 19 : String(r.id).length > 2 ? 17 : 22;   // hallway beds and chairs read as large as they can in a short tile
     const rlab = kind === 'chair' ? 'Ch' + String(r.id).slice(1) : r.id;   // chairs are Ch1 to Ch6 on the map, so they are not read as Pod C
-    g += `<text x="6" y="${small ? 20 : String(r.id).length > 2 ? 21 : 23}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(rlab)}</text>`;
-    if (esi) g += small ? `<circle cx="${w - 12}" cy="12" r="10" fill="var(--e${esi})"/><text x="${w - 12}" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`
-      : `<circle cx="${w - 16}" cy="17" r="13" fill="var(--e${esi})"/><text x="${w - 16}" y="23" text-anchor="middle" font-size="17" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`;
+    g += `<text x="6" y="${small ? 20 : String(r.id).length > 2 ? 21 : 23}" font-size="${idf}" font-weight="700" fill="${solid ? '#FFFFFF' : cat === 'empty' ? '#8A94A3' : '#1B2230'}">${esc(rlab)}</text>`;
+    if (esi) g += small ? `<circle cx="${w - 12}" cy="12" r="10" fill="var(--e${esi})" stroke="#FFFFFF" stroke-width="1.8"/><text x="${w - 12}" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`
+      : `<circle cx="${w - 16}" cy="17" r="13" fill="var(--e${esi})" stroke="#FFFFFF" stroke-width="2.2"/><text x="${w - 16}" y="23" text-anchor="middle" font-size="17" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`;
     if (vt && vt.taken && !vt.arrest && vt.trend === 'worse' && vt.s >= 1.15) g += `<path d="M-6.5 -4 H6.5 L0 6.5Z" transform="translate(${small ? w - 27 : w - 33} ${small ? 23 : 31})" fill="#C8243A" stroke="#fff" stroke-width="1.4"/>`;   // vitals heading the wrong way
     let ico = null, tone = '';
     if (p) { ico = ns.i || 'wait'; tone = toneOf(ns.c); }
     else if (r.closed) { ico = 'lock'; tone = 'off'; }
     else if (r.st === 'dirty') { ico = 'broom'; tone = G.evsQ.indexOf(r.id) < 0 && !md ? 'dirty fl' : 'dirtyq'; }
     else if (r.st === 'cleaning') { ico = 'sparkle'; tone = 'clean'; }
-    if (ico) g += small ? icoSVG(ico, w - 13, h - 14, 11.5, tone) : icoSVG(ico, cx + 2, 18, 16, tone);
+    if (solid) tone = `inv t-${cat}${/\bfl\b/.test(tone) ? ' fl' : ''}`;   // on a solid tile the icon is white with the tile's colour inside
+    const tall = h > 120;   // zoomed out, one big icon in the middle of the tile; zoomed in, a small one on the top row, over the name and the words
+    if (ico) g += small ? icoSVG(ico, w - 13, h - 14, 11.5, tone) : `<g class="faronly">${icoSVG(ico, cx, tall ? h / 2 - 4 : 48, tall ? 24 : 19, tone)}</g><g class="nearonly">${icoSVG(ico, cx + 2, 18, 16, tone)}</g>`;
     // zoomed in: the words. A room wraps them onto two lines before it cuts them off; a hallway bed or a chair has one line and says it shorter.
     const tcol = ns ? (/n-bad|n-code/.test(ns.c) ? '#C8243A' : /n-act/.test(ns.c) ? '#1E5BC6' : /n-go/.test(ns.c) ? '#1F8048' : /n-warn/.test(ns.c) ? '#96590A' : '#5E6878') : r.st === 'dirty' ? '#8C6239' : r.closed ? '#7A8493' : '#1F8048';
     const flw = ns && /\bfl\b/.test(ns.c), fs = small ? 11.5 : 13, maxc = Math.floor((w - (small ? 30 : 8)) / (fs * 0.5));
@@ -525,7 +511,7 @@ function mapRender(G) {
       }
     }
     const two = lines.length > 1, lh = 12.5, wy = h - 21 - (two ? lh : 0), wfs = two ? 11 : fs, wx = small ? (w - 26) / 2 : cx;
-    g += `<g class="nearonly"><rect x="2" y="${wy}" width="${w - (small ? 28 : 4)}" height="${19 + (two ? lh : 0)}" rx="5" fill="${flw ? tcol : 'rgba(255,255,255,.92)'}"/>${lines.map((ln, i) => `<text x="${wx}" y="${h - 7 - (two && !i ? lh : 0)}" text-anchor="middle" font-size="${wfs}" font-weight="700" fill="${flw ? '#FFFFFF' : tcol}">${tsp(ln)}</text>`).join('')}</g>`;
+    g += `<g class="nearonly"><rect x="2" y="${wy}" width="${w - (small ? 28 : 4)}" height="${19 + (two ? lh : 0)}" rx="5" fill="${solid ? '#FFFFFF' : flw ? tcol : 'rgba(255,255,255,.92)'}"/>${lines.map((ln, i) => `<text x="${wx}" y="${h - 7 - (two && !i ? lh : 0)}" text-anchor="middle" font-size="${wfs}" font-weight="700" fill="${solid ? TL[0] : flw ? '#FFFFFF' : tcol}">${tsp(ln)}</text>`).join('')}</g>`;
     // the patient's name, highlighted, so a message that names someone can be matched to a room. A bus-crash patient's tag colour rides on it.
     if (p) {
       const nfill = crit ? '#C8243A' : '#1B2230', tc = p.tag ? TAGC[p.tag] : null;
@@ -554,7 +540,7 @@ function mapRender(G) {
     const ok = sel && sel.type === 'reg' ? regable(p) : sel && sel.type === 'tri' ? p.tri === 'none' && (p.loc === 'wall' || p.loc === 'triage') : null;
     return `<g class="mpt${ok === true ? ' ok' : ok === false ? ' no' : ''}${sel && sel.pid === p.id ? ' sel' : ''}" data-act="pt" data-arg="${p.id}"${clu ? ` data-clu="${clu}"` : ''} transform="translate(${x} ${y})" role="button" aria-label="${esc(p.name)}, ${E.ageSex(p)}, ${esc(p.cc)}${extra || ''}">${inner}</g>`;
   };
-  const walker = p => `<rect x="-18" y="-19" width="36" height="40" fill="transparent"/><g class="wk">${figSVG({ seed: p.id, body: pickH(CLOTHES, p.id, 'c'), k: 1.15, ring: sel && sel.pid === p.id })}</g>`;
+  const walker = p => `<rect x="-18" y="-19" width="36" height="40" fill="transparent"/><g class="wk">${ptChipSVG(p, !!(sel && sel.pid === p.id))}</g>`;
   const walkers = [];   // people on their feet at the door and in the waiting room: keyed, so they walk between spots
 
   // the waiting room: everyone keeps their seat
@@ -597,7 +583,7 @@ function mapRender(G) {
     posNow.set(p.id, { x: 195, y, kind: 'wall' });
     const badge = intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
       : E.emergent(p) ? icoSVG('alert', 240, y + 9, 9, 'bad fl') : '';
-    pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${figSVG({ seed: p.id + 'm1', body: ROLEC.ems, stripe: '#E3BA12', k: 1.25, ring: sel && sel.pid === p.id })}</g>`
+    pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${crewSVG(!!(sel && sel.pid === p.id))}</g>`
       + stretcherSVG(152, y - 13, 86, 26, p, esi) + (p.tag ? `<rect x="148" y="${y - 12}" width="9" height="24" rx="3" fill="${TAGC[p.tag]}" stroke="#fff" stroke-width="1.3"/>` : '')
       + `<g class="nearonly"><rect x="174" y="${y - 7}" width="62" height="14" rx="5" fill="#1B2230"/><text x="205" y="${y + 3.6}" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">${esc(p.name.length > 11 ? p.name.slice(0, 10) + '…' : p.name)}</text><text x="170" y="${y - 15.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#2B3240">${esc(p.unit || '')}</text></g>`
       + `<g transform="translate(226 ${y - 15})"><rect x="-20" y="-9.5" width="40" height="19" rx="9.5" fill="${mins > 30 ? '#C8243A' : mins > 15 ? '#B76E00' : '#5E6878'}" stroke="#fff" stroke-width="1"/><text y="5.2" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff">${mins}m</text></g>${badge}`,
@@ -615,7 +601,7 @@ function mapRender(G) {
       n.style.transform = !motion ? tr : prev ? `translate(${prev.x}px, ${prev.y}px)` : p.loc === 'triage' && G.t - p.tArrive < 3 ? 'translate(124px, 663px)' : tr;
       wl.appendChild(n); n.getBoundingClientRect();
     }
-    const inner = walker(p) + (w.dot ? `<circle cx="11" cy="-11" r="6.5" fill="var(--e${ve(p)})" stroke="#fff" stroke-width="1"/><text class="nearonly" x="11" y="-7.6" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff">${ve(p)}</text>` : '');
+    const inner = walker(p);
     if (n._svg !== inner) { n.innerHTML = inner; n._svg = inner; }
     const cls = `mpt mwalk${ok === true ? ' ok' : ok === false ? ' no' : ''}${sel && sel.pid === p.id ? ' sel' : ''}`;
     if (n._c !== cls) { n.setAttribute('class', cls); n._c = cls; }
@@ -667,8 +653,8 @@ function mapRender(G) {
   const layer = document.getElementById('mPeople'), seen = new Set();
   for (const s of G.staff) {
     const at = staffSpot(s, G, sl); if (!at) continue;
-    const id = 's-' + s.id, coat = s.role === 'md' || s.role === 'app' || s.role === 'rph' ? '#FBFBFB' : null, inRoom = at[2] === 'room' || at[2] === 'with', me = isMe(s);
-    const svg = (inRoom ? '' : '<circle r="22" fill="transparent"/>') + '<g class="wk">' + figSVG({ seed: s.id, body: ROLEC[s.role], coat, tag: at[2] === 'seat' ? '' : me ? 'You' : s.short, tagFg: ROLEC[s.role], ring: !!(sel && sel.sid === s.id), me }) + '</g>';
+    const id = 's-' + s.id, inRoom = at[2] === 'room' || at[2] === 'with', me = isMe(s);
+    const svg = (inRoom ? '' : '<circle r="22" fill="transparent"/>') + '<g class="wk">' + chipSVG({ label: roleLab(s), body: ROLEC[s.role], tag: at[2] === 'seat' ? '' : me ? 'You' : s.short, tagFg: ROLEC[s.role], ring: !!(sel && sel.sid === s.id), me }) + '</g>';
     const actn = E.isProv(s) ? 'prov' : s.role === 'reg' ? 'regSel' : s.role === 'rn' && s.zones.includes('triage') ? 'triSel' : 'staffOpen';
     seen.add(id);
     let n = layer.querySelector(`[data-id="${id}"]`);

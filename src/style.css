@@ -11,7 +11,7 @@
   --accent: #1E5BC6;
   --good: #1F8048; --warn: #C97F06; --bad: #C8243A;
   --e1: #C8243A; --e2: #E9761A; --e3: #E3BA12; --e4: #2F9C55; --e5: #2B6FCB;
-  --md: #22306C; --app: #0D716E; --rn: #66399A; --pct: #9C5418; --evs: #4F5F68; --rt: #1E7896; --rph: #7B4A73; --reg: #5E6C12; --tp: #A3417A;
+  --md: #1A2B8F; --app: #007A70; --rn: #7A2BC4; --pct: #C24400; --evs: #37474F; --rt: #0E7490; --rph: #7A1F3D; --reg: #B5126F; --tp: #6B4423;
   --display: "Cardo", Georgia, "Times New Roman", serif;
   --ui: "Cardo", Georgia, "Times New Roman", serif;
   --body: "Cardo", Georgia, "Times New Roman", serif;
@@ -647,7 +647,7 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 .map .boxring circle { fill: none; stroke: #FFB13B; stroke-width: 2.5; animation: boxring 1s ease-out infinite; }
 .map .boxring .r2 { animation-delay: .5s; }
 @keyframes boxring { from { transform: scale(.6); opacity: 1; } to { transform: scale(2.6); opacity: 0; } }
-.map .mroom.ok .mr-f { stroke: #1F8048; stroke-width: 4px; vector-effect: non-scaling-stroke; }
+.map .mroom.ok .mr-f { fill: #C9F2D6; stroke: #12813A; stroke-width: 4px; vector-effect: non-scaling-stroke; }
 .map .mroom.no { opacity: .5; }
 .map .mpt.ok { filter: drop-shadow(0 0 5px #2BB55F) drop-shadow(0 0 2px #2BB55F); }
 .map .mpt.no { opacity: .5; }
@@ -674,6 +674,11 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 .mico.dirtyq { --ib: #EFE4D3; color: #8C6239; }
 .mico.dirtyq .ib { stroke: #C9B48F; }
 .mico.clean { --ib: #DDF0EF; color: #1E7896; }
+.mico.inv { --ib: #FFFFFF; }   /* on a solid tile: a white square, the tile's colour inside */
+.mico.inv .ib { stroke: rgba(255, 255, 255, .9); }
+.mico.inv.t-need { color: #1648C8; } .mico.inv.t-bad { color: #D11A2F; } .mico.inv.t-go { color: #12813A; } .mico.inv.t-warn { color: #B45309; } .mico.inv.t-dirty { color: #7A4A1E; }
+.mico.board { --ib: #FFFFFF; color: #5B2FB0; }
+.mico.board .ib { stroke: #6D3FC0; }
 .mico.clean .ib { stroke: #9CCFC8; }
 .mico .ir { fill: var(--ib); stroke: none; animation: icoPulse 1.3s ease-out infinite; }
 .mico.code .ir { animation-duration: .7s; }
@@ -682,6 +687,9 @@ svg.lgi { width: 26px; height: 26px; margin-right: 6px; vertical-align: -8px; }
 .lgd { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; margin: 6px 0 10px; font-size: 13.5px; line-height: 1.2; }
 .lgd span { display: flex; align-items: center; }
 .lgd svg.lgi { flex: none; }
+svg.lgc { flex: none; width: 40px; height: 27px; margin-right: 6px; }
+.lgsw { flex: none; width: 22px; height: 22px; margin-right: 8px; border: 2px solid #1B2230; border-radius: 6px; }
+.lgh { margin: 12px 0 2px; font: 700 12px/1.2 var(--ui); letter-spacing: .8px; text-transform: uppercase; color: var(--ink-3); }
 .mag-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 8px; }
 .mag-list .mag { max-width: 100%; transform: none; }
 @media (prefers-reduced-motion: reduce) {
