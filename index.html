@@ -1141,7 +1141,7 @@ const CASES = [
   { k: 'chole', cc: 'Belly pain after meals', dx: 'Cholecystitis', esi: 3, src: 'b', age: [30, 70], sex: 'F', wt: 3, wk: ['lab', 'us'], tr: ['meds'], con: 'surg', pre: ['lab', 'us'], dispo: 'admit', find: { lab: 'WBC 13.1, liver tests up', us: 'Gallstones, thick gallbladder wall' }, ok: ['abx'] },
   { k: 'hipfx', cc: 'Fell, hip pain', dx: 'Hip fracture', esi: 3, src: 'e', age: [70, 95], wt: 5, wk: ['xr', 'lab'], tr: ['meds'], con: 'ortho', pre: ['xr'], dispo: 'admit', find: { xr: 'Femoral neck fracture', lab: 'Hgb 11.9' }, ok: ['ecg'] },
   { k: 'pna', cc: 'Cough and fever', dx: 'Pneumonia', esi: 3, src: 'b', age: [50, 90], wt: 4, wk: ['lab', 'xr'], tr: ['o2', 'abx'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', find: { lab: 'WBC 17.2', xr: 'Right lower lobe infiltrate' } },
-  { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 2, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 90%, RR 24, wheezing', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' }, ok: ['meds'] },
+  { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 1, anyRoom: true, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 90%, RR 24, wheezing', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' }, ok: ['meds'] },
   { k: 'chf', cc: "Short of breath, can't lie flat", dx: 'Heart failure flare', esi: 2, src: 'e', age: [60, 90], wt: 3, wk: ['ecg', 'xr', 'lab'], tr: ['bipap', 'meds'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 91%, BP 178/102', find: { ecg: 'Sinus tach, old Q waves', xr: 'Pulmonary edema', lab: 'BNP 2,400' } },
   { k: 'stone', cc: 'Flank pain', dx: 'Kidney stone', esi: 3, src: 'w', age: [25, 60], wt: 4, wk: ['lab', 'ct'], tr: ['meds', 'fluids'], dispo: 'home', find: { lab: 'Blood in urine, no infection', ct: '4 mm ureteral stone' } },
   { k: 'dvt', cc: 'Swollen leg', dx: 'Deep vein thrombosis', esi: 3, src: 'w', age: [30, 80], wt: 3, wk: ['us', 'lab'], tr: ['meds'], dispo: 'home', find: { us: 'Femoral vein clot', lab: 'Kidney function normal' } },
@@ -1153,7 +1153,7 @@ const CASES = [
   { k: 'cell', cc: 'Red, hot leg', dx: 'Cellulitis', esi: 3, src: 'w', age: [30, 80], wt: 3, wk: ['lab'], tr: ['abx'], con: 'hosp', pre: ['lab'], dispo: 'admit', find: { lab: 'WBC 14.0' } },
   { k: 'syncope', cc: 'Passed out', dx: 'Syncope, low risk', esi: 3, src: 'b', age: [16, 70], wt: 3, wk: ['ecg', 'lab'], tr: [], dispo: 'home', gray: 'syncope', find: { ecg: 'Normal sinus rhythm', lab: 'Normal' } },
   { k: 'synchigh', cc: 'Passed out sitting down', dx: 'Syncope, high risk', esi: 2, src: 'b', age: [60, 90], wt: 1.5, wk: ['ecg', 'lab'], tr: [], dispo: 'obs', gray: 'syncope', find: { ecg: 'New bundle branch block', lab: 'Normal' } },
-  { k: 'tia', cc: 'Arm went numb, now fine', dx: 'Transient ischemic attack', esi: 3, src: 'w', age: [55, 88], wt: 1.5, wk: ['ct', 'lab', 'ecg'], tr: [], dispo: 'obs', gray: 'tia', find: { ct: 'No acute findings', lab: 'Normal', ecg: 'Normal sinus rhythm' }, ok: ['meds'] },
+  { k: 'tia', cc: 'Arm went numb, now fine', dx: 'Transient ischemic attack', esi: 2, src: 'w', age: [55, 88], wt: 1.5, wk: ['ct', 'lab', 'ecg'], tr: [], dispo: 'obs', gray: 'tia', find: { ct: 'No acute findings', lab: 'Normal', ecg: 'Normal sinus rhythm' }, ok: ['meds'] },
   { k: 'dehyd', cc: 'Weak and dizzy', dx: 'Dehydration', esi: 3, src: 'e', age: [65, 95], wt: 3, wk: ['lab'], tr: ['fluids'], dispo: 'home', find: { lab: 'BUN 34, creatinine 1.4' } },
   { k: 'cpmod', cc: 'Chest pressure on and off', dx: 'Chest pain, moderate risk', esi: 2, src: 'b', age: [45, 75], wt: 2.5, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'obs', ecg10: true, gray: 'chest', find: { ecg: 'Nonspecific ST changes', lab: 'First troponin negative', xr: 'Clear lungs' } },
   { k: 'cwp', cc: 'Chest pain', dx: 'Chest pain, low risk', esi: 2, src: 'b', age: [25, 60], wt: 4, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'home', ecg10: true, gray: 'chest', find: { ecg: 'Normal sinus rhythm', lab: 'Troponin negative', xr: 'Clear lungs' } },
@@ -1163,7 +1163,7 @@ const CASES = [
   { k: 'gib', cc: 'Vomiting blood', dx: 'Upper GI bleed', esi: 2, src: 'b', age: [40, 85], wt: 2, wk: ['lab'], tr: ['fluids', 'blood'], con: 'gi', pre: ['lab'], dispo: 'admit', bleed: 'prbc', vit: 'HR 122, BP 92/58', find: { lab: 'Hemoglobin 6.8' } },
   { k: 'dka', cc: 'Vomiting, sugar very high', dx: 'Diabetic ketoacidosis', esi: 2, src: 'b', age: [16, 45], wt: 1.5, wk: ['lab'], tr: ['fluids', 'insulin'], con: 'icu', pre: ['lab'], dispo: 'icu', ok: ['ecg'], find: { lab: 'Glucose 540, anion gap 26, potassium 4.8', ecg: 'Sinus tachycardia, T waves normal' } },
   { k: 'asthma', cc: 'Wheezing', dx: 'Asthma attack', esi: 2, src: 'w', age: [5, 30], wt: 3, wk: [], tr: ['nebs', 'meds'], dispo: 'home', vit: 'SpO2 91%, can speak 3 words', watch: 60 },
-  { k: 'anaph', cc: 'Throat tight after eating shrimp', dx: 'Anaphylaxis', esi: 2, src: 'b', age: [12, 60], wt: 1.5, wk: [], tr: ['epi', 'meds'], dispo: 'home', vit: 'Hives, wheeze, BP 96/60', watch: 240 },
+  { k: 'anaph', cc: 'Throat tight after eating shrimp', dx: 'Anaphylaxis', esi: 1, anyRoom: true, src: 'b', age: [12, 60], wt: 1.5, wk: [], tr: ['epi', 'meds'], dispo: 'home', vit: 'Hives, wheeze, BP 96/60', watch: 240 },
   { k: 'sepsisw', cc: 'Fever and confusion', dx: 'Sepsis (urinary source)', esi: 2, src: 'w', age: [65, 92], wt: 1.2, wk: ['lab'], tr: ['fluids', 'abx'], con: 'hosp', pre: ['lab'], need: ['lab'], dispo: 'admit', alert: 'sepsis', vit: 'Temp 102.9, HR 118, BP 98/60', find: { lab: 'Lactate 3.1, urine positive' }, ok: ['xr'] },
   { k: 'strokew', cc: 'Face droop, slurred speech', dx: 'Acute ischemic stroke', esi: 2, src: 'w', age: [55, 88], wt: 1, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], dispo: 'icu', alert: 'stroke', find: { ct: 'No bleed', lab: 'Glucose 118' }, ok: ['ecg'] },
   // EMS alerts: they ring the Box first
@@ -1218,7 +1218,7 @@ const SCEN = {
     { q: '70F with CHF, SpO2 90% on CPAP, BP 112/70. The 12-lead shows inferior ST elevation, plus ST elevation in V4R. Requesting nitroglycerin.', a: false, why: 'CHF 6.3-A: with an inferior MI, consult before nitroglycerin. ST elevation in V4R means right ventricular involvement, and nitrates can drop her pressure hard.' },
     { q: '66F on lisinopril with tongue and lip swelling and a changing voice, no hives. Epinephrine did not help. Requesting TXA.', a: true, why: 'New in 2026 (Angioedema 4.8-A): epinephrine and TXA are given after medical consultation. ACE-inhibitor angioedema is bradykinin-driven, which is why epinephrine often fails. A changing voice means the airway is closing: do not delay transport.' },
     { q: '52M in severe alcohol withdrawal, tremulous and hallucinating after three IV doses of midazolam. Requesting a fourth.', a: true, why: 'Alcohol Withdrawal 4.3: midazolam beyond three IV doses requires consultation. Untreated severe withdrawal can seize or progress to delirium tremens.' },
-    { q: '50M with chest pain and ST elevation, Priority 1. The closest facility is a freestanding ED 5 minutes away; the PCI center is 18 minutes. Requesting the freestanding ED.', a: false, why: 'Freestanding Medical Facility 2.5: Priority 1 and 2 transports there require base station consultation. A STEMI needs a cardiac interventional center, not a freestanding ED.' },
+    { q: 'A crew on scene: 50M with chest pain and ST elevation, Priority 1. The closest facility is a freestanding ED 5 minutes away; the PCI center is 18 minutes. Requesting the freestanding ED.', a: false, why: 'Freestanding Medical Facility 2.5: Priority 1 and 2 transports there require base station consultation. A STEMI needs a cardiac interventional center, not a freestanding ED.' },
     { q: '6-year-old with diabetes, glucose 52 and still drowsy after one dose of D10. Requesting a second dose.', a: true, why: 'Pediatric Hypoglycemia 4.10: a second D10 dose requires consultation. Still under 70 and symptomatic: give it.' },
     { q: '9-month-old with croup, stridor at rest, and retractions. Requesting nebulized epinephrine.', a: true, why: 'Croup 6.4: nebulized epinephrine dosing for a child under 1 year requires consultation. Stridor at rest is the indication.' },
     { q: '78F with sepsis, BP 82/44 after 30 mL/kg of LR, lungs clear. Requesting more fluid.', a: true, why: 'Sepsis 4.15-A: fluid beyond 30 mL/kg may be approved by online consultation. Approve a bolus and start the epinephrine infusion: hypotension after 30 mL/kg is septic shock.' },
@@ -1855,7 +1855,7 @@ function canAssign(s, p) {
   if (!present(s)) return { ok: false, why: `${s.name} is not here` };
   if (s.pit) return { ok: false, why: `${s.name} is stationed in triage. Bring them back from their card first.` };
   if (p.loc !== 'room') return { ok: false, why: 'Put the patient in a room first' };
-  if (s.role === 'app' && (vEsi(p) <= 1 || p.esi <= 1)) return { ok: false, why: 'ESI 1 needs an attending' };
+  if (s.role === 'app' && (vEsi(p) <= 1 || p.esi <= 1) && !(p.anyRoom && !p.arrest && !p.crash)) return { ok: false, why: 'ESI 1 needs an attending' };   // an ESI 1 that needs one treatment now (an overdose, BiPAP, epinephrine) may go to a PA or NP, with a co-sign
   if (s.role === 'app' && p.tr.some(k => TREAT[k].md && (!p.treat[k] || p.treat[k].st !== 'done'))) return { ok: false, why: `${p.tr.filter(k => TREAT[k].md).map(k => TREAT[k].label).join(', ')} needs an attending` };
   if (p.prov === s.id && !needsProv(p)) return { ok: false, why: `Already ${s.short}'s patient` };
   if (p.prov && p.prov !== s.id) { const o = staff(p.prov); if (o && o.q.some(k => k.pid === p.id && k.started)) return { ok: false, why: `${o.name} is with this patient right now` }; }
@@ -2103,7 +2103,7 @@ const FIND_PLAIN = {
   'Potassium 4.4, troponin negative': 'potassium normal; no heart damage', 'Hemoglobin 6.8': 'blood count dangerously low', 'Glucose 540, anion gap 26, potassium 4.8': 'sugar very high; acid in the blood; potassium safe for insulin', 'Sinus tachycardia, T waves normal': 'fast and regular; no sign of high potassium',
   'Lactate 3.1, urine positive': 'organs short of oxygen; infection in the urine', 'No bleed': 'no bleeding in the brain',
   'Glucose 118': 'sugar is not the cause', 'Glucose 132': 'sugar is not the cause', 'Glucose 141': 'sugar is not the cause',
-  'ST elevation V1–V4': 'a heart attack on the front wall', 'Troponin pending': 'not back yet; do not wait for it',
+  'ST elevation V1–V4': 'a heart attack at the front of the heart', 'Troponin pending': 'not back yet; do not wait for it',
   'No bleed; CTA shows M1 occlusion': 'no bleeding; a big brain artery is blocked', 'No pneumothorax, FAST positive': 'lungs are up; blood in the belly',
   'Hemoglobin 8.1': 'blood count low and falling', 'Hemoglobin 7.9': 'blood count low and falling', 'Grade IV splenic laceration': 'a deep tear in the spleen',
   'Acute subdural hematoma': 'bleeding on the surface of the brain', 'INR 2.9': 'thin blood: it clots slowly', 'Open femur fracture': 'a broken thigh bone, through the skin',
@@ -2144,7 +2144,7 @@ const RADIO_PLAIN = {
     ['Heart failure, but the tracing shows a heart attack on the right side. They want nitroglycerin.', 'A right-sided heart attack needs its filling pressure. Nitroglycerin takes that away.'],
     ['Tongue and lip swelling from a blood pressure pill, and her voice is changing. Epinephrine did not work. They want TXA.', 'This swelling is not an allergy, so epinephrine often fails. TXA may help. Watch the airway.'],
     ['Severe alcohol withdrawal, still shaking and seeing things after three doses. They want a fourth.', 'Untreated, this leads to seizures. Approve another dose.'],
-    ['A heart attack. The crew wants the nearest place, a small ED with no cath lab.', 'A heart attack needs a cath lab. Drive the extra 13 minutes.'],
+    ['A crew on scene with a heart attack patient. They want the nearest place, a small ED with no cath lab.', 'A heart attack needs a cath lab. Drive the extra 13 minutes.'],
     ['A diabetic child, sugar still low and still drowsy after one dose of sugar. They want a second dose.', 'Still low and still drowsy: give sugar again.'],
     ['A baby with croup: noisy breathing at rest, ribs pulling in. They want epinephrine mist.', 'Noisy breathing at rest means a tight airway. Epinephrine mist opens it.'],
     ['Severe infection, pressure still low after a full fluid load. Lungs clear. They want more fluid.', 'Clear lungs can take one more bolus. A pressure this low also needs a pressor.'],
@@ -2376,7 +2376,7 @@ function setPit(sid, on) {
   if (!on) {
     for (const k of s.q) if (!k.started && (k.type === 'pit' || k.type === 'pitdc')) { const p = pt(k.pid); if (p) { p.pitQ = false; p.pitDcQ = false; } }
     s.q = s.q.filter(k => k.started || (k.type !== 'pit' && k.type !== 'pitdc'));
-    return { ok: true, msg: `${s.name} is back on the floor` };
+    return { ok: true, msg: `${s.name} is back` };
   }
   // Their unstarted room work goes back on the board for someone else.
   let freed = 0;
@@ -2538,7 +2538,7 @@ function triage(pid, sid) {
   const p = pt(pid), s = staff(sid);
   if (!p) return { ok: false, why: 'No patient' };
   if (!s || s.role !== 'rn') return { ok: false, why: 'Pick a nurse' };
-  if (s.st !== 'on') return { ok: false, why: `${s.name} is not on the floor` };
+  if (s.st !== 'on') return { ok: false, why: `${s.name} is away` };
   if (p.tri === 'done' || !(p.loc === 'wall' || p.loc === 'triage')) return { ok: false, why: `${label(p)} is already triaged` };
   if (p.tri !== 'none') { const o = staff(p.triBy); return { ok: false, why: `${o ? o.name : 'A nurse'} already has ${label(p)}` }; }
   if (s.skill === 'new') return { ok: false, why: `${s.name} is a new grad and isn't triage-trained yet` };
@@ -3187,7 +3187,7 @@ function returnVisit(orig) {
 
 /* ---------- waiting room, ratios, morale, AMA (once per game minute) ---------- */
 /* An active resuscitation (a code, or the first 20 minutes in the bay) takes a nurse and a half. */
-function activeResus(p) { return p.esi === 1 && p.dsp === 'none' && p.loc === 'room' && (p.arrest || (p.tRoom != null && G.t - p.tRoom < 20)); }
+function activeResus(p) { return p.esi === 1 && p.dsp === 'none' && p.loc === 'room' && (p.arrest || (!p.anyRoom && p.tRoom != null && G.t - p.tRoom < 20)); }   // anyRoom: one treatment now, not a resuscitation team
 function weight(p) {
   if (p.dsp === 'family' || p.dsp === 'morgue' || p.dsp === 'morguing') return 1;
   const r = p.room ? room(p.room) : null;
@@ -3434,7 +3434,7 @@ function recheck(pid, sid) {
   const p = pt(pid), s = staff(sid);
   if (!p || p.loc !== 'waiting') return { ok: false, why: 'Rechecks are for patients in the waiting room' };
   if (!s || s.role !== 'rn') return { ok: false, why: 'Pick a nurse' };
-  if (s.st !== 'on') return { ok: false, why: `${s.name} is not on the floor` };
+  if (s.st !== 'on') return { ok: false, why: `${s.name} is away` };
   if (s.skill === 'new') return { ok: false, why: `${s.name} is a new grad and isn't triage-trained yet` };
   if (s.tq.some(k => k.pid === pid && k.kind === 'recheck')) return { ok: false, why: `${s.name} already has that recheck` };
   if (p.lastRecheck != null && G.t - p.lastRecheck < 20) return { ok: false, why: `${p.name} was rechecked ${Math.round(G.t - p.lastRecheck)} min ago` };
@@ -3523,7 +3523,7 @@ function staffTick() {
   const t = G.t;
   for (const s of G.staff) {
     if (s.st === 'break' && t >= s.until) { s.st = 'on'; s.lastBreak = t; endCover(s); note(`${s.name} is back from break`); }
-    else if (s.st === 'away' && t >= s.until) { s.st = 'on'; endCover(s); toast(`${s.name} is back on the floor`, 'good'); }
+    else if (s.st === 'away' && t >= s.until) { s.st = 'on'; endCover(s); toast(`${s.name} is back`, 'good'); }
     else if (s.st === 'pending' && t >= s.until) { s.st = 'on'; s.lastBreak = t; if (s.tag !== 'swing shift' && s.tag !== 'Fast Track 09:00') { for (const z of s.zones) if (z !== 'ft' && G.rooms.some(r => r.z === z && r.closed)) setZoneClosed(z, false); toast(`${s.name} arrived${s.zones.length ? ' and took ' + zoneList(s.zones) + ', and it is open' : ''}`, 'good'); } }
     if (s.leaveAt != null && t >= s.leaveAt && (s.st === 'on' || s.st === 'break')) {
       const zs = s.zones.slice();
@@ -3536,7 +3536,7 @@ function staffTick() {
 }
 function sendBreak(sid) {
   const s = staff(sid); if (!s) return { ok: false, why: 'Unknown staff member' };
-  if (s.st !== 'on') return { ok: false, why: `${s.name} is not on the floor` };
+  if (s.st !== 'on') return { ok: false, why: `${s.name} is away` };
   if (isProv(s) && s.q[0] && s.q[0].started) return { ok: false, why: `${s.name} is with a patient. Try again in a minute.` };
   revertTask(s);
   s.st = 'break'; s.until = G.t + 30;
@@ -5303,7 +5303,7 @@ function divertSheet(G) {
 const GLOSS = [
   ['The people', [
     ['Charge nurse', 'The nurse in charge of the whole department for the shift. Decides who goes in which bed and who takes care of them.'],
-    ['Attending', 'A fully trained emergency physician. The senior doctor on the floor.'],
+    ['Attending', 'A fully trained emergency physician. The senior doctor in the department.'],
     ['PA, NP', 'Physician assistant and nurse practitioner. They examine patients and write orders, with an attending behind them.'],
     ['Provider', 'Whoever examines the patient and writes the orders: an attending, a PA, or an NP.'],
     ['RN', 'Registered nurse. Gives the medications, watches the patient, and carries out the orders.'],
@@ -5508,7 +5508,7 @@ function helpHTML() {
 <li><b>Turn rooms.</b> Nothing gets cleaned until you send EVS. Tap a dirty room to put it in the EVS line; tap it again to move it to the front, like a resus bay before a trauma arrives.</li>
 <li><b>Watch your nurses.</b> Each nurse handles 4 points, and an active resuscitation takes a nurse and a half. Tap a pod ${fp ? 'sign' : 'header'} to move nurses. Casey is your resource nurse. Reyes is a new grad: not ready for Resus or triage. Send people on breaks.</li>
 <li><b>Divert.</b> When something breaks, go on the matching diversion: CT Divert when the scanner is down, STEMI Divert when the cath lab is down, Trauma Divert when there's no trauma surgeon or OR, and Internal Disaster when the lab or power fails. Lift it as soon as the fix is in. Yellow Alert (ED saturated) and Red Alert (no monitored beds) are for when you're full. Watch the neighbors: if too many hospitals are on alert, the region suspends everyone. The full-capacity protocol moves admitted patients to inpatient hallways.</li>
-<li><b>Your scores.</b> Avg wait is door to provider. Pt mgmt is your patient management score. Staff is worker satisfaction. Avoid LWBS, AMA, 72-hour returns, and ambulances stuck on the wall. The shift report shows the metrics an ED director answers for, and walks you through your three worst moments.</li>
+<li><b>Your scores.</b> Avg wait is door to provider. Pt mgmt is your patient management score. Staff is worker satisfaction. Avoid LWBS, AMA, 72-hour returns, and ambulances stuck on the wall. The shift summary shows the metrics an ED director answers for, and walks you through your three worst moments.</li>
 </ol>`;
 }
 function helpMD() {
@@ -5536,7 +5536,7 @@ function renderSheet(G) {
     else if (s.type === 'divert') h = divertSheet(G);
     else if (s.type === 'help') h = helpHTML();
     else if (s.type === 'words') h = wordsHTML();
-    else if (s.type === 'legend') h = head('What the floor shows', 'One icon on each room: what it needs next.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The number in the circle is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient.' : ''}</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
+    else if (s.type === 'legend') h = head('What the map shows', 'One icon on each room: what it needs next.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The number in the circle is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient.' : ''}</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
     if (!h) U.sheet = null;
   } else if (s && s.type === 'help') h = helpHTML();
   else if (s && s.type === 'words') h = wordsHTML();
@@ -5618,15 +5618,15 @@ const STEPS = [
   { id: 'm6', title: 'Send a provider', text: () => `Nobody is examined until you send a provider.\nTap **Rivera**, a PA, ${SIDE()}. Then tap **${E.roomName(tid('maria').room || '1')}**.`, ...provStep('maria', 'pa1') },
   { id: 'ic1', next: true, title: 'Blue or gray', text: () => (FP() ? `Her icon turned **gray**: someone is with her, so she is not waiting on you.\n**Blue and pulsing** needs you. **Gray** is waiting on someone else.\nLater you will see a **house**: ready to go home. A **purple bed**: admitted, waiting for a bed upstairs. A **broom**: dirty.` : `The words on her room turned **gray**: someone is with her, so she is not waiting on you.\n**Blue** needs you. **Gray** is waiting on someone else. **Green** is ready to go. **Purple** is admitted, waiting for a bed upstairs.`), spot: () => [roomSel(tid('maria'))] },
   { id: 'ic2', title: 'Zoom in', text: `**+** zooms in, and the icons turn into **words**.\nTap **+** until they do.`, spot: () => ['#mzoom [data-arg="in"]'], done: () => !FP() || !CAM.far, auto: () => { for (let i = 0; i < 4 && CAM.far; i++) mapZoom(1.5); } },
-  { id: 'ic3', title: 'The whole floor', text: `Now each room says what it needs in **words**. Zoomed in, you see less of the floor. Drag to move around.\nTap **⤢** to see the whole floor again.`, spot: () => ['#mzFit'], done: () => !FP() || !mapZoomed(), auto: () => mapZoom(0) },
+  { id: 'ic3', title: 'The whole department', text: `Now each room says what it needs in **words**. Zoomed in, you see less of the department. Drag to move around.\nTap **⤢** to see the whole department again.`, spot: () => ['#mzFit'], done: () => !FP() || !mapZoomed(), auto: () => mapZoom(0) },
   { id: 'm7', wait: true, title: 'The workup', text: `Rivera orders a urine test. Tests that find what is wrong are the **workup**.\nA **tech** collects the sample. Techs are **PCTs**, patient care technicians: the nurses’ extra hands.`, done: () => tid('maria').dxK || tid('maria').loc === 'gone' },
-  { id: 'rest', next: true, title: 'The rest of the floor', text: () => `**H1 to H4** are **hallway beds**, for when the rooms are full.\n**Fast** is **Fast Track**: four rooms for minor problems, open from 09:00.\n**Chairs** are for patients who only need to wait for results.\n${FP() ? '**Orange dashes**' : '**ISO**'}: an isolation room, for infections that spread through the air. ${FP() ? '**Blue dots**' : '**Safe**'}: a safe room, for a patient who might hurt themselves.`, spot: () => ['#zh-hall, #mzh-hall', '#zh-ft, #mzh-ft', '#zh-rp, #mzh-rp'] },
+  { id: 'rest', next: true, title: 'The rest of the department', text: () => `**H1 to H4** are **hallway beds**, for when the rooms are full.\n**Fast** is **Fast Track**: four rooms for minor problems, open from 09:00.\n**Chairs** are for patients who only need to wait for results.\n${FP() ? '**Orange dashes**' : '**ISO**'}: an isolation room, for infections that spread through the air. ${FP() ? '**Blue dots**' : '**Safe**'}: a safe room, for a patient who might hurt themselves.`, spot: () => ['#zh-hall, #mzh-hall', '#zh-ft, #mzh-ft', '#zh-rp, #mzh-rp'] },
   { id: 'm8', wait: true, title: 'Treatment', text: `The test shows a **UTI**: a urinary tract infection.\nThe **pharmacist** checks the antibiotic order. Then her nurse gives it. A registrar finishes her paperwork at the bedside.`, done: () => tid('maria').dsp !== 'none' || tid('maria').loc === 'gone' },
   { id: 'm9', title: 'Discharge', text: `She can go home. That is a **discharge**.\nTap **her room**, then **Discharge home**.`, ...roomAct('maria', '[data-act="dc"]'),
     done: () => ['dc', 'dcing'].includes(tid('maria').dsp) || tid('maria').loc === 'gone', auto: () => E.discharge(tid('maria').id) },
   { id: 'm10', wait: true, title: 'Discharge teaching', text: `Her nurse goes over the plan: how to take the antibiotic, and the **warning signs** that mean come back.`, setup: () => ({ room1: tid('maria').room || '1' }), done: () => tid('maria').loc === 'gone' },
   { id: 'top', next: true, title: 'The clock and your scores', text: `The shift runs **07:00 to 19:00**. Your five scores:\n**Wait**: minutes until a patient is examined.\n**Mgmt**: patient management. Points for moving patients safely.\n**Staff**: team morale.\n**LWBS**: Left Without Being Seen. They gave up and walked out.\n**Wall**: ambulance crews stuck waiting.\n**1×** is the speed. **II** pauses.`, spot: () => ['#top .hud'] },
-  { id: 'n1', title: 'What needs you', text: () => `${E.roomName(TR().ids.room1)} is **dirty** until you send someone.\nYou won’t spot everything yourself. The **Next** button, ${FP() ? (U.rails ? 'at the bottom left' : 'in the corner of the floor') : 'in the bottom right corner'}, counts what is waiting on you and goes to the most urgent.\nTap **Next**.`,
+  { id: 'n1', title: 'What needs you', text: () => `${E.roomName(TR().ids.room1)} is **dirty** until you send someone.\nYou won’t spot everything yourself. The **Next** button, ${FP() ? (U.rails ? 'at the bottom left' : 'in the corner of the map') : 'in the bottom right corner'}, counts what is waiting on you and goes to the most urgent.\nTap **Next**.`,
     setup: () => { TR().need = 1; return null; }, spot: () => ['#needBtn'], done: () => (TR().nx || 0) >= 1 || E.room(TR().ids.room1).st !== 'dirty' || g().evsQ.includes(TR().ids.room1), auto: () => { TR().nx = 1; } },
   { id: 'm11', title: 'Clean the room', text: () => `It took you to ${E.roomName(TR().ids.room1)}.\n**EVS** is environmental services: the housekeepers. Nothing gets cleaned until you send them.\nTap **the dirty room**.`, spot: () => [`#room-${TR().ids.room1}, #mroom-${TR().ids.room1}`],
     done: () => { const r = E.room(TR().ids.room1); return r.st !== 'dirty' || g().evsQ.includes(r.id); }, auto: () => E.evsTap(TR().ids.room1) },
@@ -5717,7 +5717,7 @@ const STEPS = [
   { id: 'k1', next: true, title: 'Alerts you will hear', text: `The Box calls in more than trauma. Each alert has a **time goal** on the patient’s card.\n**STEMI**: a heart attack. The **cath lab** opens the blocked artery with a thin tube.\n**Stroke**: a clot or a bleed in the brain.\n**Sepsis**: an infection overwhelming the body. Antibiotics within the hour.\n**Code**: a heart that has stopped.`},
   { id: 'k2', next: true, title: 'People who leave', text: `Three bad ways to leave. All of them cost you.\n**LWBS**: left without being seen, from the waiting room.\n**AMA**: against medical advice. Left a room before care was finished.\n**72-hour return**: sent home, came back sicker.\nThe first two are usually about waiting.`},
   { id: 'k3', next: true, title: 'When you are full', text: `**Yellow Alert** tells ambulances your ED is full.\n**Red Alert**: the hospital has no beds with heart monitors left.\nUse them only when you really are full. The hospital and EMS will both object.\nOn a real shift **Next** stays where it is, and **Words** is behind the pause button, **II**.`, spot: () => ['#needBtn'] },
-  { id: 'end', final: true, title: 'You’re ready', text: `That’s the job. A real shift throws it all at you at once, and the shift report walks you through your **three worst moments**.\nStart with **Quiet Tuesday**.`},
+  { id: 'end', final: true, title: 'You’re ready', text: `That’s the job. A real shift throws it all at you at once, and the shift summary walks you through your **three worst moments**.\nStart with **Quiet Tuesday**.`},
 ];
 const me = () => g().me;
 const seeStep = (key) => ({
@@ -6051,7 +6051,7 @@ function renderModal(G) {
     h = `<div class="mc-who">The Box · ${esc(m.unit)} · ${esc(m.doc)} on the line${m.pack === 'miemss' ? ' · Maryland protocols' : ''}</div><h3>Medical direction</h3><p class="scen">${esc(m.sc.q)}</p>${PLAIN() && m.sc.plain ? `<p class="scen-p"><b>In plain words:</b> ${esc(m.sc.plain)}</p>` : ''}<div class="mc-ch two"><button type="button"${m.sc.btn ? '' : ' class="go"'} data-act="scen" data-arg="1"><b>${esc((m.sc.btn || ['Approve'])[0])}</b></button><button type="button"${m.sc.btn ? '' : ' class="no"'} data-act="scen" data-arg="0"><b>${esc((m.sc.btn || [0, 'Deny'])[1])}</b></button></div>`;   // named choices are not green and red: neither is the "yes" answer
   } else if (U.modal && U.modal.type === 'result') {
     const r = U.modal.r;
-    h = `<div class="mc-res ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Correct' : 'Incorrect'}</div><h3>${r.sc.btn ? `You said: ${esc(r.sc.btn[r.approve ? 0 : 1])}` : `You ${r.approve ? 'approved' : 'denied'} it`}</h3>${PLAIN() && r.sc.pwhy ? `<p><b>${esc(r.sc.pwhy)}</b></p><p class="scen-c">${esc(r.sc.why)}</p>` : `<p>${esc(r.sc.why)}</p>`}<div class="mc-ch"><button type="button" data-act="modalOk"><b>Back to the floor</b></button></div>`;
+    h = `<div class="mc-res ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Correct' : 'Incorrect'}</div><h3>${r.sc.btn ? `You said: ${esc(r.sc.btn[r.approve ? 0 : 1])}` : `You ${r.approve ? 'approved' : 'denied'} it`}</h3>${PLAIN() && r.sc.pwhy ? `<p><b>${esc(r.sc.pwhy)}</b></p><p class="scen-c">${esc(r.sc.why)}</p>` : `<p>${esc(r.sc.why)}</p>`}<div class="mc-ch"><button type="button" data-act="modalOk"><b>Back to the shift</b></button></div>`;
   } else if (U.modal && U.modal.type === 'first') {
     const md = MD(), lines = md
       ? ['A **blue stethoscope** is a patient waiting for a doctor. Tap the room, then **See this patient**.', 'After your exam, **write the orders**. When results are back, **make the call**: home, admit, or transfer.', '**Next** jumps to whatever is waiting on you.']
@@ -6376,7 +6376,7 @@ function titleHTML() {
   const resume = sv ? `<button type="button" class="lvl resume" data-act="resumeSave"><span class="dot" style="background:var(--accent)"></span><span><b>Resume your shift</b><small>${sv.G.mode === 'md' ? 'Attending' : 'Charge nurse'}: ${sv.G.tr && LESSONS[sv.G.tr.lesson] ? 'Lesson: ' + esc(LESSONS[sv.G.tr.lesson].name) : esc(E.LEVELS[sv.lvl] ? E.LEVELS[sv.lvl].name : '')}, paused at ${E.clock(sv.G.t)}</small></span></button>` : '';
   const scens = `<div class="packs scn"><span id="scnLab">Scenario<i class="scn-for"> (for class or practice)</i></span><div class="segs s5">${Object.entries(E.SCENS).map(([k, S]) => `<button type="button" class="seg${U.scen === k ? ' on' : ''}" data-act="scenario" data-arg="${k}" aria-pressed="${U.scen === k}">${k === 'none' ? 'None' : esc(S.name)}</button>`).join('')}</div><select class="scn-sel" data-pick="scenario" aria-labelledby="scnLab">${Object.entries(E.SCENS).map(([k, S]) => `<option value="${k}"${U.scen === k ? ' selected' : ''}>${k === 'none' ? 'None' : esc(S.name)}</option>`).join('')}</select><small>${esc(E.SCENS[U.scen].blurb)}${U.scen !== 'none' ? ' <span class="scn-note">Not counted in your bests.</span>' : ''}</small></div>`;
   const packs = Object.entries(E.PACKS).map(([k, P]) => `<button type="button" class="seg${U.pack === k ? ' on' : ''}" data-act="pack" data-arg="${k}" aria-pressed="${U.pack === k}">${esc(P.name)}</button>`).join('');
-  return `<div class="card"><div class="t-kicker">An ED shift survival game</div><h1 class="t-brand">Overcrowded</h1><svg class="t-under" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 6 L297 6" stroke="#C8243A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>${modes}<p class="t-sub">${md ? "You're an attending in a 32-bed ED, 07:00 to 19:00. The charge nurse runs the board. You see patients, write the orders, make the calls, and answer the radio when a medic needs medical direction." : "You're the charge nurse for a 32-bed ED, 07:00 to 19:00. Five pods, a resus team, a radio that won't stop ringing, and an administrator who just walked in."}</p><div class="levels">${resume}${lv}</div>${scens}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}<div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="view">${U.view === 'map' ? 'Board: floor plan' : 'Board: list'}</button><button type="button" data-act="sound">Sound: ${U.sound ? 'on' : 'off'}</button>${lastReport() ? '<button type="button" data-act="lastReport">Last report</button>' : ''}${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? `<button type="button" data-act="fullscreen">${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
+  return `<div class="card"><div class="t-kicker">An ED shift survival game</div><h1 class="t-brand">Overcrowded</h1><svg class="t-under" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 6 L297 6" stroke="#C8243A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>${modes}<p class="t-sub">${md ? "You're an attending in a 32-bed ED, 07:00 to 19:00. The charge nurse runs the board. You see patients, write the orders, make the calls, and answer the radio when a medic needs medical direction." : "You're the charge nurse for a 32-bed ED, 07:00 to 19:00. Five pods, a resus team, a radio that won't stop ringing, and an administrator who just walked in."}</p><div class="levels">${resume}${lv}</div>${scens}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}<div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="view">${U.view === 'map' ? 'Board: floor plan' : 'Board: list'}</button><button type="button" data-act="sound">Sound: ${U.sound ? 'on' : 'off'}</button>${lastReport() ? '<button type="button" data-act="lastReport">Last summary</button>' : ''}${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? `<button type="button" data-act="fullscreen">${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
 }
 function clearToasts() { const b = $('#toasts'); if (b) b.innerHTML = ''; TQ.length = 0; clearTimeout(toastPump.t); }
 function showTitle() {
@@ -6415,7 +6415,7 @@ function reportHTML(R, ledger, at) {
   const LED = { md: 'Patients you saw', orders: 'Orders', harm: 'Harm and untreated patients', dispo: 'Disposition calls', flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration <small>goals executives set, and requests you refused</small>', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood', transfer: 'Transfers', gray: 'Gray-zone calls', chair: 'Admitted patients in chairs', experience: 'Complaints' };
   const rows = Object.entries(led).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LED[k] || k}</td><td class="${v < 0 ? 'neg' : 'pos'}">${v > 0 ? '+' : ''}${Math.round(v)}</td></tr>`).join('');
   const t = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
-  return `<div class="card rep"><h2>${R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift report' : 'Shift report'}</h2><div class="stars" aria-label="${R.stars} of 3 stars">${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}</div>${starLine(R)}<p class="verdict">${R.fail ? 'Staff satisfaction hit the floor and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
+  return `<div class="card rep"><h2>${R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2><div class="stars" aria-label="${R.stars} of 3 stars">${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}</div>${starLine(R)}<p class="verdict">${R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
 <p class="rep-meta">${R.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${esc(L.name)}${R.scen && R.scen !== 'none' ? ' · ' + esc(E.SCENS[R.scen].name) : ''} · ${new Date(at || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · Name: <span class="rep-name">&nbsp;</span></p>
 <div class="rep-big"><div><b>${R.care}</b><span>${R.mode === 'md' ? 'Score' : 'Pt mgmt'}</span></div><div><b>${R.wait}m</b><span>Avg wait</span></div>${R.mode === 'md' && R.md ? `<div><b>${R.md.seen}</b><span>You saw</span></div>` : `<div><b>${R.sat}%</b><span>Staff sat</span></div>`}</div>
 ${mmHTML(R)}${mdReportHTML(R, t)}
@@ -6734,7 +6734,7 @@ function mapStatic() {
   s += '<rect x="251" y="2" width="232" height="328" rx="13" fill="#D9E1EE" stroke="#A9B4C6" stroke-width="2"/>';
   // the wall: six stretcher spots. Its label, the waiting room's, and the door's carry a count.
   s += '<text id="mWallL" x="181" y="27" font-size="20" font-weight="700" fill="#4F5A6B" letter-spacing="1" text-anchor="middle">THE WALL</text>';
-  for (let i = 0; i < 6; i++) s += `<rect x="150" y="${WALL_Y(i) - 16}" width="94" height="32" rx="6" fill="none" stroke="#C3C9D2" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+  for (let i = 0; i < 6; i++) s += `<rect x="150" y="${WALL_Y(i) - 16}" width="94" height="32" rx="6" fill="none" stroke="#8A94A3" stroke-width="2" stroke-dasharray="5 5"/>`;
   s += `<g id="mWall" data-act="cluster" data-arg="wall" role="button" aria-label="The wall: ambulance crews waiting to hand over"><rect x="114" y="8" width="134" height="${WALL_Y(5) + 26 - 8}" fill="transparent"/></g>`;   // zoomed out, the stretchers are too small to pick: one tap opens the list
   // resus alcove: crash cart, supply cart
   s += '<rect x="262" y="384" width="26" height="16" rx="3" fill="#C8243A"/><rect x="262" y="389" width="26" height="3" fill="#F3D5D9"/><rect x="294" y="386" width="22" height="14" rx="3" fill="#AEB7C2"/>';
@@ -7015,7 +7015,7 @@ function mapRender(G) {
     const fg = over ? '#FFFFFF' : '#1B2230';
     signs += `<g class="msign${over ? ' over' : ''}" id="mzh-${z}" data-act="zone" data-arg="${z}" transform="translate(${x} ${y})" role="button" aria-label="${esc(zn)}: ${ns.length ? esc(ns.map(s => s.short).join(' and ')) + `, load ${fl(load)} of ${cap}` : 'no nurse'}"><rect x="-3" y="${y > 400 ? -26 : -8}" width="${w + 6}" height="${y < 100 ? 58 : y > 400 ? 64 : 46}" fill="transparent"/>`
       + `<rect width="${w}" height="30" rx="15" fill="${over ? '#C8243A' : closed && !ns.length ? '#E6E8EB' : '#FFFFFF'}" stroke="${over ? '#C8243A' : full ? '#B76E00' : '#8E97A4'}" stroke-width="${full ? 2.4 : 1.6}"/>`
-      + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}${ZRANGE[z] ? `<tspan dx="7" font-size="14" fill="${over ? '#FFE3E6' : '#5E6878'}">${ZRANGE[z]}</tspan>` : ''}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
+      + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}${ZRANGE[z] ? `<tspan dx="7" font-size="17" fill="${over ? '#FFE3E6' : '#3D4757'}">${ZRANGE[z]}</tspan>` : ''}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
       + `<text class="nearonly" x="12" y="20" font-size="14" font-weight="700" fill="${fg}">${esc(zn)} · ${ns.length ? esc(ns.map(s => s.short).join(' + ')) + ' ' : ''}${lt}</text></g>`;
   }
   setH(document.getElementById('mSigns'), signs);
@@ -7038,7 +7038,7 @@ function mapRender(G) {
     const sw = p ? 4 : 3, hallE = kind === 'hall' && !p && !r.closed && r.st === 'clean';
     let g = `<rect class="mr-f" x="${sw / 2}" y="${sw / 2}" width="${w - sw}" height="${h - sw}" rx="6" fill="${hallE ? 'rgba(255,255,255,.4)' : fill}" stroke="${p ? '#2B3240' : r.closed ? '#7F8A99' : hallE ? '#8A94A3' : r.st === 'clean' ? '#3F8F63' : '#8A7A62'}" stroke-width="${sw}"${hallE ? ' stroke-dasharray="7 5"' : ''}/>`;
     if (dirty) g += `<rect width="${w}" height="${h}" rx="7" fill="url(#dirt)"/>`;
-    if (r.safe) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#9CC2E8" stroke-width="3" stroke-dasharray="2 5"/>`;
+    if (r.safe) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#3F7FC4" stroke-width="3.6" stroke-dasharray="3 5"/>`;
     if (r.iso) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#E0A21A" stroke-width="2.4" stroke-dasharray="7 5"/>`;
     if (p && p.arrest) g += `<rect class="codefl" width="${w}" height="${h}" rx="7" fill="#C8243A"/>`;
     if (md && p && mine(p)) g += `<rect x="5.5" y="5.5" width="${w - 11}" height="${h - 11}" rx="4" fill="none" stroke="#F2C230" stroke-width="4.5"/><path d="M0 ${h - 30} V${h - 7} a7 7 0 0 0 7 7 H30Z" fill="#F2C230"/>`;
@@ -7055,8 +7055,9 @@ function mapRender(G) {
     }
     if (p && p.arrest) g += `<g class="beacon" transform="translate(${w - 13} ${h - 13})"><circle r="8" fill="#C8243A" stroke="#fff" stroke-width="1.2"/><path class="bspin" d="M0 0 L8 -3.4 A8.7 8.7 0 0 1 8 3.4Z" fill="#FFE3E6"/></g>`;
     // the info band: number, what it needs, ESI
-    const small = kind === 'hall' || kind === 'chair', idf = String(r.id).length > 2 ? 14.5 : small ? 15 : 22;
-    g += `<text x="6" y="${small ? 16.5 : String(r.id).length > 2 ? 20 : 23}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(r.id)}</text>`;
+    const small = kind === 'hall' || kind === 'chair', idf = small ? 19 : String(r.id).length > 2 ? 17 : 22;   // hallway beds and chairs read as large as they can in a short tile
+    const rlab = kind === 'chair' ? 'Ch' + String(r.id).slice(1) : r.id;   // chairs are Ch1 to Ch6 on the map, so they are not read as Pod C
+    g += `<text x="6" y="${small ? 20 : String(r.id).length > 2 ? 21 : 23}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(rlab)}</text>`;
     if (esi) g += small ? `<circle cx="${w - 12}" cy="12" r="10" fill="var(--e${esi})"/><text x="${w - 12}" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`
       : `<circle cx="${w - 16}" cy="17" r="13" fill="var(--e${esi})"/><text x="${w - 16}" y="23" text-anchor="middle" font-size="17" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`;
     if (vt && vt.taken && !vt.arrest && vt.trend === 'worse' && vt.s >= 1.15) g += `<path d="M-6.5 -4 H6.5 L0 6.5Z" transform="translate(${small ? w - 27 : w - 33} ${small ? 23 : 31})" fill="#C8243A" stroke="#fff" stroke-width="1.4"/>`;   // vitals heading the wrong way

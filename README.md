@@ -38,6 +38,8 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 - **Charge nurse (67 steps):** the screen and your five scores, hallway beds, Fast Track, and the outlined rooms, a walk-in from registration to discharge, what the room icons mean and how to zoom in for words, the Next button, an ambulance patient through report, consult, admission, and transport, a trauma alert with massive transfusion, routing a medical-direction call to a doctor, a chest-pain call, chairs, waiting-room rechecks, an interpreter, breaks, a decision card, an equipment outage, a transfer, and the words you will hear on a real shift.
 - **Attending (37 steps):** your five numbers (Wait, Score, Panel, To see, To do), reading a card and its vital signs, strep throat (see, order, discharge), DKA (treat what you find, admit to the ICU), appendicitis (a thin workup, the missing CT, call surgery), a medical-direction call on the radio, and a stroke alert from last known well to door to needle, with what the thrombolytic is and the pressure limit for it. The radio call in Orientation is in plain words whichever call pack is picked.
 
+**Polish (v0.16.1).** Hallway beds and chairs have larger labels, and chairs read Ch1 to Ch6 so they are not taken for Pod C. The safe rooms' blue dots are darker, pod signs show their room range larger, and empty wall slots are easier to see. "The floor" now means upstairs only, the end screen is the shift summary, and "report" is the hand-off. Anaphylaxis and a COPD flare on BiPAP are ESI 1 (in any monitored room, and a PA or NP may see them with a co-sign); a TIA is ESI 2. The Maryland freestanding-ED call says plainly that the crew is on scene.
+
 **What six reviewers found (v0.16).** Three lay players and three clinicians (an emergency physician, an EMS physician, an ED charge nurse) reviewed v0.15. This release builds their clinical fixes and the feedback they asked for.
 
 - **Trauma.** A bleeding patient in shock is no longer scored for a CT. X-ray, a bedside ultrasound, labs, blood, and the OR. The Bleeding lesson says so.
@@ -159,7 +161,7 @@ The build also writes `sw.js`, a small service worker that keeps a copy of the g
 ```sh
 npm install      # fonts used by the build
 npm run build    # writes index.html
-npm test         # rule checks (six suites, 303 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
+npm test         # rule checks (six suites, 307 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
 npm run sim      # simulated shifts at several player speeds
 npm run stress   # 188 shifts across every level and scenario: checks for stuck states and out-of-range vitals
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)

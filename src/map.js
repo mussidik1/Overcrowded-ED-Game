@@ -174,7 +174,7 @@ function mapStatic() {
   s += '<rect x="251" y="2" width="232" height="328" rx="13" fill="#D9E1EE" stroke="#A9B4C6" stroke-width="2"/>';
   // the wall: six stretcher spots. Its label, the waiting room's, and the door's carry a count.
   s += '<text id="mWallL" x="181" y="27" font-size="20" font-weight="700" fill="#4F5A6B" letter-spacing="1" text-anchor="middle">THE WALL</text>';
-  for (let i = 0; i < 6; i++) s += `<rect x="150" y="${WALL_Y(i) - 16}" width="94" height="32" rx="6" fill="none" stroke="#C3C9D2" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+  for (let i = 0; i < 6; i++) s += `<rect x="150" y="${WALL_Y(i) - 16}" width="94" height="32" rx="6" fill="none" stroke="#8A94A3" stroke-width="2" stroke-dasharray="5 5"/>`;
   s += `<g id="mWall" data-act="cluster" data-arg="wall" role="button" aria-label="The wall: ambulance crews waiting to hand over"><rect x="114" y="8" width="134" height="${WALL_Y(5) + 26 - 8}" fill="transparent"/></g>`;   // zoomed out, the stretchers are too small to pick: one tap opens the list
   // resus alcove: crash cart, supply cart
   s += '<rect x="262" y="384" width="26" height="16" rx="3" fill="#C8243A"/><rect x="262" y="389" width="26" height="3" fill="#F3D5D9"/><rect x="294" y="386" width="22" height="14" rx="3" fill="#AEB7C2"/>';
@@ -455,7 +455,7 @@ function mapRender(G) {
     const fg = over ? '#FFFFFF' : '#1B2230';
     signs += `<g class="msign${over ? ' over' : ''}" id="mzh-${z}" data-act="zone" data-arg="${z}" transform="translate(${x} ${y})" role="button" aria-label="${esc(zn)}: ${ns.length ? esc(ns.map(s => s.short).join(' and ')) + `, load ${fl(load)} of ${cap}` : 'no nurse'}"><rect x="-3" y="${y > 400 ? -26 : -8}" width="${w + 6}" height="${y < 100 ? 58 : y > 400 ? 64 : 46}" fill="transparent"/>`
       + `<rect width="${w}" height="30" rx="15" fill="${over ? '#C8243A' : closed && !ns.length ? '#E6E8EB' : '#FFFFFF'}" stroke="${over ? '#C8243A' : full ? '#B76E00' : '#8E97A4'}" stroke-width="${full ? 2.4 : 1.6}"/>`
-      + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}${ZRANGE[z] ? `<tspan dx="7" font-size="14" fill="${over ? '#FFE3E6' : '#5E6878'}">${ZRANGE[z]}</tspan>` : ''}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
+      + `<g class="faronly"><text x="12" y="22" font-size="20" font-weight="700" fill="${fg}">${ZSHORTN[z]}${ZRANGE[z] ? `<tspan dx="7" font-size="17" fill="${over ? '#FFE3E6' : '#3D4757'}">${ZRANGE[z]}</tspan>` : ''}</text>${ns.slice(0, 3).map((s, i) => `<circle cx="${w - 88 - i * 15}" cy="15" r="6" fill="${over ? '#FFFFFF' : ROLEC.rn}"/>`).join('')}<text x="${w - 12}" y="21.5" text-anchor="end" font-size="18" font-weight="700" fill="${fg}">${lt}</text></g>`
       + `<text class="nearonly" x="12" y="20" font-size="14" font-weight="700" fill="${fg}">${esc(zn)} · ${ns.length ? esc(ns.map(s => s.short).join(' + ')) + ' ' : ''}${lt}</text></g>`;
   }
   setH(document.getElementById('mSigns'), signs);
@@ -478,7 +478,7 @@ function mapRender(G) {
     const sw = p ? 4 : 3, hallE = kind === 'hall' && !p && !r.closed && r.st === 'clean';
     let g = `<rect class="mr-f" x="${sw / 2}" y="${sw / 2}" width="${w - sw}" height="${h - sw}" rx="6" fill="${hallE ? 'rgba(255,255,255,.4)' : fill}" stroke="${p ? '#2B3240' : r.closed ? '#7F8A99' : hallE ? '#8A94A3' : r.st === 'clean' ? '#3F8F63' : '#8A7A62'}" stroke-width="${sw}"${hallE ? ' stroke-dasharray="7 5"' : ''}/>`;
     if (dirty) g += `<rect width="${w}" height="${h}" rx="7" fill="url(#dirt)"/>`;
-    if (r.safe) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#9CC2E8" stroke-width="3" stroke-dasharray="2 5"/>`;
+    if (r.safe) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#3F7FC4" stroke-width="3.6" stroke-dasharray="3 5"/>`;
     if (r.iso) g += `<rect x="3.5" y="3.5" width="${w - 7}" height="${h - 7}" rx="5" fill="none" stroke="#E0A21A" stroke-width="2.4" stroke-dasharray="7 5"/>`;
     if (p && p.arrest) g += `<rect class="codefl" width="${w}" height="${h}" rx="7" fill="#C8243A"/>`;
     if (md && p && mine(p)) g += `<rect x="5.5" y="5.5" width="${w - 11}" height="${h - 11}" rx="4" fill="none" stroke="#F2C230" stroke-width="4.5"/><path d="M0 ${h - 30} V${h - 7} a7 7 0 0 0 7 7 H30Z" fill="#F2C230"/>`;
@@ -495,8 +495,9 @@ function mapRender(G) {
     }
     if (p && p.arrest) g += `<g class="beacon" transform="translate(${w - 13} ${h - 13})"><circle r="8" fill="#C8243A" stroke="#fff" stroke-width="1.2"/><path class="bspin" d="M0 0 L8 -3.4 A8.7 8.7 0 0 1 8 3.4Z" fill="#FFE3E6"/></g>`;
     // the info band: number, what it needs, ESI
-    const small = kind === 'hall' || kind === 'chair', idf = String(r.id).length > 2 ? 14.5 : small ? 15 : 22;
-    g += `<text x="6" y="${small ? 16.5 : String(r.id).length > 2 ? 20 : 23}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(r.id)}</text>`;
+    const small = kind === 'hall' || kind === 'chair', idf = small ? 19 : String(r.id).length > 2 ? 17 : 22;   // hallway beds and chairs read as large as they can in a short tile
+    const rlab = kind === 'chair' ? 'Ch' + String(r.id).slice(1) : r.id;   // chairs are Ch1 to Ch6 on the map, so they are not read as Pod C
+    g += `<text x="6" y="${small ? 20 : String(r.id).length > 2 ? 21 : 23}" font-size="${idf}" font-weight="700" fill="#1B2230">${esc(rlab)}</text>`;
     if (esi) g += small ? `<circle cx="${w - 12}" cy="12" r="10" fill="var(--e${esi})"/><text x="${w - 12}" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`
       : `<circle cx="${w - 16}" cy="17" r="13" fill="var(--e${esi})"/><text x="${w - 16}" y="23" text-anchor="middle" font-size="17" font-weight="700" fill="${esi === 3 ? '#3A2F00' : '#fff'}">${esi}</text>`;
     if (vt && vt.taken && !vt.arrest && vt.trend === 'worse' && vt.s >= 1.15) g += `<path d="M-6.5 -4 H6.5 L0 6.5Z" transform="translate(${small ? w - 27 : w - 33} ${small ? 23 : 31})" fill="#C8243A" stroke="#fff" stroke-width="1.4"/>`;   // vitals heading the wrong way

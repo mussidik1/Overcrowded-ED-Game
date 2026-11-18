@@ -62,9 +62,9 @@ const profiles = {
 const which = process.argv[2] || 'all';
 for (const [name, prof] of Object.entries(profiles)) {
   if (which !== 'all' && which !== name) continue;
-  for (const level of ['rush', 'easy', 'med', 'hard']) {
+  for (const level of (process.env.LEVELS ? process.env.LEVELS.split(',') : ['rush', 'easy', 'med', 'hard'])) {   // LEVELS=med,hard and SEEDS=15 narrow or deepen a run
     const rows = [];
-    for (let seed = 1; seed <= 5; seed++) rows.push(run(level, seed * 7919, prof));
+    for (let seed = 1; seed <= (+process.env.SEEDS || 5); seed++) rows.push(run(level, seed * 7919, prof));
     const avg = k => (rows.reduce((a, r) => a + r[k], 0) / rows.length).toFixed(1);
     if (prof.mode === 'md') { const m = k => (rows.reduce((a, r) => a + r.md[k], 0) / rows.length).toFixed(1); console.log(`${name.padEnd(8)} ${level.padEnd(5)} care=${avg('care')} stars=${avg('stars')} wait=${avg('wait')} seenByYou=${m('seen')} clean=${m('clean')} gaps=${m('gaps')} harm=${m('harm')} untreated=${m('untreated')} dispo=${m('dispoRight')}/${m('dispoWrong')} left=${avg('left')} returns=${avg('returns')} fails=${rows.filter(r => r.fail).length}`); continue; }
     console.log(`${name.padEnd(8)} ${level.padEnd(5)} care=${avg('care')} stars=${avg('stars')} wait=${avg('wait')} sat=${avg('sat')} seen=${avg('seen')} dc=${avg('dc')} adm=${avg('adm')} lwbs=${avg('lwbs')} left=${avg('left')} wallAvg=${avg('wallAvg')} wallMax=${avg('wallMax')} maxWaitRm=${avg('maxWait')} maxBoard=${avg('maxBoard')} goals=${avg('goalsMet')}/${avg('goalsMiss')} angry=${avg('angry')} ratioMin=${avg('ratioMin')} adverse=${avg('adverse')} ev=${avg('events')} fails=${rows.filter(r => r.fail).length}`);

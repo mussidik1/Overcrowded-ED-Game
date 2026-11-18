@@ -158,7 +158,7 @@ def run():
         J('() => { let n = 0; while (!OC.G.over && n++ < 20000) { OC.step(0.1); if (n % 20 === 0) OC.mdPlay({ budget: 2, acc: 0.8, line: 1 }); } }')
         page.wait_for_timeout(900)
         txt = page.inner_text('#modal') if page.is_visible('#modalWrap') else page.inner_text('body')
-        ok('attending shift report' in txt.lower() and 'your patients' in txt.lower() and 'staff sat' not in txt.lower(), 'the attending shift report')
+        ok('attending shift summary' in txt.lower() and 'your patients' in txt.lower() and 'staff sat' not in txt.lower(), 'the attending shift report')
         page.set_viewport_size({'width': 390, 'height': 3200}); page.wait_for_timeout(300)
         page.screenshot(path=f'{OUT}/md_07_report.png', full_page=False)
         page.set_viewport_size({'width': 390, 'height': 844})
