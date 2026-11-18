@@ -1,5 +1,5 @@
-commit de01004b3eed1a34a8cf3386454b467f6c2f8f53
-date   2026-11-18 03:34 UTC
+commit 976b0068adf4401570fe404390b7a50e3d118301
+date   2026-11-18 03:45 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -12,12 +12,13 @@ ok   Run it back starts the same shift again in one tap
 No errors.
 
 === python test/ui_test.py ===
-PASS
-51:No errors.
-ok   report shows ED metrics, patient experience, and staffing hours
+FAIL
+52:ERRORS:
+53:  CHECK FAILED: found a patient who needs an interpreter
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
-No errors.
+ERRORS:
+  CHECK FAILED: found a patient who needs an interpreter
 
 === python test/md_ui_test.py ===
 PASS
@@ -32,7 +33,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:32, care 144, cards read 70, words 2288, longest 68
+taps: 77, game clock: 10:36, care 144, cards read 70, words 2288, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -48,7 +49,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:27, care 144, cards read 70, words 2287, longest 68
+taps: 78, game clock: 10:32, care 144, cards read 70, words 2287, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -74,10 +75,10 @@ No errors.
 === python test/offline_test.py ===
 FAIL
 8:ERRORS:
-9:  CHECK FAILED: another app's saved files on the same site are left alone
+9:  CHECK FAILED: another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.16.4-61646993ea']; its file reads None; its entries: [])
 ok   with the network off, the game still loads
 ok   and a shift starts offline
 ERRORS:
-  CHECK FAILED: another app's saved files on the same site are left alone
+  CHECK FAILED: another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.16.4-61646993ea']; its file reads None; its entries: [])
 
 SOME FAILED
