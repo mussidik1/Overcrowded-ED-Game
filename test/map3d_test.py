@@ -4,7 +4,7 @@ import os, sys, threading, http.server, functools, socket, time
 from playwright.sync_api import sync_playwright
 from _browser import launch
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+ROOT = os.environ.get('ROOT') or os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shots')
 errors, checks = [], []
 def ok(cond, msg):
@@ -61,8 +61,12 @@ def run():
             # a nurse at a pod lane (not inside a room) can be tapped like on the flat map
             sid = J("(OC.G.staff.find(s => s.role === 'rn' && s.st === 'on' && !s.task && !s.zones.includes('triage')) || {}).id")
             if sid:
-                at = J(f"OC3D.screenOf('staff', '{sid}')")
-                if at: clear(); page.touchscreen.tap(at['x'], at['y'] - 6); page.wait_for_timeout(1200); ok(J("!!OCUI.U.sheet || !!OCUI.U.sel"), f'tapping nurse {sid} in 3D opens or selects them ({J("JSON.stringify(OCUI.U.sheet && OCUI.U.sheet.type)")})')
+                for _try in range(3):   # people walk, and a card can pop up: aim again each try
+                    clear(); at = J(f"OC3D.screenOf('staff', '{sid}')")
+                    if not at: break
+                    page.touchscreen.tap(at['x'], at['y'] - 6); page.wait_for_timeout(1200)
+                    if J("!!OCUI.U.sheet || !!OCUI.U.sel"): break
+                if at: ok(J("!!OCUI.U.sheet || !!OCUI.U.sel"), f'tapping nurse {sid} in 3D opens or selects them ({J("JSON.stringify(OCUI.U.sheet && OCUI.U.sheet.type)")})')
                 J("document.querySelector('.sheet-x') && document.querySelector('.sheet-x').click()"); page.wait_for_timeout(500)
             J("document.querySelector('[data-act=\"legend\"], [data-act=\"mapKey\"]') && 0")
         else: ok(False, 'an occupied room to tap')

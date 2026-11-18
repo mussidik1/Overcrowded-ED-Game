@@ -35,7 +35,14 @@ const BEDSIDE3 = [[0.5, 0.3, -90], [-0.95, 0.2, 90], [0.5, -0.6, -90], [-0.95, -
 /* ---------- module state ---------- */
 let R, S, CAM, HUD, el, api, L = null, ready = false, failed = false, dpr = 1, W = 0, H = 0, raf = 0;
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), cache = {};
-const load = u => (cache[u] ||= loader.loadAsync(BASE + u));
+/* Models load from 3d/ by fetch. Where plain files can't be served (the private Claude link), the same models come
+   packed in script files (3d/pack-index.js lists them; made by tools/pack3d.js), and are read from there. */
+const PACK = window.OC3DPACK || (window.OC3DPACK = {});
+const b64buf = s => { const b = atob(s), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a.buffer; };
+const script = src => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => res(false); document.head.appendChild(s); });
+async function packs() { if (!(await script(BASE + 'pack-index.js')) || !window.OC3DPACKS) return; for (const f of window.OC3DPACKS) await script(BASE + f); }
+const buf = async u => PACK[u] ? b64buf(PACK[u]) : (await fetch(BASE + u)).arrayBuffer();
+const load = u => (cache[u] ||= buf(u).then(b => loader.parseAsync(b, BASE)));
 const GL = {}, ROOM = {}, ENT = new Map(), AMB = new Map(), ROOMX = {}, LBL = new Map(), ANIM = {};
 const view = { tx: 2, ty: -1, dist: 60, fit: 60, tilt: 52 * DEG };
 let snap = null, clock = new THREE.Clock(), lastPick = [];
@@ -74,7 +81,8 @@ function sizeSprites() {
 
 /* ---------- loading ---------- */
 async function build() {
-  L = await (await fetch(BASE + 'layout.json')).json();
+  await packs();
+  L = PACK['layout.json'] ? JSON.parse(atob(PACK['layout.json'])) : await (await fetch(BASE + 'layout.json')).json();
   const st = (await load('dept_static.glb')).scene; shade(st); S.add(st);
   st.traverse(o => { if (/^canopy/.test(o.name)) o.visible = false; });   // the bay's roof would hide the ambulances from above
   for (const r of L.rooms) {
