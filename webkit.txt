@@ -1,20 +1,19 @@
-commit b5faa04b2154ffab7ffbf404b972e6b6349e1de3
-date   2026-11-18 02:58 UTC
+commit c66fb410499d69f02c0198f1731dfe78027cc782
+date   2026-11-18 03:14 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
 === python test/map_test.py ===
-FAIL
-40:ERRORS:
-41:  crash: Error('BrowserContext.new_cdp_session: CDP session is only available in Chromium')
-ok   zoomed out, the name is still readable (10.8px)
-ok   and it never blocks a tap on the room
-ERRORS:
-  crash: Error('BrowserContext.new_cdp_session: CDP session is only available in Chromium')
+PASS
+104:No errors.
+ok   after leaving the report, the menu offers the last report
+ok   it survives a reload, scenario and all, and can still be printed
+ok   Run it back starts the same shift again in one tap
+No errors.
 
 === python test/ui_test.py ===
 PASS
-51:No errors.
+52:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -33,7 +32,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:27, care 144, cards read 70, words 2262, longest 59
+taps: 77, game clock: 10:31, care 144, cards read 70, words 2262, longest 59
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -41,7 +40,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 40, game clock: 09:47, care 240, cards read 39, words 1345, longest 64
+taps: 40, game clock: 09:46, care 240, cards read 39, words 1345, longest 64
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -49,7 +48,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:29, care 144, cards read 70, words 2261, longest 59
+taps: 78, game clock: 10:28, care 144, cards read 70, words 2261, longest 59
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -61,73 +60,23 @@ taps: 6, game clock: 07:40, care 55, cards read 8, words 304, longest 57
 No errors.
 
 === MODE=rn python test/finger_test.py ===
-FAIL
-1:Traceback (most recent call last):
-2:  File "/Users/runner/work/Overcrowded-ED-Game/Overcrowded-ED-Game/test/finger_test.py", line 16, in <module>
-3:    page = ctx.new_page(); cdp = ctx.new_cdp_session(page)
-4:                                 ^^^^^^^^^^^^^^^^^^^^^^^^^
-5:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 2739, in new_cdp_session
-6:    self._sync(self._impl_obj.new_cdp_session(page=mapping.to_impl(page)))
-7:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 124, in _sync
-8:    return task.result()
-9:           ^^^^^^^^^^^^^
-10:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/browser_context.py", line 782, in new_cdp_session
-11:    result = await self._channel.newCDPSession(
-12:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-13:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/channel_owner.py", line 398, in _mapped
-14:    return mapper(await awaitable)
-15:                  ^^^^^^^^^^^^^^^
-16:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/channel_owner.py", line 387, in finish
-17:    raise e from None
-18:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/channel_owner.py", line 352, in finish
-19:    result = await zone.run_async(lambda: awaitable)
-20:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-21:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/utils/zones.py", line 58, in run_async
-22:    return await func()
-23:           ^^^^^^^^^^^^
-24:playwright._impl._errors.Error: BrowserContext.new_cdp_session: CDP session is only available in Chromium
-  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/utils/zones.py", line 58, in run_async
-    return await func()
-           ^^^^^^^^^^^^
-playwright._impl._errors.Error: BrowserContext.new_cdp_session: CDP session is only available in Chromium
+PASS
+2:No errors.
+rn map 844x390, finger slides up to 12px: 67 steps, 110 taps, floor ignored 0, buttons ignored 0
+No errors.
 
 === MODE=md python test/finger_test.py ===
-FAIL
-1:Traceback (most recent call last):
-2:  File "/Users/runner/work/Overcrowded-ED-Game/Overcrowded-ED-Game/test/finger_test.py", line 16, in <module>
-3:    page = ctx.new_page(); cdp = ctx.new_cdp_session(page)
-4:                                 ^^^^^^^^^^^^^^^^^^^^^^^^^
-5:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 2739, in new_cdp_session
-6:    self._sync(self._impl_obj.new_cdp_session(page=mapping.to_impl(page)))
-7:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 124, in _sync
-8:    return task.result()
-9:           ^^^^^^^^^^^^^
-10:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/browser_context.py", line 782, in new_cdp_session
-11:    result = await self._channel.newCDPSession(
-12:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-13:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/channel_owner.py", line 398, in _mapped
-14:    return mapper(await awaitable)
-15:                  ^^^^^^^^^^^^^^^
-16:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/channel_owner.py", line 387, in finish
-17:    raise e from None
-18:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/channel_owner.py", line 352, in finish
-19:    result = await zone.run_async(lambda: awaitable)
-20:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-21:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/utils/zones.py", line 58, in run_async
-22:    return await func()
-23:           ^^^^^^^^^^^^
-24:playwright._impl._errors.Error: BrowserContext.new_cdp_session: CDP session is only available in Chromium
-  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/utils/zones.py", line 58, in run_async
-    return await func()
-           ^^^^^^^^^^^^
-playwright._impl._errors.Error: BrowserContext.new_cdp_session: CDP session is only available in Chromium
+PASS
+2:No errors.
+md map 844x390, finger slides up to 12px: 37 steps, 64 taps, floor ignored 0, buttons ignored 6
+No errors.
 
 === python test/offline_test.py ===
 FAIL
 2:ERRORS:
-3:  crash: TimeoutError('Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to "http://127.0.0.1:49190/manifest.webmanifest", waiting until "load"\n')
+3:  crash: TimeoutError('Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to "http://127.0.0.1:49192/apple-touch-icon.png", waiting until "load"\n')
 
 ERRORS:
-  crash: TimeoutError('Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to "http://127.0.0.1:49190/manifest.webmanifest", waiting until "load"\n')
+  crash: TimeoutError('Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to "http://127.0.0.1:49192/apple-touch-icon.png", waiting until "load"\n')
 
 SOME FAILED
