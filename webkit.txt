@@ -1,5 +1,5 @@
-commit 4454c1717f32c9cf101b4fdcd40c8c252a39b1ba
-date   2026-11-18 23:01 UTC
+commit c90ef2c5258d04d3111574a2a642a726e263eeca
+date   2026-11-18 23:25 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -12,21 +12,25 @@ ok   Run it back starts the same shift again in one tap
 No errors.
 
 === python test/ui_test.py ===
-PASS
-1:report {"care": 2010, "wait": 13, "sat": 51, "stars": 3, "seen": 117, "dc": 49, "adm": 34, "lwbs": 0, "ama": 1, "returns": 1, "mtp": 2, "interp": 13, "pitSeen": 0}
-52:No errors.
-ok   report shows ED metrics, patient experience, and staffing hours
-ok   report walks through the worst moments (M&M)
-ok   back to the menu
-No errors.
+FAIL
+1:report {"care": 1939, "wait": 13, "sat": 51, "stars": 2, "seen": 116, "dc": 43, "adm": 36, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 2, "interp": 14, "pitSeen": 0}
+51:ERRORS:
+52:  CHECK FAILED: tapping a new arrival opens intake: pick a registrar or a triage nurse
+53:  CHECK FAILED: registration directed for 0, triage for 0 by tapping
+54:  CHECK FAILED: placed 0 triaged patients by tapping
+55:  CHECK FAILED: assigned 0 patients in provider mode
+  CHECK FAILED: tapping a new arrival opens intake: pick a registrar or a triage nurse
+  CHECK FAILED: registration directed for 0, triage for 0 by tapping
+  CHECK FAILED: placed 0 triaged patients by tapping
+  CHECK FAILED: assigned 0 patients in provider mode
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1991, 'stars': 2, 'wait': 20, 'left': 11} {'seen': 45, 'fast': 17, 'ordRight': 142, 'ordExtra': 8, 'ordMiss': 2, 'clean': 35, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 38, 'dispoWrong': 1, 'log': [{'name': 'Thi P.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Bill J.', 'dx': 'Anaphylaxis', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.'}, {'name': 'Malik P.', 'dx': 'Suspected tuberculosis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Chest X-ray and labs. Isolate first. Treatment starts upstairs.'}, {'name': 'Omar R.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Tyler B.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Rosa H.', 'dx': 'Hip fracture', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.'}, {'name': 'Lily L.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Dmitri F.', 'dx': 'Kidney stone', 'miss': ['CT abdomen and pelvis'], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}]}
-30:No errors.
+1:report {'care': 1777, 'stars': 2, 'wait': 23, 'left': 17} {'seen': 40, 'fast': 14, 'ordRight': 107, 'ordExtra': 5, 'ordMiss': 0, 'clean': 34, 'gaps': 0, 'harm': 0, 'untreated': 0, 'dispoRight': 34, 'dispoWrong': 2, 'log': [{'name': 'Wei F.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Ivan V.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Brenda L.', 'dx': 'Contact dermatitis', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'No tests. A contact rash gets a steroid cream and an antihistamine.'}, {'name': 'Helen T.', 'dx': 'Deep vein thrombosis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Ultrasound finds the clot. Labs check the kidneys. Then a blood thinner.'}]}
+28:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1991)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1777)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +38,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:29, care 144, cards read 70, words 2509, longest 68
+taps: 77, game clock: 10:32, care 144, cards read 70, words 2509, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -42,7 +46,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 42, game clock: 09:50, care 238, cards read 39, words 1411, longest 70
+taps: 42, game clock: 09:46, care 238, cards read 39, words 1411, longest 70
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -50,7 +54,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:27, care 144, cards read 70, words 2508, longest 68
+taps: 78, game clock: 10:29, care 144, cards read 70, words 2508, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -108,11 +112,59 @@ ok   with the gate switched off in the database, anyone goes straight in
 No errors.
 
 === python test/class_test.py ===
-PASS
-19:No errors.
-ok   Run it back replays the same class shift
-ok   the top-right menu offers Restart this shift and Main menu
-ok   Class results lists what was sent for the code, best first ([{'p_code': '1XY-804'}])
-No errors.
+FAIL
+1:Traceback (most recent call last):
+2:  File "/Users/runner/work/Overcrowded-ED-Game/Overcrowded-ED-Game/test/class_test.py", line 88, in <module>
+3:    clear(); page.locator('#btnPause').tap(); page.wait_for_timeout(300)
+4:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 13445, in tap
+6:    self._sync(
+7:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 124, in _sync
+8:    return task.result()
+9:           ^^^^^^^^^^^^^
+10:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/locator.py", line 859, in tap
+11:    return await self._frame.tap(
+12:           ^^^^^^^^^^^^^^^^^^^^^^
+13:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/frame.py", line 716, in tap
+14:    return await self._channel.tap(
+15:           ^^^^^^^^^^^^^^^^^^^^^^^^
+16:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/channel_owner.py", line 387, in finish
+17:    raise e from None
+18:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/channel_owner.py", line 352, in finish
+19:    result = await zone.run_async(lambda: awaitable)
+20:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+21:  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/playwright/_impl/utils/zones.py", line 58, in run_async
+22:    return await func()
+23:           ^^^^^^^^^^^^
+24:playwright._impl._errors.TimeoutError: Locator.tap: Timeout 30000ms exceeded.
+26:  - waiting for locator("#btnPause")
+27:    - locator resolved to <button type="button" id="btnPause" data-act="pause" class="hb hb-menu" aria-label="Menu: pause, restart, or go to the main menu">…</button>
+28:  - attempting tap action
+29:    2 × waiting for element to be visible, enabled and stable
+30:      - element is visible, enabled and stable
+31:      - scrolling into view if needed
+32:      - done scrolling
+33:      - <div id="modalWrap" class="modal-wrap">…</div> intercepts pointer events
+34:    - retrying tap action
+35:    - waiting 20ms
+36:    2 × waiting for element to be visible, enabled and stable
+37:      - element is visible, enabled and stable
+38:      - scrolling into view if needed
+39:      - done scrolling
+40:      - <div id="modalWrap" class="modal-wrap">…</div> intercepts pointer events
+41:    - retrying tap action
+42:      - waiting 100ms
+43:    55 × waiting for element to be visible, enabled and stable
+44:       - element is visible, enabled and stable
+45:       - scrolling into view if needed
+46:       - done scrolling
+47:       - <div id="modalWrap" class="modal-wrap">…</div> intercepts pointer events
+48:     - retrying tap action
+49:       - waiting 500ms
+50:    - waiting for element to be visible, enabled and stable
+     - retrying tap action
+       - waiting 500ms
+    - waiting for element to be visible, enabled and stable
 
-ALL PASS
+
+SOME FAILED
