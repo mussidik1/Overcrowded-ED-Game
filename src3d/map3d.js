@@ -462,6 +462,13 @@ function bindInput() {
 }
 /* A tap: the nearest tappable marker or person under the finger, else the room or area of the floor it landed on. */
 function pick(cx, cy) { const t = find(cx, cy); api.tap(t.kind, t.id, cx, cy, t.far); }
+/* The room, hallway bed, or chair under a point on the floor (Blender x, y). */
+function roomAtGround(g) {
+  for (const R2 of Object.values(ROOM)) { const c = Math.cos(-R2.r.rot * DEG), s = Math.sin(-R2.r.rot * DEG), dx = g[0] - R2.r.x, dy = g[1] - R2.r.y, lx = dx * c - dy * s, ly = dx * s + dy * c; if (Math.abs(lx) <= 1.95 && Math.abs(ly) <= R2.d / 2 + 0.05) return R2.r.id; }
+  for (const id of Object.keys(HALL3)) { const sm = smallSpot(id); if (Math.abs(g[0] - sm.x) < 1.3 && Math.abs(g[1] - sm.y) < 0.6) return id; }
+  for (let j = 0; j < 6; j++) { const [x, y] = CHAIR3(j); if (Math.abs(g[0] - x) < 0.7 && Math.abs(g[1] - y) < 0.8) return 'C' + (j + 1); }
+  return null;
+}
 function find(cx, cy) {
   const r = el.getBoundingClientRect(), v = new THREE.Vector3(); let best = null;
   const far = view.dist > view.fit * 0.6;
@@ -469,13 +476,19 @@ function find(cx, cy) {
   for (const l of LBL.values()) if (l.tap && l.s.visible && l.tap.kind !== 'room') consider(l.s.position, l.tap, l.tap.kind === 'staff' || l.tap.kind === 'pt' ? 26 : 30);
   for (const e of ENT.values()) if (e.meta && e.meta.tap && e.root && e.root.visible) consider(e.root.position, { kind: e.meta.kind, id: e.meta.id }, 30, 0.9);
   for (const [pid, o] of AMB) if (o.meta && o.meta.mode !== 'bay') consider(o.g.position, { kind: 'pt', id: pid }, 44, 1.2);
+  // v0.21: a person standing in a room only wins the tap when the finger is right on them (or their tag).
+  // Anywhere else in the room, or on its badge, opens the room: a nurse at the bedside no longer steals "tap her room".
+  if (best && (best.tap.kind === 'staff' || best.tap.kind === 'pt') && best.d > 12) {
+    const g0 = groundAt(cx, cy), inRoom = g0 && roomAtGround(g0);
+    let badge = null; if (!inRoom) { const keep = best; best = null; for (const l of LBL.values()) if (l.tap && l.tap.kind === 'room') consider(l.s.position, l.tap, 34); badge = best; best = keep; }
+    if (inRoom) return { kind: 'room', id: inRoom, far };
+    if (badge) return { ...badge.tap, far };
+  }
   if (!best) for (const l of LBL.values()) if (l.tap && l.tap.kind === 'room') consider(l.s.position, l.tap, 34);
   if (best) return { ...best.tap, far };
   const g = groundAt(cx, cy); if (!g) return { kind: null, far };
   const hit = (kind, id) => ({ kind, id, far });
-  for (const R2 of Object.values(ROOM)) { const [lx, ly] = (() => { const c = Math.cos(-R2.r.rot * DEG), s = Math.sin(-R2.r.rot * DEG), dx = g[0] - R2.r.x, dy = g[1] - R2.r.y; return [dx * c - dy * s, dx * s + dy * c]; })(); if (Math.abs(lx) <= 1.95 && Math.abs(ly) <= R2.d / 2 + 0.05) return hit('room', R2.r.id); }
-  for (const id of Object.keys(HALL3)) { const sm = smallSpot(id); if (Math.abs(g[0] - sm.x) < 1.3 && Math.abs(g[1] - sm.y) < 0.6) return hit('room', id); }
-  for (let j = 0; j < 6; j++) { const [x, y] = CHAIR3(j); if (Math.abs(g[0] - x) < 0.7 && Math.abs(g[1] - y) < 0.8) return hit('room', 'C' + (j + 1)); }
+  const rid = roomAtGround(g); if (rid) return hit('room', rid);
   if (g[0] > -23.5 && g[0] < -18 && g[1] > 2.5) return hit('clu', 'mWall');
   if (g[0] > -18 && g[0] < -8.7 && g[1] < -5.4) return hit('clu', 'mWait');
   if (g[0] > -23.5 && g[0] < -18 && g[1] < -2) return hit('clu', 'mDoor');
@@ -605,5 +618,5 @@ window.OC3D = {
   hideSpots() { for (const sp of Object.values(SPOTS)) { sp.list = []; for (const d of sp.divs) d.hidden = true; } },
   quality(q) { if (q) { qWant = q; if (R) setQuality(qStart()); } return { want: qWant, now: qNow }; },
   info: () => (R ? { calls: R.info.render.calls, tris: R.info.render.triangles, dpr, q: qNow } : null),
-  _view: view, find: (x, y) => find(x, y),
+  _view: view, find: (x, y) => find(x, y), _scene: () => S, _ent: () => ENT,
 };

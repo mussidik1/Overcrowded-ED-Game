@@ -257,7 +257,7 @@ def run():
         if page.locator('#sheet [data-act="divertSet"][data-arg="yellow|1"]:not([disabled])').count():
             tap('#sheet [data-act="divertSet"][data-arg="yellow|1"]')
             tap('#sheet [data-act="divertSet"][data-arg="red|1"]')
-            ok(J('OC.G.dv.yellow.on && OC.G.dv.red.on'), 'Yellow and Red Alert turn on')
+            ok(J('OC.G.dv.yellow.on && OC.G.dv.red.on'), 'ED Full and No Monitored Beds turn on')
             page.screenshot(path=f'{OUT}/08_divert.png')
             tap('#sheet [data-act="divertSet"][data-arg="yellow|0"]'); tap('#sheet [data-act="divertSet"][data-arg="red|0"]')
             ok(not J('OC.G.dv.yellow.on || OC.G.dv.red.on'), 'divert lifts')
