@@ -1,5 +1,5 @@
-commit 412dcfe60d9b5c2a66ea5652fae6ab1863cd50da
-date   2026-11-18 21:31 UTC
+commit d4d4277290748f26ca299543be3f90d8133a39a7
+date   2026-11-18 21:30 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1837, 'stars': 2, 'wait': 21, 'left': 16} {'seen': 43, 'fast': 14, 'ordRight': 138, 'ordExtra': 4, 'ordMiss': 3, 'clean': 35, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 34, 'dispoWrong': 2, 'log': [{'name': 'Keisha G.', 'dx': 'Urinary tract infection', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.'}, {'name': 'Tom T.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Minh H.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Linda H.', 'dx': 'Splenic laceration, hemorrhagic shock', 'miss': [], 'extra': [], 'fine': [], 'why': 'X-ray and a bedside ultrasound look for blood in the chest and belly. Labs with a blood type. Massive transfusion. CT only if blood brings the pressure up. If it stays down: straight to the OR.'}, {'name': 'Tyler W.', 'dx': 'Contact dermatitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. A contact rash gets a steroid cream and an antihistamine.'}, {'name': 'Dorothy G.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}]}
-30:No errors.
+1:report {'care': 1670, 'stars': 2, 'wait': 25, 'left': 18} {'seen': 39, 'fast': 16, 'ordRight': 108, 'ordExtra': 5, 'ordMiss': 2, 'clean': 31, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 31, 'dispoWrong': 2, 'log': [{'name': 'Fatima E.', 'dx': 'Ankle sprain', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}, {'name': 'Mei F.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Lucia W.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Aisha W.', 'dx': 'Urinary tract infection', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.'}, {'name': 'Jen C.', 'dx': 'Behavioral health emergency', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs look for a medical cause. Then Psychiatry.'}, {'name': 'Shanice H.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}]}
+31:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1837)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1670)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:32, care 144, cards read 70, words 2507, longest 68
+taps: 77, game clock: 10:37, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -42,7 +42,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 42, game clock: 09:47, care 238, cards read 39, words 1412, longest 70
+taps: 42, game clock: 09:49, care 238, cards read 39, words 1412, longest 70
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
