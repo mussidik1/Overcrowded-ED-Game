@@ -1,5 +1,5 @@
-commit 41d13bac3f858b86326d624a71c458a8130e1f17
-date   2026-11-18 22:49 UTC
+commit 315c6fe75b37db261f69013fc5dce3f6ae795781
+date   2026-11-18 22:57 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,8 +13,8 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1804, "wait": 13, "sat": 51, "stars": 2, "seen": 118, "dc": 46, "adm": 36, "lwbs": 0, "ama": 0, "returns": 2, "mtp": 2, "interp": 15, "pitSeen": 0}
-53:No errors.
+1:report {"care": 1939, "wait": 13, "sat": 51, "stars": 2, "seen": 116, "dc": 43, "adm": 36, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 2, "interp": 14, "pitSeen": 0}
+52:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -22,49 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1798, 'stars': 2, 'wait': 18, 'left': 12} {'seen': 43, 'fast': 18, 'ordRight': 128, 'ordExtra': 8, 'ordMiss': 3, 'clean': 31, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 36, 'dispoWrong': 0, 'log': [{'name': 'Raj S.', 'dx': 'Kidney stone', 'miss': [], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Aria B.', 'dx': 'Strep throat', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'A rapid strep swab proves it. Then penicillin.'}, {'name': 'Thi J.', 'dx': 'COPD flare', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP. A steroid is reasonable.'}, {'name': 'Jamal T.', 'dx': 'Simple laceration', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. Clean it and stitch it.'}, {'name': 'Yara P.', 'dx': 'Wrist fracture', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'X-ray shows the break. A splint, pain control, and home.'}, {'name': 'Ana B.', 'dx': 'Appendicitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs and a CT find the appendix. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Tom V.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Minh M.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Lucia A.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Malik A.', 'dx': 'Ankle sprain', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}]}
-31:No errors.
+1:report {'care': 2127, 'stars': 3, 'wait': 20, 'left': 25} {'seen': 44, 'fast': 20, 'ordRight': 141, 'ordExtra': 7, 'ordMiss': 2, 'clean': 34, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 38, 'dispoWrong': 0, 'log': [{'name': 'Mei V.', 'dx': 'Sepsis (urinary source)', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs with a lactate. Fluids and antibiotics inside the hour.'}, {'name': 'Frank G.', 'dx': 'Pneumonia', 'miss': [], 'extra': [], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Andre C.', 'dx': 'Dehydration', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs show the kidneys are dry. Fluids fix it.'}, {'name': 'Priya H.', 'dx': 'Appendicitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs and a CT find the appendix. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Priya W.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Nadia G.', 'dx': 'Chest pain, moderate risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Nora V.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Sofia L.', 'dx': 'Subdural hematoma', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Head CT finds the bleed. Labs with an INR show the blood thinner. Reverse it. Trauma.'}, {'name': 'Lucia F.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}]}
+28:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1798)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 2127)
 No errors.
 
 === MODE=rn python test/train_test.py ===
-PASS
-72:No errors.
-66/67 k3
-67/67 end
-taps: 77, game clock: 10:37, care 144, cards read 70, words 2509, longest 68
-No errors.
-
-=== MODE=md python test/train_test.py ===
-PASS
-41:No errors.
-36/37 k1
-37/37 end
-taps: 42, game clock: 09:47, care 238, cards read 39, words 1411, longest 70
-No errors.
-
-=== MODE=rn VW=667 VH=375 python test/train_test.py ===
-PASS
-72:No errors.
-66/67 k3
-67/67 end
-taps: 78, game clock: 10:36, care 144, cards read 70, words 2508, longest 68
-No errors.
-
-=== LESSON=heart python test/train_test.py ===
-PASS
-11:No errors.
- 7/8 h6
- 8/8 h7
-taps: 6, game clock: 07:40, care -2, cards read 8, words 316, longest 58
-No errors.
-
-=== MODE=rn python test/finger_test.py ===
-PASS
-2:No errors.
-rn map 844x390, finger slides up to 12px: 67 steps, 110 taps, floor ignored 0, buttons ignored 0
-No errors.
-
-=== MODE=md python test/finger_test.py ===
