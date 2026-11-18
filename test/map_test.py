@@ -1,7 +1,7 @@
 """The floor plan (v0.9 to v0.12): the whole department on a phone held sideways. Every tap lands on the floor itself."""
 import os, sys
 from playwright.sync_api import sync_playwright
-from _browser import launch
+from _browser import launch, Finger
 
 URL = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'index.html'))
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shots')
@@ -148,13 +148,13 @@ def run():
         ok(J("getComputedStyle(document.getElementById('mNames')).pointerEvents") == 'none', 'and it never blocks a tap on the room')
 
         # a real fingertip slides during a tap: the floor still takes it
-        cdp = ctx.new_cdp_session(page)
+        fg = Finger(ctx, page)
         def finger(sel, dx, dy):
             bb = page.locator(sel).first.bounding_box(); x, y = bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2
-            cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': x, 'y': y}]}); page.wait_for_timeout(30)
-            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x + dx / 2, 'y': y + dy / 2}]}); page.wait_for_timeout(25)
-            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x + dx, 'y': y + dy}]}); page.wait_for_timeout(40)
-            cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []}); page.wait_for_timeout(350)
+            fg.start(x, y); page.wait_for_timeout(30)
+            fg.move(x + dx / 2, y + dy / 2); page.wait_for_timeout(25)
+            fg.move(x + dx, y + dy); page.wait_for_timeout(40)
+            fg.end(); page.wait_for_timeout(350)
         finger(f'#mroom-{nm[1]}', 9, 8)
         ok(J("OCUI.U.sheet && OCUI.U.sheet.type") == 'pt', 'a tap that slides 12 px still opens the room')
         close_sheet(); page.wait_for_timeout(450)
@@ -238,12 +238,12 @@ def run():
         ok(len(cut) == 0, f'room words wrap onto a second line instead of being cut off ({two} rooms on two lines; cut: {cut[:3]})')
         vb0 = J("document.querySelector('#map svg').getAttribute('viewBox')")
         mb = box('#map'); cx, cy = mb['x'] + mb['width'] * 0.55, mb['y'] + mb['height'] * 0.5
-        cdp = ctx.new_cdp_session(page)
-        cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': cx, 'y': cy}]})
+        fg = Finger(ctx, page)
+        fg.start(cx, cy)
         for i in range(1, 9):
-            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': cx - i * 22, 'y': cy - i * 4}]})
+            fg.move(cx - i * 22, cy - i * 4)
             page.wait_for_timeout(16)
-        cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []}); page.wait_for_timeout(300)
+        fg.end(); page.wait_for_timeout(300)
         ok(J("document.querySelector('#map svg').getAttribute('viewBox')") != vb0, 'dragging pans the floor')
         ok(not J('OCUI.U.sheet') and not J('OCUI.U.sel'), 'a drag is not a tap')
         page.wait_for_timeout(350)   # let the browser finish the drag gesture before the next tap

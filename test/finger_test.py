@@ -2,7 +2,7 @@
    Fails if a step sticks or if the floor ignores a tap. MODE=md plays the attending. DRIFT sets how far the finger slides (default 12 px)."""
 import os, sys, math, random
 from playwright.sync_api import sync_playwright
-from _browser import launch
+from _browser import launch, Finger
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 URL = 'file://' + ROOT + '/index.html'
 MODE = os.environ.get('MODE', 'rn'); VIEW = os.environ.get('VIEW', 'map')
@@ -13,20 +13,20 @@ errors, log = [], []
 with sync_playwright() as pw:
     b = launch(pw)
     ctx = b.new_context(viewport={'width': W, 'height': H}, device_scale_factor=2, is_mobile=True, has_touch=True)
-    page = ctx.new_page(); cdp = ctx.new_cdp_session(page)
+    page = ctx.new_page(); fg = Finger(ctx, page)
     page.on('pageerror', lambda e: errors.append('pageerror: ' + str(e)))
     page.on('console', lambda m: errors.append('console.' + m.type + ': ' + m.text) if m.type == 'error' else None)
     J = page.evaluate
     def finger(x, y, drift=DRIFT):
         a = random.random() * 2 * math.pi; r = drift * (0.5 + random.random() * 0.5)
-        cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': x, 'y': y}]})
+        fg.start(x, y)
         page.wait_for_timeout(35)
         if drift:
-            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x + math.cos(a) * r / 2, 'y': y + math.sin(a) * r / 2}]})
+            fg.move(x + math.cos(a) * r / 2, y + math.sin(a) * r / 2)
             page.wait_for_timeout(25)
-            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x + math.cos(a) * r, 'y': y + math.sin(a) * r}]})
+            fg.move(x + math.cos(a) * r, y + math.sin(a) * r)
         page.wait_for_timeout(45)
-        cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
+        fg.end()
     def tap_sel(sel):
         bb = page.locator(sel).first.bounding_box()
         finger(bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2)

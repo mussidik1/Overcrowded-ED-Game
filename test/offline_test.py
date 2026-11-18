@@ -24,7 +24,7 @@ def run():
             page = ctx.new_page()
             page.on('pageerror', lambda e: errors.append('pageerror: ' + str(e)))
             # other apps share this site's storage; an old copy of this game does too
-            page.goto(url + 'manifest.webmanifest')
+            page.goto(url + 'apple-touch-icon.png')   # any page on this site will do; Safari's engine downloads a manifest instead of showing it
             page.evaluate("() => Promise.all([caches.open('another-app-v1').then(c => c.put('/another-app/index.html', new Response('theirs'))), caches.open('overcrowded-0.0.0-old').then(c => c.put('index.html', new Response('stale')))])")
             page.goto(url); page.wait_for_timeout(600)
             ok(page.locator('link[rel="manifest"]').count() == 1 and page.locator('link[rel="apple-touch-icon"]').count() == 1, 'on the web, the page links its manifest and home-screen icon')
