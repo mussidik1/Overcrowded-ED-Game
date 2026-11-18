@@ -17,7 +17,7 @@ for (const [name, code] of [['engine.js', src('engine.js')], ['ui.js + map.js', 
 }
 // Imaging credits (img/credits.json: picture key -> "author, licence, source"), shown in the imaging viewer.
 let credits = {}; try { credits = JSON.parse(fs.readFileSync(path.join(__dirname, 'img/credits.json'), 'utf8')); } catch (e) { /* no pictures yet */ }
-const credit = {}; for (const [k, c] of Object.entries(credits)) credit[k] = typeof c === 'string' ? c : `${c.author}, ${c.license}, ${c.source || 'Wikimedia Commons'}`;
+const credit = {}; for (const [k, c] of Object.entries(credits)) credit[k] = typeof c === 'string' ? { t: c } : { t: `${c.author}, ${c.license}, ${c.source || 'Wikimedia Commons'}`, u: c.url || '' };
 const html = src('index.template.html')
   .replace('/*FONTS*/', () => fonts).replace('/*STYLE*/', () => src('style.css'))
   .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js').replace('/*MAP*/', () => src('map.js')).replace('/*IMGCREDIT*/{}', () => JSON.stringify(credit)));
