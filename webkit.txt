@@ -1,5 +1,5 @@
-commit 60bd54d3b65262148211d155e480fd5142532077
-date   2026-11-18 18:06 UTC
+commit e259ec6a1296fa51f943049272d9546923cc2a17
+date   2026-11-18 18:49 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -12,29 +12,34 @@ ok   Run it back starts the same shift again in one tap
 No errors.
 
 === python test/ui_test.py ===
-PASS
-1:report {"care": 1747, "wait": 13, "sat": 52, "stars": 2, "seen": 123, "dc": 52, "adm": 35, "lwbs": 0, "ama": 1, "returns": 3, "mtp": 2, "interp": 16, "pitSeen": 0}
-53:No errors.
-ok   report shows ED metrics, patient experience, and staffing hours
-ok   report walks through the worst moments (M&M)
+FAIL
+1:report {"care": 1887, "wait": 14, "sat": 52, "stars": 2, "seen": 124, "dc": 54, "adm": 35, "lwbs": 0, "ama": 1, "returns": 3, "mtp": 3, "interp": 18, "pitSeen": 0}
+52:ERRORS:
+53:  CHECK FAILED: registration directed for 1, triage for 1 by tapping
+54:  CHECK FAILED: placed 1 triaged patients by tapping
 ok   back to the menu
-No errors.
+ERRORS:
+  CHECK FAILED: registration directed for 1, triage for 1 by tapping
+  CHECK FAILED: placed 1 triaged patients by tapping
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1930, 'stars': 2, 'wait': 23, 'left': 19} {'seen': 44, 'fast': 16, 'ordRight': 111, 'ordExtra': 7, 'ordMiss': 1, 'clean': 35, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 36, 'dispoWrong': 1, 'log': [{'name': 'Tamika L.', 'dx': 'Minor injuries', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'No tests. Clean and close the cuts.'}, {'name': 'Maria K.', 'dx': 'Neck strain', 'miss': [], 'extra': ['Labs'], 'fine': [], 'why': 'Tender on the neck bones means a CT. Clean: pain control and home.'}, {'name': 'Shanice K.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Jean F.', 'dx': 'Anaphylaxis', 'miss': [], 'extra': ['Labs'], 'fine': [], 'why': 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.'}, {'name': 'Keisha S.', 'dx': 'Chest pain, moderate risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Dorothy V.', 'dx': 'Complete heart block', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG shows the block. Labs check the potassium. Pace now. Cardiology.'}, {'name': 'Lucia G.', 'dx': 'Migraine', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'No tests. A usual migraine with a normal nerve exam gets fluids and medication.'}, {'name': 'Jamal S.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}]}
-30:No errors.
-ok   the team sheet has no nurse controls for the attending
-ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1930)
-No errors.
+1:report {'care': 810, 'stars': 1, 'wait': 22, 'left': 13} {'seen': 26, 'fast': 11, 'ordRight': 73, 'ordExtra': 3, 'ordMiss': 6, 'clean': 16, 'gaps': 4, 'harm': 0, 'untreated': 0, 'dispoRight': 21, 'dispoWrong': 1, 'log': [{'name': 'Lucia B.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Nadia A.', 'dx': 'Ankle sprain', 'miss': [], 'extra': [], 'fine': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}, {'name': 'Kwame T.', 'dx': 'Transient ischemic attack', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'CT rules out a bleed. ECG looks for A-fib. Labs check the sugar. Observe: stroke risk is highest in the first two days. Aspirin is reasonable.'}, {'name': 'Jean K.', 'dx': 'Chest pain, moderate risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Priya L.', 'dx': 'Chest pain, moderate risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Kwame B.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Rosa A.', 'dx': 'Urinary tract infection', 'miss': [], 'extra': [], 'fine': [], 'why': 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.'}, {'name': 'Joyce G.', 'dx': 'Cholecystitis', 'miss': ['Gallbladder ultrasound'], 'extra': [], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}]}
+28:ERRORS:
+29:  CHECK FAILED: picked 2 orders for Cellulitis
+30:  CHECK FAILED: signed a clean order set
+31:  CHECK FAILED: decision handled on the way ({'dsp': 'none', 'pick': None, 'want': 'admit', 'con': 'hosp', 'gray': None, 'loc': 'room'})
+ERRORS:
+  CHECK FAILED: picked 2 orders for Cellulitis
+  CHECK FAILED: signed a clean order set
+  CHECK FAILED: decision handled on the way ({'dsp': 'none', 'pick': None, 'want': 'admit', 'con': 'hosp', 'gray': None, 'loc': 'room'})
 
 === MODE=rn python test/train_test.py ===
 PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:27, care 144, cards read 70, words 2507, longest 68
+taps: 77, game clock: 10:32, care 144, cards read 70, words 2507, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -42,7 +47,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 40, game clock: 09:49, care 240, cards read 39, words 1392, longest 65
+taps: 42, game clock: 09:47, care 238, cards read 39, words 1412, longest 70
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -50,7 +55,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:35, care 144, cards read 70, words 2506, longest 68
+taps: 78, game clock: 10:36, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +63,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:40, care 57, cards read 8, words 306, longest 58
+taps: 6, game clock: 07:40, care 57, cards read 8, words 316, longest 58
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -70,15 +75,15 @@ No errors.
 === MODE=md python test/finger_test.py ===
 PASS
 2:No errors.
-md map 844x390, finger slides up to 12px: 37 steps, 64 taps, floor ignored 0, buttons ignored 6
+md map 844x390, finger slides up to 12px: 37 steps, 66 taps, floor ignored 0, buttons ignored 8
 No errors.
 
 === python test/offline_test.py ===
 PASS
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.18.2-9d9497f9a3']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.19.0-7faff5aca5']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
 9:No errors.
-ok   it keeps a copy of the game (52 files)
+ok   it keeps a copy of the game (6 files)
 ok   with the network off, the game still loads
 ok   and a shift starts offline
 No errors.
@@ -91,4 +96,4 @@ ok   and comes round to auto, and is saved
 ok   turning the 3D floor off shows the flat map
 No errors.
 
-ALL PASS
+SOME FAILED
