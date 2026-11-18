@@ -1,6 +1,7 @@
 """Offline (v0.10): served over http, the game installs a service worker and then loads with the network off."""
 import os, sys, subprocess, time, socket
 from playwright.sync_api import sync_playwright
+from _browser import launch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 errors, checks = [], []
@@ -18,7 +19,7 @@ def run():
         time.sleep(0.8)
         url = f'http://127.0.0.1:{port}/'
         with sync_playwright() as pw:
-            b = pw.chromium.launch(executable_path=os.environ.get('CHROME_PATH') or None, args=['--no-sandbox'])
+            b = launch(pw)
             ctx = b.new_context(viewport={'width': 844, 'height': 390}, is_mobile=True, has_touch=True)
             page = ctx.new_page()
             page.on('pageerror', lambda e: errors.append('pageerror: ' + str(e)))

@@ -1,6 +1,7 @@
 """Play Orientation end to end at phone size by tapping whatever the preceptor lights up."""
 import os, sys
 from playwright.sync_api import sync_playwright
+from _browser import launch
 URL = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'index.html'))
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shots')
 os.makedirs(OUT, exist_ok=True)
@@ -8,7 +9,7 @@ errors, log = [], []
 VIEW = os.environ.get('VIEW', 'map')   # the floor plan is played sideways; the list board upright
 W = int(os.environ.get('VW', '844' if VIEW == 'map' else '390')); H = int(os.environ.get('VH', '390' if VIEW == 'map' else '844'))
 with sync_playwright() as pw:
-    b = pw.chromium.launch(executable_path=os.environ.get('CHROME_PATH') or None, args=['--no-sandbox'])
+    b = launch(pw)
     ctx = b.new_context(viewport={'width': W, 'height': H}, device_scale_factor=2, is_mobile=W < 900, has_touch=True, reduced_motion='reduce')
     page = ctx.new_page()
     page.on('pageerror', lambda e: errors.append('pageerror: ' + str(e)))

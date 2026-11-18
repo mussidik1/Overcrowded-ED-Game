@@ -2,6 +2,7 @@
    Fails if a step sticks or if the floor ignores a tap. MODE=md plays the attending. DRIFT sets how far the finger slides (default 12 px)."""
 import os, sys, math, random
 from playwright.sync_api import sync_playwright
+from _browser import launch
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 URL = 'file://' + ROOT + '/index.html'
 MODE = os.environ.get('MODE', 'rn'); VIEW = os.environ.get('VIEW', 'map')
@@ -10,7 +11,7 @@ DRIFT = float(os.environ.get('DRIFT', '12')); SEED = int(os.environ.get('SEED', 
 random.seed(SEED)
 errors, log = [], []
 with sync_playwright() as pw:
-    b = pw.chromium.launch(executable_path=os.environ.get('CHROME_PATH') or None, args=['--no-sandbox'])
+    b = launch(pw)
     ctx = b.new_context(viewport={'width': W, 'height': H}, device_scale_factor=2, is_mobile=True, has_touch=True)
     page = ctx.new_page(); cdp = ctx.new_cdp_session(page)
     page.on('pageerror', lambda e: errors.append('pageerror: ' + str(e)))

@@ -1,0 +1,93 @@
+# Runs on every push to main: the rule checks, then the phone-size UI tests in WebKit, the engine behind Safari.
+# The UI tests were written against Chrome; this is the only place they run in Safari's engine.
+# Each run's output is saved as webkit.txt on the ci-results branch, so it can be read without opening Actions.
+name: Tests (rules + Safari engine)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # to save the results file on the ci-results branch
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rules:
+    name: Rule checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  webkit:
+    name: UI tests in WebKit (Safari's engine)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run build
+      - run: pip install playwright
+      - run: python -m playwright install webkit
+      - name: Run the UI tests in WebKit
+        id: ui
+        continue-on-error: true   # first runs: report, do not fail the push. Tighten once it is green.
+        env:
+          BROWSER: webkit
+        run: |
+          fail=0
+          {
+            echo "commit $GITHUB_SHA"
+            echo "date   $(date -u '+%Y-%m-%d %H:%M UTC')"
+            python -m playwright --version
+            sw_vers | tr '\n' ' '; echo
+          } > results.txt
+          run() {
+            echo "" >> results.txt
+            echo "=== $* ===" >> results.txt
+            if env "$@" > out.txt 2>&1; then echo "PASS" >> results.txt; else echo "FAIL" >> results.txt; fail=1; fi
+            grep -n "^not ok\|^ERRORS\|^No errors\|^  \|Traceback\|Error" out.txt | head -60 >> results.txt || true
+            tail -4 out.txt >> results.txt
+          }
+          run python test/map_test.py
+          run python test/ui_test.py
+          run python test/md_ui_test.py
+          run MODE=rn python test/train_test.py
+          run MODE=md python test/train_test.py
+          run MODE=rn VW=667 VH=375 python test/train_test.py
+          run LESSON=heart python test/train_test.py
+          run MODE=rn python test/finger_test.py
+          run MODE=md python test/finger_test.py
+          run python test/offline_test.py
+          echo "" >> results.txt
+          if [ $fail = 0 ]; then echo "ALL PASS" >> results.txt; else echo "SOME FAILED" >> results.txt; fi
+          cat results.txt
+          exit $fail
+      - name: Save the results on the ci-results branch
+        if: always()
+        run: |
+          [ -f results.txt ] || echo "no results: the tests did not start ($GITHUB_SHA)" > results.txt
+          cp results.txt "$RUNNER_TEMP/webkit.txt"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git stash -u -q || true
+          if git fetch -q origin ci-results; then git checkout -q -B ci-results FETCH_HEAD; else git checkout -q --orphan ci-results; git rm -rf -q . || true; fi
+          cp "$RUNNER_TEMP/webkit.txt" webkit.txt
+          git add webkit.txt
+          git commit -q -m "WebKit results for ${GITHUB_SHA::7}" || echo "nothing new"
+          git push -q origin ci-results
