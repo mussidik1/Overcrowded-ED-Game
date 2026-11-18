@@ -7,7 +7,7 @@ A 32-bed emergency department, 07:00 to 19:00. Patients come in by ambulance and
 - **Charge nurse.** You run the board: registration, triage, beds, providers, EVS, consults, and getting patients upstairs or out the door.
 - **Attending.** The charge nurse runs the board. You see patients, write the orders, make the disposition call, and give EMS medical direction on the radio.
 
-**Play it:** https://edcodeblack.com (also edcodeblack.net and the old address, https://mussidik1.github.io/Overcrowded-ED-Game/, which forward there)
+**Play it:** https://edcodeblack.com (password-protected during private testing; this repository is private since Nov 18, 2026) (also edcodeblack.net and the old address, https://mussidik1.github.io/Overcrowded-ED-Game/, which forward there)
 
 ## The floor plan
 
