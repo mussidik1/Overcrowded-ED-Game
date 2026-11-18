@@ -46,6 +46,8 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 
 **Safari's engine, spaced cases, earlier terms (v0.16.4).** A GitHub workflow (`.github/workflows/tests.yml`) runs the rule checks and the phone-size UI tests in WebKit, the engine behind Safari, on each push to `main`; the output is kept as `webkit.txt` on the `ci-results` branch. `BROWSER=webkit` runs any UI test in WebKit locally. A case that just arrived is unlikely to arrive again for 45 minutes, so a shift no longer brings three hip fractures before 08:00. Orientation explains EVS, the dots on a pod sign, CT, XR, LAB, RX, and the workup where they first appear; the card explains Experience and Mark STAT when Plain words is on.
 
+**The 3D floor (v0.18.0).** The department is now drawn in 3D: a lit, detailed ED with real beds, monitors, curtains, and headwalls, modelled in Blender. People walk the halls in uniform (nurses in blue, techs in green, the attending in a white coat, the PA in burgundy, the NP in purple, registration in shirt and slacks, EVS in charcoal, EMS in navy). Patients lie in beds in gowns, wait on stretchers on the wall, and sit in the waiting room. Ambulances park at the bay and queue down the drive. Room colours are gone: each room shows an icon for what it needs next, pulsing when it is waiting on you, with the call light lit by the door; a crashing patient gets a flashing red ring. Drag to move, pinch or use + and − to zoom. Orientation and the lessons use the flat map, and the flat map is one tap away on the title screen or in the pause menu ("Floor: 3D / flat") for older phones.
+
 **Tokens and a human voice (v0.17.0).** The map is drawn as tokens. A room is a tile whose colour is its state: solid blue needs you, red is trouble, green is ready to go, brown is dirty, purple is admitted and waiting for a bed, white is someone else's move, gray is empty. Each tile has one large icon; zoomed in, the name and the next step are in words. Staff are pills in one strong colour a role, lettered MD, PA, NP, RN, T (tech), R (registration), EV (housekeeping), RT, Rx, and TP (transport). Patients on their feet are circles with their triage level, or a question mark before triage. The beds, monitors, and little people are gone. The map key lists the colours, the icons, and who is who. The preceptor's cards in both Orientations and the eight lessons were rewritten to sound like a person talking, and the 32 radio calls now read as a medic speaking ("I'd like to give nitroglycerin").
 
 **What six reviewers found (v0.16).** Three lay players and three clinicians (an emergency physician, an EMS physician, an ED charge nurse) reviewed v0.15. This release builds their clinical fixes and the feedback they asked for.
@@ -161,14 +163,15 @@ The game ships as one self-contained `index.html`, with the engine, UI, styles, 
 
 - `engine.js`: the simulation (no DOM)
 - `ui.js`: the phone-first interface
-- `map.js`: the floor plan (SVG), built into `ui.js`
+- `map.js`: the floor plan (SVG), built into `ui.js`. It also hands the 3D floor a snapshot of the department every frame and takes its taps
+- `../src3d/map3d.js`: the 3D floor (three.js), bundled by `build3d.js` into `3d/map3d.js` and loaded only when the 3D floor is on. Its models are in `3d/`, made by the Blender scripts in `art/blender/`
 - `style.css`, `index.template.html`
 
 The build also writes `sw.js`, a small service worker that keeps a copy of the game for offline play. Its cache name carries the version and a hash of `index.html`, so every build replaces the old copy.
 
 ```sh
 npm install      # fonts used by the build
-npm run build    # writes index.html
+npm run build    # writes 3d/map3d.js and index.html
 npm test         # rule checks (six suites, 310 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
 npm run sim      # simulated shifts at several player speeds
 npm run stress   # 188 shifts across every level and scenario: checks for stuck states and out-of-range vitals
@@ -177,6 +180,7 @@ python3 test/md_ui_test.py   # the attending: see, order, decide, the radio, the
 python3 test/map_test.py     # the floor plan on a sideways phone (93 checks): fits without dragging, rails, icons, name tags, sliding taps, the wall list, messages in the top strip, zoom and wrapped words, ambulances backing up, vitals, the Next button, Words, scenarios, the printed and kept report
 python3 test/finger_test.py  # Orientation the way a real finger plays it: people moving, real time, touches that slide 12 px. MODE=md for the attending
 python3 test/offline_test.py # serves the folder, installs the service worker, cuts the network, and reloads
+python3 test/map3d_test.py   # the 3D floor on a real shift (served over http): loads, room and staff taps, zoom, switching back to flat
 python3 test/train_test.py   # plays the charge nurse Orientation on the floor plan, tapping only what the preceptor lights up
 MODE=md python3 test/train_test.py   # the same for the attending Orientation
 LESSON=stroke python3 test/train_test.py   # one lesson: stroke, heart, sepsis, bleed, breath, od, belly, or falls. Fails if following it misses a time goal
@@ -187,5 +191,8 @@ VIEW=list python3 test/train_test.py # either Orientation on the list board
 ![The list board on a laptop](docs/screenshots/desktop.png)
 
 ## Credits
+
+3D people and animations from [mesh2motion](https://github.com/scottpetrovic/mesh2motion-app) (CC0, per that repository). Furniture and cars from [KayKit](https://github.com/KayKit-Game-Assets) by Kay Lousberg (CC0). The ED rooms, stretchers, scrubs, and department are original, built in Blender. Rendered with [three.js](https://threejs.org) (MIT).
+
 
 Set in [Cardo](https://fonts.google.com/specimen/Cardo) by David Perry (SIL Open Font License 1.1), via Fontsource.

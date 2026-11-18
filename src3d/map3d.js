@@ -40,7 +40,9 @@ const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), cache = {};
 const PACK = window.OC3DPACK || (window.OC3DPACK = {});
 const b64buf = s => { const b = atob(s), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a.buffer; };
 const script = src => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => res(false); document.head.appendChild(s); });
-async function packs() { if (!(await script(BASE + 'pack-index.js')) || !window.OC3DPACKS) return; for (const f of window.OC3DPACKS) await script(BASE + f); }
+async function packs() {
+  try { const r = await fetch(BASE + 'layout.json', { method: 'HEAD' }); if (r.ok) return; } catch (e) { /* not served here: use the packs */ }
+  if (!(await script(BASE + 'pack-index.js')) || !window.OC3DPACKS) return; for (const f of window.OC3DPACKS) await script(BASE + f); }
 const buf = async u => PACK[u] ? b64buf(PACK[u]) : (await fetch(BASE + u)).arrayBuffer();
 const load = u => (cache[u] ||= buf(u).then(b => loader.parseAsync(b, BASE)));
 const GL = {}, ROOM = {}, ENT = new Map(), AMB = new Map(), ROOMX = {}, LBL = new Map(), ANIM = {};
