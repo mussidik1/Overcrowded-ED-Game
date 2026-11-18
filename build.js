@@ -24,7 +24,7 @@ const html = src('index.template.html')
 fs.writeFileSync(path.join(__dirname, 'index.html'), html);
 // The service worker: the game plays offline once it has loaded once. The cache name changes with every build.
 const stamp = require('./package.json').version + '-' + require('crypto').createHash('sha1').update(html).digest('hex').slice(0, 10);
-fs.writeFileSync(path.join(__dirname, 'sw.js'), `/* Overcrowded: plays offline once it has loaded once. Written by build.js; do not edit. */
+fs.writeFileSync(path.join(__dirname, 'sw.js'), `/* Emergency Department: Code Black: plays offline once it has loaded once. Written by build.js; do not edit. */
 const CACHE = 'overcrowded-${stamp}';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });

@@ -1,4 +1,4 @@
-/* Overcrowded ED — phone-first UI v0.2. Reads state from OC.G, sends taps to OC actions. */
+/* Emergency Department: Code Black — phone-first UI v0.2. Reads state from OC.G, sends taps to OC actions. */
 (function () {
 'use strict';
 const E = window.OC;
@@ -300,8 +300,7 @@ function renderHud(G) {
   setC(dv, 'hb' + (on.some(k => k !== 'yellow') ? ' red' : on.length ? ' on' : '') + (Object.keys(G.out).length && !on.length ? ' alarm' : ''));
   const dt = !on.length ? 'Divert' : on.length === 1 ? E.DIVERTS[on[0]].short : `Divert ×${on.length}`; if (dv.textContent !== dt) dv.textContent = dt;
   const sp = U.speed + '×'; if ($('#btnSpeed').textContent !== sp) $('#btnSpeed').textContent = sp;
-  const pz = U.paused ? '▶' : 'II'; if ($('#btnPause').textContent !== pz) $('#btnPause').textContent = pz;
-  $('#btnPause').setAttribute('aria-label', U.paused ? 'Resume' : 'Pause');
+  $('#btnPause').classList.toggle('on', !!U.paused);
   const mb = $('#btnMsgs'), mn = $('#msgN');
   if (mb && mn) {
     const show = U.view === 'map', nw = U.msgNew || 0, t = nw ? (nw > 9 ? '9+' : String(nw)) : '';
@@ -752,8 +751,9 @@ function primary(p, G) {
   if (p.dsp === 'callrep' || p.dsp === 'reporting') return `<p class="hint">Their nurse calls report to the floor, then you send them up.${hasHold() ? ' Your hold nurse has them.' : ''}${E.roomOf(p).kind === 'chair' ? ' They are in a chair: move them to a bed if one opens.' : ''}</p>`;
   if (p.dsp === 'bedready') return `<div class="prim"><div class="prim-l">Bed ready upstairs. Who takes them?</div><div class="pgrid">${upButtons(p, G)}</div>${p.dispo === 'icu' ? '<p class="hint" style="margin:0">ICU patient: their nurse goes along for about 10 minutes.</p>' : ''}</div>`;
   if (p.dsp === 'txok') return `<div class="prim"><div class="prim-l">${esc(cap(p.txTo))} accepted. Book the ambulance</div><div class="cgrid">${iftButtons(p, G)}</div><p class="hint" style="margin:0">ICU-level patients need critical care transport. The patient keeps the room until the crew arrives.</p></div>`;
-  if (E.needsProv(p)) return `<div class="prim"><div class="prim-l">Assign a provider</div><div class="pgrid">${provButtons(p, G)}</div></div>`;
-  if (p.reg === 'none') return `<div class="prim"><div class="prim-l">Register them before they leave the ED</div><div class="pgrid">${regButtons(p, G)}</div></div>`;
+  const regBlk = p.reg === 'none' ? `<div class="prim"><div class="prim-l">Register them at the bedside${p.bedFirst ? '' : ' before they leave the ED'}</div><div class="pgrid">${regButtons(p, G)}</div></div>` : '';
+  if (E.needsProv(p)) return `<div class="prim"><div class="prim-l">Assign a provider</div><div class="pgrid">${provButtons(p, G)}</div></div>${regBlk}`;   // bedded first: the registrar is the other thing they need
+  if (regBlk) return regBlk;
   if (p.dxK && p.con && p.consult.st === 'none') return `<div class="prim"><button type="button" class="big act" data-act="consultOpen" data-arg="${p.id}">Call a consult…</button></div>`;
   if (p.reg === 'quick' && p.ev === 'done') return `<div class="prim"><div class="prim-l">Finish their registration</div><div class="pgrid">${regButtons(p, G)}</div><p class="hint" style="margin:0">Registration does this at the bedside when the desk is quiet. They can't leave the ED until it's done.</p></div>`;
   return '';
@@ -787,6 +787,7 @@ function triButtons(p, G) {
 function intakeBlock(p, G, mtpBtn) {
   let h = `<div class="prim">${mtpBtn}`;
   if (E.emergent(p)) h += `<button type="button" class="big bad" data-act="placeSel" data-arg="${p.id}">Straight to a room</button><p class="hint" style="margin:0">Critical: skip the line. The nurse triages at the bedside. Register them before they leave the ED.</p>`;
+  else if (E.sickEnough(p) && p.reg === 'none') h += `<button type="button" class="big act" data-act="placeSel" data-arg="${p.id}">Bed first</button><p class="hint" style="margin:0">${p.tri === 'done' ? `ESI ${E.vEsi(p)}` : '<b>Looks sick.</b> They'} can go to a bed before registration. Then send a registrar to the room: nobody leaves the ED until they are registered.</p>`;
   const wall = p.loc === 'wall', em = E.emergent(p);   // at the front door registration comes first; on the wall the crew's report does
   const regB = p.reg === 'none' ? `<div class="prim-l">${em ? '' : wall ? '2 · ' : '1 · '}Register</div><div class="pgrid">${regButtons(p, G)}</div>` : '';
   const triB = p.tri === 'none' && !em ? `<div class="prim-l">${wall ? '1' : '2'} · ${wall ? `Take report from ${esc(p.unit)} and triage` : 'Triage'}</div><div class="pgrid">${triButtons(p, G)}</div>` : '';
@@ -1302,6 +1303,7 @@ function helpHTML() {
   const fp = U.view === 'map';
   return head('How to run the board', `You are the charge nurse from ${shiftSpan()}. Keep patients moving, staff upright, and the Box answered.`) + WORDS_BTN + (fp ? legendHTML(false) : '') + `<ol class="help">
 <li><b>Intake.</b> Patients come in two doors: EMS and walk-in. Every one needs a quick registration and triage, and you direct both. Tap a registrar or triage nurse ${fp ? (U.rails ? 'on the left' : 'at the bottom left') : 'in the intake row'}, then tap patients; or tap a patient for options. EMS crews wait on the wall to give report until a nurse triages them. Walk-ins go to the waiting room after triage. Alerts and crashing patients can go straight to a room. Full registration happens later at the bedside, and nobody leaves the ED until it's done.</li>
+<li><b>Bed first.</b> A patient who looks sick (ESI 1 or 2) can go straight to a bed before registration. Send a registrar to the room afterward: nobody can be discharged, admitted, or transferred until they are registered.</li>
 <li><b>The waiting room.</b> Triage isn't perfect: now and then someone is sicker than their ESI says. Have the triage nurse recheck people who have waited a while. Walk the waiting room (tap ${fp ? 'the waiting room' : 'the lane header'}) and update people on the wait; fewer walk out.</li>
 <li><b>Bed patients.</b> Tap a patient ${fp ? 'on the wall with a green check' : 'marked READY FOR A BED'}, or one in the waiting room, then a green room. EMS patients who are ESI 3 to 5 can be handed off to the waiting room instead. ESI 1 goes to Resus. Fast Track opens at 09:00 and takes ESI 4 and 5. Airborne isolation needs Room 8 or 16. Rooms 19 and 20 are safe rooms for behavioral health. The six chairs are for patients a provider has seen who are waiting on results or a ride: move them out of a bed to free it.</li>
 <li><b>Get them seen.</b> Nobody sees a provider until you assign one. Tap a provider ${SIDE()}, then tap every patient you want them to take. PAs and NPs take ESI 2 to 5; an attending co-signs their ESI 2 patients. Intubations need an attending and an RT. A provider with a long line makes more mistakes. Station a provider in triage from their card to work the waiting room.</li>
@@ -1349,6 +1351,7 @@ function renderSheet(G) {
   else if (s && s.type === 'words') h = wordsHTML();
   else if (s && s.type === 'chapters') h = chaptersHTML();
   else if (s && s.type === 'lessons') h = lessonsHTML();
+  else if (s && s.type === 'class') h = classHTML();
   if (h && TR() && s.type !== 'words' && !coachBeside()) h = coachHTML('in') + h;
   const key = h ? s.type + '|' + (s.pid || s.sid || s.z || '') : '';
   wrap.hidden = !h; morph(el, h);
@@ -1362,7 +1365,7 @@ function renderSheet(G) {
 const TR = () => { const G = g(); return G && G.train && G.tr && U.scene === 'game' ? G.tr : null; };
 const tid = k => { const t = TR(); return t && t.ids[k] ? E.pt(t.ids[k]) : null; };
 const mag = id => `[data-act="pt"][data-arg="${id}"]`;
-const mapFar = () => U.view === 'map' && CAM.far;
+const mapFar = () => U.view === 'map' && camFar();
 const wallPts = () => E.active().filter(p => p.loc === 'wall').sort((a, b) => a.tArrive - b.tArrive);
 const ptSpot = p => {   // zoomed out, people at the door, on the wall, and in the waiting room are picked from a list
   if (p && mapFar() && (p.loc === 'waiting' || p.loc === 'triage' || p.loc === 'wall')) return sheetIs('zone', 'triage') ? [`#sheet ${mag(p.id)}`] : [p.loc === 'waiting' ? '#mWait' : p.loc === 'wall' ? '#mWall' : '#mDoor'];
@@ -1394,6 +1397,7 @@ const intakeStep = (key, rsid, tsid) => ({
   auto: () => { const p = tid(key); if (p.reg === 'none') E.register(p.id, rsid); if (p.tri === 'none') E.triage(p.id, tsid); },
 });
 const FP = () => U.view === 'map';   // words that differ between the floor plan and the list board
+const TD = () => FP() && floor3d();   // and the few that differ on the 3D floor
 const bedStep = (key, rid) => ({
   spot: () => { const p = tid(key); return selPt(p) ? [`#room-${rid}, #mroom-${rid}`] : ptSpot(p); },
   done: () => ['room', 'gone'].includes(tid(key).loc),
@@ -1423,11 +1427,11 @@ const STEPS = [
   { id: 'provs', next: true, title: 'Providers', text: () => `A **provider** examines patients and writes **orders**: which tests and treatments they get.\n**Attendings**${FP() ? ', the **MD** chips,' : ''} are fully trained emergency doctors. **PAs and NPs** are physician assistants and nurse practitioners.\nThey wait ${SIDE()}, and they don’t go looking for patients. You send them.`, spot: () => ['#dockProv', '#sideProv'] },
 
   { id: 'm6', title: 'Send a provider', text: () => `So send one.\nTap **Rivera**, a PA, ${SIDE()}. Then tap **${E.roomName(tid('maria').room || '1')}**.`, ...provStep('maria', 'pa1') },
-  { id: 'ic1', next: true, title: 'What the colours mean', text: () => (FP() ? `Her room went **white**. Rivera is in there, so she isn’t waiting on you anymore.\nA **solid colour** means a room wants you. **Blue** is the next step, **green** is ready to go home, and **brown** is dirty.\n**White** rooms are someone else’s move. **Purple** ones are admitted and waiting for a bed upstairs.` : `The words on her room turned **gray**. Someone is with her, so she isn’t waiting on you.\n**Blue** needs you. **Gray** is waiting on someone else. **Green** is ready to go. **Purple** is admitted and waiting for a bed upstairs.`), spot: () => [roomSel(tid('maria'))] },
-  { id: 'ic2', title: 'Zoom in', text: `**+** zooms in, and the icons turn into **words**.\nTap **+** until they do.`, spot: () => ['#mzoom [data-arg="in"]'], done: () => !FP() || !CAM.far, auto: () => { for (let i = 0; i < 4 && CAM.far; i++) mapZoom(1.5); } },
-  { id: 'ic3', title: 'The whole department', text: `Now every room says what it needs in **words**. The catch is you see less of the department. Drag to look around.\nTap **⤢** to get the whole department back.`, spot: () => ['#mzFit'], done: () => !FP() || !mapZoomed(), auto: () => mapZoom(0) },
+  { id: 'ic1', next: true, title: 'What the colours mean', text: () => (TD() ? `Her room's floor went clear and its badge went **white**. Rivera is in there, so she isn’t waiting on you anymore.\nA **coloured floor** means a room wants you. **Blue** is the next step, **green** is ready to go home, and **brown** is dirty.\nRooms with **no colour** are someone else’s move. **Purple** ones are admitted and waiting for a bed upstairs.` : FP() ? `Her room went **white**. Rivera is in there, so she isn’t waiting on you anymore.\nA **solid colour** means a room wants you. **Blue** is the next step, **green** is ready to go home, and **brown** is dirty.\n**White** rooms are someone else’s move. **Purple** ones are admitted and waiting for a bed upstairs.` : `The words on her room turned **gray**. Someone is with her, so she isn’t waiting on you.\n**Blue** needs you. **Gray** is waiting on someone else. **Green** is ready to go. **Purple** is admitted and waiting for a bed upstairs.`), spot: () => [roomSel(tid('maria'))] },
+  { id: 'ic2', title: 'Zoom in', text: () => (TD() ? `**+** zooms in, and each room's badge grows into a label with the patient's **name**.\nTap **+** until it does.` : `**+** zooms in, and the icons turn into **words**.\nTap **+** until they do.`), spot: () => ['#mzoom [data-arg="in"]'], done: () => !FP() || (TD() ? !!(window.OC3D && OC3D.full && OC3D.full()) : !CAM.far), auto: () => { for (let i = 0; i < 6 && (TD() ? !(window.OC3D && OC3D.full()) : CAM.far); i++) mapZoom(1.5); } },
+  { id: 'ic3', title: 'The whole department', text: () => `${TD() ? 'Now every room says who is in it.' : 'Now every room says what it needs in **words**.'} The catch is you see less of the department. Drag to look around.\nTap **⤢** to get the whole department back.`, spot: () => ['#mzFit'], done: () => !FP() || !mapZoomed(), auto: () => mapZoom(0) },
   { id: 'm7', wait: true, title: 'The workup', text: `Rivera orders a urine test. The tests that find out what’s wrong are called the **workup**.\nA **tech** collects the sample. Techs are **PCTs**, patient care technicians. Think of them as the nurses’ extra hands.`, done: () => tid('maria').dxK || tid('maria').loc === 'gone' },
-  { id: 'rest', next: true, title: 'The rest of the department', text: () => `**H1 to H4** are **hallway beds**, for when the rooms are full.\n**Fast** is **Fast Track**: four rooms for minor problems, open from 09:00.\n**Chairs** are for patients who only wait on results.\n${FP() ? '**Orange dashes**' : '**ISO**'}: an isolation room, for infections that spread through the air. ${FP() ? '**Blue dots**' : '**Safe**'}: a safe room, for a patient who might hurt themselves.${FP() ? '\nAlong the bottom: **CT**, **XR** (X-ray), **LAB**, and **RX**, the pharmacy.' : ''}`, spot: () => ['#zh-hall, #mzh-hall', '#zh-ft, #mzh-ft', '#zh-rp, #mzh-rp'] },
+  { id: 'rest', next: true, title: 'The rest of the department', text: () => `**H1 to H4** are **hallway beds**, for when the rooms are full.\n**Fast** is **Fast Track**: four rooms for minor problems, open from 09:00.\n**Chairs** are for patients who only wait on results.\n${TD() ? 'Two kinds of room are special. An **isolation room** is for infections that spread through the air. A **safe room** is for a patient who might hurt themselves.' : `${FP() ? '**Orange dashes**' : '**ISO**'}: an isolation room, for infections that spread through the air. ${FP() ? '**Blue dots**' : '**Safe**'}: a safe room, for a patient who might hurt themselves.`}${FP() && !TD() ? '\nAlong the bottom: **CT**, **XR** (X-ray), **LAB**, and **RX**, the pharmacy.' : ''}`, spot: () => ['#zh-hall, #mzh-hall', '#zh-ft, #mzh-ft', '#zh-rp, #mzh-rp'] },
   { id: 'm8', wait: true, title: 'Treatment', text: `The test shows a **UTI**, a urinary tract infection.\nThe **pharmacist** checks the antibiotic order, and then her nurse gives it. Meanwhile a registrar finishes her paperwork at the bedside.`, done: () => tid('maria').dsp !== 'none' || tid('maria').loc === 'gone' },
   { id: 'm9', title: 'Discharge', text: `She’s good to go home. We call that a **discharge**.\nTap **her room**, then **Discharge home**.`, ...roomAct('maria', '[data-act="dc"]'),
     done: () => ['dc', 'dcing'].includes(tid('maria').dsp) || tid('maria').loc === 'gone', auto: () => E.discharge(tid('maria').id) },
@@ -1724,6 +1728,20 @@ function chaptersHTML() {
 }
 const lessonKey = () => { const t = g() && g().tr; return t && t.lesson && LESSONS[t.lesson] ? t.lesson : null; };
 const lessonDone = k => !!store('oc-lesson-' + k);
+/* Class codes: an instructor makes one, students enter it, and everyone plays the same shift (same arrivals and events). */
+const codeDesc = c => `${c.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${E.LEVELS[c.level].name}${c.scen !== 'none' ? ' · ' + E.SCENS[c.scen].name + ' scenario' : ''}${c.mode === 'md' ? ' · ' + E.PACKS[c.pack].name + ' radio calls' : ''}`;
+function classHTML() {
+  const typed = E.readCode(U.codeIn || ''), made = U.codeMade ? E.readCode(U.codeMade) : null;
+  const lv = ['rush', 'easy', 'med', 'hard'].map(k => `<button type="button" class="cbtn" data-act="codeMake" data-arg="${k}"><b>${esc(E.LEVELS[k].name)}</b></button>`).join('');
+  return head('Class code', 'Everyone who enters the same code plays the same shift: the same patients and events, at the same times. What each player does with them is theirs.')
+    + `<div class="cc-box"><label for="ccIn"><b>Play a code</b></label><div class="cc-row"><input id="ccIn" class="cc-in" data-pick="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="9" placeholder="ABC-DEF" value="${esc(U.codeIn || '')}" aria-describedby="ccWhat"><button type="button" class="big act" data-act="codePlay" ${typed ? '' : 'disabled'}>Start</button></div><small id="ccWhat" class="cc-what">${esc(codeHint(U.codeIn || ''))}</small></div>`
+    + `<div class="cc-box"><b>Make one (instructors)</b><small>It uses the role${U.mode === 'md' ? ', radio calls' : ''} and scenario set on the menu (now: ${esc(codeDesc({ mode: U.mode, level: 'med', scen: U.scen, pack: U.pack }).replace(/ · Manic Monday/, ''))}). Pick the shift:</small><div class="cgrid cc-lv">${lv}</div>`
+    + (made ? `<div class="cc-made"><div class="cc-code" aria-label="Class code ${esc(made.code.split('').join(' '))}">${esc(made.code)}</div><small>${esc(codeDesc(made))}</small><div class="cc-row"><button type="button" class="big" data-act="codeCopy">Copy</button>${navigator.share ? '<button type="button" class="big" data-act="codeShare">Share</button>' : ''}<button type="button" class="big act" data-act="codePlay" data-arg="${esc(made.code)}">Play it</button></div><small>Students: Play a shift, then Class code. Each summary shows the code, the real time played, and the speed used, and has a Share button for sending you the result.</small></div>` : '')
+    + '</div>';
+}
+const codeHint = v => { const c = E.readCode(v); return c ? codeDesc(c) : v.replace(/[^0-9a-z]/gi, '').length >= 6 ? 'That code does not look right. Check each letter.' : 'Six letters and numbers, from your instructor.'; };
+const codeText = c => `Code Black class code ${c.code}: ${codeDesc(c)}. Play at ${location.origin}${location.pathname}, then Play a shift, then Class code.`;
+function copyText(t) { try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t); return true; } } catch (e) { /* no clipboard */ } return false; }
 function lessonsHTML() {
   const n = LESSON_KEYS.filter(lessonDone).length;
   return head('Lessons', `One condition, one patient, about two minutes. What it looks like, what to order and why, and the clock. You play the doctor. Nothing counts.${n ? ` ${n} of ${LESSON_KEYS.length} done.` : ''}`)
@@ -1845,7 +1863,7 @@ function mapAct(el, cx, cy) {
 
 /* On the floor plan the preceptor's card keeps off what it points at: the far side first, then the other end of the screen. */
 function coachDodge(el, x) {
-  const r = x.getBoundingClientRect(), left = (r.left + r.right) / 2 > window.innerWidth / 2;
+  const r = mapRect(x), left = (r.left + r.right) / 2 > window.innerWidth / 2;
   const hits = () => { const c = el.getBoundingClientRect(); return !!c.width && !(r.right < c.left - 6 || r.left > c.right + 6 || r.bottom < c.top - 6 || r.top > c.bottom + 6); };
   for (const [l, alt] of [[left, false], [!left, false], [left, true], [!left, true]]) { el.classList.toggle('cleft', l); el.classList.toggle('calt', alt); if (!hits()) return; }
   el.classList.toggle('cleft', left); el.classList.remove('calt');
@@ -1870,7 +1888,7 @@ function renderModal(G) {
       : [U.view === 'map' && floor3d() ? 'A room with a **pulsing icon** over it is waiting on you. A **flashing red ring** is a patient crashing.' : U.view === 'map' ? 'A **solid-coloured room** is waiting on you. A **white** one is someone else’s move.' : '**Blue** words on a room are waiting on you. **Gray** is waiting on someone else.', `**Next**${U.view === 'map' && U.rails ? ', bottom left,' : ''} jumps to the most urgent thing. **Red** means go now.`, 'A **card that stops the clock** wants a decision from you. Every choice costs something.'];
     h = `<div class="mc-who">${esc(E.LEVELS[G.level].name)} · your first shift as ${md ? 'the attending' : 'charge nurse'}</div><h3>Three things to know</h3><ol class="first">${lines.map(x => `<li>${fmt(x)}</li>`).join('')}</ol><p class="hint" style="margin:-4px 0 10px">The pause button has How to play and what the words mean.</p><div class="mc-ch"><button type="button" class="go" data-act="modalOk"><b>Start the shift</b></button><button type="button" data-act="firstHelp"><b>How to play</b><small>The full guide</small></button>${store(trainedKey(md ? 'md' : 'rn')) ? '' : '<button type="button" data-act="firstTrain"><b>Do Orientation first</b><small>A preceptor walks you through it</small></button>'}</div>`;
   } else if (U.scene === 'game' && U.paused && !U.sheet) {
-    h = `<div class="mc-who">${lessonKey() ? 'Lesson: ' + esc(LESSONS[lessonKey()].name) : esc(E.LEVELS[G.level].name)}${G.scen && G.scen !== 'none' && E.SCENS[G.scen] ? ' · ' + esc(E.SCENS[G.scen].name) + ' scenario' : ''} · ${E.clock()}</div><h3>Paused</h3><p>The department waits for you. It will not wait long. Your shift is saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="words"><b>What the words mean</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="plain"><b>Plain words: ${PLAIN() ? 'on' : 'off'}</b></button><button type="button" data-act="view"><b>${U.view === 'map' ? 'Switch to the list board' : 'Switch to the floor plan'}</b></button>${U.view === 'map' ? `<button type="button" data-act="three"><b>${U.three ? '3D floor: on' : '3D floor: off'}</b></button>` : ''}${U.view === 'map' && U.three && !(G && G.train) ? `<button type="button" data-act="q3d"><b>3D detail: ${Q3D_NAME[U.q3d]}</b></button>` : ''}${document.fullscreenEnabled ? `<button type="button" data-act="fullscreen"><b>${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</b></button>` : ''}<button type="button" data-act="restart"><b>${U.armR && performance.now() - U.armR < 3000 ? 'Tap again to restart' : 'Restart this shift'}</b></button><button type="button" data-act="menu"><b>Quit to menu</b></button></div>`;
+    h = `<div class="mc-who">${lessonKey() ? 'Lesson: ' + esc(LESSONS[lessonKey()].name) : esc(E.LEVELS[G.level].name)}${G.scen && G.scen !== 'none' && E.SCENS[G.scen] ? ' · ' + esc(E.SCENS[G.scen].name) + ' scenario' : ''} · ${E.clock()}</div><h3>Menu</h3><p>The shift is paused and saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="restart"><b>${U.armR && performance.now() - U.armR < 3000 ? 'Tap again to restart' : 'Restart this shift'}</b></button><button type="button" data-act="menu"><b>Main menu</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="words"><b>What the words mean</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="plain"><b>Plain words: ${PLAIN() ? 'on' : 'off'}</b></button><button type="button" data-act="view"><b>${U.view === 'map' ? 'Switch to the list board' : 'Switch to the floor plan'}</b></button>${U.view === 'map' ? `<button type="button" data-act="three"><b>${U.three ? '3D floor: on' : '3D floor: off'}</b></button>` : ''}${U.view === 'map' && U.three ? `<button type="button" data-act="q3d"><b>3D detail: ${Q3D_NAME[U.q3d]}</b></button>` : ''}${document.fullscreenEnabled ? `<button type="button" data-act="fullscreen"><b>${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</b></button>` : ''}</div>`;
   }
   if (h && TR()) h = coachHTML('in') + h;
   wrap.hidden = !h; morph(el, h);
@@ -2032,6 +2050,20 @@ const ACT = {
   coachDone: () => { const k = lessonKey(); if (!k) { const C = chOf(TR().step); if (C) store(chKey(chMode(), C.k), '1'); } store(k ? 'oc-lesson-' + k : trainedKey(g().mode), '1'); store('oc-save', null); showTitle(); },
   coachEasy: () => { const t = TR(), s = coachStep(); if (!t || (t.brk == null && s && s.final)) store(trainedKey(g().mode), '1'); U.mode = g().mode || 'rn'; start('easy'); },
   lessons: () => { U.sheet = { type: 'lessons' }; },
+  classCode: () => { U.sheet = { type: 'class' }; },
+  codeMake: lvl => { U.codeMade = E.classCode({ mode: U.mode, level: lvl, scen: U.scen, pack: U.pack, seed: (Math.random() * 131072) | 0 }); },
+  codeCopy: () => { const c = E.readCode(U.codeMade); if (c) res(copyText(codeText(c)) ? { ok: true, msg: `Copied ${c.code} and how to play it` } : { ok: false, why: `Copy did not work here. The code is ${c.code}.` }, true); },
+  codeShare: () => { const c = E.readCode(U.codeMade); if (c && navigator.share) navigator.share({ title: 'Code Black class code', text: codeText(c) }).catch(() => {}); },
+  codePlay: a => {
+    const c = E.readCode(a || U.codeIn); if (!c) { res({ ok: false, why: 'That code does not look right. It is six letters and numbers, like ABC-DEF.' }); return; }
+    U.mode = c.mode; U.scen = c.scen; U.pack = c.pack; store('oc-mode', c.mode); store('oc-scen', c.scen); store('oc-pack', c.pack);
+    U.sheet = null; start(c.level, null, null, c);
+  },
+  shareResult: () => {
+    const d = lastReport(); if (!d) return; const R = d.R, L = E.LEVELS[R.level];
+    const t = `ED: Code Black${R.code ? ' · class ' + R.code : ''} · ${R.mode === 'md' ? 'Attending' : 'Charge nurse'}, ${L.name}${R.scen && R.scen !== 'none' ? ', ' + E.SCENS[R.scen].name : ''} · ${R.care} points ${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)} · avg wait ${R.wait}m · left without being seen ${R.lwbs}${R.realSec ? ' · ' + realTxt(R) : ''}`;
+    if (navigator.share) navigator.share({ title: 'Code Black shift summary', text: t }).catch(() => {}); else res(copyText(t) ? { ok: true, msg: 'Copied your result' } : { ok: false, why: t }, true);
+  },
   legend: () => { U.sheet = U.sheet && U.sheet.type === 'legend' ? null : { type: 'legend' }; },
   msgs: () => { U.sel = null; U.sheet = U.sheet && U.sheet.type === 'msgs' ? null : { type: 'msgs', nw: U.msgNew || 0 }; U.msgNew = 0; },
   lesson: k => { if (LESSONS[k]) start('train', k); },
@@ -2126,7 +2158,7 @@ const ACT = {
   pizza: () => res(E.orderPizza()),
   yellow: () => { U.sheet = { type: 'divert' }; },
   divertSet: a => { const [k, on] = a.split('|'); res(E.setDivert(k, on === '1')); },
-  pause: () => { U.paused = !U.paused; if (U.paused) { save(true); hush(); } },
+  pause: () => { U.paused = !U.paused; if (U.paused) { U.sheet = null; save(true); hush(); } },   // the menu: it closes any open card so it can show
   resume: () => { U.paused = false; },
   speed: () => { U.speed = SPEEDS[(SPEEDS.indexOf(U.speed) + 1) % SPEEDS.length]; toast(`${U.speed}× speed`, 'info'); },
   plain: () => { store('oc-plain', PLAIN() ? '0' : '1'); if (U.scene === 'title') setH($('#title'), titleHTML()); },
@@ -2137,7 +2169,7 @@ const ACT = {
   resumeSave: () => resumeSave(),
   restart: () => { const now = performance.now(); if (!U.armR || now - U.armR > 3000) { U.armR = now; render(); return; } U.armR = 0; start(U.lvl); },
   menu: () => { save(true); showTitle(); },
-  again: () => { U.armR = 0; start(U.lvl); },   // from the report: the shift is over and the report is kept, so one tap is enough
+  again: () => { U.armR = 0; const R = lastReport(), c = R && R.R && R.R.code ? E.readCode(R.R.code) : null; start(U.lvl, null, null, c); },   // a class shift runs back as the same shift   // from the report: the shift is over and the report is kept, so one tap is enough
   lastReport: () => showLastReport(),
   pill: k => toast((MD() ? PILL_HELP_MD : PILL_HELP)[k], 'info'),
 };
@@ -2193,12 +2225,12 @@ function titleHTML() {
   const resume = sv ? `<button type="button" class="lvl resume" data-act="resumeSave"><span class="dot" style="background:var(--accent)"></span><span><b>Resume your shift</b><small>${sv.G.mode === 'md' ? 'Attending' : 'Charge nurse'}: ${sv.G.tr && LESSONS[sv.G.tr.lesson] ? 'Lesson: ' + esc(LESSONS[sv.G.tr.lesson].name) : esc(E.LEVELS[sv.lvl] ? E.LEVELS[sv.lvl].name : '')}, paused at ${E.clock(sv.G.t)}</small></span></button>` : '';
   const scens = `<div class="packs scn"><span id="scnLab">Scenario<i class="scn-for"> (for class or practice)</i></span><div class="segs s5">${Object.entries(E.SCENS).map(([k, S]) => `<button type="button" class="seg${U.scen === k ? ' on' : ''}" data-act="scenario" data-arg="${k}" aria-pressed="${U.scen === k}">${k === 'none' ? 'None' : esc(S.name)}</button>`).join('')}</div><select class="scn-sel" data-pick="scenario" aria-labelledby="scnLab">${Object.entries(E.SCENS).map(([k, S]) => `<option value="${k}"${U.scen === k ? ' selected' : ''}>${k === 'none' ? 'None' : esc(S.name)}</option>`).join('')}</select><small>${esc(E.SCENS[U.scen].blurb)}${U.scen !== 'none' ? ' <span class="scn-note">Not counted in your bests.</span>' : ''}</small></div>`;
   const packs = Object.entries(E.PACKS).map(([k, P]) => `<button type="button" class="seg${U.pack === k ? ' on' : ''}" data-act="pack" data-arg="${k}" aria-pressed="${U.pack === k}">${esc(P.name)}</button>`).join('');
-  const brand = `<div class="t-kicker">An ED shift survival game</div><h1 class="t-brand">Overcrowded</h1><svg class="t-under" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 6 L297 6" stroke="#C8243A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+  const brand = `<div class="t-kicker">Emergency Department</div><h1 class="t-brand">Code Black</h1><svg class="t-under" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 6 L297 6" stroke="#C8243A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
   const head = (t, s) => `<div class="t-head"><button type="button" class="t-back" data-act="tmenu" data-arg="main" aria-label="Back to the menu">‹ Back</button><h2>${t}</h2>${s ? `<p class="t-sub">${s}</p>` : ''}</div>`;
   const row = (arg, dot, name, sub, badge) => `<button type="button" class="lvl t-go" data-act="tmenu" data-arg="${arg}"><span class="dot" style="background:${dot}"></span><span><b>${name}</b><small>${sub}</small></span>${badge || ''}<span class="t-chev" aria-hidden="true">›</span></button>`;
   const set = (act, label, on) => `<button type="button" class="t-set" data-act="${act}"><span>${label}</span><b>${on}</b></button>`;
   const role = md ? 'Attending' : 'Charge nurse';
-  if (U.tm === 'play') return `<div class="card t-sub-menu">${head('Play a shift', role + ', 07:00 to 19:00.')}<div class="levels">${lv}</div>${scens}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}</div>`;
+  if (U.tm === 'play') return `<div class="card t-sub-menu">${head('Play a shift', role + ', 07:00 to 19:00.')}<div class="levels">${lv}<button type="button" class="lvl t-go cc-go" data-act="classCode"><span class="dot" style="background:#4F5A6B"></span><span><b>Class code</b><small>Play your instructor's shift, or make one for a class.</small></span><span class="t-chev" aria-hidden="true">›</span></button></div>${scens}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}</div>`;
   if (U.tm === 'learn') return `<div class="card t-sub-menu">${head('Learn', 'Start with Orientation. The lessons take a condition at a time.')}<div class="levels">${train}${lessons}</div><div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="words">What the words mean</button></div></div>`;
   if (U.tm === 'set') return `<div class="card t-sub-menu">${head('Settings')}<div class="t-sets">${set('view', 'Board', U.view === 'map' ? 'floor plan' : 'list')}${U.view === 'map' ? set('three', 'Floor', U.three ? '3D' : 'flat') : ''}${U.view === 'map' && U.three ? set('q3d', '3D detail', Q3D_NAME[U.q3d]) : ''}${set('sound', 'Sound', U.sound ? 'on' : 'off')}${set('plain', 'Plain words', PLAIN() ? 'on' : 'off')}${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? set('fullscreen', 'Full screen', document.fullscreenElement ? 'on' : 'off') : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
   const stars = ['easy', 'med', 'hard'].reduce((n, k) => n + (bestOf(k) ? E.starsFor(bestOf(k), k, U.mode) : 0), 0);
@@ -2219,13 +2251,13 @@ function showTitle() {
   const t = $('#title'); t.hidden = false; setH(t, titleHTML());
   render();
 }
-function start(lvl, lesson, chapter) {
+function start(lvl, lesson, chapter, code) {
   ensureAudio();
   if (!LESSONS[lesson]) lesson = null;
   U.lvl = lvl; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = false; U.speed = 1;
   U.needSeen = {}; U.needLast = null; U.needRing = null; U.msgs = []; U.msgNew = 0;
   store('oc-save', null);
-  E.newGame(lvl, lvl === 'train' ? 20261116 : (Math.random() * 2147483647) | 0, { pack: U.pack, mode: lesson ? 'md' : U.mode, scen: lesson ? 'none' : U.scen });
+  E.newGame(lvl, lvl === 'train' ? 20261116 : code ? code.seed : (Math.random() * 2147483647) | 0, { pack: U.pack, mode: lesson ? 'md' : U.mode, scen: lesson ? 'none' : U.scen, code: code ? code.code : null });
   if (lesson) g().tr.lesson = lesson;   // kept with the game, so a saved lesson resumes as that lesson
   else if (lvl === 'train' && chapter > 0) { const C = chList(chMode())[chapter]; if (C) { g().tr.step = C.at; g().tr.need = 1; } }   // a later chapter: the Next button is already known
   $('#title').hidden = true; $('#report').hidden = true;
@@ -2241,13 +2273,19 @@ function start(lvl, lesson, chapter) {
 const VERDICT_MD = ['Rough one. Everybody survived the shift, mostly.', 'You kept your patients moving. Tomorrow will be better.', 'Solid shift. The nurses like working with you.', 'Attending of the year. The residents want to copy your orders.'];
 const VERDICT = ['Rough one. Everybody survived the shift, mostly.', 'You kept the doors open. Tomorrow will be better.', 'Solid shift. The night charge owes you.', 'Charge nurse of the year. Somebody frame this board.'];
 function lastReport() { try { const d = JSON.parse(store('oc-last-report') || 'null'); return d && d.R && E.LEVELS[d.R.level] ? d : null; } catch (e) { return null; } }
+/* Real time played, and how much of it at each speed. */
+function realTxt(R) {
+  const m = Math.floor(R.realSec / 60), s = R.realSec % 60, sp = R.spdSec || {}, tot = Object.values(sp).reduce((a, b) => a + b, 0) || 1;
+  const parts = ['1', '2', '4'].filter(k => sp[k] > 0.5).map(k => `${k}× ${Math.round(sp[k] / tot * 100)}%`);
+  return `played in ${m}:${String(s).padStart(2, '0')}${parts.length ? ' (' + parts.join(', ') + ')' : ''}`;
+}
 function reportHTML(R, ledger, at) {
   const L = E.LEVELS[R.level], led = ledger || g().ledger;
   const LED = { md: 'Patients you saw', orders: 'Orders', harm: 'Harm and untreated patients', dispo: 'Disposition calls', flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration <small>goals executives set, and requests you refused</small>', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood', transfer: 'Transfers', gray: 'Gray-zone calls', chair: 'Admitted patients in chairs', experience: 'Complaints' };
   const rows = Object.entries(led).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LED[k] || k}</td><td class="${v < 0 ? 'neg' : 'pos'}">${v > 0 ? '+' : ''}${Math.round(v)}</td></tr>`).join('');
   const t = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
   return `<div class="card rep"><h2>${R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2><div class="stars" aria-label="${R.stars} of 3 stars">${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}</div>${starLine(R)}<p class="verdict">${R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
-<p class="rep-meta">${R.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${esc(L.name)}${R.scen && R.scen !== 'none' ? ' · ' + esc(E.SCENS[R.scen].name) : ''} · ${new Date(at || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · Name: <span class="rep-name">&nbsp;</span></p>
+<p class="rep-meta">${R.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${esc(L.name)}${R.scen && R.scen !== 'none' ? ' · ' + esc(E.SCENS[R.scen].name) : ''} · ${new Date(at || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · Name: <span class="rep-name">&nbsp;</span></p>${R.code || R.realSec ? `<p class="rep-meta rep-class">${R.code ? `Class code <b>${esc(R.code)}</b>` : ''}${R.code && R.realSec ? ' · ' : ''}${R.realSec ? esc(realTxt(R).replace(/^played/, 'Played')) : ''}${R.bedFirst ? ` · ${R.bedFirst} bedded before registration` : ''}</p>` : ''}
 <div class="rep-big"><div><b>${R.care}</b><span>${R.mode === 'md' ? 'Score' : 'Pt mgmt'}</span></div><div><b>${R.wait}m</b><span>Avg wait</span></div>${R.mode === 'md' && R.md ? `<div><b>${R.md.seen}</b><span>You saw</span></div>` : `<div><b>${R.sat}%</b><span>Staff sat</span></div>`}</div>
 ${mmHTML(R)}${mdReportHTML(R, t)}
 <h4>Where your points came from</h4><table class="ledger">${rows || t('Nothing yet', '0')}</table>
@@ -2259,7 +2297,7 @@ ${R.mode === 'md' ? mdDeptHTML(R, t) : `<h4>Patients</h4><table>${t('Arrived thi
 <h4>Services</h4><table>${t('Interpreters requested', `${R.interp} for ${R.lep} patient${R.lep === 1 ? '' : 's'} who needed one`)}${t('Massive transfusions', `${R.mtp}${R.mtpWaste ? ` (${R.mtpWaste} not needed)` : ''}`)}${t('Patients who went into shock', R.shock)}${t('O-negative units used', R.oneg)}${t('Meds pulled on override', `${R.overrides} (${R.medErrors} errors)`)}${t('Seen by a provider in triage', R.pitSeen)}${t('Registered / triaged', `${R.registered} / ${R.triaged}`)}${t('Sent upstairs by transporter / tech', `${R.transports.tp} / ${R.transports.pct}`)}${t('Interfacility ambulances', `${R.ift.als} ALS · ${R.ift.cct} CCT · ${R.ift.air} air${R.iftRefused ? ` (${R.iftRefused} wrong level)` : ''}`)}</table>
 <h4>Team</h4><table>${t('Angry consultants', R.angry + R.wrongSpec)}${t('Nurse-minutes over ratio', R.ratioMin)}${t('Safety events', R.adverse)}${t('Agency nurses / mandates', `${R.agency} / ${R.mandates}`)}${R.staffH ? t('RN hours (staff / agency / mandated)', `${R.staffH.rn} / ${R.staffH.agency} / ${R.staffH.mandated}`) + t('RN hours per patient', R.staffH.rnPerVisit) + t('Attending / PA and NP hours', `${R.staffH.md} / ${R.staffH.app}`) : ''}</table>`}
 </details>
-<div class="rep-btns"><button type="button" class="big act" data-act="again">Run it back</button><button type="button" class="big" data-act="menu">Menu</button><button type="button" class="big wide" data-act="print">Print or save as PDF</button></div></div>`;
+<div class="rep-btns"><button type="button" class="big act" data-act="again">Run it back</button><button type="button" class="big" data-act="menu">Menu</button><button type="button" class="big" data-act="shareResult">Share result</button><button type="button" class="big" data-act="print">Print or save as PDF</button></div></div>`;
 }
 /* Morbidity and mortality: the three worst moments of the shift, and the decision behind each. */
 function mdDeptHTML(R, t) {
@@ -2327,6 +2365,7 @@ function frame(now) {
   const dt = Math.min(0.25, Math.max(0, (now - (last || now)) / 1000)); last = now;
   const G = g();
   if (G && U.scene === 'game' && !isPaused() && !G.over && !U.hold && !(U.freeze && !U.ff)) {   // U.freeze: test harness, turn-based play
+    if (!U.ff && !G.train) { const S = G.stats; S.realSec = (S.realSec || 0) + dt; const sp = S.spdSec || (S.spdSec = {}); sp[U.speed] = (sp[U.speed] || 0) + dt; }   // real time played, for the summary
     let left = dt * (U.ff || U.speed) * BASE;
     while (left > 1e-6) { const s = Math.min(0.1, left); E.step(s); left -= s; if (G.card || G.over) break; if (U.ff && coachWaitDone()) { U.ff = 0; U.hold = true; break; } }
     save(false);
@@ -2347,6 +2386,14 @@ function bind() {
     if (el && U.mapDrag && performance.now() < U.mapDrag && el.closest('#map')) return;   // that was a drag across the floor plan, not a tap
     mapAct(el, e.clientX, e.clientY);
   });
+  document.addEventListener('input', e => {   // the class code box: check it as it is typed, without redrawing the box
+    const el = e.target && e.target.matches && e.target.matches('input[data-pick="code"]') ? e.target : null; if (!el) return;
+    U.codeIn = el.value; const c = E.readCode(el.value), box = el.closest('.cc-box');
+    const go = box && box.querySelector('[data-act="codePlay"]'), w = box && box.querySelector('.cc-what');
+    if (go) go.disabled = !c;
+    if (w) w.textContent = codeHint(el.value);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('input[data-pick="code"]')) { const c = E.readCode(e.target.value); if (c) ACT.codePlay(c.code); } });
   document.addEventListener('input', e => {   // the Words search: hide what does not match, without redrawing the box being typed in
     const el = e.target && e.target.matches && e.target.matches('input[data-wq]') ? e.target : null; if (!el) return;
     U.wq = el.value; const q = el.value.trim().toLowerCase(); let n = 0;
@@ -2394,5 +2441,5 @@ function boot(data) {
 /*MAP*/
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-window.OCUI = { U, render, start, showTitle, mapFocus, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
+window.OCUI = { U, render, start, showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
 })();

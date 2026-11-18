@@ -363,10 +363,28 @@ function mapZoom(f) {
   CAM.w /= f; camClamp(el); CAM.x = cx - CAM.w / 2; CAM.y = cy - CAM.h / 2; camClamp(el); camApply(el); CAM.auto = false;
 }
 const mapZoomed = () => { const el = document.getElementById('map'), r = el && el.getBoundingClientRect(); if (el && el.classList.contains('three') && window.OC3D) return OC3D.zoomed(); return !!(r && r.width && CAM.w < Math.max(MW + 14, (MH + 14) * r.width / r.height) * 0.97); };
+/* On the 3D floor the flat map is still laid out underneath, invisible. These name what a flat-map element stands for,
+   so the 3D floor can ring it, frame it, and say where it is on screen. */
+const on3dNow = () => { const el = document.getElementById('map'); return !!(el && el.classList.contains('three') && window.OC3D && OC3D.ready()); };
+function tgt3d(x) {
+  if (!x || !x.closest) return null; let n;
+  if ((n = x.closest('[data-act="pt"][data-arg]'))) return { kind: 'pt', id: n.dataset.arg };
+  if ((n = x.closest('[data-id^="s-"]'))) return { kind: 'staff', id: n.dataset.id.slice(2) };
+  if ((n = x.closest('[id^="mroom-"]'))) return { kind: 'room', id: n.id.slice(6) };
+  if ((n = x.closest('[id^="mzh-"]'))) return { kind: 'zone', id: n.id.slice(4) };
+  if ((n = x.closest('#mWait, #mWall, #mDoor, #mBox'))) return { kind: 'count', id: { mWait: 'wait', mWall: 'wall', mDoor: 'door', mBox: 'box' }[n.id] };
+  return null;
+}
+/* Where a flat-map element is on screen: on the 3D floor, where its 3D stand-in is. */
+function mapRect(x) {
+  if (x && x.closest && x.closest('#map') && on3dNow()) { const r = OC3D.rectOf(tgt3d(x)); if (r) return r; }
+  return x.getBoundingClientRect();
+}
+const camFar = () => (on3dNow() ? OC3D.far() : CAM.far);
 /* Bring something on the floor into view (the Orientation uses this). */
 function mapFocus(x) {
   const el = document.getElementById('map'); if (!el || !x) return;
-  const m = el.getBoundingClientRect(), r = x.getBoundingClientRect(), pad = 16;
+  const m = el.getBoundingClientRect(), r = mapRect(x), pad = 16;
   if (!m.width || !m.height || !r.width) return;
   const free = { left: m.left, right: m.right, top: m.top, bottom: m.bottom };   // the part of the floor the coach card doesn't cover
   const cc = document.getElementById('coach');
@@ -378,6 +396,7 @@ function mapFocus(x) {
       else if (c.top > m.top + m.height / 3) free.bottom = Math.min(free.bottom, c.top - 8);
     }
   }
+  if (on3dNow()) { OC3D.bring(tgt3d(x), free); return; }
   if (r.left >= free.left + pad && r.right <= free.right - pad && r.top >= free.top + pad && r.bottom <= free.bottom - pad) return;
   CAM.x += ((r.left + r.right) / 2 - (free.left + free.right) / 2) * CAM.w / m.width;
   CAM.y += ((r.top + r.bottom) / 2 - (free.top + free.bottom) / 2) * CAM.h / m.height;
@@ -386,6 +405,8 @@ function mapFocus(x) {
 /* The Orientation's spotlight: a ring around each lit target on the floor. */
 function mapSpot(els, layerId, cls) {
   const el = document.getElementById('map'), layer = document.getElementById(layerId || 'mSpot'); if (!el || !layer) return;
+  if (window.OC3D && OC3D.spot) OC3D.spot(layerId || 'mSpot', on3dNow() ? els.map(tgt3d).filter(Boolean) : [], cls || 'spotring');   // the 3D floor draws its own rings
+  if (on3dNow()) { setH(layer, ''); return; }
   const m = el.getBoundingClientRect(); let h = '';
   if (m.width) for (const x of els) {
     if (!x.closest || !x.closest('#map')) continue;
@@ -397,11 +418,11 @@ function mapSpot(els, layerId, cls) {
 }
 
 /* ---------- the 3D floor (v0.18): src3d/map3d.js, loaded on demand from 3d/map3d.js ----------
-   The flat map keeps deciding everything; the 3D floor draws it. Orientation and lessons stay on the flat map,
-   because the preceptor points at things on it. If WebGL or the files are missing, the flat map shows as before. */
+   The flat map keeps deciding everything; the 3D floor draws it. Since v0.20 the Orientation and lessons use it too:
+   the preceptor's rings and camera moves go through OC3D.spot and OC3D.bring. If WebGL or the files are missing, the flat map shows as before. */
 const D3 = { want: null, loading: false, failed: false };
 function use3d(G) {
-  if (!U.three || !G || G.train || D3.failed || U.view !== 'map') return false;
+  if (!U.three || !G || D3.failed || U.view !== 'map') return false;
   if (U.scene !== 'game' && !window.OC3D) return false;   // not behind the menu: loading it there stalls the menu's taps
   if (!window.OC3D) { load3d(); return false; }
   const el = document.getElementById('map'); if (!el || !OC3D.ok) return false;
@@ -414,8 +435,8 @@ function load3d() {
   const s = document.createElement('script'); s.src = '3d/map3d.js'; s.async = true;
   s.onerror = () => { D3.failed = true; }; document.head.appendChild(s);
 }
-const floor3d = () => !!(U.three && U.view === 'map' && !D3.failed && !(window.OC && OC.G && OC.G.train));   // the 3D floor is (or is about to be) what the player sees
-function off3d() { const el = document.getElementById('map'); if (el) el.classList.remove('three'); }
+const floor3d = () => !!(U.three && U.view === 'map' && !D3.failed);   // the 3D floor is (or is about to be) what the player sees
+function off3d() { const el = document.getElementById('map'); if (el) el.classList.remove('three'); if (window.OC3D && OC3D.hideSpots) OC3D.hideSpots(); }
 const H3D = {
   RM, icon: k => ICO[k] || ICO.wait, route: (a, b) => routeTo(a, b), speed: () => Math.min(4, U.speed || 1),
   drag: () => { U.mapDrag = performance.now() + 250; },

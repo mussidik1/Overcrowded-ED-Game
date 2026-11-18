@@ -1,4 +1,4 @@
-/* Overcrowded ED — simulation engine v0.2 (no DOM). All state lives in one plain-JSON object, G. */
+/* Emergency Department: Code Black — simulation engine v0.2 (no DOM). All state lives in one plain-JSON object, G. */
 (function (root) {
 'use strict';
 
@@ -18,6 +18,37 @@ const pick = a => a[Math.floor(rnd() * a.length)];
 const chance = p => rnd() < p;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const expo = mean => -Math.log(1 - rnd()) * mean;
+/* v0.20: arrivals and random events draw from their own streams, so two students on the same class code get the same
+   patients at the same times, whatever each one does. Everything else (outcomes, delays) uses the main stream. */
+/* Class codes: six characters (shown as ABC-DEF) that carry the role, the shift, the scenario, the radio-call pack and a
+   seed. Everyone who enters the same code plays the same shift: the same arrivals and events at the same times. */
+const B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ', CODE_LV = ['rush', 'easy', 'med', 'hard'];
+function classCode(o) {
+  const lv = CODE_LV.indexOf(o.level), sc = Object.keys(SCENS).indexOf(o.scen || 'none'), pk = Object.keys(PACKS).indexOf(o.pack || 'national');
+  if (lv < 0 || sc < 0 || pk < 0) return null;
+  const seed = (o.seed >>> 0) % 131072;
+  let n = (o.mode === 'md' ? 1 : 0) | (lv << 1) | (sc << 3) | (pk << 6) | (seed << 7);   // 24 bits
+  n = n * 64 + codeSum(n);   // 30 bits with a 6-bit check: a mistyped code is refused about 63 times in 64
+  let s = ''; for (let i = 0; i < 6; i++) { s = B32[n % 32] + s; n = Math.floor(n / 32); }
+  return s.slice(0, 3) + '-' + s.slice(3);
+}
+function codeSum(n) { let h = n ^ 0x5bd1e995; h = Math.imul(h ^ (h >>> 13), 0x5bd1e995); h ^= h >>> 15; return (h >>> 0) % 64; }
+function readCode(str) {
+  const s = String(str || '').toUpperCase().replace(/O/g, '0').replace(/[IL]/g, '1').replace(/[^0-9A-Z]/g, '');
+  if (s.length !== 6) return null;
+  let n = 0; for (const ch of s) { const v = B32.indexOf(ch); if (v < 0) return null; n = n * 32 + v; }
+  const sum = n % 64; n = Math.floor(n / 64);
+  if (codeSum(n) !== sum) return null;
+  const lv = CODE_LV[(n >> 1) & 3], sc = Object.keys(SCENS)[(n >> 3) & 7], pk = Object.keys(PACKS)[(n >> 6) & 1];
+  if (!lv || !sc || !pk) return null;
+  return { mode: n & 1 ? 'md' : 'rn', level: lv, scen: sc, pack: pk, seed: n >>> 7, code: s.slice(0, 3) + '-' + s.slice(3) };
+}
+function seedOf(seed, k) { let h = (seed | 0) ^ Math.imul(k, 0x9E3779B1); h = Math.imul(h ^ (h >>> 16), 0x85EBCA6B); h = Math.imul(h ^ (h >>> 13), 0xC2B2AE35); return (h ^ (h >>> 16)) | 0 || k; }
+function inStream(k, fn) {
+  if (G[k] == null) G[k] = seedOf(G.seed, { rngA: 1, rngE: 2, rngM: 3, rngL: 4 }[k] || 5);   // made on first use, from the shift's seed
+  const main = G.rng; G.rng = G[k];
+  try { return fn(); } finally { G[k] = G.rng; G.rng = main; }
+}
 function wpick(list, wf) {
   let tot = 0;
   for (const x of list) tot += Math.max(0, wf(x));
@@ -486,7 +517,7 @@ function newGame(level, seed, opts) {
   const L = LEVELS[level] || LEVELS.med;
   G = {
     v: 5, level: LEVELS[level] ? level : 'med', pack: PACKS[opts.pack] ? opts.pack : 'national',
-    seed: seed | 0, rng: (seed | 0) || 7, t: -PREROLL, running: true, over: false, fail: null, pre: true,
+    seed: seed | 0, rng: (seed | 0) || 7, rngA: seedOf(seed, 1), rngE: seedOf(seed, 2), rngM: seedOf(seed, 3), rngL: seedOf(seed, 4), rngS: seedOf(seed, 6), code: opts.code || null, t: -PREROLL, running: true, over: false, fail: null, pre: true,
     shift: L.shift, nid: 1, tid: 1, sid: 1, lastMin: Math.floor(-PREROLL),
     rooms: ROOMS.map(r => ({ id: r.id, z: r.z, kind: r.kind, iso: !!r.iso, safe: !!r.safe, st: 'clean', pid: null, dirt: 'std', closed: false })),
     pts: {}, order: [], enroute: [], triageQ: [], evsQ: [], errands: [],
@@ -807,14 +838,26 @@ function onArrive(p) {
   if (p.ecg10 && !p.work.ecg) p.work.ecg = { st: 'todo', tOrd: G.t };
   p.patience = p.esi >= 5 ? randi(80, 150) : p.esi === 4 ? randi(110, 190) : p.esi === 3 ? randi(150, 250) : 1e9;
 }
-function arrivals() {
+function arrivals() { arrivals0(); }
+/* Each arrival takes exactly one number from the arrival stream and builds the patient from its own sub-stream, so a
+   diverted ambulance (built, then sent elsewhere) leaves the next arrival unchanged. */
+function sub(fn) { const s = (rnd() * 2147483647) | 0 || 1, keep = G.rng; G.rng = s; try { fn(); } finally { G.rng = keep; } }
+function arrivals0() {
   const L = LEVELS[G.level], t = G.t, hm = hourMul(t);
   let guard = 0;
-  while (t >= G.nextArr.walk && guard++ < 5) { spawnWalk(); G.nextArr.walk += expo(60 / (L.walk * hm)); }
+  inStream('rngA', () => { while (t >= G.nextArr.walk && guard++ < 5) { sub(spawnWalk); G.nextArr.walk += expo(60 / (L.walk * hm)); } });
   const surge = (G.mods.surge > t ? 1.6 : 1) * (1 + 0.12 * G.region.hosps.filter(h => h.st !== 'open').length);
   guard = 0;
-  while (t >= G.nextArr.ems && guard++ < 5) { spawnEms(); G.nextArr.ems += expo(60 / (L.ems * hm * surge)); }
-  if (!G.pre) { guard = 0; while (t >= G.nextArr.alert && guard++ < 3) { spawnAlert(); G.nextArr.alert += expo(60 / (L.alerts * hm)); } }
+  inStream('rngM', () => { while (t >= G.nextArr.ems && guard++ < 5) { sub(spawnEms); G.nextArr.ems += expo(60 / (L.ems * hm)); } });
+  // a surge (neighbors on alert, a surge event) brings extra ambulances on their own stream, on top of the scheduled ones
+  const extra = surge - 1;
+  if (extra > 0.01) inStream('rngS', () => {
+    const gap = () => expo(60 / (L.ems * hm * extra));
+    if (G.nextArr.surge == null) G.nextArr.surge = t + gap();
+    guard = 0; while (t >= G.nextArr.surge && guard++ < 5) { sub(() => spawnEms(true)); G.nextArr.surge += gap(); }
+  });
+  else G.nextArr.surge = null;
+  if (!G.pre) { guard = 0; inStream('rngL', () => { while (t >= G.nextArr.alert && guard++ < 3) { sub(spawnAlert); G.nextArr.alert += expo(60 / (L.alerts * hm)); } }); }
 }
 function diverted(c) {
   if (G.pre) return null;
@@ -868,14 +911,14 @@ function creditDivert(kind) {
   }
 }
 function spawnWalk() {
-  const p = makePatient(pickCase(['w', 'b']), 'walk');
+  const p = makePatient(pickCase(['w', 'b']), 'walk'); p.sched = true;   // a scheduled arrival (not a return or an event)
   p.loc = 'triage'; p.tArrive = G.t; G.triageQ.push(p.id); onArrive(p);
 }
-function spawnEms() {
+function spawnEms(extra) {
   const c = pickCase(['e', 'b']);
   const dk = diverted(c);
-  if (dk) { G.stats.diverted++; note(`An ambulance went elsewhere (${DIVERTS[dk].name}): ${c.cc}`); return; }
-  const p = makePatient(c, 'ems');
+  if (dk) { G.stats.diverted++; if (!extra) (G.divLog = G.divLog || []).push(c.k + '@' + Math.round(G.t)); note(`An ambulance went elsewhere (${DIVERTS[dk].name}): ${c.cc}`); return; }
+  const p = makePatient(c, 'ems'); p.sched = !extra;
   p.unit = unitName(); p.loc = 'wall'; p.tArrive = G.t; onArrive(p);
   outageMiss(c, p);
   note(`${p.unit} at the bay: ${ageSex(p)}, ${p.cc}`);
@@ -911,11 +954,16 @@ function autoConsult(p) {
 }
 
 /* ---------- placement ---------- */
+/* v0.20: bed first. A patient sick enough for a bed now (an alert, ESI 1 or 2 by triage, or one who looks that sick at the
+   door or on the wall before anyone has triaged them) can go straight to a room. Registration is still needed: the
+   player sends a registrar to the bedside, and nobody can be discharged, admitted or transferred until it is done. */
+function sickEnough(p) { return emergent(p) || (p.tri === 'done' ? vEsi(p) <= 2 : p.esi <= 2); }
+const looksSick = p => (p.loc === 'triage' || p.loc === 'wall') && p.tri !== 'done' && p.esi <= 2;
 function canPlace(p, r) {
   if (!p) return { ok: false, why: 'Pick a patient first' };
   if (!r) return { ok: false, why: 'Pick a room' };
   if (r.pid === p.id) return { ok: false, why: 'Already in that room' };
-  if ((p.loc === 'wall' || p.loc === 'triage') && !emergent(p)) {
+  if ((p.loc === 'wall' || p.loc === 'triage') && !sickEnough(p)) {
     if (!regQuick(p)) return { ok: false, why: 'Register them first' };
     if (p.tri !== 'done') return { ok: false, why: p.loc === 'wall' ? 'A nurse has to take report and triage first' : 'Triage them first' };
   }
@@ -963,7 +1011,9 @@ function place(pid, rid) {
   if (p.rn === 'none') p.rn = 'todo';
   if (p.arrest && r.kind === 'resus') goalHit(p, 'resus5');
   if (p.sitter && r.safe && p.sitBy) releaseSitter(p);
-  return { ok: true, msg: `${p.name} to ${roomName(r.id)}` };
+  const unreg = p.reg === 'none' && !emergent(p);   // alerts and codes were always roomed first, and a registrar comes on their own
+  if (unreg) { p.bedFirst = true; if (!G.pre) G.stats.bedFirst = (G.stats.bedFirst || 0) + 1; }
+  return { ok: true, msg: `${p.name} to ${roomName(r.id)}${unreg ? '. Send a registrar to the room.' : ''}` };
 }
 function move(pid, rid) {
   const p = pt(pid), r = room(rid);
@@ -1719,7 +1769,7 @@ function regTick(dt) {
     if (k) { s.q.splice(s.q.indexOf(k), 1); p = pt(k.pid); full = p.reg === 'fq'; }
     else {
       // Nothing waiting at the door: finish someone's registration at the bedside.
-      p = active().filter(x => (x.reg === 'quick' && (x.loc === 'room' || x.loc === 'waiting')) || (x.reg === 'none' && x.loc === 'room')).sort((a, b) => (b.ev === 'done') - (a.ev === 'done') || a.tArrive - b.tArrive)[0];
+      p = active().filter(x => (x.reg === 'quick' && (x.loc === 'room' || x.loc === 'waiting')) || (x.reg === 'none' && x.loc === 'room' && !x.bedFirst)).sort((a, b) => (b.ev === 'done') - (a.ev === 'done') || a.tArrive - b.tArrive)[0];
       full = true;
       if (!p) continue;
       p.regBy = s.id;
@@ -2639,7 +2689,8 @@ function recheck(pid, sid) {
   return { ok: true, msg: `${s.name} will recheck ${p.name}'s vitals` };
 }
 /* Neighboring hospitals go on and off alert. If too many are on at once, the region suspends everyone. */
-function regionTick() {
+function regionTick() { inStream('rngE', regionTick0); }
+function regionTick0() {
   if (G.train) return;
   const R = G.region, t = G.t;
   for (const h of R.hosps) {
@@ -2900,7 +2951,8 @@ function scheduled() {
     else if (s.k === 'ftopen') { for (const r of G.rooms) if (r.z === 'ft') r.closed = false; toast('09:00: Fast Track is open. Lee has it.', 'good', true); }
   }
 }
-function eventsTick() {
+function eventsTick() { inStream('rngE', eventsTick0); }
+function eventsTick0() {
   if (G.card || G.train) return;
   if (G.ev.regionDue && !G.ev.regionFired) { G.ev.regionFired = true; fireEv('region'); return; }
   if (G.t < G.ev.next) return;
@@ -3328,7 +3380,7 @@ function endShift(reason) {
   const walls = ems.map(p => p.tWall != null ? p.tWall : (p.loc === 'wall' ? G.t - p.tArrive : 0));
   const S = G.stats;
   G.report = {
-    level: G.level, scen: G.scen || 'none', pack: G.pack, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
+    level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
     stars: G.fail ? 0 : starsFor(G.care, G.level),
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama, expired: S.expired,
     returns: S.returns + S.returnsLate, returnList: (S.returnList || []).slice(), radioLog: (S.radioLog || []).slice(), left: active().length,
@@ -3517,7 +3569,7 @@ const OC = {
   boxNotify, boxTake, boxDecide, chooseCard, sendBreak, toggleZone, setZoneClosed, callAgency, orderPizza, setYellow, setDivert, starsFor,
   setPit, activateMTP, releaseONeg, requestInterp, overrideRx,
   register, triage, toWaiting, sendUp, bookIFT, IFT, emergent, DIVERTS, OUTAGES, outActive, justified,
-  startOutage, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
+  startOutage, sickEnough, looksSick, classCode, readCode, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,
   ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, CRASH, needsTx, strokeSetup, DX_PLAIN,

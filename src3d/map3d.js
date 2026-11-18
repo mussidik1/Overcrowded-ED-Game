@@ -1,4 +1,4 @@
-/* Overcrowded: the 3D floor (v0.18). A renderer only: map.js still decides where everyone is and what each room shows,
+/* Emergency Department: Code Black: the 3D floor (v0.18). A renderer only: map.js still decides where everyone is and what each room shows,
    and hands this module a snapshot every frame (OC3D.sync). Taps come back to map.js as (kind, id), so every action
    runs through the same code as the flat map. Models are made in Blender (art/blender) and live in /3d. */
 import * as THREE from 'three';
@@ -268,7 +268,8 @@ function apply(sn) {
     const blanket = rm.pid && rm.cat !== 'bad' && !rm.arrest;
     if (blanket && !R2.blanket) { R2.blanket = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 1.05), BLANK); R2.blanket.position.copy(B2T(SX, SY - 0.55, 0.9)); R2.blanket.castShadow = true; R2.g.add(R2.blanket); }
     if (R2.blanket) R2.blanket.visible = !!blanket;
-    R2.tint.material.color.set(rm.selc === 'ok' ? '#2fd36a' : '#000000'); R2.tintOn = rm.selc === 'ok';
+    const tc = rm.selc === 'ok' ? '#2fd36a' : CAT_C[rm.cat] || null;   // v0.20: the floor carries the flat map's colours, so "a blue room" means the same thing in 3D
+    R2.tint.material.color.set(tc || '#000000'); R2.tintOn = rm.selc === 'ok' ? 'blink' : tc ? (rm.fl ? 'fl' : 'on') : '';
     R2.state = rm;
   }
   // people: staff
@@ -320,6 +321,8 @@ function apply(sn) {
 }
 
 /* ---------- labels and markers ---------- */
+const CAT_C = { need: '#1648C8', bad: '#D11A2F', go: '#12813A', warn: '#B45309', dirty: '#7A4A1E', board: '#7B4FD0' };   // the flat map's solid tile colours (purple: admitted, waiting upstairs)
+const edgeOf = rm => (rm.mine ? ['#F2C230', 6] : rm.crit ? ['#C8243A', 6] : CAT_C[rm.cat] ? [CAT_C[rm.cat], 6] : ['#1B2230', 3]);
 let fullLbl = false;
 function labels() {
   for (const l of LBL.values()) l.seen = false;
@@ -335,11 +338,11 @@ function labels() {
       const [x, y] = R2 ? [R2.r.x, R2.r.y] : [sm.x, sm.y];
       const l = sprite('r' + rm.id), icon = rm.ico, fl = rm.fl, name = rm.name || '', esi = rm.esi || 0;
       if (!fullLbl) { compactLabel(l, rm, roomPx * (R2 ? 1 : 0.7)); const pulse = fl ? 1 + 0.08 * Math.sin(performance.now() / 160) : 1; l.px *= pulse; l.s.position.copy(B2T(x, y, R2 ? 3.2 : 1.9)); l.tap = { kind: 'room', id: rm.id }; continue; }
-      const img0 = icon ? iconImg(icon) : null, key = [rm.id, icon, img0 && img0.complete, fl, name, esi, rm.crit, rm.mine, near].join('|'); l.icon = icon;
+      const img0 = icon ? iconImg(icon) : null, key = [rm.id, icon, img0 && img0.complete, fl, name, esi, rm.crit, rm.mine, rm.cat, near].join('|'); l.icon = icon;
       const wName = name ? Math.min(230, 26 + name.length * 13) : 0, w = 104 + (esi ? 52 : 0) + wName, h = 64;
       setSprite(l, key, w * 2, h * 2, near ? 30 : 19, (g) => {
         g.scale(2, 2);
-        pill(g, 2, 2, w - 4, h - 4, 14, 'rgba(255,255,255,.94)', rm.mine ? '#F2C230' : '#1B2230', rm.mine ? 6 : 2.5);
+        const [ec, ew] = edgeOf(rm); pill(g, 2, 2, w - 4, h - 4, 14, 'rgba(255,255,255,.94)', ec, ew === 3 ? 2.5 : ew);
         g.fillStyle = '#1B2230'; g.font = FONT(28); g.textBaseline = 'middle'; g.fillText(rm.lab || rm.id, 12, h / 2 + 1);
         let x0 = 12 + g.measureText(rm.lab || rm.id).width + 8;
         if (icon) { const img = iconImg(icon); if (img.complete) g.drawImage(img, x0, 8, 48, 48); x0 += 54; }
@@ -381,10 +384,10 @@ function labels() {
    the room. A critical patient's badge has a red edge; the attending's own rooms a gold one. */
 function compactLabel(l, rm, roomPx) {
   const icon = rm.ico, esi = rm.esi || 0, lab = String(rm.lab || rm.id), w = 100, h = 72;
-  const img = icon ? iconImg(icon) : null, key = ['c', rm.id, icon, img && img.complete, esi, rm.crit, rm.mine, lab].join('|'); l.icon = icon;
+  const img = icon ? iconImg(icon) : null, key = ['c', rm.id, icon, img && img.complete, esi, rm.crit, rm.mine, rm.cat, lab].join('|'); l.icon = icon;
   setSprite(l, key, w * 2, h * 2, Math.max(16, Math.min(30, roomPx * 0.55)), g => {
     g.scale(2, 2);
-    pill(g, 3, 3, w - 6, h - 6, 12, 'rgba(255,255,255,.95)', rm.mine ? '#F2C230' : rm.crit ? '#C8243A' : '#1B2230', rm.mine || rm.crit ? 6 : 3);
+    const [ec, ew] = edgeOf(rm); pill(g, 3, 3, w - 6, h - 6, 12, 'rgba(255,255,255,.95)', ec, ew);
     if (img && img.complete) g.drawImage(img, 7, 7, 58, 58);
     g.textAlign = 'center'; g.textBaseline = 'middle';
     if (esi) { g.beginPath(); g.arc(w - 18, 21, 14, 0, 7); g.fillStyle = ['', '#C8243A', '#E46A1C', '#F2C230', '#2FA35B', '#3B74C4'][esi] || '#5E6878'; g.fill(); g.lineWidth = 3; g.strokeStyle = '#fff'; g.stroke(); g.fillStyle = esi === 3 ? '#3A2F00' : '#fff'; g.font = FONT(19); g.fillText(esi, w - 18, 22); }
@@ -493,7 +496,8 @@ function frame(now) {
   raf = requestAnimationFrame(frame);
   if (!ready || !el.isConnected || document.hidden) return;
   const lv = QL[qNow] || QL.med, idle = api.live && !api.live();   // behind the menu or the pause card: two frames a second
-  if (idle ? now - lastDraw < 500 : lv.fps < 60 && now - lastDraw < 1000 / lv.fps - 4) return;
+  const fps = capFps ? Math.min(capFps, lv.fps) : lv.fps;
+  if (idle ? now - lastDraw < 500 : fps < 60 && now - lastDraw < 1000 / fps - 4) return;
   const gap = lastDraw ? now - lastDraw : 16; lastDraw = now;
   if (!resize()) return;
   const dt = Math.min(0.1, clock.getDelta());
@@ -506,9 +510,54 @@ function frame(now) {
   for (const o of AMB.values()) { const p = o.g.position, t = B2T(o.to[0], o.to[1]); p.lerp(t, Math.min(1, dt * 1.5)); }
   const blink = (Math.sin(performance.now() / 180) + 1) / 2;
   RING.emissiveIntensity = 0.6 + 2.6 * blink;
-  for (const R2 of Object.values(ROOM)) { R2.tint.material.opacity = R2.tintOn ? 0.18 + 0.14 * blink : 0; }
+  for (const R2 of Object.values(ROOM)) { R2.tint.material.opacity = R2.tintOn === 'blink' ? 0.18 + 0.14 * blink : R2.tintOn === 'fl' ? 0.26 + 0.16 * blink : R2.tintOn === 'on' ? 0.3 : 0; }
   labels();
+  placeSpots();
   R.info.reset(); R.render(S, CAM); R.autoClear = false; R.clearDepth(); R.render(HUD, CAM); R.autoClear = true;
+}
+
+/* ---------- rings around what the preceptor or the Next button points at (v0.20) ----------
+   map.js names each target (a room, a patient, a staff member, a pod sign, a count); the ring is an outline on top
+   of the canvas, placed every frame, so it follows the camera and people who walk. */
+const SPOTS = {};   // layer -> { list, cls, divs }
+let capFps = 0;   // tests on software graphics cap the frame rate so the page can still answer
+function rectOf(t) {
+  if (!ready || !t) return null;
+  const r = el.getBoundingClientRect(), v = new THREE.Vector3(); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, any = false;
+  const put = (sx, sy, hw, hh) => { x0 = Math.min(x0, sx - hw); x1 = Math.max(x1, sx + hw); y0 = Math.min(y0, sy - hh); y1 = Math.max(y1, sy + hh); any = true; };
+  const add = (p, pad = 0) => { v.copy(p).project(CAM); if (v.z > 1) return; put(r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height, pad, pad); };
+  const addL = id => { const l = LBL.get(id); if (!l || !l.s.visible) return; v.copy(l.s.position).project(CAM); if (v.z > 1) return; put(r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height, l.px * l.aspect / 2, l.px / 2); };
+  if (t.kind === 'room') {
+    const R2 = ROOM[t.id];
+    if (R2) { const c = Math.cos(R2.r.rot * DEG), s = Math.sin(R2.r.rot * DEG); for (const [lx, ly] of [[-1.9, -R2.d / 2], [1.9, -R2.d / 2], [-1.9, R2.d / 2], [1.9, R2.d / 2]]) add(B2T(R2.r.x + lx * c - ly * s, R2.r.y + lx * s + ly * c)); }
+    else { const sm = smallSpot(t.id); if (sm) for (const [dx, dy] of [[-0.8, -0.8], [0.8, -0.8], [-0.8, 0.8], [0.8, 0.8]]) add(B2T(sm.x + dx, sm.y + dy)); }
+    addL('r' + t.id);
+  } else if (t.kind === 'pt' || t.kind === 'staff') {
+    const e = ENT.get((t.kind === 'staff' ? 's' : 'p') + t.id);
+    if (e && e.root && e.root.visible) { add(e.root.position, 12); const top = e.root.position.clone(); top.y += 2.2; add(top, 12); addL('e' + e.key); }
+    else { const o = AMB.get(t.id); if (o) { add(o.g.position, 26); const top = o.g.position.clone(); top.y += 2.4; add(top, 26); } }
+  } else if (t.kind === 'zone') addL('z' + t.id);
+  else if (t.kind === 'count') addL('c' + t.id);
+  return any ? { left: x0, top: y0, right: x1, bottom: y1, width: x1 - x0, height: y1 - y0 } : null;
+}
+function placeSpots() {
+  for (const sp of Object.values(SPOTS)) {
+    while (sp.divs.length < sp.list.length) { const d = document.createElement('div'); d.className = 'ring3d ' + sp.cls; document.body.appendChild(d); sp.divs.push(d); }
+    sp.divs.forEach((d, i) => {
+      const rc = i < sp.list.length ? rectOf(sp.list[i]) : null;
+      if (!rc) { d.hidden = true; return; }
+      const pad = 6; d.hidden = false; d.className = 'ring3d ' + sp.cls;
+      d.style.cssText = `left:${(rc.left - pad).toFixed(0)}px;top:${(rc.top - pad).toFixed(0)}px;width:${(rc.width + 2 * pad).toFixed(0)}px;height:${(rc.height + 2 * pad).toFixed(0)}px`;
+    });
+  }
+}
+/* Pan so a target sits in the part of the floor the coach card leaves clear. */
+function bring(t, free) {
+  const rc = rectOf(t); if (!rc) return false;
+  const pad = 16; if (rc.left >= free.left + pad && rc.right <= free.right - pad && rc.top >= free.top + pad && rc.bottom <= free.bottom - pad) return false;
+  const a = groundAt((rc.left + rc.right) / 2, (rc.top + rc.bottom) / 2), b = groundAt((free.left + free.right) / 2, (free.top + free.bottom) / 2);
+  if (!a || !b) return false;
+  view.tx += a[0] - b[0]; view.ty += a[1] - b[1]; clampView(); camSet(); CAM.updateMatrixWorld(); placeSpots(); return true;
 }
 
 /* ---------- the public face ---------- */
@@ -547,6 +596,13 @@ window.OC3D = {
     if (kind === 'room' && ROOM[id]) v.copy(B2T(ROOM[id].r.x, ROOM[id].r.y, 1)); else { const e = ENT.get((kind === 'staff' ? 's' : 'p') + id); if (!e || !e.root) return null; v.copy(e.root.position); v.y += 1; }
     v.project(CAM); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height };
   },
+  // v0.20: rings and camera moves for the Orientation, lessons, and the Next button
+  spot(layer, list, cls) { const sp = SPOTS[layer] || (SPOTS[layer] = { list: [], cls: cls || 'spotring', divs: [] }); sp.list = list || []; sp.cls = cls || sp.cls; if (!sp.list.length) for (const d of sp.divs) d.hidden = true; else if (ready) placeSpots(); },
+  rectOf: t => rectOf(t),
+  bring: (t, free) => (ready ? bring(t, free) : false),
+  full: () => fullLbl,
+  fps(n) { capFps = n || 0; },
+  hideSpots() { for (const sp of Object.values(SPOTS)) { sp.list = []; for (const d of sp.divs) d.hidden = true; } },
   quality(q) { if (q) { qWant = q; if (R) setQuality(qStart()); } return { want: qWant, now: qNow }; },
   info: () => (R ? { calls: R.info.render.calls, tris: R.info.render.triangles, dpr, q: qNow } : null),
   _view: view, find: (x, y) => find(x, y),
