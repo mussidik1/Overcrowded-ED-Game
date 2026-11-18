@@ -1,5 +1,5 @@
-commit 9101a4b67c6e92cc7370afe4b7bc048e985cf160
-date   2026-11-18 10:42 UTC
+commit 468c893b3acafa34cccfba6fde30ef32e9246fe3
+date   2026-11-18 10:57 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,7 +13,7 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1818, "wait": 14, "sat": 55, "stars": 2, "seen": 109, "dc": 52, "adm": 35, "lwbs": 0, "ama": 1, "returns": 2, "mtp": 2, "interp": 13, "pitSeen": 0}
+1:report {"care": 1747, "wait": 13, "sat": 52, "stars": 2, "seen": 123, "dc": 52, "adm": 35, "lwbs": 0, "ama": 1, "returns": 3, "mtp": 2, "interp": 16, "pitSeen": 0}
 52:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1984, 'stars': 2, 'wait': 20, 'left': 19} {'seen': 43, 'fast': 17, 'ordRight': 107, 'ordExtra': 3, 'ordMiss': 5, 'clean': 33, 'gaps': 5, 'harm': 0, 'untreated': 0, 'dispoRight': 35, 'dispoWrong': 1, 'log': [{'name': 'Raj B.', 'dx': 'Chest pain, moderate risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}, {'name': 'Malik F.', 'dx': 'Dehydration', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show the kidneys are dry. Fluids fix it.'}, {'name': 'Aisha S.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Shanice A.', 'dx': 'Acute ischemic stroke', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology. An ECG is reasonable.'}, {'name': 'Jamal S.', 'dx': 'Pneumonia', 'miss': [], 'extra': [], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Raj T.', 'dx': 'Kidney stone', 'miss': [], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Earl N.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Kwame E.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.'}]}
-30:No errors.
+1:report {'care': 1884, 'stars': 2, 'wait': 19, 'left': 20} {'seen': 41, 'fast': 13, 'ordRight': 104, 'ordExtra': 8, 'ordMiss': 2, 'clean': 30, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 37, 'dispoWrong': 0, 'log': [{'name': 'Raj A.', 'dx': 'Kidney stone', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Malik F.', 'dx': 'Diabetic ketoacidosis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show the sugar, the acid, and the potassium. Fluids first. Insulin once the potassium is known. ICU.'}, {'name': 'Yara T.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Jamal A.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.'}, {'name': 'Tyler V.', 'dx': 'Medication refill', 'miss': [], 'extra': ['Labs'], 'fine': [], 'why': 'Nothing to order. No symptoms: the refill is written at discharge.'}, {'name': 'Walt C.', 'dx': 'Alcohol intoxication', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'Labs check the alcohol level and the sugar. Fluids and time. A CT only with a head injury.'}, {'name': 'Omar G.', 'dx': 'NSTEMI (heart attack)', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'ECG and troponin make the diagnosis. Aspirin and heparin. Cardiology. A chest X-ray is reasonable.'}, {'name': 'Carmen E.', 'dx': 'Syncope, high risk', 'miss': [], 'extra': [], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.'}, {'name': 'Ana D.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['CT'], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Jim T.', 'dx': 'Opioid overdose', 'miss': [], 'extra': ['X-ray'], 'fine': [], 'why': 'Naloxone first. Labs after. Then watch: naloxone wears off before the opioid does.'}]}
+31:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1984)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1884)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:29, care 144, cards read 70, words 2506, longest 68
+taps: 78, game clock: 10:37, care 144, cards read 70, words 2506, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -85,11 +85,10 @@ ERRORS:
   pageerror: Unexpected token '<'
 
 === python test/map3d_test.py ===
-PASS
-10:No errors.
+FAIL
 ok   tapping nurse rnR1 in 3D opens or selects them ("staff")
 ok   the zoom button zooms the 3D floor
 ok   turning the 3D floor off shows the flat map
-No errors.
+console.error: Failed to load resource: the server responded with a status of 404 (File not found)
 
 SOME FAILED
