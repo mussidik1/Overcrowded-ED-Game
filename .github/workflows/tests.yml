@@ -1,11 +1,11 @@
-# Runs on every push to main: the rule checks, then the phone-size UI tests in WebKit, the engine behind Safari.
+# Runs on every push to main (and to the 3d branch while the 3D floor is built): the rule checks, then the phone-size UI tests in WebKit, the engine behind Safari.
 # The UI tests were written against Chrome; this is the only place they run in Safari's engine.
 # Each run's output is saved as webkit.txt on the ci-results branch, so it can be read without opening Actions.
 name: Tests (rules + Safari engine)
 
 on:
   push:
-    branches: [main]
+    branches: [main, 3d]
   workflow_dispatch:
 
 permissions:
@@ -74,6 +74,7 @@ jobs:
           run MODE=rn python test/finger_test.py
           run MODE=md python test/finger_test.py
           run python test/offline_test.py
+          run python test/map3d_test.py
           echo "" >> results.txt
           if [ $fail = 0 ]; then echo "ALL PASS" >> results.txt; else echo "SOME FAILED" >> results.txt; fi
           cat results.txt
