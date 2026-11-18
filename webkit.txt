@@ -1,4 +1,4 @@
-commit 16c40470a1dc4a4bc48962513d4ea2a8f976cb65
+commit 41d13bac3f858b86326d624a71c458a8130e1f17
 date   2026-11-18 22:49 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
@@ -13,7 +13,7 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1882, "wait": 13, "sat": 51, "stars": 2, "seen": 116, "dc": 45, "adm": 36, "lwbs": 0, "ama": 0, "returns": 1, "mtp": 2, "interp": 14, "pitSeen": 0}
+1:report {"care": 1804, "wait": 13, "sat": 51, "stars": 2, "seen": 118, "dc": 46, "adm": 36, "lwbs": 0, "ama": 0, "returns": 2, "mtp": 2, "interp": 15, "pitSeen": 0}
 53:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1921, 'stars': 2, 'wait': 19, 'left': 20} {'seen': 43, 'fast': 14, 'ordRight': 137, 'ordExtra': 4, 'ordMiss': 3, 'clean': 36, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 36, 'dispoWrong': 2, 'log': [{'name': 'Sofia N.', 'dx': 'Cholecystitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Olga P.', 'dx': 'Urinary tract infection', 'miss': [], 'extra': [], 'fine': [], 'why': 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.'}, {'name': 'Olga P.', 'dx': 'Urinary tract infection, worse', 'miss': [], 'extra': [], 'fine': [], 'why': 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.'}, {'name': 'Dmitri R.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Linda E.', 'dx': 'Migraine', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'No tests. A usual migraine with a normal nerve exam gets fluids and medication.'}, {'name': 'Omar W.', 'dx': 'Kidney stone', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}]}
-30:No errors.
+1:report {'care': 1798, 'stars': 2, 'wait': 18, 'left': 12} {'seen': 43, 'fast': 18, 'ordRight': 128, 'ordExtra': 8, 'ordMiss': 3, 'clean': 31, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 36, 'dispoWrong': 0, 'log': [{'name': 'Raj S.', 'dx': 'Kidney stone', 'miss': [], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Aria B.', 'dx': 'Strep throat', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'A rapid strep swab proves it. Then penicillin.'}, {'name': 'Thi J.', 'dx': 'COPD flare', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP. A steroid is reasonable.'}, {'name': 'Jamal T.', 'dx': 'Simple laceration', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. Clean it and stitch it.'}, {'name': 'Yara P.', 'dx': 'Wrist fracture', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'X-ray shows the break. A splint, pain control, and home.'}, {'name': 'Ana B.', 'dx': 'Appendicitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs and a CT find the appendix. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Tom V.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': [], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Minh M.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Lucia A.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Malik A.', 'dx': 'Ankle sprain', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}]}
+31:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1921)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1798)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:36, care 144, cards read 70, words 2509, longest 68
+taps: 77, game clock: 10:37, care 144, cards read 70, words 2509, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:29, care 144, cards read 70, words 2508, longest 68
+taps: 78, game clock: 10:36, care 144, cards read 70, words 2508, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:41, care -2, cards read 8, words 316, longest 58
+taps: 6, game clock: 07:40, care -2, cards read 8, words 316, longest 58
 No errors.
 
 === MODE=rn python test/finger_test.py ===
