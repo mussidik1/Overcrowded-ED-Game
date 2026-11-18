@@ -346,7 +346,7 @@ function care(n, tag, p) {
 }
 const mdMine = p => !!(p && G.mode === 'md' && p.mine && p.prov === G.me);
 function note(msg, kind) { if (G.pre) return; G.log.unshift({ t: G.t, msg, kind: kind || 'info' }); if (G.log.length > 60) G.log.length = 60; }
-function toast(msg, kind) { if (G.pre) return; note(msg, kind); hooks.toast(msg, kind || 'info'); }
+function toast(msg, kind, routine) { if (G.pre) return; note(msg, kind); hooks.toast(msg, kind || 'info', !!routine); }   // routine: good to know, nothing to do. The floor plan files it under the bell.
 function sound(n) { if (!G.pre) hooks.sound(n); }
 function warnOnce(key, msg, every) {
   const w = G.warn[key];
@@ -1970,7 +1970,7 @@ function goalHit(p, key, when) {
   p.goals[key] = ok;
   if (G.pre) return;
   G.stats.goals.list.push({ key, ok, el: Math.round(el), alert: p.alert });
-  if (ok) { G.stats.goals.met++; care(30, 'goals', p); toast(`${GOALS[key].label}: ${Math.round(el)} min. Goal met · ${label(p)}`, 'good'); sound('good'); }
+  if (ok) { G.stats.goals.met++; care(30, 'goals', p); toast(`${GOALS[key].label}: ${Math.round(el)} min. Goal met · ${label(p)}`, 'good', true); sound('good'); }
   else { G.stats.goals.miss++; care(-20, 'goals', p); mm(40, `${GOALS[key].label} took ${Math.round(el)} min (goal ${GOALS[key].lim}) for ${p.name}`, goalWhy(p, key), !!p.mine); }
 }
 function goalMissTick(p) {
@@ -2192,8 +2192,8 @@ function leave(p, outcome) {
   const S = G.stats;
   if (outcome === 'dc') { S.dc++; care(10, 'flow', p); if (p.tDone - p.tArrive <= 120) { care(5, 'flow', p); S.quick++; } }
   else if (outcome === 'admit' || outcome === 'icu' || outcome === 'bh' || outcome === 'obs') { S[outcome]++; care(12, 'flow', p); }
-  else if (outcome === 'or') { S.or++; care(15, 'flow', p); toast(`${p.name} is off to the OR`, 'good'); }
-  else if (outcome === 'cath') { S.cath++; care(15, 'flow', p); toast(`${p.name} left for the cath lab ${Math.round(p.tDone - p.tArrive)} min after arrival${d2b ? `. The artery opens about ${bal} min later: that is the door-to-balloon time` : ''}`, 'good'); }   // one time for leaving, one for the balloon: say which is which
+  else if (outcome === 'or') { S.or++; care(15, 'flow', p); toast(`${p.name} is off to the OR`, 'good', true); }
+  else if (outcome === 'cath') { S.cath++; care(15, 'flow', p); toast(`${p.name} left for the cath lab ${Math.round(p.tDone - p.tArrive)} min after arrival${d2b ? `. The artery opens about ${bal} min later: that is the door-to-balloon time` : ''}`, 'good', true); }   // one time for leaving, one for the balloon: say which is which
   else if (outcome === 'tx') { S.tx++; care(12, 'flow', p); note(`${p.name} transferred to ${p.txTo}`); }
   else if (outcome === 'lwbs') { S.lwbs++; care(-25, 'lwbs'); }
   else if (outcome === 'ama') { S.ama++; care(-15, 'ama'); if (G.mode === 'md' && p.mine) care(-15, 'md'); }
@@ -2583,12 +2583,12 @@ function staffTick() {
   const t = G.t;
   for (const s of G.staff) {
     if (s.st === 'break' && t >= s.until) { s.st = 'on'; s.lastBreak = t; endCover(s); note(`${s.name} is back from break`); }
-    else if (s.st === 'away' && t >= s.until) { s.st = 'on'; endCover(s); toast(`${s.name} is back`, 'good'); }
-    else if (s.st === 'pending' && t >= s.until) { s.st = 'on'; s.lastBreak = t; if (s.tag !== 'swing shift' && s.tag !== 'Fast Track 09:00') { for (const z of s.zones) if (z !== 'ft' && G.rooms.some(r => r.z === z && r.closed)) setZoneClosed(z, false); toast(`${s.name} arrived${s.zones.length ? ' and took ' + zoneList(s.zones) + ', and it is open' : ''}`, 'good'); } }
+    else if (s.st === 'away' && t >= s.until) { s.st = 'on'; endCover(s); toast(`${s.name} is back`, 'good', true); }
+    else if (s.st === 'pending' && t >= s.until) { s.st = 'on'; s.lastBreak = t; if (s.tag !== 'swing shift' && s.tag !== 'Fast Track 09:00') { for (const z of s.zones) if (z !== 'ft' && G.rooms.some(r => r.z === z && r.closed)) setZoneClosed(z, false); toast(`${s.name} arrived${s.zones.length ? ' and took ' + zoneList(s.zones) + ', and it is open' : ''}`, 'good', true); } }
     if (s.leaveAt != null && t >= s.leaveAt && (s.st === 'on' || s.st === 'break')) {
       const zs = s.zones.slice();
       staffGone(s, 'gone');
-      toast(`${s.name}'s mandated hours are up. They went home.`, 'info');
+      toast(`${s.name}'s mandated hours are up. They went home.`, 'info', true);
       const unc = zs.filter(z => zoneNurses(z).length === 0 && zonePts(z));
       if (unc.length && !G.card && !G.pre) coverageCard(unc[0], 'Coverage gap', `**${s.name}** went home. **${ZONE_NAME[unc[0]]}** has patients and **no nurse**.`);
     }
@@ -2759,8 +2759,8 @@ function scheduled() {
     else if (s.k === 'scenct') { if (!G.out.ct) startOutage('ct'); }
     else if (s.k === 'scenmci') { if (!G.ev.used.mci) fireEv('mci'); }
     else if (s.k === 'return') { const o = pt(s.pid); if (o) returnVisit(o); }
-    else if (s.k === 'swing') toast('11:00: Dr. Nguyen and PA Brooks are on for the swing shift', 'good');
-    else if (s.k === 'ftopen') { for (const r of G.rooms) if (r.z === 'ft') r.closed = false; toast('09:00: Fast Track is open. Lee has it.', 'good'); }
+    else if (s.k === 'swing') toast('11:00: Dr. Nguyen and PA Brooks are on for the swing shift', 'good', true);
+    else if (s.k === 'ftopen') { for (const r of G.rooms) if (r.z === 'ft') r.closed = false; toast('09:00: Fast Track is open. Lee has it.', 'good', true); }
   }
 }
 function eventsTick() {

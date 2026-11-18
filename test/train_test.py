@@ -93,6 +93,7 @@ with sync_playwright() as pw:
         print('goals:', goals)
     print('\n'.join(log))
     print(f'taps: {taps}, game clock: {J("OC.clock()")}, care {J("Math.round(OC.G.care)")}, cards read {len(words)}, words {sum(words)}, longest {max(words or [0])}')
+    if J('OCUI.U.msgNew'): errors.append('Orientation filed a message under the bell: every message should show')
     if words and max(words) > 70: errors.append(f'a preceptor card runs {max(words)} words: over 70')
     b.close()
 print('ERRORS:' if errors else 'No errors.')

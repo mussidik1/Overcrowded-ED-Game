@@ -50,6 +50,15 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .hud-btns { display: flex; gap: 6px; }
 .hb { min-width: 40px; height: 36px; padding: 0 9px; border: 1.5px solid rgba(255, 255, 255, .28); border-radius: 9px; background: transparent; color: #fff; font-weight: 700; font-size: 14px; }
 .hb.on { background: #F2C230; border-color: #F2C230; color: var(--ink); }
+.hb-msg { display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 0 7px; }
+.hb-msg svg { flex: none; width: 17px; height: 17px; opacity: .75; }
+.hb-msg.new svg { opacity: 1; }
+.hb-msg b { flex: none; min-width: 17px; padding: 1px 4px; border-radius: 9px; background: rgba(255, 255, 255, .22); color: #fff; font: 700 12px/1.25 var(--ui); font-variant-numeric: tabular-nums; text-align: center; animation: msgPing 1.4s ease-out; }   /* calm at rest; gold for a moment when one arrives */
+@keyframes msgPing { 0%, 55% { background: #F2C230; color: #1B2230; transform: scale(1.18); } 100% { transform: none; } }
+.hb-msg b:empty { display: none; }
+.msgl { gap: 6px; font-size: 14.5px; line-height: 1.3; }
+.msgl li.new span { font-weight: 700; }
+.msgl .mnew { margin-left: 4px; padding: 0 5px; border-radius: 7px; background: #F2C230; color: var(--ink); font: 700 10.5px/1.5 var(--ui); font-style: normal; letter-spacing: .3px; text-transform: uppercase; vertical-align: 1px; }
 .hb.red { background: var(--bad); border-color: #FF9191; color: #fff; }
 .pills { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 8px 0; }
 .pill { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: 5px 7px; border: 0; border-radius: 8px; background: rgba(255, 255, 255, .08); color: #fff; text-align: left; }
@@ -504,11 +513,15 @@ body.mapmode .clock { margin-left: 0; font-size: 24px; }
 body.mapmode .pills { flex: 1; display: flex; gap: 5px; min-width: 0; padding: 0; }
 body.mapmode .pill { flex: 1 1 0; flex-direction: row; align-items: baseline; gap: 6px; padding: 6px 9px; }
 body.mapmode .pill b { font-size: 17px; }
+body.mapmode.msgon:not(.msgover) .pill { flex: 0 0 auto; justify-content: center; }   /* a message is up: the scores are five numbers on the left, and it takes the rest */
+body.mapmode.msgon:not(.msgover) .pill span { display: none; }
+body.mapmode .toast.long { -webkit-line-clamp: 3; line-clamp: 3; padding-top: 1px; padding-bottom: 1px; font-size: 12px; line-height: 1.14; }
 body.mapmode .shiftbar { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; margin: 0; }
 body.mapmode .boxbar { flex: 0 1 auto; min-width: 0; min-height: 0; padding: 5px max(10px, env(safe-area-inset-right)) 6px 12px; border-bottom: 0; border-left: 1px solid rgba(255, 255, 255, .12); }
 body.mapmode .boxbar .bx-btn { height: 36px; }
 .bx-short { display: none; overflow: hidden; font-size: 14px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 999px) { body.mapmode .brand { display: none; } }
+@media (max-width: 700px) { body.mapmode.boxring .hb-msg { display: none; } }   /* the smallest phones: a ringing Box needs the room */
 
 /* things that float over the floor: goals, the selection, toasts, the preceptor */
 body.mapmode .objs { position: fixed; z-index: 27; top: calc(var(--topH, 60px) + 5px); right: calc(var(--railR, 0px) + 5px); flex-direction: column; align-items: flex-end; gap: 3px; max-width: 46vw; padding: 0; overflow: visible; border: 0; background: transparent; pointer-events: none; }
@@ -542,6 +555,9 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
   body.mapmode .hud-top { gap: 6px; }
   body.mapmode .clock { font-size: 20px; }
   body.mapmode .hb { min-width: 36px; height: 31px; padding: 0 8px; font-size: 13px; }
+  body.mapmode .hb-msg { position: relative; min-width: 31px; padding: 0 6px; }   /* on a phone the count rides the bell's corner, so the button stays narrow */
+  body.mapmode .hb-msg b { position: absolute; top: -3px; right: -5px; min-width: 15px; padding: 0 3px; font-size: 10.5px; line-height: 1.35; box-shadow: 0 0 0 1.5px var(--frame, #1B2230); }
+  body.mapmode.msgon:not(.msgover) .pill { min-width: 0; padding: 2px 5px 3px; }
   body.mapmode .pills { gap: 4px; }
   body.mapmode .top { flex-wrap: nowrap; }
   body.mapmode .hud { flex: 1 1 0; }
@@ -572,6 +588,7 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
   body.mapmode .selbar > span { font-size: 12.5px; }
   body.mapmode .selbar button { height: 28px; padding: 0 10px; font-size: 13px; }
   body.mapmode .toast { padding: 2px 9px; border-radius: 8px; font-size: 12px; line-height: 1.18; }
+  body.mapmode .toast.long { font-size: 10.5px; line-height: 1.12; }
   body.mapmode .toasts.tight .toast { padding: 1px 6px; font-size: 10.5px; line-height: 1.12; -webkit-line-clamp: 3; line-clamp: 3; }
   body.mapmode .coach.calt { top: auto; bottom: calc(var(--dockH, 0px) + 6px + var(--selH, 0px) + env(safe-area-inset-bottom)); }
   body.mapmode .coach { top: calc(var(--topH, 40px) + 6px); bottom: auto; width: min(280px, calc((100vw - var(--railL, 0px) - var(--railR, 0px)) * .44)); max-height: calc(100vh - var(--topH, 40px) - var(--selH, 0px) - 14px); max-height: calc(100dvh - var(--topH, 40px) - var(--selH, 0px) - 14px); overflow: auto; border-radius: 14px; }

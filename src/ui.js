@@ -135,16 +135,49 @@ function sfx(n) {
 }
 function vib(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* ignore */ } }
 
+/* Where a message sits in the top strip: beside the scores when they have slid left, over them when the strip is too narrow for both, and clear of the preceptor when he is up there. */
+function stripLayout() {
+  if (U.view !== 'map') return;
+  const rs = document.documentElement.style, b = document.body;
+  const pl = $('#top .pills'), pr = pl ? pl.getBoundingClientRect() : null, co = $('#coach'), cr = co && !co.hidden && co.classList.contains('beside') ? co.getBoundingClientRect() : null;
+  if (!pr || !pr.width) return;
+  let l = Math.max(pr.left, cr ? cr.right + 6 : 0);
+  if (b.classList.contains('msgon')) {
+    const key = window.innerWidth + '|' + Math.round(pr.width);
+    if (U.msgOverKey !== key) {   // measured once per strip width: is there room for the numbers and a message side by side?
+      b.classList.remove('msgover');
+      const ps = pl.querySelectorAll('.pill'), last = ps[ps.length - 1];
+      U.msgOver = !last || pr.right - last.getBoundingClientRect().right - 6 < 240; U.msgOverKey = key;
+    }
+    b.classList.toggle('msgover', !!U.msgOver);
+    if (!U.msgOver) { const ps = pl.querySelectorAll('.pill'), last = ps[ps.length - 1]; l = Math.max(l, last.getBoundingClientRect().right + 6); }
+  }
+  const r = Math.round(Math.max(0, window.innerWidth - pr.right)); l = Math.round(l);
+  rs.setProperty('--tsL', l + 'px'); rs.setProperty('--tsR', r + 'px');
+  const tb = $('#toasts'); if (tb) tb.classList.toggle('tight', window.innerWidth - l - r < 210);   // a small phone with the Box ringing: three short lines instead of two
+}
 /* ---------- toasts ---------- */
-/* On the floor plan a message rides in the top strip, over the scores, one at a time. It never covers a room, a card, or what the preceptor is pointing at. */
+/* On the floor plan a message rides in the top strip, one at a time. It never covers a room, a card, or what the preceptor is pointing at.
+   While one shows, the five scores drop their labels and slide left, so the numbers stay on screen (v0.16.3).
+   On a real shift, routine news (a goal met, staff arriving, a patient off to the OR: the engine marks these) skips the strip and is filed under the bell, which counts what is new.
+   Bad news, anything to act on, and the answer to a tap still take the strip. */
 const TQ = [];
 const inStrip = () => document.body.classList.contains('mapmode');
+function msgOn(on) { const b = document.body; if (b.classList.contains('msgon') !== on) { b.classList.toggle('msgon', on); stripLayout(); } }
 function toastShow(msg, kind) {
   const box = $('#toasts'); if (!box) return;
   const el = document.createElement('div');
   el.className = 'toast t-' + (kind || 'info'); el.textContent = msg; el._t0 = performance.now();
   box.appendChild(el);
-  setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); if (inStrip()) toastPump(); }, 320); }, kind === 'mad' || kind === 'alert' ? 4200 : 3000);
+  if (inStrip()) { msgOn(true); if (el.scrollHeight > el.clientHeight + 1) el.classList.add('long'); }   // a long one gets a third, smaller line before it is cut
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); if (inStrip()) toastPump(); if (!box.children.length) msgOn(false); }, 320); }, kind === 'mad' || kind === 'alert' ? 4200 : 3000);
+}
+/* Every message the shift sends is kept here, newest first, for the Messages list. filed: it skipped the strip. */
+function msgLog(msg, kind, filed) { const G = g(), L = U.msgs || (U.msgs = []); L.unshift({ t: G ? G.t : 0, msg: String(msg), kind: kind || 'info', filed: !!filed }); if (L.length > 80) L.length = 80; }
+function msgHint() {   // the first time a message is filed, say where it went
+  if (store('oc-seen-msgs') || U.msgHinted) return;
+  U.msgHinted = true; store('oc-seen-msgs', '1');
+  toast('Routine updates go to Messages: the bell at the top. Bad news still shows here.', 'info');
 }
 function toastPump() {
   const box = $('#toasts'); if (!box || !TQ.length) return;
@@ -166,7 +199,15 @@ function toast(msg, kind) {
   toastShow(msg, kind);
   while (box.children.length > 2) box.firstChild.remove();
 }
-E.hooks.toast = (m, k) => { if (U.scene === 'game') toast(U.view === 'map' ? String(m).replace(/ header\b/g, ' sign') : m, k); };
+E.hooks.toast = (m, k, routine) => {
+  if (U.scene !== 'game') return;
+  const G = g(), msg = U.view === 'map' ? String(m).replace(/ header\b/g, ' sign') : m;
+  const filed = inStrip() && !!routine && !!G && !G.train;   // Orientation and lessons show everything: few messages, and each confirms a tap
+  msgLog(msg, k, filed);
+  if (!filed) { toast(msg, k); return; }
+  const pg = pageFor(String(msg)); if (pg) page(pg);
+  U.msgNew = (U.msgNew || 0) + 1; msgHint();
+};
 E.hooks.sound = n => sfx(n);
 function res(r, closeOnOk) { if (!r) return; toast(r.ok ? (r.msg || 'Done') : r.why, r.ok ? 'good' : 'bad'); if (r.ok && closeOnOk) U.sheet = null; }
 
@@ -210,14 +251,7 @@ function render() {
   rs.setProperty('--railL', (rails && shown(rl) ? rl.offsetWidth : 0) + 'px');
   { const nb = $('#needBtn'); rs.setProperty('--nbW', (U.view === 'map' && nb && !nb.classList.contains('inrail') && shown(nb) ? nb.offsetWidth + 8 : 0) + 'px'); }
   const sb = $('#selbar'); if (sb) rs.setProperty('--selH', (U.view === 'map' && !sb.hidden ? sb.offsetHeight + 8 : 0) + 'px');
-  if (U.view === 'map') {   // messages sit over the scores: between the buttons and the Box, and clear of the preceptor when he is up there
-    const pl = $('#top .pills'), pr = pl ? pl.getBoundingClientRect() : null, co = $('#coach'), cr = co && !co.hidden && co.classList.contains('beside') ? co.getBoundingClientRect() : null;
-    if (pr && pr.width) {
-      const l = Math.round(Math.max(pr.left, cr ? cr.right + 6 : 0)), r = Math.round(Math.max(0, window.innerWidth - pr.right));
-      rs.setProperty('--tsL', l + 'px'); rs.setProperty('--tsR', r + 'px');
-      const tb = $('#toasts'); if (tb) tb.classList.toggle('tight', window.innerWidth - l - r < 210);   // a small phone with the Box ringing: three short lines instead of two
-    }
-  }
+  stripLayout();
   const zf = $('#mzFit'); if (zf && U.view === 'map') { const z = mapZoomed(); if (zf.hidden === z) zf.hidden = !z; }
 }
 /* Side rails on short, wide screens (a phone held sideways); a dock along the bottom otherwise. Whichever leaves the floor bigger. */
@@ -267,6 +301,13 @@ function renderHud(G) {
   const sp = U.speed + '×'; if ($('#btnSpeed').textContent !== sp) $('#btnSpeed').textContent = sp;
   const pz = U.paused ? '▶' : 'II'; if ($('#btnPause').textContent !== pz) $('#btnPause').textContent = pz;
   $('#btnPause').setAttribute('aria-label', U.paused ? 'Resume' : 'Pause');
+  const mb = $('#btnMsgs'), mn = $('#msgN');
+  if (mb && mn) {
+    const show = U.view === 'map', nw = U.msgNew || 0, t = nw ? (nw > 9 ? '9+' : String(nw)) : '';
+    if (mb.hidden === show) mb.hidden = !show;
+    if (mn.textContent !== t) { mn.textContent = t; mn.style.animation = 'none'; void mn.offsetWidth; mn.style.animation = ''; mb.setAttribute('aria-label', nw ? `Messages: ${nw} new` : 'Messages'); }
+    setC(mb, 'hb hb-msg' + (nw ? ' new' : '') + (U.sheet && U.sheet.type === 'msgs' ? ' on' : ''));
+  }
 }
 function renderBox(G) {
   const el = $('#boxbar'), b = G.box, c = b.cur, hold = b.q.length;
@@ -1146,6 +1187,11 @@ function wordsHTML() {
   return head('Words', 'Every short name in the game, in plain language.') + `<div class="wsearch"><input type="search" id="wq" data-wq placeholder="Search the words" aria-label="Search the words" autocomplete="off" autocapitalize="off" spellcheck="false"></div><p class="hint wnone"${n ? ' hidden' : ''}>Nothing matches. Try a shorter word.</p>` + body + `<div class="wlink wplain"><button type="button" data-act="plain">Plain words under results and radio calls: ${PLAIN() ? 'on' : 'off'}</button></div>`;
 }
 /* What the floor plan's icons mean. */
+function msgsHTML(s) {
+  const L = U.msgs || []; let nw = s.nw || 0;
+  const rows = L.map(m => { const isNew = m.filed && nw > 0; if (isNew) nw--; return `<li class="k-${m.kind}${isNew ? ' new' : ''}"><time>${E.clock(m.t)}</time><span>${esc(m.msg)}${isNew ? ' <i class="mnew">new</i>' : ''}</span></li>`; }).join('');
+  return head('Messages', 'Newest first.') + `<p class="hint" style="margin-bottom:6px"><b>Bad news</b> and anything you need to act on also shows at the top of the screen. <b>Routine news</b> (a goal met, staff arriving, a patient off to the OR) comes only here, and the bell counts it.</p>` + (rows ? `<ol class="log msgl">${rows}</ol>` : '<p class="hint">No messages yet.</p>');
+}
 function legendHTML(md) {
   const rows = md ? [['steth', 'act fl', 'Waiting for a doctor'], ['orders', 'act fl', 'Write orders'], ['decide', 'act fl', 'Your call to make'], ['alert', 'bad fl', 'Not improving'], ['code', 'code fl', 'Code'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['phone', 'wait', 'Consultant on the way'], ['steth', 'wait', 'You or another doctor is with them'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['bed', 'board', 'Admitted, waiting for a bed'], ['home', 'go', 'Ready to go home'], ['broom', 'dirtyq', 'Dirty room'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']]
     : [['steth', 'act fl', 'Needs a provider'], ['phone', 'act fl', 'Call a consult'], ['decide', 'act fl', 'Your call: home, obs, admit'], ['home', 'go fl', 'Ready to discharge'], ['up', 'act fl', 'Bed ready: send them up'], ['amb', 'act fl', 'Transfer: request or book'], ['card', 'act fl', 'Needs registration'], ['alert', 'bad fl', 'Trouble in the room'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['code', 'code fl', 'Code'], ['steth', 'wait', 'A provider has them'], ['bed', 'board', 'Admitted, waiting for a bed'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['broom', 'dirty fl', 'Dirty: tap to send EVS'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']];
@@ -1198,7 +1244,8 @@ function renderSheet(G) {
     else if (s.type === 'divert') h = divertSheet(G);
     else if (s.type === 'help') h = helpHTML();
     else if (s.type === 'words') h = wordsHTML();
-    else if (s.type === 'legend') h = head('What the map shows', 'One icon on each room: what it needs next.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The <b>number in the circle</b> is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient. The <b>gold star</b>: you.' : ''}</p><p class="hint"><b>Pod signs.</b> Each <b>purple dot</b> is a nurse. <b>3/4</b> is the pod's workload over what its nurses can carry safely. An <b>orange outline</b>: full. <b>Red</b>: over. <b>WALL</b>, <b>WAITING</b>, and <b>DOOR</b> show a count when someone is there.</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
+    else if (s.type === 'msgs') h = msgsHTML(s);
+    else if (s.type === 'legend') h = head('What the map shows', 'One icon on each room: what it needs next.') + legendHTML(MD()) + `<p class="hint">A <b>dark name tag</b> is a patient. The <b>number in the circle</b> is the ESI: 1 is the sickest. <b>Orange dashes</b>: an isolation room. <b>Blue dots</b>: a safe room. A <b>dashed gray box</b>: a hallway bed.${MD() ? ' A <b>gold ring</b>: your patient. The <b>gold star</b>: you.' : ''}</p><p class="hint"><b>The bell</b> at the top keeps every message. Its number is the routine news you have not read.</p><p class="hint"><b>Pod signs.</b> Each <b>purple dot</b> is a nurse. <b>3/4</b> is the pod's workload over what its nurses can carry safely. An <b>orange outline</b>: full. <b>Red</b>: over. <b>WALL</b>, <b>WAITING</b>, and <b>DOOR</b> show a count when someone is there.</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
     if (!h) U.sheet = null;
   } else if (s && s.type === 'help') h = helpHTML();
   else if (s && s.type === 'words') h = wordsHTML();
@@ -1880,6 +1927,7 @@ const ACT = {
   coachEasy: () => { const t = TR(), s = coachStep(); if (!t || (t.brk == null && s && s.final)) store(trainedKey(g().mode), '1'); U.mode = g().mode || 'rn'; start('easy'); },
   lessons: () => { U.sheet = { type: 'lessons' }; },
   legend: () => { U.sheet = U.sheet && U.sheet.type === 'legend' ? null : { type: 'legend' }; },
+  msgs: () => { U.sel = null; U.sheet = U.sheet && U.sheet.type === 'msgs' ? null : { type: 'msgs', nw: U.msgNew || 0 }; U.msgNew = 0; },
   lesson: k => { if (LESSONS[k]) start('train', k); },
   lessonNext: () => { const k = lessonKey(), nx = k ? LESSON_KEYS[LESSON_KEYS.indexOf(k) + 1] : null; if (k) store('oc-lesson-' + k, '1'); if (nx) start('train', nx); else showTitle(); },
   recheck: a => { const [pid, sid] = a.split('|'); res(E.recheck(pid, sid)); },
@@ -2014,7 +2062,7 @@ function save(force) {
 function readSave() { try { const s = localStorage.getItem('oc-save'); if (!s) return null; const d = JSON.parse(s); return d && d.G && d.G.v === 5 && !d.G.over ? d : null; } catch (e) { return null; } }
 function resumeSave() {
   const d = readSave(); if (!d) { toast('No saved shift on this device', 'bad'); return; }
-  E.load(d.G); U.lvl = d.lvl; U.mode = d.G.mode || 'rn'; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = true; U.speed = 1;
+  E.load(d.G); U.lvl = d.lvl; U.mode = d.G.mode || 'rn'; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = true; U.speed = 1; U.msgs = []; U.msgNew = 0;
   $('#title').hidden = true; $('#report').hidden = true;
   render();
 }
@@ -2041,7 +2089,7 @@ function titleHTML() {
   const packs = Object.entries(E.PACKS).map(([k, P]) => `<button type="button" class="seg${U.pack === k ? ' on' : ''}" data-act="pack" data-arg="${k}" aria-pressed="${U.pack === k}">${esc(P.name)}</button>`).join('');
   return `<div class="card"><div class="t-kicker">An ED shift survival game</div><h1 class="t-brand">Overcrowded</h1><svg class="t-under" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 6 L297 6" stroke="#C8243A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>${modes}<p class="t-sub">${md ? "You're an attending in a 32-bed ED, 07:00 to 19:00. The charge nurse runs the board. You see patients, write the orders, make the calls, and answer the radio when a medic needs medical direction." : "You're the charge nurse for a 32-bed ED, 07:00 to 19:00. Five pods, a resus team, a radio that won't stop ringing, and an administrator who just walked in."}</p><div class="levels">${resume}${lv}</div>${scens}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}<div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="view">${U.view === 'map' ? 'Board: floor plan' : 'Board: list'}</button><button type="button" data-act="sound">Sound: ${U.sound ? 'on' : 'off'}</button>${lastReport() ? '<button type="button" data-act="lastReport">Last summary</button>' : ''}${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? `<button type="button" data-act="fullscreen">${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
 }
-function clearToasts() { const b = $('#toasts'); if (b) b.innerHTML = ''; TQ.length = 0; clearTimeout(toastPump.t); }
+function clearToasts() { const b = $('#toasts'); if (b) b.innerHTML = ''; TQ.length = 0; clearTimeout(toastPump.t); msgOn(false); }
 function showTitle() {
   clearToasts(); hush();
   U.scene = 'title'; U.sel = null; U.sheet = null; U.modal = null; U.paused = false;
@@ -2055,7 +2103,7 @@ function start(lvl, lesson, chapter) {
   ensureAudio();
   if (!LESSONS[lesson]) lesson = null;
   U.lvl = lvl; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = false; U.speed = 1;
-  U.needSeen = {}; U.needLast = null; U.needRing = null;
+  U.needSeen = {}; U.needLast = null; U.needRing = null; U.msgs = []; U.msgNew = 0;
   store('oc-save', null);
   E.newGame(lvl, lvl === 'train' ? 20261116 : (Math.random() * 2147483647) | 0, { pack: U.pack, mode: lesson ? 'md' : U.mode, scen: lesson ? 'none' : U.scen });
   if (lesson) g().tr.lesson = lesson;   // kept with the game, so a saved lesson resumes as that lesson

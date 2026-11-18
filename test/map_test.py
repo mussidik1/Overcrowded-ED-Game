@@ -211,6 +211,19 @@ def run():
             ok(th2 <= 44 and bx and bx['x'] + bx['width'] <= w + 1, f'{w}x{h}: the ringing Box stays in the strip ({th2}px) with its button on screen')
         page.set_viewport_size({'width': 844, 'height': 390}); page.wait_for_timeout(300)
         J("() => { OC.G.box.cur = null; OC.G.box.q = []; document.getElementById('toasts').innerHTML = ''; OCUI.render(); }")
+        # v0.16.3: while a message shows, the scores are five numbers beside it. Routine news skips the strip and waits under the bell.
+        page.wait_for_timeout(4200)
+        J("() => { OCUI.U.msgNew = 0; OCUI.U.msgs = []; localStorage.setItem('oc-seen-msgs', '1'); document.getElementById('toasts').innerHTML = ''; document.body.classList.remove('msgon'); OCUI.render(); }"); page.wait_for_timeout(200)
+        J("() => { OC.hooks.toast('Blood bank: only 2 units of O-negative left', 'bad'); }"); page.wait_for_timeout(350)
+        st = J("(() => { const t = document.querySelector('#toasts .toast').getBoundingClientRect(), ps = [...document.querySelectorAll('#top .pill')], last = ps[ps.length - 1].getBoundingClientRect(); return { on: document.body.classList.contains('msgon') && !document.body.classList.contains('msgover'), gap: Math.round(t.left - last.right), lbl: getComputedStyle(document.querySelector('#pWait span')).display, nums: ps.every(p => { const b = p.querySelector('b').getBoundingClientRect(); return b.width > 0 && b.right <= t.left; }), w: Math.round(t.width), top: document.getElementById('top').offsetHeight, train: !!OC.G.train }; })()")
+        ok(st['on'] and st['gap'] >= 0 and st['lbl'] == 'none' and st['nums'] and st['w'] >= 240 and st['top'] == th, f"while a message shows, the five scores stay on screen as numbers beside it (message {st['w']}px wide, strip {st['top']}px)")
+        page.wait_for_timeout(3700)
+        ok(not J("document.body.classList.contains('msgon')") and J("getComputedStyle(document.querySelector('#pWait span')).display") != 'none', 'when the message ends, the scores get their labels back')
+        J("() => { OC.hooks.toast('Door to ECG: 3 min. Goal met · Room 4', 'good', true); OC.hooks.toast('Hana is back', 'good', true); OCUI.render(); }"); page.wait_for_timeout(300)
+        ok(not st['train'] and page.locator('#toasts .toast').count() == 0 and J('OCUI.U.msgNew') == 2 and page.locator('#msgN').inner_text() == '2' and page.is_visible('#btnMsgs'), 'routine news skips the strip, and the bell counts it')
+        tap('#btnMsgs'); page.wait_for_timeout(300)
+        ok(J("OCUI.U.sheet && OCUI.U.sheet.type") == 'msgs' and page.locator('#sheet .msgl li.new').count() == 2 and 'Blood bank' in page.locator('#sheet .msgl').inner_text() and page.locator('#sheet .msgl li').first.inner_text().find('Hana is back') >= 0 and J('OCUI.U.msgNew') == 0 and page.locator('#msgN').inner_text() == '', 'the bell opens every message, newest first, with the unread ones marked, and the count clears')
+        close_sheet()
 
         # touch areas: the zoom buttons, and a pod sign that reaches a little past its outline
         zb = box('#mzoom [data-arg="in"]'); sg = box('#mzh-d rect')

@@ -42,6 +42,8 @@ On a laptop the same floor shows the words all the time, with the staff in a doc
 
 **The rest of the map polish (v0.16.2).** Room icons are rounded squares, so a blue icon is no longer read as a blue ESI circle. Staff at a bedside keep off the icon and the name tag. The DOOR label sits beside the line of people and clear of the Next button; the waiting-room seats sit below their label; the BREAK ROOM label is clear of the status chips. The bedding bar is one line under the bottom row of rooms. The map key adds the gray stethoscope, pod-sign dots and loads, and (for the attending) the house, broom, sparkle, and padlock. Tapping Next while a card is open goes to the next thing. Intake tags say their state (NEEDS REG, REG IN LINE, TRIAGE NOW, REG ✓). The attending's exam shows the minutes left. The cath lab message gives the time the patient left and says the balloon time comes later.
 
+**Messages (v0.16.3).** On the floor plan, the five scores stay on screen while a message shows: they drop their labels and slide left, and the message takes the rest of the strip. Routine news (a goal met, staff arriving, a patient off to the OR) skips the strip and is kept under a bell beside the pause button, which counts what is unread. Bad news, anything to act on, and the answer to a tap still show. Orientation and lessons show every message. On the smallest phones, or with the Box ringing, there is no room for both, and a message covers the scores as before.
+
 **What six reviewers found (v0.16).** Three lay players and three clinicians (an emergency physician, an EMS physician, an ED charge nurse) reviewed v0.15. This release builds their clinical fixes and the feedback they asked for.
 
 - **Trauma.** A bleeding patient in shock is no longer scored for a CT. X-ray, a bedside ultrasound, labs, blood, and the OR. The Bleeding lesson says so.
@@ -163,7 +165,7 @@ The build also writes `sw.js`, a small service worker that keeps a copy of the g
 ```sh
 npm install      # fonts used by the build
 npm run build    # writes index.html
-npm test         # rule checks (six suites, 308 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
+npm test         # rule checks (six suites, 309 checks; rules4 covers the attending, rules5 vitals, the short shift, and scenarios, rules6 stroke care, the new orders, crashes, the untreated bleed, and the bus crash)
 npm run sim      # simulated shifts at several player speeds
 npm run stress   # 188 shifts across every level and scenario: checks for stuck states and out-of-range vitals
 python3 test/ui_test.py      # taps through every system in headless Chrome (Playwright)
