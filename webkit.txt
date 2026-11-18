@@ -1,5 +1,5 @@
-commit c66fb410499d69f02c0198f1731dfe78027cc782
-date   2026-11-18 03:14 UTC
+commit de01004b3eed1a34a8cf3386454b467f6c2f8f53
+date   2026-11-18 03:34 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,7 +13,7 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-52:No errors.
+51:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -21,7 +21,7 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-30:No errors.
+31:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
 ok   best score kept for the attending
@@ -32,7 +32,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:31, care 144, cards read 70, words 2262, longest 59
+taps: 77, game clock: 10:32, care 144, cards read 70, words 2288, longest 68
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -40,7 +40,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 40, game clock: 09:46, care 240, cards read 39, words 1345, longest 64
+taps: 40, game clock: 09:47, care 240, cards read 39, words 1350, longest 64
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -48,7 +48,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:28, care 144, cards read 70, words 2261, longest 59
+taps: 78, game clock: 10:27, care 144, cards read 70, words 2287, longest 68
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -56,7 +56,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:40, care 55, cards read 8, words 304, longest 57
+taps: 6, game clock: 07:40, care 57, cards read 8, words 304, longest 57
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -73,10 +73,11 @@ No errors.
 
 === python test/offline_test.py ===
 FAIL
-2:ERRORS:
-3:  crash: TimeoutError('Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to "http://127.0.0.1:49192/apple-touch-icon.png", waiting until "load"\n')
-
+8:ERRORS:
+9:  CHECK FAILED: another app's saved files on the same site are left alone
+ok   with the network off, the game still loads
+ok   and a shift starts offline
 ERRORS:
-  crash: TimeoutError('Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to "http://127.0.0.1:49192/apple-touch-icon.png", waiting until "load"\n')
+  CHECK FAILED: another app's saved files on the same site are left alone
 
 SOME FAILED
