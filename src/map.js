@@ -270,6 +270,14 @@ function staffSpot(s, G, sl) {
 /* ---------- patients who move ----------
    Walk-ins walk from the door to check-in, a triage bay, a seat. When someone is bedded, moved, or leaves,
    a walker or a stretcher makes the trip through the hallway. LAST remembers where each patient was drawn. */
+/* v0.23.1: a crew that just pulled in stays out of sight until its ambulance has parked, then shows on the wall.
+   HELD: patient id -> when the hold began. WALLSEEN: everyone already shown on the wall (held once at most). */
+const HELD = new Map(), WALLSEEN = new Set();
+function ambParked(id, on3d) {
+  if (on3d) return !!(window.OC3D && OC3D.ambParked && OC3D.ambParked(id));
+  const n = document.querySelector(`#mAmbs [data-id="a-${id}"]`);
+  return !!(n && !n._anim);
+}
 const LAST = new Map(), ARRIVE = new Map(), SVGNS = 'http://www.w3.org/2000/svg';
 let LASTKEY = null, LASTT = null;
 const NOMOTION = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
@@ -514,7 +522,7 @@ function mapRender(G) {
 
   // a new shift or a loaded save: forget where people were
   const nowMs = performance.now(), key = G.seed + '|' + G.level + '|' + G.mode;
-  if (key !== LASTKEY || (LASTT != null && G.t < LASTT - 0.5)) { LAST.clear(); ARRIVE.clear(); SEAT.clear(); const mv = document.getElementById('mMove'); if (mv) mv.innerHTML = ''; }
+  if (key !== LASTKEY || (LASTT != null && G.t < LASTT - 0.5)) { LAST.clear(); ARRIVE.clear(); SEAT.clear(); HELD.clear(); WALLSEEN.clear(); const mv = document.getElementById('mMove'); if (mv) mv.innerHTML = ''; }
   LASTKEY = key; LASTT = G.t;
   const motion = !NOMOTION.matches && !U.ff && U.speed <= 2 && U.scene === 'game' && !document.hidden;
   const posNow = new Map();
@@ -673,7 +681,10 @@ function mapRender(G) {
   const wall = act.filter(p => p.loc === 'wall').sort((a, b) => a.tArrive - b.tArrive), inside = wall.slice(0, 6), outside = wall.slice(6);
   const lab = (id, t) => { const n = document.getElementById(id); if (n && n.textContent !== t) n.textContent = t; };
   lab('mWallL', wall.length ? `WALL · ${wall.length}` : 'THE WALL');   // with a count it drops THE, so it stays clear of the Resus tray lab('mWaitL', waiting.length ? `WAITING · ${waiting.length}` : 'WAITING'); lab('mDoorL', G.triageQ.length ? `DOOR · ${G.triageQ.length}` : 'DOOR');
+  const nowW = performance.now();
   inside.forEach((p, i) => {
+    if (!WALLSEEN.has(p.id)) { WALLSEEN.add(p.id); if (i < 3 && motion && !G.train && G.t - p.tArrive < 1) HELD.set(p.id, nowW); }   // only someone who just arrived, with an ambulance to wait for
+    if (HELD.has(p.id)) { if (nowW - HELD.get(p.id) > 12000 || (nowW - HELD.get(p.id) > 300 && ambParked(p.id, on3d))) HELD.delete(p.id); else return; }
     const y = WALL_Y(i), esi = p.tri === 'done' ? ve(p) : 0, mins = Math.round(G.t - p.tArrive);
     by.set(p.id, [196, y + 4]);
     posNow.set(p.id, { x: 195, y, kind: 'wall' });

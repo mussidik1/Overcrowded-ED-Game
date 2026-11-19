@@ -43,8 +43,11 @@ with sync_playwright() as pw:
     rots = J(f"{AMB_ANIMS}.map(a => a.effect.getKeyframes().map(k => k.transform))")
     ok(any(any('rotate(90deg)' in t for t in ks) and ks[-1].endswith('rotate(0deg)') for ks in rots), f'it drives up facing the way it goes, then turns to park ({rots[:1]})')
     ok(any(len(ks) >= 3 for ks in rots), 'and pulls past its stall before backing in')
-    J(f"{AMB_ANIMS}.forEach(a => a.finish())"); page.wait_for_timeout(100)
     walter = J("Object.values(OC.G.pts).find(p => p.name === 'Walter K.').id")
+    WALL_PT = f"!!document.querySelector('.mpt[data-act=\"pt\"][data-arg=\"{walter}\"]')"
+    ok(not J(WALL_PT), 'the crew and patient stay out of sight while the ambulance pulls in')
+    J(f"{AMB_ANIMS}.forEach(a => a.finish())"); page.wait_for_timeout(500); J("OCUI.render()"); page.wait_for_timeout(100)
+    ok(J(WALL_PT), 'and show on the wall once it has parked')
     tr = J(f"document.querySelector('#mAmbs [data-id=\"a-{walter}\"]').style.transform")
     ok('rotate(0deg)' in tr and 'translate(56px' in tr, f'parked in a stall ({tr})')
 
