@@ -461,13 +461,14 @@ function mapSpot(els, layerId, cls) {
    the preceptor's rings and camera moves go through OC3D.spot and OC3D.bring. If WebGL or the files are missing, the flat map shows as before. */
 const D3 = { want: null, loading: false, failed: false };
 function use3d(G) {
-  if (!U.three || !G || D3.failed || U.view !== 'map') return false;
+  if (!U.three || !G || D3.failed || U.view !== 'map') { const m = document.getElementById('map'); if (m) m.classList.remove('ld3d'); return false; }
   if (U.scene !== 'game' && !window.OC3D) return false;   // not behind the menu: loading it there stalls the menu's taps
-  if (!window.OC3D) { load3d(); return false; }
-  const el = document.getElementById('map'); if (!el || !OC3D.ok) return false;
+  const ld = on => { const m = document.getElementById('map'); if (m && m.classList.contains('ld3d') !== on) m.classList.toggle('ld3d', on); };   // v0.24.1: say so while 3D loads, so the switch isn't a surprise
+  if (!window.OC3D) { load3d(); ld(!D3.failed); return false; }
+  const el = document.getElementById('map'); if (!el || !OC3D.ok) { ld(false); return false; }
   if (!el.querySelector('canvas.floor3d')) { if (!OC3D.init(el, H3D)) { D3.failed = true; return false; } if (OC3D.quality) OC3D.quality(U.q3d); }
   if (!el.classList.contains('three')) el.classList.add('three');
-  return OC3D.ready();
+  const r = OC3D.ready(); ld(!r); return r;
 }
 function load3d() {
   if (D3.loading || window.OC3D) return; D3.loading = true;

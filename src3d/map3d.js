@@ -46,7 +46,7 @@ async function packs() {
 const buf = async u => PACK[u] ? b64buf(PACK[u]) : (await fetch(BASE + u)).arrayBuffer();
 const load = u => (cache[u] ||= buf(u).then(b => loader.parseAsync(b, BASE)));
 const GL = {}, ROOM = {}, ENT = new Map(), AMB = new Map(), ROOMX = {}, LBL = new Map(), ANIM = {};
-const view = { tx: 2, ty: -1, dist: 60, fit: 60, tilt: 52 * DEG };
+const view = { tx: 2, ty: -1, dist: 60, fit: 60, tilt: 60 * DEG };   // v0.24.1: a little more top-down, so the floor fills a phone
 let ambLive = false, ambK = 1, snap = null, clock = new THREE.Clock(), lastPick = [], SUN = null;
 /* Quality. auto starts balanced on a phone (sharp on a computer) and steps down while frames run slow. */
 const QL = { high: { dpr: 2, shadow: 2048, soft: true, fps: 60 }, med: { dpr: 1.5, shadow: 1024, soft: false, fps: 60 }, low: { dpr: 2, shadow: 0, soft: false, fps: 30 } };   // v0.23.1: battery saver keeps a sharp picture (pixel ratio 1 was blurry on a 3x phone); it saves with no shadows and 30 frames a second
@@ -99,6 +99,7 @@ async function build() {
   await packs();
   L = PACK['layout.json'] ? JSON.parse(atob(PACK['layout.json'])) : await (await fetch(BASE + 'layout.json')).json();
   const st = (await load('dept_static.glb')).scene; shade(st); S.add(st);
+  { const gnd = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.MeshStandardMaterial({ color: '#bdb8ae', roughness: 1 })); gnd.rotation.x = -Math.PI / 2; gnd.position.y = -0.06; gnd.receiveShadow = true; S.add(gnd); }   // v0.24.1: plain ground all round, so there's no gray void past the building
   st.traverse(o => { if (/^canopy/.test(o.name)) o.visible = false; });   // the bay's roof would hide the ambulances from above
   for (const r of L.rooms) {
     const g = new THREE.Group(); g.position.copy(B2T(r.x, r.y)); g.rotation.y = r.rot * DEG; S.add(g);
@@ -469,7 +470,7 @@ function compactLabel(l, rm, roomPx) {
 }
 
 /* ---------- camera: the whole floor by default, drag to pan, pinch or wheel to zoom ---------- */
-const BOUNDS = { x0: -29, x1: 29, y0: -16.5, y1: 15 };
+const BOUNDS = { x0: -30.2, x1: 28.4, y0: -15.8, y1: 15.0 };   // v0.24.1: the building and the ambulance stalls, nothing more
 function camSet() {
   const t = new THREE.Vector3(view.tx, 0, -view.ty);
   CAM.position.set(t.x, Math.sin(view.tilt) * view.dist, t.z + Math.cos(view.tilt) * view.dist); CAM.lookAt(t);
@@ -490,7 +491,11 @@ function groundAt(cx, cy) {
   const r = el.getBoundingClientRect(); ray.setFromCamera(new THREE.Vector2((cx - r.left) / r.width * 2 - 1, -(cy - r.top) / r.height * 2 + 1), CAM);
   const p = new THREE.Vector3(); return ray.ray.intersectPlane(ground, p) ? [p.x, -p.z] : null;
 }
-function clampView() { view.dist = Math.max(7, Math.min(view.fit, view.dist)); view.tx = Math.max(BOUNDS.x0, Math.min(BOUNDS.x1, view.tx)); view.ty = Math.max(BOUNDS.y0 - 6, Math.min(BOUNDS.y1, view.ty)); }
+function clampView() {   // v0.24.1: zoomed in, you can pan to the edge of the department but not past it
+  view.dist = Math.max(7, Math.min(view.fit, view.dist));
+  const k = view.dist / view.fit, hx = (BOUNDS.x1 - BOUNDS.x0) / 2 * k, hy = (BOUNDS.y1 - BOUNDS.y0) / 2 * k;
+  view.tx = Math.max(BOUNDS.x0 + hx, Math.min(BOUNDS.x1 - hx, view.tx)); view.ty = Math.max(BOUNDS.y0 + hy, Math.min(BOUNDS.y1 - hy, view.ty));
+}
 function zoomAt(f, cx, cy) {
   const before = cx != null ? groundAt(cx, cy) : null;
   view.dist /= f; clampView(); camSet(); CAM.updateMatrixWorld();
@@ -691,5 +696,5 @@ window.OC3D = {
   hideSpots() { for (const sp of Object.values(SPOTS)) { sp.list = []; for (const d of sp.divs) d.hidden = true; } },
   quality(q) { if (q) { qWant = q; if (R) setQuality(qStart()); } return { want: qWant, now: qNow }; },
   info: () => (R ? { calls: R.info.render.calls, tris: R.info.render.triangles, dpr, q: qNow } : null),
-  _view: view, _cam(o) { Object.assign(view, o); camSet(); }, _amb: () => AMB, _ambK(k) { ambK = k; }, _ambStep(s) { stepAmb(s, 1); }, ambParked(id) { const o = AMB.get(id); return !!(o && !o.path && !o.leaving && o.meta && o.meta.mode === 'bay'); }, find: (x, y) => find(x, y), _scene: () => S, _ent: () => ENT,
+  _view: view, _cam(o) { Object.assign(view, o); clampView(); camSet(); }, _amb: () => AMB, _ambK(k) { ambK = k; }, _ambStep(s) { stepAmb(s, 1); }, ambParked(id) { const o = AMB.get(id); return !!(o && !o.path && !o.leaving && o.meta && o.meta.mode === 'bay'); }, find: (x, y) => find(x, y), _scene: () => S, _ent: () => ENT,
 };

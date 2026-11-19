@@ -39,7 +39,7 @@ def run():
         except Exception: pass
         ok(J("document.getElementById('map').classList.contains('three')"), f'the 3D floor loads ({time.time() - t0:.0f} s here, software graphics)')
         ok(J("!!document.querySelector('#map > canvas.floor3d')") and J("getComputedStyle(document.querySelector('#map svg.floor')).opacity") == '0', 'the canvas shows and the flat map steps aside')
-        ok('pulsing icon' in page.locator('#modal').inner_text(), 'the first-shift card describes the 3D floor')
+        ok('shaking icon' in page.locator('#modal').inner_text(), 'the first-shift card describes the 3D floor')
         def clear():   # the first-shift card and event cards pause the shift: answer them
             for _ in range(4):
                 if not page.is_visible('#modalWrap'): return

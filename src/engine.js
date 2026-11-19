@@ -71,7 +71,7 @@ const LEVELS = {
   // A short shift for demos and class: two packed hours, about five minutes at normal speed.
   rush: { name: 'Five-Minute Rush', blurb: 'Two packed hours, 07:00 to 09:00. About five minutes.', walk: 8.5, ems: 4.4, alerts: 1.7, consult: [14, 22], events: [16, 26], callouts: 1, board: 1.1, sickMax: 1, boarders: 5, shift: 120 },
   // Orientation: no random arrivals, events, or bad luck. The UI's preceptor brings in one scripted patient at a time.
-  train: { name: 'Orientation', blurb: 'A preceptor walks you through it. Nothing counts.', walk: 0, ems: 0, alerts: 0, consult: [30, 40], events: [1e9, 1e9], callouts: 0, board: 0.2, sickMax: 0, boarders: 0, shift: 720, train: true },
+  train: { name: 'Orientation', blurb: 'A preceptor walks you through it.', walk: 0, ems: 0, alerts: 0, consult: [30, 40], events: [1e9, 1e9], callouts: 0, board: 0.2, sickMax: 0, boarders: 0, shift: 720, train: true },
 };
 
 /* Preset scenarios for teaching: one named problem, at a set point in the shift. */

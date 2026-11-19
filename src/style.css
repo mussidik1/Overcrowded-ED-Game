@@ -506,6 +506,8 @@ body.mapmode .side { display: none; }
 body.mapmode .dock { display: flex; }
 .map { height: calc(100vh - var(--topH, 60px) - var(--dockH, 70px)); height: calc(100dvh - var(--topH, 60px) - var(--dockH, 70px)); min-height: 160px; overflow: hidden; touch-action: none; background: #BFCBA6; }
 #map { position: relative; }
+#map.ld3d::after { content: 'Loading the 3D floor…'; position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 6; padding: 5px 12px; border-radius: 10px; background: rgba(16, 24, 40, .86); color: #fff; font: 14px/1.2 var(--ui); pointer-events: none; animation: ld3dPulse 1.6s ease-in-out infinite; }
+@keyframes ld3dPulse { 50% { opacity: .6; } }
 #map.three > svg.floor { opacity: 0; pointer-events: none; }
 #map > canvas.floor3d { display: none; }
 #map.three > canvas.floor3d { display: block; position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }

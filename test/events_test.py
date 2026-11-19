@@ -31,7 +31,8 @@ with sync_playwright() as pw:
     J("OC.trainPatient('uti', 'walk', { name: 'Maria L.', age: 34, sex: 'F' }); OCUI.render()"); page.wait_for_timeout(150)
     J("OC.trainPatient('hipfx', 'ems', { name: 'Walter K.', age: 82, sex: 'M', unit: 'Medic 7' }); OCUI.render()"); page.wait_for_timeout(250)
     pops = page.locator('#arrivals .arr')
-    ok(pops.count() == 2 and 'Maria L.' in pops.nth(0).inner_text() and 'Walked in' in pops.nth(0).inner_text() and 'Medic 7 at the bay' in pops.nth(1).inner_text(), 'each new patient pops up: name, age, complaint, and how they came')
+    txt = [pops.nth(i).inner_text() for i in range(pops.count())]   # a real arrival can land at the same moment
+    ok(any('Maria L.' in t and 'Walked in' in t for t in txt) and any('Walter K.' in t and 'Medic 7 at the bay' in t for t in txt), 'each new patient pops up: name, age, complaint, and how they came')
     m, r = J("(() => { const a = document.getElementById('map').getBoundingClientRect(), b = document.getElementById('arrivals').getBoundingClientRect(); return [[a.left, a.bottom], [b.left, b.bottom]]; })()")
     ok(abs(r[0] - m[0] - 8) < 2 and abs(m[1] - r[1] - 8) < 2, 'at the bottom left of the floor, by the door and the bay')
     ok(J("getComputedStyle(document.getElementById('arrivals')).pointerEvents") == 'none', 'and taps go straight through it')
