@@ -1439,8 +1439,10 @@ const provStep = (key, sid) => ({
 const roomAct = (key, sel) => ({ spot: () => { const p = tid(key); return onSheet(p) ? [`#sheet ${sel}`] : [roomSel(p)]; } });
 const far = (a, b) => (mapFar() ? a : b);   // zoomed out on the floor plan, people at the door and in the waiting room are picked from a list
 const STEPS = [
-  { id: 'hi', next: true, title: 'Welcome to Orientation', text: `I’m your **preceptor**. Today you learn to be the **charge nurse** of this **ED**, the emergency department.\nYou decide who gets which bed, nurse, and doctor.\nTap whatever I **light up**. Nothing counts yet.`},
+  { id: 'hi', next: true, title: 'Welcome to Orientation', text: `I’m your **preceptor**. Today you learn to be the **charge nurse** of this **ED**, the emergency department.\nYou decide who gets which bed, nurse, and doctor.\nTap whatever I **light up**.`},
   { id: 'words', next: true, title: 'The words', text: `We use a lot of short names. **ESI** is how sick someone is. **EMS** is ambulance crews. An **RN** is a nurse. **EVS** is housekeeping.\nNo need to memorize. **Words** has the list.`, spot: () => ['#coach [data-act="words"]'] },
+  { id: 'ui1', next: true, title: 'The menu', text: () => `**☰**, top right, is the **menu**: pause, restart, How to play, and settings.${FP() ? `\n**3D floor: on/off** in there switches between the 3D and flat map.${TD() ? ' The flat map shows first while 3D loads.' : ''}` : ''}`, spot: () => ['#btnPause'] },
+  { id: 'ui2', next: true, title: 'Events and the key', text: () => (FP() ? `The **bell** is **Events**: everything that happened this shift. New patients also pop up at the bottom left.\n**?** shows what every colour and icon means.` : `Messages show at the top. **How to play** in the menu explains the whole board.`), spot: () => (FP() ? ['#btnMsgs', '#mzoom [data-act="legend"]'] : ['#btnPause']) },
   { id: 'intake', next: true, title: 'The front door', text: () => `Walk-ins line up at the door. **Ambulance crews** wait ${FP() ? 'at the wall' : 'in the Ambulance bay'}.\n**Registrars**${FP() ? ' (the **R** chips)' : ''} take names. The **triage nurse** checks how sick they are.`, spot: () => ['#istaff', '#intake .lane', '#mWait', '#mDoor'] },
   { id: 'm1', title: 'A walk-in', text: () => `[[Maria]], 34, says it burns when she pees.\nFirst, **quick registration**: name and birth date.\nTap **Tasha**, a registrar. Then tap ${far('**the line at the door**', '[[Maria]]')}.`,
     setup: () => ({ maria: E.trainPatient('uti', 'walk', { name: 'Maria L.', age: 34 }) }), ...regStep('maria', 'reg1') },
@@ -1585,6 +1587,8 @@ const callStep = (key, pick, spec) => ({
 const STEPS_MD = [
   { id: 'hi', next: true, title: 'Welcome, Doctor', text: `I’m your **preceptor**. You’re the **attending**, the ER doctor, in this **ED**.\nThe **charge nurse** runs beds and nurses. You **see patients, write orders, and decide where they go**. You also answer the radio.\nTap what I light up.`},
   { id: 'words', next: true, title: 'The words', text: `Medicine loves short names: **ESI, DKA, CT, ICU**. I’ll explain each as we go. **Words** has the list.`, spot: () => ['#coach [data-act="words"]'] },
+  { id: 'ui1', next: true, title: 'The menu', text: () => `**☰**, top right, is the **menu**: pause, restart, How to play, and settings.${FP() ? `\n**3D floor: on/off** in there switches between the 3D and flat map.${TD() ? ' The flat map shows first while 3D loads.' : ''}` : ''}`, spot: () => ['#btnPause'] },
+  { id: 'ui2', next: true, title: 'Events and the key', text: () => (FP() ? `The **bell** is **Events**: everything that happened this shift. New patients also pop up at the bottom left.\n**?** shows what every colour and icon means.` : `Messages show at the top. **How to play** in the menu explains the whole board.`), spot: () => (FP() ? ['#btnMsgs', '#mzoom [data-act="legend"]'] : ['#btnPause']) },
   { id: 'rack', next: true, title: 'Who needs you', text: () => (FP() ? 'A **blue** room is waiting for a doctor. Yours get a **gold ring**.' : 'Rooms marked **Needs a provider** are waiting for a doctor. Yours show **YOU**.') + '\nA **pod** is four rooms and one nurse.\nThe circle is the **ESI**: **1** needs life-saving help now, **5** is minor.\nWait too long and another doctor takes them.', spot: () => ['#zh-a, #mzh-a', '#zbar'] },
   { id: 'you', next: true, title: 'Your line', text: () => `You’re **Dr. Patel**, ${SIDE()}. Your button shows what you’re doing and who’s waiting on you.\nThe others are another attending and the **PAs and NPs**.`, spot: () => ['#dockProv [data-arg="md1"]', '#sideProv [data-arg="md1"]'] },
 
@@ -1810,7 +1814,7 @@ const codeText = c => `Code Black class code ${c.code}: ${codeDesc(c)}. Play at 
 function copyText(t) { try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t); return true; } } catch (e) { /* no clipboard */ } return false; }
 function lessonsHTML() {
   const n = LESSON_KEYS.filter(lessonDone).length;
-  return head('Lessons', `One condition, one patient, about two minutes. What it looks like, what to order and why, and the clock. You play the doctor. Nothing counts.${n ? ` ${n} of ${LESSON_KEYS.length} done.` : ''}`)
+  return head('Lessons', `One condition, one patient, about two minutes. What it looks like, what to order and why, and the clock. You play the doctor.${n ? ` ${n} of ${LESSON_KEYS.length} done.` : ''}`)
     + `<div class="cgrid lsn">${LESSON_KEYS.map(k => `<button type="button" class="cbtn" data-act="lesson" data-arg="${k}"><b>${esc(LESSONS[k].name)}${lessonDone(k) ? ' <i class="lsn-ok">✓</i>' : ''}</b><small>${esc(LESSONS[k].blurb)}</small></button>`).join('')}</div>`;
 }
 const STEPS_NOW = () => { const k = lessonKey(); return k ? LESSONS[k].steps : (g() && g().mode === 'md' ? STEPS_MD : STEPS); };
@@ -2297,7 +2301,7 @@ function titleHTML() {
   const md = U.mode === 'md';
   const fresh = !['easy', 'med', 'hard'].some(k => bestOf(k));
   const modes = `<div class="modes" role="group" aria-label="Your role"><button type="button" class="mode${md ? '' : ' on'}" data-act="mode" data-arg="rn" aria-pressed="${!md}"><b>Charge nurse</b><small>Run the board</small></button><button type="button" class="mode${md ? ' on' : ''}" data-act="mode" data-arg="md" aria-pressed="${md}"><b>Attending</b><small>See patients, write orders</small></button></div>`;
-  const tb = md ? 'A preceptor walks you through it. Nothing counts.' : E.LEVELS.train.blurb;
+  const tb = md ? 'A preceptor walks you through it.' : E.LEVELS.train.blurb;
   const chM = md ? 'md' : 'rn', chN = chList(chM).length, chD = chList(chM).filter(c => chDone(chM, c.k)).length;   // once a chapter is done, the row opens the chapter list
   const train = `<button type="button" class="lvl train" ${chD ? 'data-act="chapters"' : 'data-act="start" data-arg="train"'}><span class="dot" style="background:var(--accent)"></span><span><b>${E.LEVELS.train.name}</b><small>${tb}</small></span>${store(trainedKey(U.mode)) ? '<span class="best">Done ✓</span>' : chD ? `<span class="best">${chD} of ${chN}</span>` : fresh ? '<span class="best go">Start here</span>' : ''}</button>`;
   const nL = LESSON_KEYS.filter(lessonDone).length;

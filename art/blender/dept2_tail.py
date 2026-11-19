@@ -220,7 +220,8 @@ box('evs_cart', (1.4, .7, 1.0), (20.5, -13.8, .5), mat('evscart', (.85, .7, .1),
 box('linen_rack', (.6, 3.4, 2.0), (27.7, -9.5, 1.0), STEEL, .02)
 for j in range(6): box('linen_stack', (.5, .5, .25), (27.7, -11.0 + j * .6, 1.3), [SHEET, mat('lb', (.6, .75, .9), .8), SHEET, mat('ly', (.9, .85, .5), .8), SHEET, mat('lg', (.6, .85, .65), .8)][j], .04)
 ppl('psx-32', (21.5, -10.5, 0), 0, 'EV', 'idle-talking', 7)
-for (tx_, ty_, ts_) in [(30.5, 11, 1.1), (31.5, 4, 1.3), (30.2, -3, 1.0), (31.8, -9, 1.2), (30.6, -14, 1.0), (-36, 18, 1.2), (-38, -6, 1.1)]: tree(tx_, ty_, ts_)
+# v0.24.1: outside trees removed (he asked for no fluff around the floor)
+# for (tx_, ty_, ts_) in [(30.5, 11, 1.1), (31.5, 4, 1.3), (30.2, -3, 1.0), (31.8, -9, 1.2), (30.6, -14, 1.0), (-36, 18, 1.2), (-38, -6, 1.1)]: tree(tx_, ty_, ts_)
 S.frame_set(10)
 
 # ---- lights, cameras, render ----
