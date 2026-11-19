@@ -41,8 +41,8 @@ const WALL_Y = i => 62 + i * 46;
 const SKIN = ['#F1C7A5', '#E0A57E', '#C68642', '#8D5524', '#5C3A21'];
 const HAIR = ['#2B1D14', '#5A3825', '#8B4A2B', '#D2AE6D', '#1B1B1B', '#A7A7A7'];
 const ESIC = { 1: '#E7A2AB', 2: '#F2BE8F', 3: '#F1DA86', 4: '#A9D6B5', 5: '#A9C3E8' };
-const ROLEC = { md: '#1A2B8F', app: '#007A70', rn: '#7A2BC4', pct: '#C24400', evs: '#37474F', rt: '#0E7490', rph: '#7A1F3D', reg: '#B5126F', tp: '#6B4423', ems: '#1F2A44' };   // one strong colour a role; the side buttons use the same ones (style.css)
-const ROLE_LAB = { md: 'MD', rn: 'RN', pct: 'T', reg: 'R', evs: 'EV', rt: 'RT', rph: 'Rx', tp: 'TP' };
+const ROLEC = { md: '#1A2B8F', app: '#007A70', rn: '#7A2BC4', pct: '#C24400', evs: '#37474F', rt: '#0E7490', rph: '#7A1F3D', reg: '#B5126F', tp: '#6B4423', ems: '#1F2A44', uc: '#7A5C00', cons: '#4B6E1F' };   // one strong colour a role; the side buttons use the same ones (style.css)
+const ROLE_LAB = { md: 'MD', rn: 'RN', pct: 'T', reg: 'R', evs: 'EV', rt: 'RT', rph: 'Rx', tp: 'TP', uc: 'UC' };
 const roleLab = s => (s.role === 'app' ? (s.title === 'NP' ? 'NP' : 'PA') : ROLE_LAB[s.role] || '?');   // what a staff chip says
 /* A room is a tile. Its colour is its state: [fill, outline, solid]. Solid tiles are the ones waiting on the player. */
 const TILE = { need: ['#1648C8', '#0A2470', 1], bad: ['#D11A2F', '#7A0A17', 1], go: ['#12813A', '#07461E', 1], warn: ['#B45309', '#6B3005', 1], dirty: ['#7A4A1E', '#40250D', 1],
@@ -253,6 +253,7 @@ function staffSpot(s, G, sl) {
   }
   if (s.role === 'evs' && s.task && s.task.room && RM[s.task.room]) { const r = RM[s.task.room]; return [r.x + r.w / 2 + 32, r.y + r.h / 2 + 10, 'room']; }
   if (s.role === 'tp') return sl.near(ROLE_HOME.tp, 56, 2);
+  if (s.role === 'uc') return [918, 352];   // v0.25: the unit secretary works from the end of the nurses' station
   if (s.role === 'rn') {
     if (s.zones.includes('triage')) { const b = sl.freeBay(); return b != null ? [TRI_BAYS[b][0], TRI_BAYS[b][1]] : sl.near([388, 452], 30, 3); }
     const z = POD_SPOT[s.zones[0]] ? s.zones[0] : 'hold';
@@ -282,6 +283,18 @@ const LAST = new Map(), ARRIVE = new Map(), SVGNS = 'http://www.w3.org/2000/svg'
 let LASTKEY = null, LASTT = null;
 const NOMOTION = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
 const GATE = [476, 349], HALL_Y = 349;
+const CONS_LAB = { hosp: 'HM', cards: 'CA', neuro: 'NE', surg: 'GS', trauma: 'TS', ortho: 'OR', gi: 'GI', psych: 'PY', icu: 'CC' };
+const LIFT = [1086, 680];   // the elevators: consultants come down and go back up this way
+/* Walk a figure along a path with WAAPI; its own transform is already where it ends. */
+function walkPath(n, path, then) {
+  const segs = []; let len = 0;
+  for (let i = 1; i < path.length; i++) { const d = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); segs.push(d); len += d; }
+  if (len < 10 || NOMOTION.matches || !n.animate) { if (then) setTimeout(then, 300); return; }
+  const dur = Math.max(900, Math.min(4200, len / 0.32)); let acc = 0;
+  const frames = path.map((pt, i) => { if (i) acc += segs[i - 1]; return { transform: `translate(${pt[0]}px, ${pt[1]}px)`, offset: Math.min(1, acc / len) }; });
+  n.style.transition = 'none'; n.classList.add('walk');
+  try { const a = n.animate(frames, { duration: dur, easing: 'linear' }); a.onfinish = () => { n.classList.remove('walk'); n.style.transition = ''; if (then) then(); }; } catch (e) { if (then) then(); }
+}
 function routeTo(from, to) {   // through the openings and down the hallway, not through the walls
   const pts = [], lobby = from[0] < 484 && from[1] > 404, wallSide = from[0] < 250 && from[1] < 342;
   if (wallSide) pts.push([224, 336]);
@@ -478,7 +491,7 @@ function load3d() {
 const floor3d = () => !!(U.three && U.view === 'map' && !D3.failed);   // the 3D floor is (or is about to be) what the player sees
 function off3d() { const el = document.getElementById('map'); if (el) el.classList.remove('three'); if (window.OC3D && OC3D.hideSpots) OC3D.hideSpots(); }
 const H3D = {
-  RM, icon: k => ICO[k] || ICO.wait, route: (a, b) => routeTo(a, b), speed: () => Math.min(4, U.speed || 1),
+  RM, icon: k => ICO[k] || ICO.wait, route: (a, b) => routeTo(a, b), routeIn: to => [[1150, 676], [1150, HALL_Y]].concat(routeTo([1150, HALL_Y], to)), routeUp: from => routeOut(from, 'up'), speed: () => Math.min(4, U.speed || 1),
   drag: () => { U.mapDrag = performance.now() + 250; },
   live: () => U.scene === 'game' && !U.paused && !U.modal,
   fail: () => { D3.failed = true; off3d(); },
@@ -727,19 +740,21 @@ function mapRender(G) {
   if (G.enroute.length > 2) amb += `<text x="100" y="64" text-anchor="end" font-size="13" font-weight="700" fill="#FFD0D5">+${G.enroute.length - 2} inbound</text>`;
   setH(document.getElementById('mAmb'), amb);
   const ambAt = new Map();
-  const bayIds = wall.slice(0, 3).map(p => p.id), stallUsed = new Set();   // a parked ambulance keeps its stall when the one ahead of it leaves
+  const picks = E.active().filter(p => p.dsp === 'ridehere');   // v0.25: an ambulance come to take a patient to rehab
+  const bayIds = wall.slice(0, 3).map(p => p.id).concat(picks.map(p => p.id)).slice(0, 3), stallUsed = new Set();   // a parked ambulance keeps its stall when the one ahead of it leaves
   for (const id of Array.from(AMB_STALL.keys())) if (!bayIds.includes(id)) AMB_STALL.delete(id);
   for (const id of bayIds) if (AMB_STALL.has(id)) stallUsed.add(AMB_STALL.get(id));
   for (const id of bayIds) if (!AMB_STALL.has(id)) { let k = 0; while (stallUsed.has(k)) k++; stallUsed.add(k); AMB_STALL.set(id, k); }
-  wall.forEach((p, i) => { if (i < 3) ambAt.set(p.id, [56, 96 + AMB_STALL.get(p.id) * 56, 'bay']); else if (i >= 6 && i < 10) { ambAt.set(p.id, [56, 306 + (i - 6) * 56, 'out']); posNow.set(p.id, { x: 56, y: 306 + (i - 6) * 56, kind: 'amb' }); } });
+  picks.forEach((p, i) => { if (AMB_STALL.has(p.id)) ambAt.set(p.id, [56, 96 + AMB_STALL.get(p.id) * 56, 'bay', 'pick']); });
+  wall.forEach((p, i) => { if (i < 3 && AMB_STALL.has(p.id)) ambAt.set(p.id, [56, 96 + AMB_STALL.get(p.id) * 56, 'bay']); else if (i >= 6 && i < 10) { ambAt.set(p.id, [56, 306 + (i - 6) * 56, 'out']); posNow.set(p.id, { x: 56, y: 306 + (i - 6) * 56, kind: 'amb' }); } });
   G.enroute.map(E.pt).filter(Boolean).slice(0, 2).forEach((p, i) => ambAt.set(p.id, [56, i ? 562 : 32, 'in']));
   const ambL = document.getElementById('mAmbs'), seenA = new Set();
-  if (SN) { const k = { bay: 0, out: 0, in: 0 }; for (const [pid, at] of ambAt) SN.amb.push({ pid, mode: at[2], i: k[at[2]]++ }); }
+  if (SN) { const k = { bay: 0, out: 0, in: 0 }; for (const [pid, at] of ambAt) SN.amb.push({ pid, mode: at[2], i: k[at[2]]++, pick: at[3] === 'pick' }); }
   for (const [pid, at] of ambAt) {
     const p = E.pt(pid), id = 'a-' + pid, mins = Math.round(G.t - p.tArrive); seenA.add(id);
     let n = ambL.querySelector(`[data-id="${id}"]`);
     if (!n) { n = document.createElementNS('http://www.w3.org/2000/svg', 'g'); n.setAttribute('data-id', id); n.setAttribute('class', 'mamb'); const y0 = at[2] === 'in' && at[1] < 300 ? -70 : MH + 70; n._pos = [56, y0, y0 < 0 ? -90 : 90]; n.style.transform = ambTr(...n._pos); ambL.appendChild(n); }
-    const svg = ambSVG({ code: unitCode(p), hot: at[2] === 'in' || E.emergent(p) || mins < 3, open: at[2] === 'bay', ghost: at[2] === 'in', pill: at[2] === 'out' ? mins + 'm' : at[2] === 'in' ? '▸' + Math.max(0, Math.round(p.eta - G.t)) + 'm' : '', pillBad: at[2] === 'in' || mins > 30 });
+    const svg = ambSVG({ code: at[3] === 'pick' ? 'BLS' : unitCode(p), hot: !at[3] && (at[2] === 'in' || E.emergent(p) || mins < 3), open: at[2] === 'bay', ghost: at[2] === 'in', pill: at[2] === 'out' ? mins + 'm' : at[2] === 'in' ? '▸' + Math.max(0, Math.round(p.eta - G.t)) + 'm' : '', pillBad: at[2] === 'in' || mins > 30 });
     if (n._svg !== svg) { n.innerHTML = svg; n._svg = svg; }
     const put = (k, v) => { if (n.getAttribute(k) !== v) n.setAttribute(k, v); };
     if (at[2] === 'bay') { if (n.hasAttribute('data-act')) { n.removeAttribute('data-act'); n.removeAttribute('data-arg'); n.removeAttribute('role'); } n.style.pointerEvents = 'none'; }
@@ -778,7 +793,7 @@ function mapRender(G) {
     const at = staffSpot(s, G, sl); if (!at) continue;
     const id = 's-' + s.id, inRoom = at[2] === 'room' || at[2] === 'with', me = isMe(s);
     const svg = (inRoom ? '' : '<circle r="22" fill="transparent"/>') + '<g class="wk">' + chipSVG({ label: roleLab(s), body: ROLEC[s.role], tag: at[2] === 'seat' ? '' : me ? 'You' : s.short, tagFg: ROLEC[s.role], ring: !!(sel && sel.sid === s.id), me }) + '</g>';
-    const actn = E.isProv(s) ? 'prov' : s.role === 'reg' ? 'regSel' : s.role === 'rn' && s.zones.includes('triage') ? 'triSel' : 'staffOpen';
+    const actn = E.isProv(s) ? 'prov' : s.role === 'reg' ? 'regSel' : s.role === 'uc' ? 'ucOpen' : s.role === 'rn' && s.zones.includes('triage') ? 'triSel' : 'staffOpen';
     if (SN) SN.staff.push({ id: s.id, role: s.role, title: s.title, label: roleLab(s), at: [at[0], at[1], at[2] || ''], inRoom, me, sel: !!(sel && sel.sid === s.id), seat: at[2] === 'seat' ? Math.max(0, PROV_SEATS.findIndex(q => q[1] === at[1] && Math.abs(q[0] - at[0]) % 14 === 0 && at[0] >= q[0])) : null, brk: s.st === 'break' ? Math.max(0, BREAK_SEATS.findIndex(q => q[0] === at[0] && q[1] === at[1])) : null });
     seen.add(id);
     let n = layer.querySelector(`[data-id="${id}"]`);
@@ -790,7 +805,30 @@ function mapRender(G) {
     const tr = `translate(${at[0]}px, ${at[1]}px)`;
     if (n.style.transform !== tr) { n.style.transform = tr; n.classList.add('walk'); clearTimeout(n._wt); n._wt = setTimeout(() => n.classList.remove('walk'), 950); }
   }
-  for (const n of Array.from(layer.children)) if (!seen.has(n.getAttribute('data-id'))) n.remove();
+  // v0.25: consultants come down in the elevator, see the patient at the bedside, and go back up
+  for (const p of act) {
+    const c = p.consult; if (!c || c.tVisit == null || p.loc !== 'room' || G.t - c.tVisit >= E.CONS_VISIT) continue;
+    const r = RM[p.room]; if (!r) continue;
+    const o = sl.bed(p.id, r.h < 60), at = [r.x + r.w / 2 + o[0], r.y + r.h / 2 + o[1]], id = 'c-' + p.id, sp = E.SPECS[c.spec] || {};
+    const lab = CONS_LAB[c.spec] || 'Dr', svg = '<g class="wk">' + chipSVG({ label: lab, body: ROLEC.cons, tag: sp.short || 'Consult', tagFg: ROLEC.cons }) + '</g>';
+    if (SN) SN.staff.push({ id: 'cons-' + p.id, role: 'cons', title: sp.name || 'Consultant', label: lab, at: [at[0], at[1], 'room'], inRoom: true, visitor: true, me: false, sel: false, seat: null, brk: null });
+    seen.add(id);
+    let n = layer.querySelector(`[data-id="${id}"]`);
+    if (!n) {
+      n = document.createElementNS(SVGNS, 'g'); n.setAttribute('data-id', id); n.setAttribute('class', 'mp cons'); n.style.pointerEvents = 'none'; n.setAttribute('aria-label', `${sp.doc || 'A consultant'}, ${sp.name || 'consultant'}`);
+      n.style.transition = 'none'; n.style.transform = `translate(${at[0]}px, ${at[1]}px)`; layer.appendChild(n); n._at = at;
+      walkPath(n, [LIFT, [1150, 676], [1150, HALL_Y]].concat(routeTo([1150, HALL_Y], at)));
+    }
+    if (n._svg !== svg) { n.innerHTML = svg; n._svg = svg; }
+  }
+  for (const n of Array.from(layer.children)) {
+    const nid = n.getAttribute('data-id'); if (seen.has(nid)) continue;
+    if (nid.startsWith('c-') && n._at && !n._out) {   // the visit is over: back to the elevator
+      n._out = true; n.style.transition = 'none'; n.style.transform = `translate(${LIFT[0]}px, ${LIFT[1]}px)`;
+      walkPath(n, [n._at].concat(routeOut(n._at, 'up')), () => n.remove()); continue;
+    }
+    if (!n._out) n.remove();
+  }
 
   // people who left since the last frame walk or roll out; then remember where everyone is
   for (const [pid, prev] of Array.from(LAST)) {

@@ -123,8 +123,9 @@ const GOLD = new THREE.MeshBasicMaterial({ color: '#f2c230', transparent: true, 
 /* ---------- people ---------- */
 const MODEL = {
   md: () => 'md', app: s => (s.title === 'NP' ? 'np' : 'pa'), rn: s => 'rn' + (1 + hsh(s.id) % 4), pct: s => 't' + (1 + hsh(s.id) % 2), reg: s => 'reg' + (1 + hsh(s.id) % 2),
-  evs: s => 'ev' + (1 + hsh(s.id) % 2), rt: () => 'rt', rph: () => 'rx', tp: () => 'tp',
+  evs: s => 'ev' + (1 + hsh(s.id) % 2), rt: () => 'rt', rph: () => 'rx', tp: () => 'tp', uc: () => 'reg2', cons: () => 'md',
 };
+const LIFT3 = [14.8, -14.6];   // the elevators, where admitted patients go up
 const PTG = ['pt_05', 'pt_06', 'pt_15', 'pt_32', 'pt_female-08', 'pt_female-09', 'pt_31-female', 'pt_10'];
 const RAW = ['psx-05', 'psx-06', 'psx-10', 'psx-15', 'psx-32', 'psx-female-08', 'psx-female-09', 'psx-31-female'];
 function spawn(model) {
@@ -216,7 +217,7 @@ function setPose(e, want) {
 /* roll: a patient who is lying down goes on a stretcher, still lying, and the stretcher goes with them. */
 function moveTo(e, want, from2, to2, roll) {
   const cur = e.root.position, start = [cur.x, -cur.z];
-  const pts = from2 && to2 ? routeFor(e, from2, to2, want) : [[want.x, want.y]];
+  const pts = from2 === 'via' ? to2.slice(0, -1).map(([u, v]) => g2b(u, v)).concat([[want.x, want.y]]) : from2 && to2 ? routeFor(e, from2, to2, want) : [[want.x, want.y]];
   e.path = [start].concat(pts); e.seg = 0; e.want = want; e.walking = true; e.rolling = !!roll;
   if (roll) {
     if (!e.str && GL.str) { e.str = GL.str.scene.clone(true); shade(e.str); e.str.position.set(0, -0.77, -0.86); e.root.add(e.str); }
@@ -309,7 +310,7 @@ function stepAmb(dt, blink) {
       if (o.t >= L.dur) { o.leg++; o.t = 0; if (o.leg >= o.path.length) { o.path = null; if (o.leaving) { S.remove(o.g); AMB.delete(pid); continue; } } }
     }
     o.g.position.copy(B2T(o.b[0], o.b[1])); o.g.rotation.y = o.h;
-    const hot = moving && !o.leaving;
+    const hot = moving && !o.leaving && !(o.meta && o.meta.pick);   // a rehab ride comes without lights
     for (const m of o.bar) m.emissiveIntensity = hot ? 0.4 + 5.6 * (blink > 0.5 ? 1 : 0) : 0.5;   // lights going on the way in
   }
 }
@@ -334,7 +335,8 @@ function apply(sn) {
   for (const s of sn.staff) {
     const key = 's' + s.id, model = (MODEL[s.role] || (() => 'rn1'))(s), want = staffWant(s); seen.add(key);
     const e = entity(key, model);
-    e.meta = { kind: 'staff', id: s.id, tap: !s.inRoom, label: s.label, me: s.me, sel: s.sel, role: s.role };
+    e.meta = { kind: 'staff', id: s.id, tap: !s.inRoom, label: s.label, me: s.me, sel: s.sel, role: s.role, visitor: !!s.visitor };
+    if (!e.placed && s.visitor) { e.root.position.copy(B2T(LIFT3[0], LIFT3[1])); e.root.visible = true; e.placed = true; e.at2 = s.at; moveTo(e, want, 'via', api.routeIn(s.at)); continue; }   // v0.25: a consultant steps out of the elevator and walks to the bedside
     if (!e.placed) { e.root.position.copy(B2T(want.x, want.y)); setPose(e, want); e.placed = true; e.root.visible = true; e.at2 = s.at; e.want = want; continue; }
     if (e.at2[0] !== s.at[0] || e.at2[1] !== s.at[1]) { moveTo(e, want, e.at2, s.at); e.at2 = s.at; }
     else if (!e.walking) { e.want = want; setPose(e, want); }
@@ -364,6 +366,7 @@ function apply(sn) {
       if (roll) Object.assign(dest, { z: 0.77, lie: true, keepStr: true });
       e.leaving = true; moveTo(e, dest, e.at2, e.at2, roll); setTimeout(() => { S.remove(e.root); ENT.delete(key); }, 9000); continue;
     }
+    if (e.meta && e.meta.visitor && e.root) { e.leaving = true; moveTo(e, { x: LIFT3[0], y: LIFT3[1], anim: 'idle-a', rot: 0 }, 'via', api.routeUp(e.at2)); setTimeout(() => { S.remove(e.root); ENT.delete(key); }, 9000); continue; }   // back up in the elevator
     if (e.root) S.remove(e.root); ENT.delete(key);
   }
   // ambulances: at the bay, waiting on the drive, on the way in
