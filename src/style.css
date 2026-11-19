@@ -475,7 +475,8 @@ body.training .app { padding-bottom: calc(300px + env(safe-area-inset-bottom)); 
 @media (min-width: 1100px) { .coach { right: auto; bottom: 18px; left: 18px; width: 440px; margin: 0; } }
 
 /* ---------- two roles: charge nurse and attending ---------- */
-.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0 4px; }
+.t-role { margin: 14px 0 0; color: var(--ink-2); font: 700 13px/1.2 var(--body); letter-spacing: .06em; text-transform: uppercase; }
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0 4px; }
 .mode { display: grid; gap: 2px; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); text-align: left; }
 .mode b { font: 700 16px/1.1 var(--ui); }
 .mode small { color: var(--ink-2); font-size: 12.5px; }
@@ -792,6 +793,7 @@ body.mapmode.ingame .mzoom { position: fixed; z-index: 26; right: calc(var(--rai
   #title .card > .levels { grid-column: 2; grid-row: 1 / span 9; align-self: center; gap: 6px; }
   #title .t-brand { font-size: 40px; }
   #title .t-under { height: 8px; margin-bottom: 3px; }
+  #title .t-role { margin-top: 6px; }
   #title .modes { margin: 4px 0; }
   #title .mode { padding: 7px 10px; }
   #title .t-sub { margin-bottom: 6px; font-size: 13.5px; line-height: 1.35; }
@@ -1013,3 +1015,32 @@ body.ingame { touch-action: pan-x pan-y; }
 .cc-made { display: grid; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed #9AA3AD; }
 .cc-code { font: 700 40px/1.1 var(--ui); letter-spacing: .14em; text-align: center; }
 .rep-class b { letter-spacing: .08em; }
+
+/* v0.25: the four scores on the shift summary */
+.scards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 8px 0 12px; }
+.scard { border: 2px solid #CBD2DA; border-radius: 12px; padding: 8px 10px; background: #fff; display: flex; flex-direction: column; gap: 2px; }
+.scard > span { font-size: 13px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
+.scard > b { font-size: 26px; line-height: 1.1; }
+.scard > i { font-style: normal; color: #C99A06; font-size: 16px; letter-spacing: 1px; }
+.scard small { display: block; font-size: 12.5px; color: var(--ink-3); line-height: 1.25; }
+.scard small.neg { color: #B4232F; }
+.scard.good { border-color: #12813A; } .scard.warn { border-color: #C99A06; } .scard.bad { border-color: #D11A2F; }
+/* v0.25: the waiting meter, top left of the floor */
+.wmeter { position: fixed; z-index: 29; display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; border-radius: 12px; border: 0; background: var(--wm, #12813A); color: #fff; font: 13px/1.05 var(--ui); text-align: left; box-shadow: 0 3px 10px rgba(16, 24, 40, .25); cursor: pointer; transition: background .6s; }
+.wmeter b { font-size: 22px; font-weight: 700; min-width: 1ch; text-align: center; }
+.wmeter.hot { animation: wmPulse 1.4s ease-in-out infinite; }
+.wmeter.crit { animation: wmPulse .9s ease-in-out infinite, wmShake 2s ease-in-out infinite; }
+@keyframes wmPulse { 50% { box-shadow: 0 0 0 6px hsl(0 80% 50% / .25), 0 3px 10px rgba(16, 24, 40, .25); } }
+@keyframes wmShake { 0%, 80%, 100% { transform: none; } 83% { transform: rotate(-4deg) scale(1.06); } 87% { transform: rotate(4deg) scale(1.08); } 91% { transform: rotate(-3deg); } 95% { transform: rotate(2deg); } }
+@media (prefers-reduced-motion: reduce) { .wmeter.hot, .wmeter.crit { animation: none; } }
+.qlist { display: flex; flex-direction: column; gap: 6px; }
+.qrow { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; border-radius: 10px; border: 2px solid #CBD2DA; background: #fff; text-align: left; font: 15px/1.25 var(--ui); color: var(--ink); }
+.qrow.hot { border-color: #D11A2F; }
+.qrow span { font-size: 13.5px; color: var(--ink-3); }
+/* v0.25: the unit secretary */
+:root { --uc: #7A5C00; }
+.ic.uc { background: var(--uc); }
+.ic.uc.need { box-shadow: 0 0 0 3px #1648C8; animation: wmPulse 1.4s ease-in-out infinite; }
+.mg.r-uc { background: var(--uc); }
+.pbtn.r-uc { border-color: var(--uc); } .pbtn.r-uc b { color: var(--uc); }
+.pgrid.two { grid-template-columns: 1fr 1fr; }

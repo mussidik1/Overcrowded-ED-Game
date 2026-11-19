@@ -327,8 +327,8 @@ def run():
         J("() => { let n = 0; while (!OC.G.over && n++ < 90000) { if (OC.G.card) OC.botStep({budget: 0}); OC.step(0.1); if (n % 10 === 0) OC.botStep({budget: 2}); } }")
         page.wait_for_timeout(900)
         ok(page.is_visible('#report'), 'shift report at 19:00')
-        folded = page.locator('#report details.rep-more').count() == 1 and 'Door to provider (median)' not in page.inner_text('#report') and 'points.' in page.inner_text('#report .star-key')
-        ok(folded, 'the report opens short: what each star takes, with the long tables folded under All the numbers')
+        folded = page.locator('#report details.rep-more').count() == 1 and 'Door to provider (median)' not in page.inner_text('#report') and page.locator('#report .scard').count() == 4
+        ok(folded, 'the report opens short: a card for each of the four scores, with the long tables folded under All the numbers')
         tap('#report details.rep-more > summary')
         rt = page.inner_text('#report')
         ok('Door to provider (median)' in rt and 'Boarding' in rt and 'RN hours' in rt and 'Experience score' in rt, 'report shows ED metrics, patient experience, and staffing hours')

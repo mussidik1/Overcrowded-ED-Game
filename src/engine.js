@@ -103,7 +103,7 @@ const ROOMS = [
   { id: 'C4', z: 'rp', kind: 'chair' }, { id: 'C5', z: 'rp', kind: 'chair' }, { id: 'C6', z: 'rp', kind: 'chair' },
 ];
 
-const TITLE = { md: 'MD', app: 'APP', rn: 'RN', pct: 'PCT', evs: 'EVS', rt: 'RT', rph: 'PharmD', reg: 'Registration', tp: 'Transport' };
+const TITLE = { md: 'MD', app: 'APP', rn: 'RN', pct: 'PCT', evs: 'EVS', rt: 'RT', rph: 'PharmD', reg: 'Registration', tp: 'Transport', uc: 'Unit secretary' };
 const ROSTER = [
   { id: 'md1', role: 'md', name: 'Dr. Patel', short: 'Patel' },
   { id: 'md2', role: 'md', name: 'Dr. Okafor', short: 'Okafor' },
@@ -127,10 +127,11 @@ const ROSTER = [
   { id: 'evs1', role: 'evs', name: 'Luis' }, { id: 'evs2', role: 'evs', name: 'Grace' }, { id: 'evs3', role: 'evs', name: 'Tomas' },
   { id: 'rt1', role: 'rt', name: 'Hana' }, { id: 'rt2', role: 'rt', name: 'Marcus' },
   { id: 'rph1', role: 'rph', name: 'Wells', short: 'Wells' },
-  { id: 'reg1', role: 'reg', name: 'Tasha' }, { id: 'reg2', role: 'reg', name: 'Miguel' },
+  { id: 'reg1', role: 'reg', name: 'Tasha' }, { id: 'reg2', role: 'reg', name: 'Miguel' }, { id: 'uc1', role: 'uc', name: 'Lena' },
   { id: 'tp1', role: 'tp', name: 'Ray' }, { id: 'tp2', role: 'tp', name: 'Lou' },
 ];
 
+const CONS_VISIT = 12;   // v0.25: game minutes a consultant spends at the bedside on the map
 const SPECS = {
   hosp:   { name: 'Hospitalist', what: 'Admits most medical patients', short: 'Hosp', doc: 'Dr. Fenn', mad: x => `I'm not admitting anyone without ${x}. Call me back.` },
   cards:  { name: 'Cardiology', what: 'The heart', short: 'Cards', doc: 'Dr. Hartwell', mad: x => `You paged cardiology without ${x}?` },
@@ -475,9 +476,27 @@ const langMul = p => (p.lang && p.interp !== 'on' ? 1.5 : 1);
 /* In physician mode the player answers only for physician work, and only for their own patients. */
 const MD_TAGS = new Set(['md', 'orders', 'harm', 'dispo', 'box', 'consult', 'flow', 'goals', 'returns', 'gray', 'blood']);
 const PT_TAGS = new Set(['flow', 'goals', 'returns', 'gray', 'blood', 'consult']);
+/* v0.25: the four scores. Clinical and admin rise and fall with the same events that move points, sorted by the ledger's tag.
+   Patients is how they felt about the visit (their experience). Staff is morale. Each reads 0 to 100. */
+const SC_OF = {};
+for (const k of ['md', 'orders', 'harm', 'dispo', 'gray', 'blood', 'safety', 'returns', 'box', 'boxn', 'consult', 'sitter', 'goals', 'ratio', 'uncovered', 'waiting']) SC_OF[k] = 'clinical';
+for (const k of ['admin', 'divert', 'wall', 'flow', 'staffing', 'lwbs', 'ama', 'hall', 'chair', 'transfer', 'experience']) SC_OF[k] = 'admin';
+const freshSc = () => ({ clinical: { g: 0, b: 0 }, admin: { g: 0, b: 0 } });
+const SC_PRIOR = 150;   // a clean start reads 100%, and the first mistake doesn't sink it
+function scoreOf(c) { const s = (G.sc || (G.sc = freshSc()))[c]; return Math.round(100 * (s.g + SC_PRIOR) / (s.g + s.b + SC_PRIOR)); }
+function patientScore() {
+  const S = G.stats; let sum = S.pxSum || 0, n = S.pxN || 0;
+  for (const p of active()) if (['room', 'waiting', 'wall', 'triage'].includes(p.loc)) { sum += Math.max(0, Math.min(100, p.px)); n++; }
+  return n ? Math.round(sum / n) : null;
+}
+function scores() { return { patients: patientScore(), clinical: scoreOf('clinical'), admin: scoreOf('admin'), staff: Math.round(staffSat()) }; }
+function avgScore() { const s = scores(), v = [s.patients, s.clinical, s.admin, s.staff].filter(x => x != null); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0; }
+function overallStars() { const s = scores(); return Math.round([s.patients, s.clinical, s.admin, s.staff].reduce((n, v) => n + scoreStars(v == null ? 100 : v), 0) / 4); }
+const scoreStars = v => (v == null ? 0 : v >= 85 ? 3 : v >= 70 ? 2 : v >= 55 ? 1 : 0);
 function care(n, tag, p) {
   if (G.pre) return;
-  const k = tag || 'other';
+  const k = tag || 'other', sc = SC_OF[k];
+  if (sc && !(sc === 'clinical' && G.mode === 'md' && (!MD_TAGS.has(k) || (PT_TAGS.has(k) && !(p && p.mine))))) { const s = (G.sc || (G.sc = freshSc()))[sc]; if (n > 0) s.g += n; else s.b -= n; }   // clinical counts only the attending's own work
   if (G.mode === 'md' && (!MD_TAGS.has(k) || (PT_TAGS.has(k) && !(p && p.mine)))) return;
   G.care += n; G.ledger[k] = (G.ledger[k] || 0) + n;
 }
@@ -536,7 +555,7 @@ function newGame(level, seed, opts) {
     dv: Object.fromEntries(Object.keys(DIVERTS).map(k => [k, { on: false, mins: 0, since: 0, unjust: 0 }])), out: {},
     pizza: false, sec: { busy: -1e9 }, agN: 0, report: null,
     nextArr: { walk: 0, ems: 0, alert: 1e9 },
-    stats: freshStats(), care: 0, ledger: {}, log: [],
+    stats: freshStats(), care: 0, ledger: {}, log: [], sc: freshSc(), clerk: [], clerkN: 0,
     train: !!L.train, tr: L.train ? { step: 0, ids: {}, setup: {} } : null,
     mode: opts.mode === 'md' ? 'md' : 'rn', me: opts.mode === 'md' ? 'md1' : null,
     scen: SCENS[opts.scen] && !L.train ? opts.scen : 'none',
@@ -573,7 +592,7 @@ function seedBoarders(n) {
 function startShift() {
   const L = LEVELS[G.level];
   G.pre = false; G.t = Math.max(G.t, 0); G.lastMin = Math.floor(G.t);
-  G.stats = freshStats(); G.care = 0; G.ledger = {}; G.log = []; G.warn = {};
+  G.stats = freshStats(); G.care = 0; G.ledger = {}; G.log = []; G.warn = {}; G.sc = freshSc();
   for (const s of G.staff) { s.lastBreak = 0; s.done = 0; }
   G.box.nextC = G.t + randi(8, 16);
   G.nextArr.alert = G.t + 5 + expo(60 / (L.alerts * hourMul(G.t)));
@@ -605,6 +624,7 @@ function step(dt) {
   rnTick(dt);
   pctTick(dt);
   regTick(dt);
+  ucTick();
   tpTick(dt);
   rtTick(dt);
   rphTick(dt);
@@ -782,6 +802,7 @@ function makePatient(c, src) {
   };
   if (p.alert) for (const g of ALERTS[p.alert].goals) p.goals[g] = null;
   if (p.ecg10 && !('ecg10' in p.goals)) p.goals.ecg10 = null;
+  p.rehab = !G.train && c.dispo === 'home' && age >= 70 && vhash(p.id + 'rehab') < 0.45;   // v0.25: safe to leave the ED, not safe to go home alone
   if (p.alert === 'stroke') strokeSetup(p);
   G.pts[p.id] = p; G.order.push(p.id);
   return p;
@@ -976,7 +997,7 @@ function canPlace(p, r) {
   if (r.kind === 'chair') {
     if (p.iso || p.sitter) return { ok: false, why: 'Isolation and safety patients need a room' };
     if (isBoarder(p) || p.dsp === 'decide') return { ok: false, why: 'Admitted patients need a bed, not a chair' };
-    const leaving = p.dsp === 'ready' || p.dsp === 'dc' || p.dsp === 'watch';
+    const leaving = p.dsp === 'ready' || p.dsp === 'dc' || p.dsp === 'watch' || RIDE.has(p.dsp);
     if (vEsi(p) <= 2 && !leaving) return { ok: false, why: 'Chairs are for ESI 3 to 5, or patients being discharged' };
     if (!(p.ev === 'done' || p.pitSeen || leaving)) return { ok: false, why: 'Chairs are for patients a provider has already seen' };
   }
@@ -2119,6 +2140,7 @@ function consultTick() {
       if (p.loc === 'room') note(`${S.doc} (${S.name}) is at the bedside in ${roomName(p.room)}`);
       else toast(`${S.doc} (${S.name}) is here, but ${p.name} still has no room`, 'bad');
     }
+    if (c.st === 'here' && c.tVisit == null && p.loc === 'room') c.tVisit = G.t;   // v0.25: the consultant walks in, sees the patient, and walks out (map)
   }
 }
 function consult(pid, spec) {
@@ -2200,6 +2222,8 @@ const preDone = p => p.pre.every(k => p.work[k] && p.work[k].st === 'done');
 const treatsDone = p => p.tr.every(k => p.treat[k] && p.treat[k].st === 'done');
 function flowTick() {
   for (const p of active()) {
+    if (p.dsp === 'rideeta' && G.t >= p.due) { p.dsp = 'ridehere'; p.due = G.t + 6; toast(`The ambulance for ${label(p)} is here to take them to rehab`, 'info', true); }
+    else if (p.dsp === 'ridehere' && G.t >= p.due) { G.stats.rehab = (G.stats.rehab || 0) + 1; leave(p, 'dc'); continue; }
     if (mdMine(p) && p.treat.tnk && p.treat.tnk.st === 'wait' && p.extraTr && p.extraTr.includes('tnk')) openGate(p.treat.tnk, 'tnk');
     if ('surg15' in p.goals && p.goals.surg15 === null && p.consult.st === 'here' && p.loc === 'room') goalHit(p, 'surg15', Math.max(p.consult.tArr, p.tRoom));
     goalMissTick(p);
@@ -2338,7 +2362,48 @@ function discharge(pid) {
   if (p.dsp === 'watch') p.earlyDc = { left: Math.max(1, Math.round(p.due - G.t)), why: WATCH_WHY[p.ck] || 'they were still being watched' };   // the player may send them early; the risk is theirs
   else if (p.dsp !== 'ready') return { ok: false, why: p.dispo === 'home' ? 'Not ready yet. Workup or treatment is still pending.' : 'This patient isn’t going home' };
   p.dsp = 'dc';
+  if (p.rehab) { p.unsafeHome = true; care(-12, 'dispo', p); }   // they couldn't manage at home
   return { ok: true, msg: `Discharge started for ${label(p)}. The nurse will do the teaching.` };
+}
+/* v0.25: discharge to rehab. The patient keeps the room (or a chair) until a ride comes: the unit secretary has to call it first. */
+function dischargeRehab(pid) {
+  const p = pt(pid); if (!p) return { ok: false, why: 'No patient' };
+  if (p.dsp !== 'ready' && p.dsp !== 'watch') return { ok: false, why: p.dispo === 'home' ? 'Not ready yet. Workup or treatment is still pending.' : 'This patient isn’t being discharged' };
+  if (p.dsp === 'watch') p.earlyDc = { left: Math.max(1, Math.round(p.due - G.t)), why: WATCH_WHY[p.ck] || 'they were still being watched' };
+  p.dsp = 'rehab'; p.dcTo = 'rehab';
+  if (p.rehab) care(6, 'dispo', p); else care(-6, 'admin', p);   // a rehab bed for someone who could have gone home costs the hospital
+  clerkAdd('ride', p.id);
+  return { ok: true, msg: `${label(p)} is going to rehab. The unit secretary needs to call a ride.` };
+}
+/* v0.25: the unit secretary's clerical work. Tasks wait in a list until the player hands one to the secretary (or the computer does, for the attending). */
+const RIDE = new Set(['rehab', 'rideeta', 'ridehere']);
+const CLERK = { ride: { name: 'Call a ride to rehab', min: 4 }, family: { name: 'Call families with an update', min: 3 } };
+function clerkAdd(k, pid) { if (G.clerk.some(x => x.k === k && x.pid === pid)) return null; const t = { id: 'c' + (++G.clerkN), k, pid: pid || null, t0: G.t }; G.clerk.push(t); return t; }
+function clerkOpen() { return (G.clerk || []).filter(x => !x.by); }
+function ucDo(tid, sid) {
+  const t = G.clerk.find(x => x.id === tid) || (tid === 'family' ? clerkAdd('family') : null); if (!t) return { ok: false, why: 'That task is done' };
+  const s = sid ? staff(sid) : G.staff.find(x => x.role === 'uc' && present(x)); if (!s || s.role !== 'uc' || !present(s)) return { ok: false, why: 'No unit secretary on' };
+  if (t.by) return { ok: false, why: 'Already on it' };
+  t.by = s.id; s.q.push(t.id);
+  return { ok: true, msg: `${s.name}: ${CLERK[t.k].name.toLowerCase()}${t.pid && pt(t.pid) ? ' for ' + label(pt(t.pid)) : ''}` };
+}
+function ucTick() {
+  if (!G.clerk) { G.clerk = []; G.clerkN = 0; }   // an older save
+  for (const s of G.staff) {
+    if (s.role !== 'uc' || !present(s) || s.st !== 'on') continue;
+    if (G.mode === 'md' || G.auto) for (const t of clerkOpen()) { t.by = s.id; s.q.push(t.id); }   // the attending doesn't run the desk: the computer charge nurse does
+    if (s.task && G.t >= s.task.until) { const t = G.clerk.find(x => x.id === s.task.cid); s.task = null; if (t) { clerkDone(t); G.clerk.splice(G.clerk.indexOf(t), 1); } s.done++; }
+    if (!s.task && s.q.length) { const id = s.q.shift(), t = G.clerk.find(x => x.id === id); if (t) s.task = { kind: 'clerk', cid: t.id, pid: t.pid, until: G.t + CLERK[t.k].min }; }
+  }
+}
+function clerkDone(t) {
+  const p = t.pid ? pt(t.pid) : null;
+  if (t.k === 'ride' && p && p.dsp === 'rehab') { p.dsp = 'rideeta'; p.due = G.t + randi(25, 40); toast(`Ride to rehab booked for ${label(p)}: here in about ${Math.round(p.due - G.t)} min`, 'info', true); }
+  if (t.k === 'family') {
+    const list = active().filter(x => ['room', 'waiting', 'wall'].includes(x.loc)).sort((a, b) => a.px - b.px).slice(0, 3);
+    for (const x of list) x.px = Math.min(100, x.px + 7);
+    if (list.length) toast(`Families updated: ${list.map(x => x.name).join(', ')}`, 'good', true);
+  }
 }
 function requestTransfer(pid) {
   const p = pt(pid); if (!p) return { ok: false, why: 'No patient' };
@@ -2403,9 +2468,10 @@ function bounceRoll(p, outcome, wasLoc) {
   let why = outcome === 'ama' ? 'Left against medical advice' : outcome === 'lwbs' ? 'Left without being seen' : 'Discharged; sometimes it just happens';
   if (outcome === 'dc') {
     const add = (x, w) => { c += x; if (x >= 0.04) why = w; };
-    if (p.tRoom != null && p.tDone - p.tRoom < 35 && wasLoc === 'room') add(0.04, `Discharged ${Math.round(p.tDone - p.tRoom)} min after they were roomed`);
+    if (p.tRoom != null && p.tDone - p.tRoom < 35 && wasLoc === 'room' && p.dcTo !== 'rehab') add(0.04, `Discharged ${Math.round(p.tDone - p.tRoom)} min after they were roomed`);
     if (p.lang && p.interp !== 'on') add(0.12, `Discharged without a ${LANGS[p.lang]} interpreter`);
     if (p.gray) add(p.grayUnder ? 0.3 : 0.02, p.grayUnder ? `Sent home with a ${p.gray.band}-risk ${p.gray.tool}` : why);
+    if (p.unsafeHome) add(0.5, 'Sent home when they couldn’t manage alone: they needed rehab');
     if (p.missedDx) add(0.35, `Missed on the first visit: ${p.missedDx.by} had ${p.missedDx.n} patients in line`);
     if (p.wrongHome) add(0.6, `Sent home when they needed ${DISPO_NAME[p.wrongHome] || 'admission'}`);
     if (p.earlyDc) add(0.6, `Sent home ${p.earlyDc.left} min early: ${p.earlyDc.why}`);
@@ -2440,6 +2506,7 @@ function weight(p) {
   const r = p.room ? room(p.room) : null;
   if (r && r.kind === 'chair') return 0.1;
   const boarding = isBoarder(p);
+  if (RIDE.has(p.dsp)) return 1;   // waiting on a ride: light work
   if (p.esi === 1) return (p.dsp === 'watch' || p.dsp === 'ready' || p.dsp === 'dc' || p.dsp === 'dcing') ? 1 : boarding ? 2 : activeResus(p) ? 6 : 4;   // treated and only being watched: light work
   if (p.esi === 2) return (p.dsp === 'ready' || p.dsp === 'watch' || p.dsp === 'dc' || p.dsp === 'dcing' || (boarding && p.dispo !== 'icu')) ? 1 : 2;
   return 1;
@@ -3381,7 +3448,7 @@ function endShift(reason) {
   const S = G.stats;
   G.report = {
     level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
-    stars: G.fail ? 0 : starsFor(G.care, G.level),
+    stars: G.fail ? 0 : overallStars(), avg: avgScore(),
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama, expired: S.expired,
     returns: S.returns + S.returnsLate, returnList: (S.returnList || []).slice(), radioLog: (S.radioLog || []).slice(), left: active().length,
     wallAvg: walls.length ? Math.round(walls.reduce((a, b) => a + b, 0) / walls.length) : 0,
@@ -3393,7 +3460,7 @@ function endShift(reason) {
     registered: S.registered, triaged: S.triaged, offloads: S.offloads, transports: Object.assign({}, S.transports), ift: Object.assign({}, S.ift), iftRefused: S.iftRefused, airAbort: S.airAbort,
     pitSeen: S.pitSeen, pitDc: S.pitDc, diverted: S.diverted, yellowMins: G.dv.yellow.mins, redMins: G.dv.red.mins, divertMins: Object.fromEntries(Object.keys(DIVERTS).map(k => [k, G.dv[k].mins])),
     outages: S.outLog.map(x => Object.assign({}, x)), outRight: S.outRight, outMiss: S.outMiss, divertExtra: S.divertExtra,
-    m: metrics(), staffH: staffHours(), px: S.pxN ? Math.round(S.pxSum / S.pxN) : null, complaints: S.complaints, updates: S.updates,
+    sc: scores(), m: metrics(), staffH: staffHours(), px: S.pxN ? Math.round(S.pxSum / S.pxN) : null, complaints: S.complaints, updates: S.updates,
     mm: S.mm.slice().sort((a, b) => b.sev - a.sev || a.t - b.t).filter((x, i, arr) => arr.findIndex(y => y.what === x.what) === i).slice(0, 3).map(x => Object.assign({}, x, { t: Math.round(x.t) })),
     gray: Object.assign({}, S.gray), obs: S.obs, fcp: S.fcp, chairMoves: S.chairMoves, hallMins: S.hallMins,
     underTriage: S.underTriage, underCaught: S.underCaught, cosign: S.cosign, missedDx: S.missedDx, intub: S.intub, intubNoRT: S.intubNoRT,
@@ -3434,6 +3501,7 @@ function botStep(o) {
     const d = G.staff.filter(s => s.role === 'md' && s.st === 'on').sort((a, x) => a.q.length - x.q.length)[0];
     return !!d && boxTake(d.id).ok;
   });
+  for (const t of clerkOpen()) if (t.k === 'ride') add(2.5, () => ucDo(t.id).ok);   // the unit secretary calls the rides
   const regPick = () => G.staff.filter(s => s.role === 'reg' && s.st === 'on').sort((a, x) => load(a) - load(x))[0];
   const triPick = () => {
     let t = G.staff.filter(s => s.role === 'rn' && s.st === 'on' && s.zones.includes('triage'));
@@ -3463,7 +3531,7 @@ function botStep(o) {
       continue;
     }
     if (p.loc !== 'room') continue;
-    if (p.dsp === 'ready') add(3, () => discharge(p.id).ok);
+    if (p.dsp === 'ready') add(3, () => (p.rehab ? dischargeRehab(p.id) : discharge(p.id)).ok);   // the bot reads the exam
     if (p.dsp === 'readytx') add(3.2, () => requestTransfer(p.id).ok);
     if (p.dsp === 'txok' && o.ift !== false) add(3.3, () => bookIFT(p.id, p.needCC ? 'cct' : 'als').ok);
     if (p.dsp === 'bedready' && o.up !== false) add(3.4, () => {
@@ -3563,9 +3631,9 @@ const OC = {
   LEVELS, STARS, STARS_MD, ZONES, ZONE_NAME, ROOMS, SPECS, WORK, TREAT, ALERTS, GOALS, SCEN, PACKS, CASES, LANGS,
   LABS, IMGS, NEED, RES, IMG_NORMAL, detResult, DET_KIND, DET_NAME, needOf,
   pt, room, staff, roomOf, roomName, label, clock, active, inRooms, boarders, isProv, present,
-  zoneLoad, zoneNurses, nurseLoad, zonePts, weight, staffSat, avgWait, waitingCount, hallCount, maxWallNow,
+  zoneLoad, zoneNurses, nurseLoad, zonePts, weight, staffSat, scores, scoreStars, avgWait, waitingCount, hallCount, maxWallNow,
   canPlace, canAssign, needsProv, allWorkDone, preDone, treatsDone, pitDcReady,
-  place, move, evsTap, assign, consult, discharge, requestTransfer, escalate, toggleStat,
+  CONS_VISIT, place, move, evsTap, assign, consult, discharge, dischargeRehab, ucDo, clerkOpen, CLERK, RIDE, requestTransfer, escalate, toggleStat,
   boxNotify, boxTake, boxDecide, chooseCard, sendBreak, toggleZone, setZoneClosed, callAgency, orderPizza, setYellow, setDivert, starsFor,
   setPit, activateMTP, releaseONeg, requestInterp, overrideRx,
   register, triage, toWaiting, sendUp, bookIFT, IFT, emergent, DIVERTS, OUTAGES, outActive, justified,
@@ -3583,6 +3651,6 @@ const RADIO_BTN = {
   miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
 };
 for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
-Object.assign(OC, { WATCH_WHY, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && EXAM[p.ck]) || '', whyOf: p => (p && ORD_WHY[p.ck]) || '' });
+Object.assign(OC, { WATCH_WHY, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => ((p && EXAM[p.ck]) || '') + (p && p.rehab ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ORD_WHY[p.ck]) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);
