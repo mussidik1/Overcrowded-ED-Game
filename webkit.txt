@@ -1,35 +1,32 @@
-commit 71607f5994d45f2f7bd6eeb427298ea570e9fc30
-date   2026-11-19 06:25 UTC
+commit 9f676738299f501b02fadf45b5a1d72e7ff6182e
+date   2026-11-19 20:55 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
 === python test/map_test.py ===
-FAIL
-105:ERRORS:
-106:  CHECK FAILED: the tag reads the patient's name (Shanice H.)
+PASS
+105:No errors.
+ok   after leaving the report, the menu offers the last report
 ok   it survives a reload, scenario and all, and can still be printed
 ok   Run it back starts the same shift again in one tap
-ERRORS:
-  CHECK FAILED: the tag reads the patient's name (Shanice H.)
+No errors.
 
 === python test/ui_test.py ===
-FAIL
-1:report {"care": 2010, "wait": 13, "sat": 51, "stars": 3, "seen": 117, "dc": 49, "adm": 34, "lwbs": 0, "ama": 1, "returns": 1, "mtp": 2, "interp": 13, "pitSeen": 0}
-51:ERRORS:
-52:  CHECK FAILED: registration directed for 1, triage for 1 by tapping
-53:  CHECK FAILED: placed 1 triaged patients by tapping
+PASS
+1:report {"care": 1939, "wait": 13, "sat": 51, "stars": 2, "seen": 116, "dc": 43, "adm": 36, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 2, "interp": 14, "pitSeen": 0}
+53:No errors.
+ok   report shows ED metrics, patient experience, and staffing hours
+ok   report walks through the worst moments (M&M)
 ok   back to the menu
-ERRORS:
-  CHECK FAILED: registration directed for 1, triage for 1 by tapping
-  CHECK FAILED: placed 1 triaged patients by tapping
+No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1994, 'stars': 2, 'wait': 20, 'left': 19} {'seen': 41, 'fast': 17, 'ordRight': 127, 'ordExtra': 2, 'ordMiss': 3, 'clean': 34, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 31, 'dispoWrong': 2, 'log': [{'name': 'Dorothy P.', 'dx': 'Heart failure flare', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG looks for a heart attack as the cause. X-ray shows the fluid. Labs check the heart and kidneys. BiPAP, nitroglycerin, and a water pill.'}, {'name': 'Shanice P.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Shanice S.', 'dx': 'Urinary tract infection', 'miss': [], 'extra': [], 'fine': [], 'why': 'A urine test confirms it. Then an antibiotic. No scan without flank pain or fever.'}, {'name': 'Maria B.', 'dx': 'Ankle sprain', 'miss': [], 'extra': [], 'fine': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}, {'name': 'Olga H.', 'dx': 'Kidney stone', 'miss': [], 'extra': [], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}]}
-31:No errors.
+1:report {'care': 1831, 'stars': 2, 'wait': 21, 'left': 17} {'seen': 41, 'fast': 17, 'ordRight': 128, 'ordExtra': 1, 'ordMiss': 5, 'clean': 35, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 35, 'dispoWrong': 1, 'log': [{'name': 'Tyler J.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Jamal S.', 'dx': 'Upper GI bleed', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs with a blood type. Fluids, then blood. GI for a scope.'}, {'name': 'Ruth R.', 'dx': 'Cholecystitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Mateo C.', 'dx': 'Ear infection', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'No tests. You can see the infection. Amoxicillin.'}]}
+30:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1994)
+ok   best score kept for the attending (a shift that ends at zero or below sets none; this one: 1831)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -37,7 +34,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 77, game clock: 10:28, care 144, cards read 70, words 2509, longest 68
+taps: 77, game clock: 10:32, care 144, cards read 70, words 1708, longest 48
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -45,7 +42,7 @@ PASS
 41:No errors.
 36/37 k1
 37/37 end
-taps: 42, game clock: 09:47, care 238, cards read 39, words 1411, longest 70
+taps: 42, game clock: 09:47, care 238, cards read 39, words 914, longest 43
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -53,7 +50,7 @@ PASS
 72:No errors.
 66/67 k3
 67/67 end
-taps: 78, game clock: 10:36, care 144, cards read 70, words 2508, longest 68
+taps: 78, game clock: 10:32, care 144, cards read 70, words 1707, longest 48
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -61,13 +58,13 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 6, game clock: 07:40, care -2, cards read 8, words 316, longest 58
+taps: 6, game clock: 07:40, care -2, cards read 8, words 211, longest 36
 No errors.
 
 === MODE=rn python test/finger_test.py ===
 PASS
 2:No errors.
-rn map 844x390, finger slides up to 12px: 67 steps, 110 taps, floor ignored 0, buttons ignored 0
+rn map 844x390, finger slides up to 12px: 67 steps, 109 taps, floor ignored 0, buttons ignored 0
 No errors.
 
 === MODE=md python test/finger_test.py ===
@@ -79,7 +76,7 @@ No errors.
 === python test/offline_test.py ===
 PASS
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.23.1-20ea6a3285']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.24.0-b1abf7ef0b']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
 9:No errors.
 ok   it keeps a copy of the game (6 files)
 ok   with the network off, the game still loads
@@ -88,10 +85,10 @@ No errors.
 
 === python test/map3d_test.py ===
 FAIL
-ok   3D detail moves from battery saver to balanced in the menu
 ok   and comes round to battery saver, and is saved
 ok   turning the 3D floor off shows the flat map
-CHECK FAILED: a new ambulance drives in from down the road and its last move is in reverse ({'legs': 3, 'rev': [False, False, True], 'y': -4.711999999999995})
+CHECK FAILED: the first-shift card describes the 3D floor
+CHECK FAILED: a new ambulance drives in from down the road and its last move is in reverse ({'legs': 3, 'rev': [False, False, True], 'y': -4.684999999999995})
 
 === python test/imaging_test.py ===
 PASS
@@ -118,18 +115,19 @@ ok   side: About on the menu opens it again, with Back
 No errors.
 
 === python test/events_test.py ===
-FAIL
+PASS
+16:No errors.
 ok   the bell opens Events, and the arrivals are listed there
-ok   an icon that needs you shakes every couple of seconds (4 now)
+ok   an icon that needs you shakes every couple of seconds (2 now)
 ok   and the others keep still
-CHECK FAILED: each new patient pops up: name, age, complaint, and how they came
+No errors.
 
 === python test/class_test.py ===
 PASS
 19:No errors.
 ok   Run it back replays the same class shift
 ok   the top-right menu offers Restart this shift and Main menu
-ok   Class results lists what was sent for the code, best first ([{'p_code': 'CDH-808'}])
+ok   Class results lists what was sent for the code, best first ([{'p_code': '3FH-01T'}])
 No errors.
 
 SOME FAILED
