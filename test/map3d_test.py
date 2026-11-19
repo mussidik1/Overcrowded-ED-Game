@@ -87,6 +87,14 @@ def run():
         clear(); page.locator('#mzIn, [data-act="mzoom"][data-arg="in"], button[aria-label*="Zoom in"]').first.click(); page.wait_for_timeout(500)
         ok(J("OC3D.zoomed()"), 'the zoom button zooms the 3D floor')
         page.screenshot(path=os.path.join(OUT, 'map3d-zoom.png'))
+        # v0.23: a new ambulance drives up the road, swings out, and backs into a stall
+        J("Object.values(OC.G.pts).forEach(p => { if (p.loc === 'wall') p.loc = 'gone'; }); OCUI.render()"); page.wait_for_timeout(600); J("OCUI.render()"); page.wait_for_timeout(600)   # an empty bay, so this one gets a stall
+        J("OC.trainPatient('hipfx', 'ems', { name: 'Walter K.', age: 82, sex: 'M', unit: 'Medic 7' }); OCUI.render()"); page.wait_for_timeout(1200)
+        st = J("(() => { const id = Object.values(OC.G.pts).find(p => p.name === 'Walter K.').id, o = OC3D._amb().get(id); return o ? { legs: o.path ? o.path.length : 0, rev: o.path ? o.path.map(l => l.rev) : [], y: o.b[1] } : null; })()")
+        ok(st and st['legs'] >= 2 and st['rev'][-1] is True and st['y'] < -5, f'a new ambulance drives in from down the road and its last move is in reverse ({st})')
+        for _ in range(30): J("OC3D._ambStep(0.5)")
+        end = J("(() => { const id = Object.values(OC.G.pts).find(p => p.name === 'Walter K.').id, o = OC3D._amb().get(id); return o ? [o.b[0], o.h * 180 / Math.PI, !!o.path] : null; })()")
+        ok(end and abs(end[0] + 27) < 0.2 and abs(end[1] + 90) < 3 and not end[2], f'it ends parked in a stall, backed in ({end})')
         J("mapZoom(0)") if J("typeof mapZoom === 'function'") else None
         # turning it off brings the flat map back
         J("OC && 0"); page.locator('#btnPause, [data-act="pause"]').first.click(); page.wait_for_timeout(500)

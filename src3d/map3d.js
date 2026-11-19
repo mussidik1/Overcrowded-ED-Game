@@ -26,7 +26,7 @@ const REG3 = i => [-22.0 + 2.4 * i, -0.15];
 const BRK3 = [[21.6, 10.9, 180, 1], [23.2, 10.9, 180, 1], [21.6, 9.1, 0, 1], [23.2, 9.1, 0, 1], [23.0, 5.75, 180, 1], [25.0, 5.75, 180, 1], [21.0, 13.2, 180, 0], [22.5, 13.2, 180, 0], [24.0, 13.2, 180, 0]];
 const CHAIR3 = j => [19.6 + (j % 2) * 4.6 + Math.floor(j / 2) * 1.5 - 1.5, 3.0 - Math.floor(j / 2) * 2.4];
 const HALL3 = { H1: 538, H2: 642, H3: 972, H4: 1076 };
-const BAY_AMB = [[-27, 10.2, 90], [-27, 5.4, 90], [-27, 0.6, 90]], OUT_AMB = k => [-33.5, 2.0 - k * 6.6, 180], IN_AMB = k => [-33.5, -22 - k * 7, 180];
+const BAY_AMB = [[-27, 10.2, -90], [-27, 5.4, -90], [-27, 0.6, -90]], OUT_AMB = k => [-33.5, 2.0 - k * 6.6, 180], IN_AMB = k => [-33.5, -22 - k * 7, 180];   // in the bay they are backed in: the back doors face the building
 const CPOS = { wall: [-20.7, 13.9], wait: [-13.2, -5.5], door: [-21.2, -13.2], out: [-27.5, -2.0], in: [-27.5, -9.0], box: [1.0, 1.4], ct: [-6.0, -14.2], lab: [4.6, -14.6] };
 const SX = -0.25, SY = 0.35;   // the bed in a room's own frame
 const BEDSIDE = [[-35, -5], [35, -5], [-35, 15], [35, 15], [-35, 5], [35, 5]];
@@ -47,7 +47,7 @@ const buf = async u => PACK[u] ? b64buf(PACK[u]) : (await fetch(BASE + u)).array
 const load = u => (cache[u] ||= buf(u).then(b => loader.parseAsync(b, BASE)));
 const GL = {}, ROOM = {}, ENT = new Map(), AMB = new Map(), ROOMX = {}, LBL = new Map(), ANIM = {};
 const view = { tx: 2, ty: -1, dist: 60, fit: 60, tilt: 52 * DEG };
-let snap = null, clock = new THREE.Clock(), lastPick = [], SUN = null;
+let ambLive = false, ambK = 1, snap = null, clock = new THREE.Clock(), lastPick = [], SUN = null;
 /* Quality. auto starts balanced on a phone (sharp on a computer) and steps down while frames run slow. */
 const QL = { high: { dpr: 2, shadow: 2048, soft: true, fps: 60 }, med: { dpr: 1.5, shadow: 1024, soft: false, fps: 60 }, low: { dpr: 1, shadow: 0, soft: false, fps: 30 } };
 const TOUCH = matchMedia('(pointer: coarse)').matches;
@@ -255,6 +255,63 @@ function light(t, power) {
   if (power) { SUN.intensity *= 0.55; HEMI.intensity = 0.42; HEMI.color.set('#c8d4ff'); R.toneMappingExposure = 0.7; }
   else { HEMI.intensity = 0.75; HEMI.color.set('#ffffff'); R.toneMappingExposure = 0.86; }
 }
+/* ---------- ambulances drive ----------
+   A new one comes up the road from the south with its lights going, pulls past its stall, swings its nose out,
+   and backs in so the back doors face the building. Leaving, it pulls out and heads back down the far lane.
+   A path is a list of legs; each leg is a cubic curve in floor metres, driven forward or in reverse. */
+const ROAD_X = -33.5, EXIT_X = -35.2;   // the far lane clears the tree at the south end
+const cub = (P, t) => { const u = 1 - t, a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t; return [a * P[0][0] + b * P[1][0] + c * P[2][0] + d * P[3][0], a * P[0][1] + b * P[1][1] + c * P[2][1] + d * P[3][1]]; };
+const cubD = (P, t) => { const u = 1 - t, a = 3 * u * u, b = 6 * u * t, c = 3 * t * t; return [a * (P[1][0] - P[0][0]) + b * (P[2][0] - P[1][0]) + c * (P[3][0] - P[2][0]), a * (P[1][1] - P[0][1]) + b * (P[2][1] - P[1][1]) + c * (P[3][1] - P[2][1])]; };
+const cubLen = P => { let s = 0, q = P[0]; for (let i = 1; i <= 16; i++) { const r = cub(P, i / 16); s += Math.hypot(r[0] - q[0], r[1] - q[1]); q = r; } return s; };
+const fwdOf = h => [Math.sin(h), -Math.cos(h)];   // heading (three's rotation.y) to the way the cab points, on the floor
+const add2 = (a, b, k = 1) => [a[0] + b[0] * k, a[1] + b[1] * k];
+function leg(P, rev, speed, ease) {   // with a length table, so the ease is over distance: the curve's own pace is uneven
+  const tab = [0]; let s = 0, q = P[0];
+  for (let i = 1; i <= 40; i++) { const r = cub(P, i / 40); s += Math.hypot(r[0] - q[0], r[1] - q[1]); tab.push(s); q = r; }
+  return { P, rev, ease, tab, len: s, dur: Math.max(0.9, s / speed) };
+}
+function uAt(L, f) {   // the curve parameter at a fraction of the leg's length
+  const want = f * L.len, T = L.tab; let i = 1; while (i < 40 && T[i] < want) i++;
+  const a = T[i - 1], b = T[i]; return (i - 1 + (b > a ? (want - a) / (b - a) : 0)) / 40;
+}
+function ambPlan(o, at, mode) {
+  const cur = o.b, f = fwdOf(o.h), P3 = [at[0], at[1]];
+  if (Math.hypot(P3[0] - cur[0], P3[1] - cur[1]) < 0.3) { o.path = null; return; }
+  if (mode === 'bay') {   // forward past the stall, nose out to the left; then back in
+    const nw = [-0.9, 0.44], A = [ROAD_X, at[1] - 1], P2 = [ROAD_X - 3.3, at[1] + 4.1], far = cur[1] < at[1] - 12;   // a short swing: the tree at the north end is close
+    const run = Math.hypot(A[0] - cur[0], A[1] - cur[1]);
+    o.path = [];
+    if (run > 1) o.path.push(leg([cur, add2(cur, f, run / 3), [A[0], A[1] - run / 3], A], false, 9, far ? 'none' : 'in'));   // up the road at speed
+    o.path.push(leg([run > 1 ? A : cur, add2(run > 1 ? A : cur, run > 1 ? [0, 1] : f, 2.6), add2(P2, nw, -2.6), P2], false, run > 1 && far ? 4.5 : 3, 'out'));   // swing the nose out and stop
+    o.path.push(leg([P2, add2(P2, nw, -2.6), [at[0] - 4.6, at[1]], P3], true, 2.6, 'inout'));   // back in
+  } else {   // a spot in line on the road: drive up to it
+    const run = Math.hypot(P3[0] - cur[0], P3[1] - cur[1]);
+    o.path = [leg([cur, add2(cur, f, run / 3), [P3[0], P3[1] - run / 3], P3], false, 9, cur[1] < P3[1] - 20 ? 'out' : 'inout')];
+  }
+  o.leg = 0; o.t = 0;
+}
+function ambLeave(o) {
+  const cur = o.b, f = fwdOf(o.h), y1 = cur[1] - 6;
+  o.leaving = true; o.leg = 0; o.t = 0;
+  o.path = [leg([cur, add2(cur, f, 4), [EXIT_X, cur[1] - 1], [EXIT_X, y1]], false, 4, 'in'),
+            leg([[EXIT_X, y1], [EXIT_X, y1 - 10], [EXIT_X, -60], [EXIT_X, -75]], false, 11, 'none')];
+}
+const EASE = { none: t => t, in: t => t * t, out: t => 1 - (1 - t) * (1 - t), inout: t => t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t) };
+function stepAmb(dt, blink) {
+  for (const [pid, o] of Array.from(AMB)) {
+    let moving = false;
+    if (o.path) {
+      const L = o.path[o.leg]; o.t += dt;
+      const u = uAt(L, EASE[L.ease](Math.min(1, o.t / L.dur))), q = cub(L.P, u), d = cubD(L.P, Math.max(0.002, Math.min(0.998, u)));
+      o.b = q; if (Math.hypot(d[0], d[1]) > 1e-4) o.h = Math.atan2(L.rev ? -d[0] : d[0], L.rev ? d[1] : -d[1]);
+      moving = true;
+      if (o.t >= L.dur) { o.leg++; o.t = 0; if (o.leg >= o.path.length) { o.path = null; if (o.leaving) { S.remove(o.g); AMB.delete(pid); continue; } } }
+    }
+    o.g.position.copy(B2T(o.b[0], o.b[1])); o.g.rotation.y = o.h;
+    const hot = moving && !o.leaving;
+    for (const m of o.bar) m.emissiveIntensity = hot ? 0.4 + 5.6 * (blink > 0.5 ? 1 : 0) : 0.5;   // lights going on the way in
+  }
+}
 function apply(sn) {
   const seen = new Set();
   if (sn.t != null) light(sn.t, sn.power);
@@ -309,14 +366,23 @@ function apply(sn) {
     if (e.root) S.remove(e.root); ENT.delete(key);
   }
   // ambulances: at the bay, waiting on the drive, on the way in
-  const aseen = new Set();
+  const aseen = new Set(), taken = new Set();
+  for (const a of sn.amb) { const o = AMB.get(a.pid); if (a.mode === 'bay' && o && o.stall != null && !taken.has(o.stall)) taken.add(o.stall); else if (o && a.mode !== 'bay') o.stall = null; }   // a parked ambulance keeps its stall
   for (const a of sn.amb) {
     aseen.add(a.pid); let o = AMB.get(a.pid);
-    const at = a.mode === 'bay' ? BAY_AMB[a.i % 3] : a.mode === 'out' ? OUT_AMB(a.i) : IN_AMB(a.i);
-    if (!o) { o = { g: GL.amb.scene.clone(true) }; shade(o.g); S.add(o.g); o.g.position.copy(B2T(at[0], at[1] - 14)); AMB.set(a.pid, o); }
-    o.to = at; o.meta = a; o.g.rotation.y = at[2] * DEG;
+    if (a.mode === 'bay' && (!o || o.stall == null)) { let k = 0; while (taken.has(k) && k < 2) k++; taken.add(k); if (o) o.stall = k; else a.stall = k; }
+    const at = a.mode === 'bay' ? BAY_AMB[(o && o.stall != null ? o.stall : a.stall) % 3] : a.mode === 'out' ? OUT_AMB(a.i) : IN_AMB(a.i);
+    if (!o) {
+      o = { g: GL.amb.scene.clone(true), bar: [], stall: a.mode === 'bay' ? a.stall : null }; shade(o.g); S.add(o.g); AMB.set(a.pid, o);
+      o.g.traverse(m => { if (m.isMesh && /amb_bar/.test(m.name)) { m.material = m.material.clone(); o.bar.push(m.material); } });   // each one's light bar flashes on its own
+      if (ambLive) { o.b = [ROAD_X, at[1] - 26]; o.h = Math.PI; } else { o.b = [at[0], at[1]]; o.h = at[2] * DEG; }
+    }
+    const key = a.mode + at.join(',');
+    if (o.key !== key) { o.key = key; if (ambLive) ambPlan(o, at, a.mode); else { o.b = [at[0], at[1]]; o.h = at[2] * DEG; o.path = null; } }
+    o.to = at; o.meta = a;
   }
-  for (const [pid, o] of Array.from(AMB)) if (!aseen.has(pid)) { o.gone = (o.gone || 0) + 1; if (o.gone > 1) { S.remove(o.g); AMB.delete(pid); } }
+  for (const [pid, o] of Array.from(AMB)) if (!aseen.has(pid) && !o.leaving) { o.gone = (o.gone || 0) + 1; if (o.gone > 1) { if (o.meta && o.meta.mode === 'bay' && ambLive) ambLeave(o); else { S.remove(o.g); AMB.delete(pid); } } }
+  ambLive = true;   // after the first picture, new ambulances drive in; the ones already there when the floor loads are simply parked
   snap = sn;
 }
 
@@ -337,7 +403,7 @@ function labels() {
       if (!rm.ico && !rm.name && !near) continue;   // zoomed out, an empty clean room says nothing
       const [x, y] = R2 ? [R2.r.x, R2.r.y] : [sm.x, sm.y];
       const l = sprite('r' + rm.id), icon = rm.ico, fl = rm.fl, name = rm.name || '', esi = rm.esi || 0;
-      if (!fullLbl) { compactLabel(l, rm, roomPx * (R2 ? 1 : 0.7)); const pulse = fl ? 1 + 0.08 * Math.sin(performance.now() / 160) : 1; l.px *= pulse; l.s.position.copy(B2T(x, y, R2 ? 3.2 : 1.9)); l.tap = { kind: 'room', id: rm.id }; continue; }
+      if (!fullLbl) { compactLabel(l, rm, roomPx * (R2 ? 1 : 0.7)); nudge(l, fl, 0.3); l.s.position.copy(B2T(x, y, R2 ? 3.2 : 1.9)); l.tap = { kind: 'room', id: rm.id }; continue; }
       const img0 = icon ? iconImg(icon) : null, key = [rm.id, icon, img0 && img0.complete, fl, name, esi, rm.crit, rm.mine, rm.cat, near].join('|'); l.icon = icon;
       const wName = name ? Math.min(230, 26 + name.length * 13) : 0, w = 104 + (esi ? 52 : 0) + wName, h = 64;
       setSprite(l, key, w * 2, h * 2, near ? 30 : 19, (g) => {
@@ -349,7 +415,7 @@ function labels() {
         if (esi) { g.beginPath(); g.arc(x0 + 22, h / 2, 21, 0, 7); g.fillStyle = ['', '#C8243A', '#E46A1C', '#F2C230', '#2FA35B', '#3B74C4'][esi] || '#5E6878'; g.fill(); g.lineWidth = 3; g.strokeStyle = '#fff'; g.stroke(); g.fillStyle = esi === 3 ? '#3A2F00' : '#fff'; g.font = FONT(26); g.textAlign = 'center'; g.fillText(esi, x0 + 22, h / 2 + 2); g.textAlign = 'left'; x0 += 50; }
         if (name) { pill(g, x0, 12, wName - 6, h - 24, 8, rm.crit ? '#C8243A' : '#1B2230'); g.fillStyle = '#fff'; g.font = FONT(22); g.fillText(name, x0 + 8, h / 2 + 1); }
       });
-      const pulse = fl ? 1 + 0.08 * Math.sin(performance.now() / 160) : 1; l.px *= pulse;
+      nudge(l, fl, 0.12);
       l.s.position.copy(B2T(x, y, R2 ? 3.2 : 1.9)); l.tap = { kind: 'room', id: rm.id };
     }
     for (const sg of snap.signs) {
@@ -382,6 +448,13 @@ function labels() {
 
 /* Zoomed out: the room's icon with its ESI dot on the corner, and the room number under it, in a badge narrower than
    the room. A critical patient's badge has a red edge; the attending's own rooms a gold one. */
+/* Something for you to do: the badge swells a little all the time and gives a quick shake every couple of seconds (v0.23). */
+function nudge(l, on, amp) {
+  if (!on) { l.s.material.rotation = 0; return; }
+  const t = performance.now() / 1000, ph = t % 2.2, sh = ph < 0.5 ? Math.sin(Math.PI * ph / 0.5) : 0;
+  l.px *= 1 + 0.06 * Math.sin(t * 6) + 0.16 * sh;
+  l.s.material.rotation = amp * sh * Math.sin(ph * 2 * Math.PI * 6);
+}
 function compactLabel(l, rm, roomPx) {
   const icon = rm.ico, esi = rm.esi || 0, lab = String(rm.lab || rm.id), w = 100, h = 72;
   const img = icon ? iconImg(icon) : null, key = ['c', rm.id, icon, img && img.complete, esi, rm.crit, rm.mine, rm.cat, lab].join('|'); l.icon = icon;
@@ -520,8 +593,8 @@ function frame(now) {
   }
   for (const e of ENT.values()) if (e.mixer) e.mixer.update(dt);
   stepMovers(dt);
-  for (const o of AMB.values()) { const p = o.g.position, t = B2T(o.to[0], o.to[1]); p.lerp(t, Math.min(1, dt * 1.5)); }
   const blink = (Math.sin(performance.now() / 180) + 1) / 2;
+  stepAmb(Math.min(0.25, gap / 1000) * ambK, (Math.sin(performance.now() / 90) + 1) / 2);   // real time: a slow frame does not slow the drive
   RING.emissiveIntensity = 0.6 + 2.6 * blink;
   for (const R2 of Object.values(ROOM)) { R2.tint.material.opacity = R2.tintOn === 'blink' ? 0.18 + 0.14 * blink : R2.tintOn === 'fl' ? 0.26 + 0.16 * blink : R2.tintOn === 'on' ? 0.3 : 0; }
   labels();
@@ -602,7 +675,7 @@ window.OC3D = {
   zoom(f) { if (!ready) return; if (!f) camReset(); else zoomAt(f); },
   zoomed: () => !!(view.fit && view.dist < view.fit * 0.97),
   far: () => !view.fit || view.dist > view.fit * 0.6,
-  reset() { for (const e of ENT.values()) if (e.root) S.remove(e.root); ENT.clear(); for (const o of AMB.values()) S.remove(o.g); AMB.clear(); camReset(); },
+  reset() { for (const e of ENT.values()) if (e.root) S.remove(e.root); ENT.clear(); for (const o of AMB.values()) S.remove(o.g); AMB.clear(); ambLive = false; camReset(); },
   // where something is on screen (for the Next button and the Orientation): kind 'room' or 'pt' or 'staff'
   screenOf(kind, id) {
     if (!ready) return null; const r = el.getBoundingClientRect(), v = new THREE.Vector3();
@@ -618,5 +691,5 @@ window.OC3D = {
   hideSpots() { for (const sp of Object.values(SPOTS)) { sp.list = []; for (const d of sp.divs) d.hidden = true; } },
   quality(q) { if (q) { qWant = q; if (R) setQuality(qStart()); } return { want: qWant, now: qNow }; },
   info: () => (R ? { calls: R.info.render.calls, tris: R.info.render.triangles, dpr, q: qNow } : null),
-  _view: view, find: (x, y) => find(x, y), _scene: () => S, _ent: () => ENT,
+  _view: view, _cam(o) { Object.assign(view, o); camSet(); }, _amb: () => AMB, _ambK(k) { ambK = k; }, _ambStep(s) { stepAmb(s, 1); }, find: (x, y) => find(x, y), _scene: () => S, _ent: () => ENT,
 };
