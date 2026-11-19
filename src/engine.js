@@ -71,7 +71,7 @@ const LEVELS = {
   // A short shift for demos and class: two packed hours, about five minutes at normal speed.
   rush: { name: 'Five-Minute Rush', blurb: 'Two packed hours, 07:00 to 09:00. About five minutes.', walk: 8.5, ems: 4.4, alerts: 1.7, consult: [14, 22], events: [16, 26], callouts: 1, board: 1.1, sickMax: 1, boarders: 5, shift: 120 },
   // Orientation: no random arrivals, events, or bad luck. The UI's preceptor brings in one scripted patient at a time.
-  train: { name: 'Orientation', blurb: 'A preceptor walks you through every step. Nothing counts.', walk: 0, ems: 0, alerts: 0, consult: [30, 40], events: [1e9, 1e9], callouts: 0, board: 0.2, sickMax: 0, boarders: 0, shift: 720, train: true },
+  train: { name: 'Orientation', blurb: 'A preceptor walks you through it. Nothing counts.', walk: 0, ems: 0, alerts: 0, consult: [30, 40], events: [1e9, 1e9], callouts: 0, board: 0.2, sickMax: 0, boarders: 0, shift: 720, train: true },
 };
 
 /* Preset scenarios for teaching: one named problem, at a set point in the shift. */
@@ -1292,16 +1292,16 @@ const ORD_WHY = {
   sepsisw: 'Labs with a lactate. Fluids and antibiotics inside the hour.',
   strokew: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology. An ECG is reasonable.',
   stroke: 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology. An ECG is reasonable.',
-  lvo: 'CT rules out a bleed, and a CT angiogram finds the blocked artery. Glucose rules out a mimic. Clot-busting drug, then transfer to a center that removes clots.',
+  lvo: 'CT rules out a bleed. A CT angiogram finds the blocked artery. Glucose rules out a mimic. Clot drug, then transfer to a center that pulls clots.',
   stemi: 'The ECG is the diagnosis. Labs go, but don’t wait for the troponin. Aspirin and heparin. Cardiology and the cath lab.',
-  mvc: 'X-ray and a bedside ultrasound look for blood in the chest and belly. Labs with a blood type. Massive transfusion. CT only if blood brings the pressure up. If it stays down: straight to the OR.',
+  mvc: 'X-ray and bedside ultrasound look for blood in the chest and belly. Labs and a blood type. Massive transfusion. CT only if the pressure comes up. If not, the OR.',
   tfall: 'Head CT finds the bleed. Labs with an INR show the blood thinner. Reverse it. Trauma.',
   moto: 'X-ray shows the break. Labs with a blood type. Early antibiotics for bone through skin. Blood. Trauma and the OR.',
   arrest: 'No orders. Run the code.',
   shock: 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.',
   rsv: 'A blood gas shows the baby is tiring. High-flow oxygen. Transfer to a children\'s hospital.',
   burn: 'Secure the airway before it swells shut: intubate, then the ventilator. Labs check for carbon monoxide. Fluids and pain control. Burn center.',
-  mcired: 'X-ray and a bedside ultrasound look for blood in the chest and belly. Labs with a blood type. Massive transfusion. CT only if blood brings the pressure up. If it stays down: straight to the OR.',
+  mcired: 'X-ray and bedside ultrasound look for blood in the chest and belly. Labs and a blood type. Massive transfusion. CT only if the pressure comes up. If not, the OR.',
   mciyel: 'X-ray shows the break. Labs get the patient ready for surgery. Pain control and fluids. Orthopedics.',
   mcimin: 'Tender on the neck bones means a CT. Clean: pain control and home.',
   mcigrn: 'No tests. Clean and close the cuts.',

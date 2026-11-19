@@ -215,7 +215,7 @@ assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[
 // ---- v0.16: the clinical review fixes ----
 {
   const C = k => OC.CASES.find(c => c.k === k);
-  assert(!C('mvc').wk.includes('ct') && !C('mcired').wk.includes('ct') && /CT only if blood brings the pressure up/.test(OC.ORD_WHY.mvc), 'a bleeding trauma in shock is not scored for a CT');
+  assert(!C('mvc').wk.includes('ct') && !C('mcired').wk.includes('ct') && /CT only if the pressure comes up/.test(OC.ORD_WHY.mvc), 'a bleeding trauma in shock is not scored for a CT');
   assert(/potassium 4\.8/.test(C('dka').find.lab) && /potassium/.test(OC.ORD_WHY.dka) && /potassium/.test(OC.FIND_PLAIN[C('dka').find.lab]), 'DKA shows the potassium and says insulin waits for it');
   assert(C('od').esi === 1 && C('chb').esi === 1 && C('burn').esi === 1 && C('bh').esi === 2 && C('mcimin').wk.join() === 'ct', 'triage levels and the neck CT follow the review');
   for (const k of ['national', 'miemss']) assert(OC.SCEN[k].every(s => /They (want|ask)|The crew wants/.test(s.plain)), `every ${k} plain line says what the crew is asking for`);
