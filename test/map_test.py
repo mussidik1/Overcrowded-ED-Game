@@ -322,7 +322,7 @@ def run():
 
         # class tools: the five-minute shift with a scenario, and a report to print
         J("() => { OCUI.U.paused = false; OCUI.showTitle(); }"); page.wait_for_timeout(300)
-        ok(page.locator('#title [data-act="tmenu"]').count() == 3 and page.locator('#title button.lvl[data-arg="med"]').count() == 0, 'the menu has three parts: Play a shift, Learn, Settings')
+        ok(page.locator('#title [data-act="tmenu"]:not([data-arg="about"])').count() == 3 and page.locator('#title button.lvl[data-arg="med"]').count() == 0, 'the menu has three parts: Play a shift, Learn, Settings')
         tap('[data-act="tmenu"][data-arg="play"]')
         ok(page.locator('[data-act="scenario"]').count() == 5 and page.is_visible('[data-act="scenario"][data-arg="mci"]') and not page.is_visible('.scn-sel'), 'on a laptop the scenarios are buttons')
         tap('[data-act="scenario"][data-arg="mci"]')

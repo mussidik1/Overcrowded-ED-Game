@@ -664,6 +664,19 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 @keyframes critStroke { 50% { stroke: #F2B8C0; } }
 .map .mroom.crit .mr-f { stroke: #C8243A; stroke-width: 3.5px; vector-effect: non-scaling-stroke; animation: critStroke 1s ease-in-out infinite; }
 .map .spotring { fill: rgba(242, 194, 48, .16); stroke: #E9A800; stroke-width: 3px; vector-effect: non-scaling-stroke; pointer-events: none; animation: spotring 1.1s ease-in-out infinite; }
+/* the first-visit page: one readable column at every size (the title card's two-column grid would split it) */
+#title .card.t-about { display: block; width: min(640px, 100%); }
+#title .card.t-about > * { grid-column: auto; grid-row: auto; }
+.t-about { text-align: left; }
+.t-about .t-kicker, .t-about .t-brand { text-align: center; }
+.t-about h3 { font-size: 19px; margin: 16px 0 4px; }
+.t-about p { font-size: 17px; line-height: 1.45; margin: 6px 0; }
+.t-about .ab-lead { font-size: 20px; font-weight: 700; text-align: center; margin: 4px 0 12px; }
+.t-about .ab-cred { margin-top: 14px; font-size: 15px; }
+.t-about .ab-cred summary { font-weight: 700; cursor: pointer; padding: 6px 0; }
+.t-about .ab-cred ul { padding-left: 18px; margin: 4px 0; }
+.t-about .ab-cred li { margin: 3px 0; font-size: 14px; }
+.t-about .ab-go { width: 100%; margin-top: 16px; }
 /* the private testing gate */
 body.gated .app, body.gated #title, body.gated .screen { visibility: hidden; }
 .gate { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; padding: 20px; background: #1B2230; color: #fff; overflow: auto; }
