@@ -3,7 +3,7 @@
 'use strict';
 
 let G = null;
-const hooks = { toast() {}, sound() {} };
+const hooks = { toast() {}, sound() {}, arrive() {} };
 
 /* ---------- random (seeded, stored in G so a snapshot resumes exactly) ---------- */
 function rnd() {
@@ -834,7 +834,7 @@ const isBoarder = p => BOARD_ST.includes(p.dsp);
 function mm(sev, what, why, own) { if (G.pre || (G.mode === 'md' && !own)) return; G.stats.mm.push({ sev, t: G.t, what, why }); }
 function unitName() { return (chance(0.85) ? 'Medic ' : 'Ambulance ') + randi(2, 49); }
 function onArrive(p) {
-  if (!G.pre) { G.stats.arrived++; if (p.lang) G.stats.lep++; }
+  if (!G.pre) { G.stats.arrived++; if (p.lang) G.stats.lep++; hooks.arrive(p); }
   if (p.ecg10 && !p.work.ecg) p.work.ecg = { st: 'todo', tOrd: G.t };
   p.patience = p.esi >= 5 ? randi(80, 150) : p.esi === 4 ? randi(110, 190) : p.esi === 3 ? randi(150, 250) : 1e9;
 }

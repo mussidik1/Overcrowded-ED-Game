@@ -173,12 +173,12 @@ function toastShow(msg, kind) {
   if (inStrip()) { msgOn(true); if (el.scrollHeight > el.clientHeight + 1) el.classList.add('long'); }   // a long one gets a third, smaller line before it is cut
   setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); if (inStrip()) toastPump(); if (!box.children.length) msgOn(false); }, 320); }, kind === 'mad' || kind === 'alert' ? 4200 : 3000);
 }
-/* Every message the shift sends is kept here, newest first, for the Messages list. filed: it skipped the strip. */
+/* Every message the shift sends is kept here, newest first, for the Events list. filed: it skipped the strip. */
 function msgLog(msg, kind, filed) { const G = g(), L = U.msgs || (U.msgs = []); L.unshift({ t: G ? G.t : 0, msg: String(msg), kind: kind || 'info', filed: !!filed }); if (L.length > 80) L.length = 80; }
 function msgHint() {   // the first time a message is filed, say where it went
   if (store('oc-seen-msgs') || U.msgHinted) return;
   U.msgHinted = true; store('oc-seen-msgs', '1');
-  toast('Routine updates go to Messages: the bell at the top. Bad news still shows here.', 'info');
+  toast('Routine updates go to Events: the bell at the top. Bad news still shows here.', 'info');
 }
 function toastPump() {
   const box = $('#toasts'); if (!box || !TQ.length) return;
@@ -210,6 +210,30 @@ E.hooks.toast = (m, k, routine) => {
   U.msgNew = (U.msgNew || 0) + 1; msgHint();
 };
 E.hooks.sound = n => sfx(n);
+/* ---------- new arrivals (v0.23) ----------
+   Each new patient pops up for a few seconds at the bottom left of the floor, the corner with the door and the bay,
+   and goes on the Events list under the bell. Taps go straight through to the floor underneath.
+   An alert at the bay already takes the top strip, so it is not shown twice. */
+E.hooks.arrive = p => {
+  if (U.scene !== 'game') return;
+  const ems = p.src === 'ems' || p.loc === 'wall', how = ems ? `${p.unit || 'An ambulance'} at the bay` : 'Walked in';
+  msgLog(`New patient: ${p.name}, ${E.ageSex(p)}, ${p.cc}. ${how}.`, 'arr', false);
+  if (p.alertOn) return;
+  arrPop(p, ems, how);
+};
+function arrPop(p, ems, how) {
+  let box = $('#arrivals');
+  if (!box) { box = document.createElement('div'); box.id = 'arrivals'; box.className = 'arrivals'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
+  const host = $(U.view === 'map' ? '#map' : '#board'), r = host && host.getBoundingClientRect();
+  if (!r || !r.width) return;
+  box.style.left = (r.left + 8) + 'px'; box.style.bottom = (window.innerHeight - r.bottom + 8) + 'px'; box.style.maxWidth = Math.min(250, r.width - 16) + 'px';
+  const el = document.createElement('div');
+  el.className = 'arr ' + (ems ? 'k-ems' : 'k-walk');
+  el.innerHTML = `${ems ? icoInline('amb', 'act') : icoInline('walkin', 'act')}<span><b>New: ${esc(p.name)}</b>, ${esc(E.ageSex(p))} · ${esc(p.cc)}<small>${esc(how)}</small></span>`;
+  box.appendChild(el);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, 3800);
+}
 function res(r, closeOnOk) { if (!r) return; toast(r.ok ? (r.msg || 'Done') : r.why, r.ok ? 'good' : 'bad'); if (r.ok && closeOnOk) U.sheet = null; }
 
 /* ---------- static board ---------- */
@@ -305,7 +329,7 @@ function renderHud(G) {
   if (mb && mn) {
     const show = U.view === 'map', nw = U.msgNew || 0, t = nw ? (nw > 9 ? '9+' : String(nw)) : '';
     if (mb.hidden === show) mb.hidden = !show;
-    if (mn.textContent !== t) { mn.textContent = t; mn.style.animation = 'none'; void mn.offsetWidth; mn.style.animation = ''; mb.setAttribute('aria-label', nw ? `Messages: ${nw} new` : 'Messages'); }
+    if (mn.textContent !== t) { mn.textContent = t; mn.style.animation = 'none'; void mn.offsetWidth; mn.style.animation = ''; mb.setAttribute('aria-label', nw ? `Events: ${nw} new` : 'Events'); }
     setC(mb, 'hb hb-msg' + (nw ? ' new' : '') + (U.sheet && U.sheet.type === 'msgs' ? ' on' : ''));
   }
 }
@@ -1282,7 +1306,7 @@ function wordsHTML() {
 function msgsHTML(s) {
   const L = U.msgs || []; let nw = s.nw || 0;
   const rows = L.map(m => { const isNew = m.filed && nw > 0; if (isNew) nw--; return `<li class="k-${m.kind}${isNew ? ' new' : ''}"><time>${E.clock(m.t)}</time><span>${esc(m.msg)}${isNew ? ' <i class="mnew">new</i>' : ''}</span></li>`; }).join('');
-  return head('Messages', 'Newest first.') + `<p class="hint" style="margin-bottom:6px"><b>Bad news</b> and anything you need to act on also shows at the top of the screen. <b>Routine news</b> (a goal met, staff arriving, a patient off to the OR) comes only here, and the bell counts it.</p>` + (rows ? `<ol class="log msgl">${rows}</ol>` : '<p class="hint">No messages yet.</p>');
+  return head('Events', 'Everything this shift, newest first.') + `<p class="hint" style="margin-bottom:6px"><b>Bad news</b> and anything you need to act on also shows at the top of the screen. <b>Routine news</b> (a goal met, staff arriving, a patient off to the OR) comes only here, and the bell counts it. <b>New patients</b> pop up at the bottom left of the floor and are listed here too.</p>` + (rows ? `<ol class="log msgl">${rows}</ol>` : '<p class="hint">No messages yet.</p>');
 }
 function legendHTML(md) {
   const rows = md ? [['steth', 'act fl', 'Waiting for a doctor'], ['orders', 'act fl', 'Write orders'], ['decide', 'act fl', 'Your call to make'], ['alert', 'bad fl', 'Not improving'], ['code', 'code fl', 'Code'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['phone', 'wait', 'Consultant on the way'], ['steth', 'wait', 'You or another doctor is with them'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['bed', 'board', 'Admitted, waiting for a bed'], ['home', 'go', 'Ready to go home'], ['broom', 'dirtyq', 'Dirty room'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']]

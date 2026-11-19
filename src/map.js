@@ -71,6 +71,7 @@ const ICO = {
   pen: '<path d="M-8 8 l1.6 -5.6 l8.8 -8.8 l4 4 l-8.8 8.8z" fill="currentColor"/>',
   flask: '<path d="M-2.8 -8.5 h5.6 M-1.7 -8.5 v5.2 l-5.6 9.6 a1.6 1.6 0 0 0 1.4 2.4 h11.8 a1.6 1.6 0 0 0 1.4 -2.4 l-5.6 -9.6 v-5.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M-4.6 2.6 h9.2 l2.6 4.6 h-14.4z" fill="currentColor"/>',
   pill: '<g transform="rotate(-40)"><rect x="-8.5" y="-3.8" width="17" height="7.6" rx="3.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M0 -3.8 h4.7 a3.8 3.8 0 0 1 0 7.6 h-4.7z" fill="currentColor"/></g>',
+  walkin: '<circle cx="0.6" cy="-7.2" r="2.7" fill="currentColor"/><path d="M-0.6 -3.6 L-2 2.6 L-5.2 8.2 M-1.6 0.6 L2.6 3.4 L3.6 8.4 M-0.4 -3.2 L-4.6 -0.6 M0.2 -3.2 L4 -1.4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
   wait: '<path d="M-5.8 -8.5 h11.6 v1.8 l-4.3 6.7 l4.3 6.7 v1.8 h-11.6 v-1.8 l4.3 -6.7 l-4.3 -6.7z" fill="currentColor"/>',
   heart: '<path d="M0 8 C-11 0.5 -8.5 -8.5 0 -3.2 C8.5 -8.5 11 0.5 0 8Z" fill="currentColor"/>',
   broom: '<path d="M7.5 -8.5 L-0.5 0.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M-3.4 -1.8 l5.4 5.4 l-3.2 4.9 l-7.8 -4z" fill="currentColor"/>',
@@ -78,7 +79,7 @@ const ICO = {
   lock: '<rect x="-6" y="-1.5" width="12" height="9.5" rx="2" fill="currentColor"/><path d="M-3.6 -1.5 v-3 a3.6 3.6 0 0 1 7.2 0 v3" fill="none" stroke="currentColor" stroke-width="2"/>',
   check: '<path d="M-6 0.5 l4 4.2 l8 -9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
 };
-const icoSVG = (key, cx, cy, r, cls) => `<g class="mico ${cls}" transform="translate(${cx} ${cy})">${/\bfl\b/.test(cls) ? `<rect class="ir" x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" rx="${(r * 0.36).toFixed(1)}"/>` : ''}<rect class="ib" x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" rx="${(r * 0.36).toFixed(1)}"/><g transform="scale(${(r / 13.5).toFixed(2)})">${ICO[key] || ICO.wait}</g></g>`;
+const icoSVG = (key, cx, cy, r, cls) => `<g class="mico ${cls}" transform="translate(${cx} ${cy})">${/\bfl\b/.test(cls) ? `<rect class="ir" x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" rx="${(r * 0.36).toFixed(1)}"/>` : ''}<g class="iw"><rect class="ib" x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" rx="${(r * 0.36).toFixed(1)}"/><g transform="scale(${(r / 13.5).toFixed(2)})">${ICO[key] || ICO.wait}</g></g></g>`;
 /* The same icon as a small picture for sheets and help. */
 const icoInline = (key, cls) => `<svg class="lgi" viewBox="-15 -15 30 30" aria-hidden="true">${icoSVG(key, 0, 0, 14, cls)}</svg>`;
 const toneOf = c => (/n-code/.test(c) ? 'code' : /n-bad/.test(c) ? 'bad' : /n-act/.test(c) ? 'act' : /n-go/.test(c) ? 'go' : /n-warn/.test(c) ? 'warn' : /n-board/.test(c) ? 'board' : 'wait') + (/\bfl\b/.test(c) ? ' fl' : '');
@@ -116,6 +117,36 @@ function stretcherSVG(x, y, w, h, p, esi) {
   return s + `<circle cx="${x + 11}" cy="${y + h / 2}" r="7" fill="${pickH(SKIN, p.id)}" stroke="rgba(0,0,0,.18)" stroke-width=".7"/><path d="M${x + 9.5} ${y + h / 2 - 7} a7 7 0 0 0 0 14 a3.5 7 0 0 1 0 -14z" fill="${pickH(HAIR, p.id, 'h')}"/>`;
 }
 const unitCode = p => String(p.unit || '').replace(/^Medic\s*/, 'M').replace(/^Ambulance\s*/, 'A').replace(/\s+/g, '').slice(0, 4);
+/* Ambulances drive (v0.23). One coming in drives along the lane facing the way it goes, pulls past its spot,
+   and backs in so the back doors face the building. One leaving swings its nose round and drives off the top.
+   Each move is a short keyframed animation; the element's own transform is set to where it ends up. */
+const AMB_STALL = new Map();
+const ambTr = (x, y, r) => `translate(${x}px, ${y}px) rotate(${r}deg)`;
+function ambDrive(n, at) {
+  const from = n._pos || [56, at ? at[1] : 0, 0], calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (n._anim) { n._anim.cancel(); n._anim = null; }
+  if (!at) {   // leaving
+    const y = from[1], end = ambTr(56, -120, 90);
+    n.style.transition = 'none'; n.style.transform = end; n.style.opacity = '0';
+    if (calm || !n.animate) { setTimeout(() => n.remove(), 300); return; }
+    n._anim = n.animate([{ transform: ambTr(...from), opacity: 1 }, { transform: ambTr(48, y - 26, 90), opacity: 1, offset: 0.35, easing: 'ease-in' }, { transform: ambTr(56, Math.min(y - 60, 40), 90), opacity: 1, offset: 0.6 }, { transform: end, opacity: 0 }], { duration: 1500 + y * 1.5, easing: 'linear' });
+    n._anim.onfinish = () => n.remove(); return;
+  }
+  const to = [at[0], at[1], 0], fin = ambTr(...to); n._pos = to;
+  n.style.transition = 'none'; n.style.transform = fin;
+  const dy = to[1] - from[1];
+  if (calm || !n.animate || Math.abs(dy) < 3) { requestAnimationFrame(() => { n.style.transition = ''; }); return; }
+  const up = dy < 0, face = up ? 90 : -90, park = at[2] !== 'in';   // facing the way it drives (the cab is drawn on the left)
+  const over = park ? to[1] + (up ? -30 : 30) : to[1], turn = from[2] === face ? null : [56, from[1] + (up ? -14 : 14), face];
+  const k = [{ transform: ambTr(...from) }];
+  const run = Math.abs(over - (turn ? turn[1] : from[1])), tTurn = turn ? 450 : 0, tRun = Math.max(350, run * 3.2), tBack = park ? 1100 : 350, T = tTurn + tRun + tBack;
+  if (turn) k.push({ transform: ambTr(...turn), offset: tTurn / T, easing: 'linear' });
+  k.push({ transform: ambTr(56, over, face), offset: (tTurn + tRun) / T, easing: park ? 'ease-in-out' : 'ease-out' });
+  k.push({ transform: fin });
+  k[0].easing = turn ? 'ease-in' : (Math.abs(from[1]) > MH ? 'linear' : 'ease-in');
+  n._anim = n.animate(k, { duration: T, easing: 'linear' });
+  n._anim.onfinish = () => { n._anim = null; n.style.transition = ''; };
+}
 /* An ambulance seen from above, cab to the left, back doors toward the building. */
 function ambSVG(o) {
   let s = `<g class="ambg${o.ghost ? ' ghost' : ''}"><rect x="-56" y="-28" width="118" height="56" fill="transparent"/><ellipse cx="3" cy="5" rx="51" ry="25" fill="rgba(0,0,0,.2)"/>`;
@@ -684,24 +715,28 @@ function mapRender(G) {
   if (G.enroute.length > 2) amb += `<text x="100" y="64" text-anchor="end" font-size="13" font-weight="700" fill="#FFD0D5">+${G.enroute.length - 2} inbound</text>`;
   setH(document.getElementById('mAmb'), amb);
   const ambAt = new Map();
-  wall.forEach((p, i) => { if (i < 3) ambAt.set(p.id, [56, 96 + i * 56, 'bay']); else if (i >= 6 && i < 10) { ambAt.set(p.id, [56, 306 + (i - 6) * 56, 'out']); posNow.set(p.id, { x: 56, y: 306 + (i - 6) * 56, kind: 'amb' }); } });
+  const bayIds = wall.slice(0, 3).map(p => p.id), stallUsed = new Set();   // a parked ambulance keeps its stall when the one ahead of it leaves
+  for (const id of Array.from(AMB_STALL.keys())) if (!bayIds.includes(id)) AMB_STALL.delete(id);
+  for (const id of bayIds) if (AMB_STALL.has(id)) stallUsed.add(AMB_STALL.get(id));
+  for (const id of bayIds) if (!AMB_STALL.has(id)) { let k = 0; while (stallUsed.has(k)) k++; stallUsed.add(k); AMB_STALL.set(id, k); }
+  wall.forEach((p, i) => { if (i < 3) ambAt.set(p.id, [56, 96 + AMB_STALL.get(p.id) * 56, 'bay']); else if (i >= 6 && i < 10) { ambAt.set(p.id, [56, 306 + (i - 6) * 56, 'out']); posNow.set(p.id, { x: 56, y: 306 + (i - 6) * 56, kind: 'amb' }); } });
   G.enroute.map(E.pt).filter(Boolean).slice(0, 2).forEach((p, i) => ambAt.set(p.id, [56, i ? 562 : 32, 'in']));
   const ambL = document.getElementById('mAmbs'), seenA = new Set();
   if (SN) { const k = { bay: 0, out: 0, in: 0 }; for (const [pid, at] of ambAt) SN.amb.push({ pid, mode: at[2], i: k[at[2]]++ }); }
   for (const [pid, at] of ambAt) {
     const p = E.pt(pid), id = 'a-' + pid, mins = Math.round(G.t - p.tArrive); seenA.add(id);
     let n = ambL.querySelector(`[data-id="${id}"]`);
-    if (!n) { n = document.createElementNS('http://www.w3.org/2000/svg', 'g'); n.setAttribute('data-id', id); n.setAttribute('class', 'mamb'); n.style.transform = `translate(56px, ${at[2] === 'in' && at[1] < 300 ? -70 : MH + 70}px)`; ambL.appendChild(n); n.getBoundingClientRect(); }
+    if (!n) { n = document.createElementNS('http://www.w3.org/2000/svg', 'g'); n.setAttribute('data-id', id); n.setAttribute('class', 'mamb'); const y0 = at[2] === 'in' && at[1] < 300 ? -70 : MH + 70; n._pos = [56, y0, y0 < 0 ? -90 : 90]; n.style.transform = ambTr(...n._pos); ambL.appendChild(n); }
     const svg = ambSVG({ code: unitCode(p), hot: at[2] === 'in' || E.emergent(p) || mins < 3, open: at[2] === 'bay', ghost: at[2] === 'in', pill: at[2] === 'out' ? mins + 'm' : at[2] === 'in' ? '▸' + Math.max(0, Math.round(p.eta - G.t)) + 'm' : '', pillBad: at[2] === 'in' || mins > 30 });
     if (n._svg !== svg) { n.innerHTML = svg; n._svg = svg; }
     const put = (k, v) => { if (n.getAttribute(k) !== v) n.setAttribute(k, v); };
     if (at[2] === 'bay') { if (n.hasAttribute('data-act')) { n.removeAttribute('data-act'); n.removeAttribute('data-arg'); n.removeAttribute('role'); } n.style.pointerEvents = 'none'; }
     else { put('data-act', 'pt'); put('data-arg', pid); put('role', 'button'); n.style.pointerEvents = ''; }
     put('aria-label', `${p.unit || 'Ambulance'}: ${E.ageSex(p)}, ${p.cc}${at[2] === 'out' ? `, backed up outside for ${mins} minutes` : at[2] === 'in' ? ', on the way in' : ', at the bay'}`);
-    const tr = `translate(${at[0]}px, ${at[1]}px)`; if (n.style.transform !== tr) n.style.transform = tr;
+    if (!n._pos || n._pos[0] !== at[0] || n._pos[1] !== at[1]) ambDrive(n, at);
   }
   for (const n of Array.from(ambL.children)) if (!n._gone && !seenA.has(n.getAttribute('data-id'))) {
-    n._gone = true; n.setAttribute('data-id', ''); n.removeAttribute('data-act'); n.style.pointerEvents = 'none'; n.style.transform = 'translate(56px, -90px)'; n.style.opacity = '0'; setTimeout(() => n.remove(), 1300);
+    n._gone = true; n.setAttribute('data-id', ''); n.removeAttribute('data-act'); n.style.pointerEvents = 'none'; ambDrive(n, null);
   }
 
   // the building's own signals: what's down, the Box ringing, pizza on the table
