@@ -49,7 +49,7 @@ const GL = {}, ROOM = {}, ENT = new Map(), AMB = new Map(), ROOMX = {}, LBL = ne
 const view = { tx: 2, ty: -1, dist: 60, fit: 60, tilt: 52 * DEG };
 let ambLive = false, ambK = 1, snap = null, clock = new THREE.Clock(), lastPick = [], SUN = null;
 /* Quality. auto starts balanced on a phone (sharp on a computer) and steps down while frames run slow. */
-const QL = { high: { dpr: 2, shadow: 2048, soft: true, fps: 60 }, med: { dpr: 1.5, shadow: 1024, soft: false, fps: 60 }, low: { dpr: 1, shadow: 0, soft: false, fps: 30 } };
+const QL = { high: { dpr: 2, shadow: 2048, soft: true, fps: 60 }, med: { dpr: 1.5, shadow: 1024, soft: false, fps: 60 }, low: { dpr: 2, shadow: 0, soft: false, fps: 30 } };   // v0.23.1: battery saver keeps a sharp picture (pixel ratio 1 was blurry on a 3x phone); it saves with no shadows and 30 frames a second
 const TOUCH = matchMedia('(pointer: coarse)').matches;
 let qWant = 'auto', qNow = '', perf = { t: 0, n: 0, slow: 0 }, lastDraw = 0;
 function setQuality(q) {
@@ -691,5 +691,5 @@ window.OC3D = {
   hideSpots() { for (const sp of Object.values(SPOTS)) { sp.list = []; for (const d of sp.divs) d.hidden = true; } },
   quality(q) { if (q) { qWant = q; if (R) setQuality(qStart()); } return { want: qWant, now: qNow }; },
   info: () => (R ? { calls: R.info.render.calls, tris: R.info.render.triangles, dpr, q: qNow } : null),
-  _view: view, _cam(o) { Object.assign(view, o); camSet(); }, _amb: () => AMB, _ambK(k) { ambK = k; }, _ambStep(s) { stepAmb(s, 1); }, find: (x, y) => find(x, y), _scene: () => S, _ent: () => ENT,
+  _view: view, _cam(o) { Object.assign(view, o); camSet(); }, _amb: () => AMB, _ambK(k) { ambK = k; }, _ambStep(s) { stepAmb(s, 1); }, ambParked(id) { const o = AMB.get(id); return !!(o && !o.path && !o.leaving && o.meta && o.meta.mode === 'bay'); }, find: (x, y) => find(x, y), _scene: () => S, _ent: () => ENT,
 };

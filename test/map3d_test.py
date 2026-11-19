@@ -92,7 +92,11 @@ def run():
         J("OC.trainPatient('hipfx', 'ems', { name: 'Walter K.', age: 82, sex: 'M', unit: 'Medic 7' }); OCUI.render()"); page.wait_for_timeout(1200)
         st = J("(() => { const id = Object.values(OC.G.pts).find(p => p.name === 'Walter K.').id, o = OC3D._amb().get(id); return o ? { legs: o.path ? o.path.length : 0, rev: o.path ? o.path.map(l => l.rev) : [], y: o.b[1] } : null; })()")
         ok(st and st['legs'] >= 2 and st['rev'][-1] is True and st['y'] < -5, f'a new ambulance drives in from down the road and its last move is in reverse ({st})')
+        wid = J("Object.values(OC.G.pts).find(p => p.name === 'Walter K.').id")
+        ok(not J(f"OC3D._ent().has('p{wid}')"), 'the patient stays out of sight while the ambulance pulls in')
         for _ in range(30): J("OC3D._ambStep(0.5)")
+        J("OCUI.render()"); page.wait_for_timeout(1500); J("OCUI.render()"); page.wait_for_timeout(1500)
+        ok(J(f"OC3D._ent().has('p{wid}')"), 'and is on the wall once it has parked')
         end = J("(() => { const id = Object.values(OC.G.pts).find(p => p.name === 'Walter K.').id, o = OC3D._amb().get(id); return o ? [o.b[0], o.h * 180 / Math.PI, !!o.path] : null; })()")
         ok(end and abs(end[0] + 27) < 0.2 and abs(end[1] + 90) < 3 and not end[2], f'it ends parked in a stall, backed in ({end})')
         J("mapZoom(0)") if J("typeof mapZoom === 'function'") else None
