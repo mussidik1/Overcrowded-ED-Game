@@ -20,7 +20,9 @@ with sync_playwright() as pw:
     page.on('console', lambda m: errors.append('console.' + m.type + ': ' + m.text) if m.type == 'error' else None)
     J = page.evaluate
     def clear():   # decision cards and the first-shift card sit over everything: answer them
-        J("(() => { const G = OC.G; for (let i = 0; i < 5 && G.card; i++) OC.chooseCard(G.card.choices.find(c => !c.dis).k); OCUI.U.modal = null; OCUI.render(); })()"); page.wait_for_timeout(200)
+        for _ in range(4):   # a new card can land while we wait, so check again
+            J("(() => { const G = OC.G; for (let i = 0; i < 5 && G.card; i++) OC.chooseCard(G.card.choices.find(c => !c.dis).k); OCUI.U.modal = null; OCUI.render(); })()"); page.wait_for_timeout(200)
+            if not J("!!(OC.G && OC.G.card) || !!document.querySelector('#modalWrap.show, #modalWrap.on, #modal:not(:empty)')"): break
     page.goto(URL); page.wait_for_timeout(700)
     page.locator('[data-act="mode"][data-arg="rn"]').tap(); page.locator('[data-act="tmenu"][data-arg="play"]').tap(); page.wait_for_timeout(200)
     ok(page.locator('#title [data-act="classCode"]').count() == 1, 'Play a shift offers Class code')

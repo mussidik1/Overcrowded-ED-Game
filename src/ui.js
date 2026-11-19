@@ -2076,6 +2076,7 @@ const ACT = {
   sign: pid => { const o = U.ord && U.ord.pid === pid ? U.ord : { tests: [], treats: [] }; const r = E.signOrders(pid, o.tests, o.treats); if (r.ok) { U.ord = null; U.ordOpen = null; } res(r, r.ok); },
   ordOpen: pid => { U.ordOpen = pid; U.ord = null; },
   mdd: a => { const [pid, k] = a.split('|'); if (k === 'consult') { U.sheet = { type: 'consult', pid }; return; } res(E.mdDecide(pid, k), true); },
+  aboutDone: () => { store('oc-seen-about', '1'); ACT.tmenu('main'); },
   tmenu: a => { U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; } },
   img: a => { const [pid, d] = a.split('|'); openViewer(pid, d); },
   q3d: () => { const o = ['low', 'med', 'high', 'auto']; U.q3d = o[(o.indexOf(U.q3d) + 1) % o.length]; store('oc-3dq', U.q3d); if (window.OC3D && OC3D.quality) OC3D.quality(U.q3d); if (U.scene === 'title') setH($('#title'), titleHTML()); },
@@ -2287,6 +2288,7 @@ function titleHTML() {
   const row = (arg, dot, name, sub, badge) => `<button type="button" class="lvl t-go" data-act="tmenu" data-arg="${arg}"><span class="dot" style="background:${dot}"></span><span><b>${name}</b><small>${sub}</small></span>${badge || ''}<span class="t-chev" aria-hidden="true">›</span></button>`;
   const set = (act, label, on) => `<button type="button" class="t-set" data-act="${act}"><span>${label}</span><b>${on}</b></button>`;
   const role = md ? 'Attending' : 'Charge nurse';
+  if (U.tm === 'about') return aboutHTML(store('oc-seen-about') ? head('About Code Black') : '');
   if (U.tm === 'play') return `<div class="card t-sub-menu">${head('Play a shift', role + ', 07:00 to 19:00.')}<div class="levels">${lv}<button type="button" class="lvl t-go cc-go" data-act="classCode"><span class="dot" style="background:#4F5A6B"></span><span><b>Class code</b><small>Play your instructor's shift, or make one for a class.</small></span><span class="t-chev" aria-hidden="true">›</span></button></div>${scens}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}</div>`;
   if (U.tm === 'learn') return `<div class="card t-sub-menu">${head('Learn', 'Start with Orientation. The lessons take a condition at a time.')}<div class="levels">${train}${lessons}</div><div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="words">What the words mean</button></div></div>`;
   if (U.tm === 'set') return `<div class="card t-sub-menu">${head('Settings')}<div class="t-sets">${set('view', 'Board', U.view === 'map' ? 'floor plan' : 'list')}${U.view === 'map' ? set('three', 'Floor', U.three ? '3D' : 'flat') : ''}${U.view === 'map' && U.three ? set('q3d', '3D detail', Q3D_NAME[U.q3d]) : ''}${set('sound', 'Sound', U.sound ? 'on' : 'off')}${set('plain', 'Plain words', PLAIN() ? 'on' : 'off')}${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? set('fullscreen', 'Full screen', document.fullscreenElement ? 'on' : 'off') : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
@@ -2294,13 +2296,26 @@ function titleHTML() {
   const learnBadge = store(trainedKey(U.mode)) ? '<span class="best">Done ✓</span>' : chD ? `<span class="best">${chD} of ${chN}</span>` : fresh ? '<span class="best go">Start here</span>' : '';
   const play = row('play', DOT.med, 'Play a shift', 'Four shifts, plus class scenarios.', stars ? `<span class="best">${stars} ★</span>` : '');
   const learn = row('learn', 'var(--accent)', 'Learn', 'Orientation, then a lesson for each condition.', learnBadge);
-  return `<div class="card t-main">${brand}${modes}<p class="t-sub">${md ? 'You see patients, write the orders, and answer the radio.' : 'You run the board for a 32-bed ED.'}</p><div class="levels">${resume}${fresh ? learn + play : play + learn}${row('set', '#6B7280', 'Settings', 'Board, 3D, sound, plain words.')}</div><div class="t-links"><button type="button" data-act="help">How to play</button>${lastReport() ? '<button type="button" data-act="lastReport">Last summary</button>' : ''}</div></div>`;
+  return `<div class="card t-main">${brand}${modes}<p class="t-sub">${md ? 'You see patients, write the orders, and answer the radio.' : 'You run the board for a 32-bed ED.'}</p><div class="levels">${resume}${fresh ? learn + play : play + learn}${row('set', '#6B7280', 'Settings', 'Board, 3D, sound, plain words.')}</div><div class="t-links"><button type="button" data-act="help">How to play</button>${lastReport() ? '<button type="button" data-act="lastReport">Last summary</button>' : ''}<button type="button" data-act="tmenu" data-arg="about">About</button></div></div>`;
 }
 function clearToasts() { const b = $('#toasts'); if (b) b.innerHTML = ''; TQ.length = 0; clearTimeout(toastPump.t); msgOn(false); }
+/* ---------- the first-visit page (v0.22): what this is, who it's for, privacy, credits. Later it's About on the menu. ---------- */
+function aboutHTML(head) {
+  const first = !head;
+  const imgs = Object.entries(IMG_CREDIT).map(([k, c]) => `<li>${c.f ? `<i>${esc(c.f.replace(/\.(jpe?g|png)$/i, ""))}</i>. ` : ""}${esc(c.t)}${c.u ? ` <a href="${esc(c.u)}" target="_blank" rel="noopener">source</a>` : ''}</li>`).join('');
+  return `<div class="card t-sub-menu t-about">${head || '<div class="t-kicker">Emergency Department</div><h1 class="t-brand">Code Black</h1>'}`
+    + `<p class="ab-lead">You run a busy emergency department for one twelve-hour shift.</p>`
+    + `<p>Play the <b>charge nurse</b>, who runs the board: beds, staff, ambulances, and the radio. Or play the <b>attending</b>, who sees the patients, orders the tests, and makes the call.</p>`
+    + `<h3>Who it’s for</h3><p>Nurses, doctors, paramedics, and students who want to practice the job, and anyone who wonders what a crowded ER is like. You don’t need any medical background. Orientation teaches it all from scratch, one patient at a time.</p>`
+    + `<h3>A game, not a protocol</h3><p>We’ve worked to get the medicine right, but this is a teaching game. It isn’t clinical guidance. At work, follow your own protocols and medical direction.</p>`
+    + `<h3>Privacy</h3><p>No accounts, no ads, no tracking. Your progress stays on this device. If you play a class code and tap Send, your name or initials and your score go to that class’s results list, where anyone with the code can see them.</p>`
+    + `<details class="ab-cred"><summary>Credits</summary><p>3D people and animations from <a href="https://github.com/scottpetrovic/mesh2motion-app" target="_blank" rel="noopener">mesh2motion</a> (CC0). Furniture and cars from <a href="https://github.com/KayKit-Game-Assets" target="_blank" rel="noopener">KayKit</a> by Kay Lousberg (CC0). The rooms and the department were built in Blender for this game. Drawn with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> (MIT). Set in Cardo by David Perry (SIL Open Font License).</p><p>Medical images:</p><ul>${imgs}</ul></details>`
+    + `<div class="levels"><button type="button" class="big act ab-go" data-act="aboutDone">${first ? 'Start' : 'Back to the menu'}</button></div></div>`;
+}
 function showTitle() {
   clearToasts(); hush();
   let wasTrain = false; try { wasTrain = U.scene === 'game' && !!(g() && g().train); } catch (e) { /* no game yet */ }
-  U.tm = wasTrain ? 'learn' : 'main';   // back from Orientation or a lesson: the Learn menu, where the next one is
+  U.tm = wasTrain ? 'learn' : (!store('oc-seen-about') && !navigator.webdriver ? 'about' : 'main');   // back from Orientation or a lesson: the Learn menu; a first visit: the welcome page (automated test browsers skip it)
   U.scene = 'title'; U.sel = null; U.sheet = null; U.modal = null; U.paused = false;
   E.newGame('med', 4242);
   for (let i = 0; i < 160; i++) { E.step(0.25); E.botStep({}); }
