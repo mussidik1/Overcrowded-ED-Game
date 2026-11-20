@@ -839,13 +839,13 @@ body.mapmode:not(.rails) .map { margin-right: env(safe-area-inset-right); margin
   @page { margin: 14mm 14mm 16mm; }
 }
 .scn-for { font-style: normal; }
-.scn-sel { display: none; min-width: 0; height: 36px; padding: 0 8px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper, #fff); color: var(--ink); font: 700 15px/1 var(--ui); }
+.scn-sel, .wx-sel { display: none; min-width: 0; height: 36px; padding: 0 8px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper, #fff); color: var(--ink); font: 700 15px/1 var(--ui); }
 @media (max-height: 520px) and (orientation: landscape) {
-  #title .packs.scn { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 10px; margin-top: 6px; }
-  #title .packs.scn small { grid-column: 1 / -1; }
-  #title .packs.scn .segs { display: none; }
+  #title .packs.scn, #title .packs.wxp { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 10px; margin-top: 6px; }
+  #title .packs.scn small, #title .packs.wxp small { grid-column: 1 / -1; }
+  #title .packs.scn .segs, #title .packs.wxp .segs { display: none; }
   #title .packs.scn .scn-for { display: none; }
-  #title .scn-sel { display: block; }
+  #title .scn-sel, #title .wx-sel { display: block; }
 }
 /* "Needs you": a count, and each tap goes to the next one */
 .needbtn { display: none; }
@@ -1044,3 +1044,40 @@ body.ingame { touch-action: pan-x pan-y; }
 .mg.r-uc { background: var(--uc); }
 .pbtn.r-uc { border-color: var(--uc); } .pbtn.r-uc b { color: var(--uc); }
 .pgrid.two { grid-template-columns: 1fr 1fr; }
+
+/* v0.26: transfers, beds, help, weather */
+button.ob { border: 0; font: inherit; color: inherit; cursor: pointer; }
+.ob.wx { background: #DCE7F3; color: #1F3A5C; }
+.hlist { display: grid; gap: 8px; }
+.hrow { border: 1.5px solid #D5DAE1; border-radius: 12px; padding: 8px 10px; background: #fff; }
+.hrow.no { opacity: .55; }
+.hrow-h { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; align-items: baseline; }
+.hrow-h span { font-size: 13px; color: var(--ink-2); }
+.caps { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.cap { font-style: normal; font-size: 12px; padding: 2px 7px; border-radius: 6px; background: #EEF1F5; color: #3A4352; }
+.cap.on { background: #1F4FA8; color: #fff; font-weight: 700; }
+.hrow-f { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; }
+.hrow-f .bad { color: #B3261E; font-weight: 700; }
+.hrow-f .okk { color: #1E6B3A; }
+.cbtn.sm { padding: 6px 16px; min-height: 0; flex: none; }
+.btab { display: grid; gap: 8px; margin: 6px 0 10px; }
+.brow { display: grid; gap: 3px; }
+.brow-h { display: flex; justify-content: space-between; gap: 8px; }
+.brow small { color: var(--ink-2); }
+.bbar { display: block; height: 8px; border-radius: 4px; background: #E3E7EC; overflow: hidden; }
+.bbar i { display: block; height: 100%; background: #3C7D4F; }
+.brow.full .bbar i { background: #C8243A; }
+.lnk { border: 0; background: none; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+.map .mheli .rotor { animation: oc-rot .22s linear infinite; transform-box: fill-box; transform-origin: center; }
+.map .mheli.idle .rotor { animation-duration: .9s; }
+@keyframes oc-rot { to { transform: rotate(360deg); } }
+.map #mBeds { cursor: pointer; }
+.map .wxr { animation: oc-rain .5s linear infinite; }
+.map .wxs { animation: oc-snow 6s linear infinite; }
+.map .wxf { animation: oc-flash 9s steps(1) infinite; }
+@keyframes oc-rain { from { transform: translate(0, 0); } to { transform: translate(-18px, 52px); } }
+@keyframes oc-snow { from { transform: translate(0, 0); } to { transform: translate(-30px, 120px); } }
+@keyframes oc-flash { 0%, 100% { opacity: 0; } 61% { opacity: .35; } 62% { opacity: 0; } 64% { opacity: .25; } 65% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .map .mheli .rotor, .map .wxr, .map .wxs, .map .wxf { animation: none; } }
+.ob.heli { background: #C8243A; color: #fff; font-weight: 700; }
+.ob.beds { background: #E3ECE5; color: #1E5A35; }

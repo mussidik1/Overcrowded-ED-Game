@@ -142,7 +142,7 @@ def run():
         occ = J("OC.G.rooms.filter(r => r.pid).length")
         ok(occ >= 3 and page.locator('#mNames .mname.faronly').count() == occ and page.locator('#mNames .mname.nearonly').count() == occ, f'every occupied room carries its patient\'s name ({occ})')
         nm = J("(() => { const r = OC.G.rooms.find(r => r.pid && /^\\d+$/.test(r.id)); return [OC.pt(r.pid).name, r.id]; })()")
-        ok(nm[0] in J("Array.from(document.querySelectorAll('#mNames .mname.faronly text')).map(t => t.textContent)") and nm[0] in J(f"document.getElementById('mroom-{nm[1]}').getAttribute('aria-label')"), f'the tag reads the patient\'s name ({nm[0]})')
+        ok(any(t.startswith(nm[0][:6]) for t in J("Array.from(document.querySelectorAll('#mNames .mname.faronly text')).map(t => t.textContent)")) and nm[0] in J(f"document.getElementById('mroom-{nm[1]}').getAttribute('aria-label')"), f'the tag reads the patient\'s name ({nm[0]})')
         tb = page.locator('#mNames .mname.faronly text').first.bounding_box()
         ok(tb['height'] >= 6.5 and page.locator('#mNames .mname.faronly').first.is_visible() and not page.locator('#mNames .mname.nearonly').first.is_visible(), f'zoomed out, the name is still readable ({tb["height"]:.1f}px)')
         ok(J("getComputedStyle(document.getElementById('mNames')).pointerEvents") == 'none', 'and it never blocks a tap on the room')

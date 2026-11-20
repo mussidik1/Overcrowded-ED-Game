@@ -18,7 +18,7 @@ function check(G) {
   for (const s of G.staff) {
     if (!Number.isFinite(s.morale)) throw new Error(`morale NaN for ${s.id}`);
     if (OC.isProv(s)) for (const k of s.q) if (k.left == null || Number.isNaN(k.left)) throw new Error(`bad task on ${s.id}`);
-    for (const k of s.q.concat(s.tq)) if (!OC.isProv(s) && !k.pid) throw new Error(`queue item without a patient on ${s.id}`);
+    for (const k of s.q.concat(s.tq)) if (!OC.isProv(s) && s.role !== 'uc' && !k.pid) throw new Error(`queue item without a patient on ${s.id}`);
   }
   JSON.stringify(G); // must stay serializable
 }

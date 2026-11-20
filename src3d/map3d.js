@@ -94,13 +94,76 @@ function sizeSprites() {
   for (const l of LBL.values()) { const sc = l.px * 2 / (H * f); l.s.scale.set(sc * l.aspect, sc, 1); }
 }
 
+/* ---------- v0.26: the helipad, the helicopter, the weather ---------- */
+let PAD3 = null, HELI3 = null, WX3 = null, wxNow = 'clear';
+function buildPad() {
+  const [px, py] = g2b(-337, 260); PAD3 = [px, py];
+  const g = new THREE.Group(); g.position.copy(B2T(px, py, 0)); S.add(g);
+  const lawn = new THREE.Mesh(new THREE.PlaneGeometry(11.5, 12), M('#9fb487', { roughness: 1 })); lawn.rotation.x = -Math.PI / 2; lawn.position.y = -0.04; lawn.receiveShadow = true; g.add(lawn);
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(6.4, 0.08, 6.4), M('#c9ccd1', { roughness: 0.9 })); slab.position.y = 0; slab.receiveShadow = true; g.add(slab);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(2.3, 2.6, 48), new THREE.MeshBasicMaterial({ color: '#f2c230' })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; g.add(ring);
+  const H = M('#f7f7f2'); for (const [w, d, x, z] of [[0.35, 2.2, -0.7, 0], [0.35, 2.2, 0.7, 0], [1.4, 0.35, 0, 0]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, 0.02, d), H); b.position.set(x, 0.05, z); g.add(b); }
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.4), M('#5e6878')); pole.position.set(4, 1.2, -4); g.add(pole);
+  const sock = new THREE.Mesh(new THREE.ConeGeometry(0.22, 1.1, 10), M('#f08a24')); sock.rotation.z = Math.PI / 2; sock.position.set(4.6, 2.3, -4); g.add(sock);
+}
+function makeHeli() {
+  const g = new THREE.Group(), red = M('#c8243a', { roughness: 0.5 }), dark = M('#2b3240'), glass = M('#9fc3ea', { roughness: 0.2 });
+  const body = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), red); body.scale.set(2.1, 1.05, 1.15); body.position.y = 1.35; body.castShadow = true; g.add(body);
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 10), glass); nose.scale.set(1.2, 0.8, 1); nose.position.set(1.55, 1.5, 0); g.add(nose);
+  const boom = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.32, 0.32), M('#e8eaed')); boom.position.set(-3.2, 1.55, 0); g.add(boom);
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.1, 0.12), red); fin.position.set(-4.9, 1.95, 0); g.add(fin);
+  for (const z of [-0.95, 0.95]) { const sk = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.08, 0.1), dark); sk.position.set(0, 0.05, z); g.add(sk); }
+  const rot = new THREE.Group(); rot.position.y = 2.55; g.add(rot);
+  for (const a of [0, Math.PI / 2]) { const b = new THREE.Mesh(new THREE.BoxGeometry(9.5, 0.05, 0.28), dark); b.rotation.y = a; rot.add(b); }
+  const tr = new THREE.Group(); tr.position.set(-4.95, 2.0, 0.15); g.add(tr);
+  const tb = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.12, 0.03), dark); tr.add(tb);
+  return { g, rot, tr };
+}
+function syncHeli(list) {
+  const want = list && list[0];
+  if (want && !HELI3) {
+    HELI3 = makeHeli(); HELI3.pid = want.pid; S.add(HELI3.g);
+    HELI3.t = 0; HELI3.mode = 'in'; HELI3.spin = 1;
+  }
+  if (HELI3 && want) { HELI3.phase = want.phase; if (HELI3.mode === 'out') { HELI3.mode = 'in'; HELI3.t = 0; } }
+  if (HELI3 && !want && HELI3.mode !== 'out') { HELI3.mode = 'out'; HELI3.t = -2.6; }   // waits for the stretcher, then lifts off
+}
+function stepHeli(dt) {
+  if (!HELI3 || !PAD3) return;
+  const h = HELI3, [px, py] = PAD3; h.t += dt;
+  let x = px, y = py, z = 0, yaw = 0;
+  if (h.mode === 'in') { const k = Math.min(1, h.t / 4), e = 1 - Math.pow(1 - k, 3); x = px - 30 * (1 - e); y = py + 22 * (1 - e); z = 28 * (1 - e); yaw = -0.6 * (1 - e); }
+  else if (h.mode === 'out' && h.t > 0) { const k = Math.min(1, h.t / 4), e = k * k; x = px - 34 * e; y = py + 26 * e; z = 30 * e; yaw = -0.6 * e; if (k >= 1) { S.remove(h.g); HELI3 = null; return; } }
+  h.g.position.copy(B2T(x, y, z)); h.g.rotation.y = yaw;
+  const fast = h.mode !== 'in' || h.t < 4 ? 1 : h.phase === 'pad' ? 0.35 : 1;
+  h.rot.rotation.y += dt * 28 * fast; h.tr.rotation.z += dt * 40 * fast;
+}
+function syncWx(wx) {
+  if (wx === wxNow) return; wxNow = wx;
+  if (WX3) { S.remove(WX3.pts); WX3 = null; }
+  S.fog = wx === 'fog' ? new THREE.Fog('#dfe5ea', 30, 110) : null;
+  if (wx !== 'rain' && wx !== 'snow' && wx !== 'storm') return;
+  const snow = wx === 'snow', n = snow ? 1400 : 2200, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { pos[i * 3] = -60 + Math.random() * 110; pos[i * 3 + 1] = Math.random() * 30; pos[i * 3 + 2] = -22 + Math.random() * 44; }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color: snow ? '#ffffff' : '#a9bdd6', size: snow ? 0.28 : 0.12, transparent: true, opacity: snow ? 0.9 : 0.6, depthWrite: false }));
+  S.add(pts); WX3 = { pts, snow, storm: wx === 'storm', flash: 0 };
+}
+function stepWx(dt) {
+  if (!WX3) return;
+  const a = WX3.pts.geometry.attributes.position, v = WX3.snow ? 2.2 : 26, drift = WX3.snow ? 0.6 : 2;
+  for (let i = 0; i < a.count; i++) { let y = a.getY(i) - v * dt; let x = a.getX(i) - drift * dt; if (y < 0) { y += 30; x = -60 + Math.random() * 110; } a.setY(i, y); a.setX(i, x); }
+  a.needsUpdate = true;
+}
+
 /* ---------- loading ---------- */
 async function build() {
   await packs();
   L = PACK['layout.json'] ? JSON.parse(atob(PACK['layout.json'])) : await (await fetch(BASE + 'layout.json')).json();
   const st = (await load('dept_static.glb')).scene; shade(st); S.add(st);
   { const gnd = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.MeshStandardMaterial({ color: '#bdb8ae', roughness: 1 })); gnd.rotation.x = -Math.PI / 2; gnd.position.y = -0.06; gnd.receiveShadow = true; S.add(gnd); }   // v0.24.1: plain ground all round, so there's no gray void past the building
-  st.traverse(o => { if (/^canopy/.test(o.name)) o.visible = false; });   // the bay's roof would hide the ambulances from above
+  st.traverse(o => { if (/^canopy/.test(o.name)) o.visible = false; });
+  buildPad();   // the bay's roof would hide the ambulances from above
   for (const r of L.rooms) {
     const g = new THREE.Group(); g.position.copy(B2T(r.x, r.y)); g.rotation.y = r.rot * DEG; S.add(g);
     const inst = (await load(`room_${r.variant}.glb`)).scene.clone(true); shade(inst); g.add(inst);
@@ -123,7 +186,7 @@ const GOLD = new THREE.MeshBasicMaterial({ color: '#f2c230', transparent: true, 
 /* ---------- people ---------- */
 const MODEL = {
   md: () => 'md', app: s => (s.title === 'NP' ? 'np' : 'pa'), rn: s => 'rn' + (1 + hsh(s.id) % 4), pct: s => 't' + (1 + hsh(s.id) % 2), reg: s => 'reg' + (1 + hsh(s.id) % 2),
-  evs: s => 'ev' + (1 + hsh(s.id) % 2), rt: () => 'rt', rph: () => 'rx', tp: () => 'tp', uc: () => 'reg2', cons: () => 'md',
+  evs: s => 'ev' + (1 + hsh(s.id) % 2), rt: () => 'rt', rph: () => 'rx', tp: () => 'tp', uc: () => 'reg2', cons: () => 'md', help: () => 'md', ems: s => 'ems' + (1 + hsh(s.id) % 3),
 };
 const LIFT3 = [14.8, -14.6];   // the elevators, where admitted patients go up
 const PTG = ['pt_05', 'pt_06', 'pt_15', 'pt_32', 'pt_female-08', 'pt_female-09', 'pt_31-female', 'pt_10'];
@@ -187,6 +250,7 @@ function ptWant(p) {
     if (sm && sm.kind === 'hall') return { x: sm.x + 0.86, y: sm.y, z: 0.77, rot: sm.rot, anim: 'idle-a', lie: true, gown: true };
     if (sm) return { x: sm.x, y: sm.y + 0.05, z: 0.08, rot: 0, anim: 'sitting-idle', gown: true };
   }
+  if (p.kind === 'scan') { const [x, y] = g2b(u, v); return { x, y, z: 0.77, rot: 90, anim: 'idle-a', lie: true, gown: true, stretcher: true }; }   // v0.26: on the CT or X-ray table
   if (p.kind === 'wall') { const i = Math.round((v - 62) / 46); const [x, y] = WALL3(Math.max(0, Math.min(5, i))); return { x: x + 0.86, y, z: 0.77, rot: 90, anim: 'idle-a', lie: true, stretcher: true }; }
   if (p.kind === 'seat') { const c = Math.round((u - 276) / 36), r = Math.round((v - 537) / 37); const [x, y] = SEAT3(r * 6 + c); return { x, y: y + 0.05, rot: 180, anim: 'sitting-idle' }; }
   if (p.kind === 'door') {
@@ -317,6 +381,7 @@ function stepAmb(dt, blink) {
 function apply(sn) {
   const seen = new Set();
   if (sn.t != null) light(sn.t, sn.power);
+  syncHeli(sn.heli); syncWx(sn.wx || 'clear');
   // rooms
   for (const rm of sn.rooms) {
     const R2 = ROOM[rm.id]; if (!R2) continue;
@@ -335,8 +400,8 @@ function apply(sn) {
   for (const s of sn.staff) {
     const key = 's' + s.id, model = (MODEL[s.role] || (() => 'rn1'))(s), want = staffWant(s); seen.add(key);
     const e = entity(key, model);
-    e.meta = { kind: 'staff', id: s.id, tap: !s.inRoom, label: s.label, me: s.me, sel: s.sel, role: s.role, visitor: !!s.visitor };
-    if (!e.placed && s.visitor) { e.root.position.copy(B2T(LIFT3[0], LIFT3[1])); e.root.visible = true; e.placed = true; e.at2 = s.at; moveTo(e, want, 'via', api.routeIn(s.at)); continue; }   // v0.25: a consultant steps out of the elevator and walks to the bedside
+    e.meta = { kind: 'staff', id: s.id, tap: !s.inRoom, label: s.label, me: s.me, sel: s.sel, role: s.role, visitor: !!s.visitor, from: s.from || 'lift', pid: s.pid };
+    if (!e.placed && s.visitor) { const st = g2b(...api.entry(s.from)); e.root.position.copy(B2T(st[0], st[1])); e.root.visible = true; e.placed = true; e.at2 = s.at; moveTo(e, want, 'via', api.routeIn(s.at, s.from)); continue; }   // v0.25: a consultant steps out of the elevator; v0.26: a crew comes in from the bay or the helipad
     if (!e.placed) { e.root.position.copy(B2T(want.x, want.y)); setPose(e, want); e.placed = true; e.root.visible = true; e.at2 = s.at; e.want = want; continue; }
     if (e.at2[0] !== s.at[0] || e.at2[1] !== s.at[1]) { moveTo(e, want, e.at2, s.at); e.at2 = s.at; }
     else if (!e.walking) { e.want = want; setPose(e, want); }
@@ -361,12 +426,16 @@ function apply(sn) {
   for (const [key, e] of Array.from(ENT)) if (!seen.has(key)) {
     if (e.leaving) continue;
     if (e.meta && e.meta.kind === 'pt' && e.root && sn.left && sn.left[e.meta.id]) {   // walking out, or rolling up to the elevators or out to an ambulance
-      const how = sn.left[e.meta.id], roll = how === 'up' || how === 'bay';   // admitted and transferred patients go on a stretcher
-      const dest = how === 'up' ? { x: 14.8, y: -14.6, anim: 'idle-a', rot: 0 } : how === 'bay' ? { x: -24.5, y: 8.0, anim: 'idle-a', rot: 0 } : { x: -24.6, y: -12.0, anim: 'idle-a', rot: 0 };
+      const how = sn.left[e.meta.id], roll = how === 'up' || how === 'bay' || how === 'pad';   // admitted and transferred patients go on a stretcher
+      const pd = g2b(...api.PAD), dest = how === 'up' ? { x: 14.8, y: -14.6, anim: 'idle-a', rot: 0 } : how === 'bay' ? { x: -24.5, y: 8.0, anim: 'idle-a', rot: 0 } : how === 'pad' ? { x: pd[0] + 1.6, y: pd[1], anim: 'idle-a', rot: 0 } : { x: -24.6, y: -12.0, anim: 'idle-a', rot: 0 };
       if (roll) Object.assign(dest, { z: 0.77, lie: true, keepStr: true });
       e.leaving = true; moveTo(e, dest, e.at2, e.at2, roll); setTimeout(() => { S.remove(e.root); ENT.delete(key); }, 9000); continue;
     }
-    if (e.meta && e.meta.visitor && e.root) { e.leaving = true; moveTo(e, { x: LIFT3[0], y: LIFT3[1], anim: 'idle-a', rot: 0 }, 'via', api.routeUp(e.at2)); setTimeout(() => { S.remove(e.root); ENT.delete(key); }, 9000); continue; }   // back up in the elevator
+    if (e.meta && e.meta.visitor && e.root) {   // back the way they came; a crew that leaves with its patient goes with the stretcher
+      if (e.meta.from !== 'lift' && sn.left && sn.left[e.meta.pid]) { S.remove(e.root); ENT.delete(key); continue; }
+      const path = api.routeUp(e.at2, e.meta.from), end = g2b(...path[path.length - 1]);
+      e.leaving = true; moveTo(e, { x: end[0], y: end[1], anim: 'idle-a', rot: 0 }, 'via', path); setTimeout(() => { S.remove(e.root); ENT.delete(key); }, 9000); continue;
+    }
     if (e.root) S.remove(e.root); ENT.delete(key);
   }
   // ambulances: at the bay, waiting on the drive, on the way in
@@ -473,7 +542,7 @@ function compactLabel(l, rm, roomPx) {
 }
 
 /* ---------- camera: the whole floor by default, drag to pan, pinch or wheel to zoom ---------- */
-const BOUNDS = { x0: -30.2, x1: 28.4, y0: -15.8, y1: 15.0 };   // v0.24.1: the building and the ambulance stalls, nothing more
+const BOUNDS = { x0: -30.2, x1: 28.4, y0: -15.8, y1: 15.0 }, PAN_X0 = -48;   // v0.26: you can pan left to the helipad   // v0.24.1: the building and the ambulance stalls, nothing more
 function camSet() {
   const t = new THREE.Vector3(view.tx, 0, -view.ty);
   CAM.position.set(t.x, Math.sin(view.tilt) * view.dist, t.z + Math.cos(view.tilt) * view.dist); CAM.lookAt(t);
@@ -497,7 +566,7 @@ function groundAt(cx, cy) {
 function clampView() {   // v0.24.1: zoomed in, you can pan to the edge of the department but not past it
   view.dist = Math.max(7, Math.min(view.fit, view.dist));
   const k = view.dist / view.fit, hx = (BOUNDS.x1 - BOUNDS.x0) / 2 * k, hy = (BOUNDS.y1 - BOUNDS.y0) / 2 * k;
-  view.tx = Math.max(BOUNDS.x0 + hx, Math.min(BOUNDS.x1 - hx, view.tx)); view.ty = Math.max(BOUNDS.y0 + hy, Math.min(BOUNDS.y1 - hy, view.ty));
+  view.tx = Math.max(PAN_X0 + hx, Math.min(BOUNDS.x1 - hx, view.tx)); view.ty = Math.max(BOUNDS.y0 + hy, Math.min(BOUNDS.y1 - hy, view.ty));
 }
 function zoomAt(f, cx, cy) {
   const before = cx != null ? groundAt(cx, cy) : null;
@@ -601,6 +670,7 @@ function frame(now) {
   }
   for (const e of ENT.values()) if (e.mixer) e.mixer.update(dt);
   stepMovers(dt);
+  stepHeli(Math.min(0.25, gap / 1000)); stepWx(Math.min(0.1, gap / 1000));
   const blink = (Math.sin(performance.now() / 180) + 1) / 2;
   stepAmb(Math.min(0.25, gap / 1000) * ambK, (Math.sin(performance.now() / 90) + 1) / 2);   // real time: a slow frame does not slow the drive
   RING.emissiveIntensity = 0.6 + 2.6 * blink;
@@ -679,6 +749,7 @@ window.OC3D = {
     raf = requestAnimationFrame(frame); return true;
   },
   ready: () => ready, failed: () => failed,
+  lookPad() { if (!PAD3) return; view.dist = view.fit * 0.42; view.tx = PAD3[0] + 7; view.ty = PAD3[1]; clampView(); camSet(); },
   sync(sn) { if (ready) { try { apply(sn); } catch (err) { console.warn('3D floor', err); } } },
   zoom(f) { if (!ready) return; if (!f) camReset(); else zoomAt(f); },
   zoomed: () => !!(view.fit && view.dist < view.fit * 0.97),
