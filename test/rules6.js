@@ -113,7 +113,7 @@ assert(a.dispo === 'icu' && an.dispo === 'admit' && a.con === 'icu' && /respirat
   `the diagnosis and the plan change with the crash: "${a.dx}" to the ICU, "${an.dx}" admitted`);
 assert([a, an, se, gb, ns].every(p => p.dispo !== 'home' && p.dispo !== 'obs' && p.esi === 1) && !OC.pitDcReady(a), 'nobody who crashed is sent home');
 const gray = OC.CASES.filter(c => c.gray).map(c => c.k);
-assert(gray.length === 5 && gray.every(k => !OC.CRASH[k]), `the five risk-score cases have no crash at all (${gray})`);
+assert(gray.length === 6 && gray.every(k => !OC.CRASH[k]), `the six risk-score cases have no crash at all (${gray})`);
 const sw = mkW('strokew', 70); sw.alertOn = false; OC.crashNow(sw.id);
 assert(sw.bp0[0] > 185 && sw.tr[0] === 'bp' && OC.vitalsOf(sw).hr < 70, `a stroke that worsens: pressure up, heart rate down, and it now needs pressure control (${OC.vitalsOf(sw).text})`);
 

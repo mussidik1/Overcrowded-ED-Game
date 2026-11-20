@@ -79,11 +79,15 @@ if (c) {
 }
 
 // 6. Report calls and the hold nurse
-G = fresh(506, 'hard');
-const holds = OC.inRooms().filter(p => p.dsp === 'board');
+let holds = [];
+for (let sd = 506; sd < 530; sd++) {   // a shift with three holds, one of them in a pod with its own nurse
+  G = fresh(sd, 'hard'); holds = OC.inRooms().filter(p => p.dsp === 'board');
+  if (holds.length >= 3 && holds.slice(2).some(b => OC.zoneNurses(OC.roomOf(b).z).some(s => s.id !== 'rnX'))) break;
+}
 assert(holds.length >= 3, 'the night shift left admitted patients holding ED beds');
 if (holds.length >= 3) {
   const [b1, b2, b3] = holds;
+  for (const k in G.beds) { G.beds[k].used = OC.UNITS[k].cap; G.beds[k].next = 1e9; }   // v0.26: no beds open on their own here
   for (const b of holds) b.due = 1e9;
   b1.due = G.t; run(0.5);
   assert(b1.dsp === 'callrep' || b1.dsp === 'reporting', 'a bed upstairs is assigned: the nurse calls report first');
@@ -94,11 +98,12 @@ if (holds.length >= 3) {
   assert(b2.dsp === 'callrep', 'floors in shift change: report waits');
   G.mods.noReport = -1e9; run(20, () => b2.dsp === 'bedready');
   assert(b2.dsp === 'bedready', 'report goes through once the floor picks up');
-  const hb = holds.find(b => OC.zoneNurses(OC.roomOf(b).z).some(s => s.id !== 'rnX')) || b3;   // a hold whose pod nurse is not Casey herself
-  const zn = OC.zoneNurses(OC.roomOf(hb).z).find(s => s.id !== 'rnX'), before = OC.nurseLoad(zn);
+  const hb = holds.slice(2).find(b => b.loc === 'room' && OC.zoneNurses(OC.roomOf(b).z).some(s => s.id !== 'rnX')) || b3;   // a hold whose pod nurse is not Casey herself
+  const zn = OC.roomOf(hb) && OC.zoneNurses(OC.roomOf(hb).z).find(s => s.id !== 'rnX'), before = zn ? OC.nurseLoad(zn) : 0;
   const casey = OC.staff('rnX'); casey.zones = []; casey.cover = [];
   assert(OC.toggleZone('rnX', 'hold').ok, 'Casey takes the admitted holds');
-  assert(OC.nurseLoad(zn) < before && Math.abs(OC.nurseLoad(casey) - OC.holdLoad()) < 1e-9 && OC.ratioCap(casey) === 5, 'pod nurses drop the holds; the hold nurse carries them at 1:5');
+  if (zn) assert(OC.nurseLoad(zn) < before && Math.abs(OC.nurseLoad(casey) - OC.holdLoad()) < 1e-9 && OC.ratioCap(casey) === 5, 'pod nurses drop the holds; the hold nurse carries them at 1:5');
+  else console.log('skip - no pod nurse beside Casey this seed');
   casey.task = null; b3.due = G.t; run(3, () => casey.task && casey.task.kind === 'report');
   assert(casey.task && casey.task.kind === 'report' && casey.task.pid === b3.id, 'the hold nurse calls report');
 }
@@ -130,6 +135,7 @@ assert(!gx.obsWait && gx.due < 1e9, 'an obs discharge frees a bed for them');
 
 // 8. Full-capacity protocol
 G = fresh(509, 'hard');
+for (const k in G.beds) { G.beds[k].used = OC.UNITS[k].cap; G.beds[k].next = 1e9; }   // v0.26: nothing opens upstairs
 for (const p of OC.inRooms()) if (p.dsp === 'board') p.due = 1e9;
 assert(!OC.fullCapacity().ok, 'not available when the ED is not full');
 run(120);

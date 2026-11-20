@@ -203,7 +203,7 @@ const DET_RIGHT = { lab: 1, xr: 2, us: 2, ct: 2, mri: 2, ecg: 2 };
 const NEED = {
   strep: { n: ['strep'] }, ankle: { n: ['extxr'] }, uti: { n: ['ua'], ok: ['hcg'] }, gastro: { n: ['bmp'], ok: ['cbc', 'lip', 'ua', 'hcg'] },
   appy: { n: ['cbc', 'bmp', 'ctap'], ok: ['lip', 'lft', 'ua', 'hcg'] }, chole: { n: ['cbc', 'lft', 'lip', 'ruq'], ok: ['bmp', 'hcg', 'ua'] },
-  hipfx: { n: ['cbc', 'bmp', 'ts', 'hipxr'], ok: ['coag', 'ck', 'ua', 'pelxr', 'cxr'] }, pna: { n: ['cbc', 'bmp', 'cxr'], ok: ['lact', 'bcx', 'resp', 'vbg'] },
+  hipfx: { n: ['cbc', 'bmp', 'ts', 'hipxr'], ok: ['coag', 'ck', 'ua', 'pelxr', 'cxr'] }, pna: { n: ['cbc', 'bmp', 'cxr'], ok: ['lact', 'bcx', 'resp', 'vbg'] }, pnalow: { n: ['cbc', 'bmp', 'cxr'], ok: ['resp'] },
   copd: { n: ['vbg', 'cxr'], ok: ['cbc', 'bmp', 'bnp', 'resp', 'trop'] }, chf: { n: ['bnp', 'bmp', 'cxr'], ok: ['trop', 'cbc'] },
   stone: { n: ['ua', 'bmp', 'ctap'], ok: ['cbc', 'hcg'] }, dvt: { n: ['bmp', 'duplex'], ok: ['cbc', 'coag'] }, tb: { n: ['cbc', 'cxr'], ok: ['bmp', 'resp'] },
   bh: { n: ['tox'], ok: ['cbc', 'bmp', 'hcg', 'ua', 'ck'] }, etoh: { n: ['tox', 'bmp'], ok: ['cbc'] }, od: { n: ['tox'], ok: ['bmp', 'cbc', 'vbg', 'ck'] },
@@ -227,7 +227,7 @@ const IMG_NORMAL = { cxr: ['Clear lungs', 'cxr_normal'], pelxr: ['No fracture', 
 const RES = {
   strep: { strep: 'Rapid strep positive' }, ankle: { extxr: ['No fracture', 'ankle_normal'] }, uti: { ua: 'Nitrite positive, white cells, bacteria' }, gastro: { bmp: 'Na 136, K 3.6, BUN 24, creatinine 1.0: mildly dry' },
   appy: { cbc: 'WBC 15.8, Hgb 13.9, platelets 280', ctap: ['Inflamed appendix', 'ct_appy'] }, chole: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', lft: 'ALT 88, alk phos 210, bilirubin 1.6', ruq: ['Gallstones, thick gallbladder wall', 'us_gallstones'] },
-  hipfx: { cbc: 'WBC 9.0, Hgb 11.9, platelets 220', hipxr: ['Femoral neck fracture', 'xr_hipfx'] }, pna: { cbc: 'WBC 17.2, Hgb 13.1, platelets 310', bmp: 'Na 134, K 4.0, creatinine 1.1, glucose 140', cxr: ['Right lower lobe pneumonia', 'cxr_pna'] },
+  hipfx: { cbc: 'WBC 9.0, Hgb 11.9, platelets 220', hipxr: ['Femoral neck fracture', 'xr_hipfx'] }, pna: { cbc: 'WBC 17.2, Hgb 13.1, platelets 310', bmp: 'Na 134, K 4.0, creatinine 1.1, glucose 140', cxr: ['Right lower lobe pneumonia', 'cxr_pna'] }, pnalow: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', bmp: 'Na 139, K 4.1, BUN 14, creatinine 0.9', cxr: ['Small right lower lobe pneumonia', 'cxr_pna'] },
   copd: { vbg: 'pH 7.31, pCO2 58', cxr: ['Hyperinflated, no pneumonia', 'cxr_copd'] }, chf: { bnp: 'BNP 2,400', bmp: 'Na 133, K 4.6, creatinine 1.5', cxr: ['Pulmonary edema', 'cxr_edema'] },
   stone: { ua: 'Blood in the urine, no infection', ctap: ['4 mm stone in the ureter', 'ct_stone'] }, dvt: { duplex: ['Clot in the femoral vein', 'us_dvt'] }, tb: { cbc: 'WBC 11.4, Hgb 11.8, platelets 300', cxr: ['Cavity in the upper lobe', 'cxr_tb'] },
   etoh: { tox: 'Ethanol 280, drug screen negative', bmp: 'Glucose 96, Na 140, K 3.9' }, od: { tox: 'Fentanyl positive' }, cell: { cbc: 'WBC 14.0, Hgb 13.5, platelets 250' },
@@ -337,6 +337,7 @@ const CASES = [
   { k: 'appy', cc: 'Belly pain', dx: 'Appendicitis', esi: 3, src: 'w', age: [12, 45], wt: 3, wk: ['lab', 'ct'], tr: ['meds'], con: 'surg', pre: ['lab', 'ct'], dispo: 'or', find: { lab: 'WBC 15.8', ct: 'Inflamed appendix' }, ok: ['abx'] },
   { k: 'chole', cc: 'Belly pain after meals', dx: 'Cholecystitis', esi: 3, src: 'b', age: [30, 70], sex: 'F', wt: 3, wk: ['lab', 'us'], tr: ['meds'], con: 'surg', pre: ['lab', 'us'], dispo: 'admit', find: { lab: 'WBC 13.1, liver tests up', us: 'Gallstones, thick gallbladder wall' }, ok: ['abx'] },
   { k: 'hipfx', cc: 'Fell, hip pain', dx: 'Hip fracture', esi: 3, src: 'e', age: [70, 95], wt: 5, wk: ['xr', 'lab'], tr: ['meds'], con: 'ortho', pre: ['xr'], dispo: 'admit', find: { xr: 'Femoral neck fracture', lab: 'Hgb 11.9' }, ok: ['ecg'] },
+  { k: 'pnalow', cc: 'Cough and fever for three days', dx: 'Pneumonia, low risk', esi: 3, src: 'w', age: [25, 64], wt: 2, wk: ['lab', 'xr'], tr: ['abx'], dispo: 'home', gray: 'pna', find: { lab: 'WBC 13.1', xr: 'Small right lower lobe infiltrate' } },
   { k: 'pna', cc: 'Cough and fever', dx: 'Pneumonia', esi: 3, src: 'b', age: [50, 90], wt: 4, wk: ['lab', 'xr'], tr: ['o2', 'abx'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', find: { lab: 'WBC 17.2', xr: 'Right lower lobe infiltrate' } },
   { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 1, anyRoom: true, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 90%, RR 24, wheezing', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' }, ok: ['meds'] },
   { k: 'chf', cc: "Short of breath, can't lie flat", dx: 'Heart failure flare', esi: 2, src: 'e', age: [60, 90], wt: 3, wk: ['ecg', 'xr', 'lab'], tr: ['bipap', 'meds'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 91%, BP 178/102', find: { ecg: 'Sinus tach, old Q waves', xr: 'Pulmonary edema', lab: 'BNP 2,400' } },
@@ -514,7 +515,7 @@ function freshStats() {
   return { arrived: 0, dc: 0, admit: 0, icu: 0, bh: 0, or: 0, cath: 0, tx: 0, lwbs: 0, ama: 0, expired: 0, rosc: 0, quick: 0,
     wrCrash: 0, wrCodes: 0, ratioMin: 0, uncovered: 0, angry: 0, wrongSpec: 0, adverse: 0, agency: 0, mandates: 0,
     objOk: 0, objFail: 0, boxC: { ans: 0, miss: 0, right: 0, wrong: 0 }, boxN: { ans: 0, miss: 0 }, goals: { met: 0, miss: 0, list: [] }, events: 0,
-    registered: 0, triaged: 0, offloads: 0, transports: { tp: 0, pct: 0 }, ift: { als: 0, cct: 0, air: 0 }, iftRefused: 0, airAbort: 0,
+    registered: 0, triaged: 0, offloads: 0, transports: { tp: 0, pct: 0 }, ift: { wc: 0, bls: 0, als: 0, cct: 0, air: 0 }, iftRefused: 0, airAbort: 0, txInstead: 0,
     outLog: [], outRight: 0, outMiss: 0, divertExtra: 0, divertAny: 0, obs: 0, quickReg: 0, intub: 0, intubNoRT: 0,
     gray: { right: 0, ok: 0, under: 0, over: 0 }, mm: [], fcp: 0, updates: 0, complaints: 0, hallMins: 0, underTriage: 0, underCaught: 0,
     cosign: 0, missedDx: 0, chairMoves: 0, staffMins: {}, suspended: 0,
@@ -559,7 +560,11 @@ function newGame(level, seed, opts) {
     train: !!L.train, tr: L.train ? { step: 0, ids: {}, setup: {} } : null,
     mode: opts.mode === 'md' ? 'md' : 'rn', me: opts.mode === 'md' ? 'md1' : null,
     scen: SCENS[opts.scen] && !L.train ? opts.scen : 'none',
+    wx: WX[opts.wx] && !L.train ? opts.wx : 'clear', wxAir: [],
   };
+  bedInit();
+  if (G.wx === 'fog') G.wxAir = WX.fog.air.map(x => x.slice());
+  if (G.wx === 'storm') { const a = randi(60, 200), b = randi(330, 520); G.wxAir = [[a, a + randi(60, 100)], [b, b + randi(60, 100)]]; }
   G.staff = ROSTER.map(mkStaff);
   for (const r of G.rooms) if (r.z === 'ft') r.closed = true;  // Fast Track opens at 09:00
   for (const k in SPECS) G.spec[k] = { mood: 0, at: 0 };
@@ -586,7 +591,7 @@ function seedBoarders(n) {
     for (const k of p.tr) p.treat[k] = { st: 'done' };
     p.goals = {};
     if (p.con) p.consult = { st: 'here', spec: p.con, due: p.tRoom + 90, tArr: p.tRoom + 100 };
-    p.dsp = 'board'; p.due = G.t + randi(40, 200); p.tBoard = p.tRoom + 120; p.overnight = true;
+    p.dsp = 'board'; p.due = 1e9; p.tBoard = p.tRoom + 120; p.overnight = true; p.bedU = unitOf(p); p.bedGot = false;
   }
 }
 function startShift() {
@@ -634,6 +639,7 @@ function step(dt) {
   bloodTick();
   interpTick();
   consultTick();
+  helpTick();
   flowTick();
   const m = Math.floor(G.t);
   if (m !== G.lastMin) { G.lastMin = m; minuteTick(); if (G.mode === 'md' && !G.pre && !G.over) aiTick(); }
@@ -643,9 +649,14 @@ function step(dt) {
 /* ---------- arrivals ---------- */
 /* Which case comes through the door. A case that just came is unlikely to come again for 45 minutes, and less likely for two hours,
    so a shift does not bring three hip fractures before 08:00. The weights are otherwise untouched: common cases stay common across the day. */
-function pickCase(srcs) {
-  const L = G.caseLog || (G.caseLog = {});
-  const c = wpick(CASES.filter(c => srcs.includes(c.src)), c => { const s = L[c.k]; if (!s) return c.wt; const ago = G.t - s.t; return c.wt * (ago < 45 ? 0.1 : ago < 120 ? 0.4 : 1); });
+/* Each arrival stream keeps its own spacing log and looks only at streams no player can change (walk-ins look at walk-ins only),
+   so the same class code brings the same patients whatever the player does. */
+const CASE_SEES = { walk: ['walk'], ems: ['ems', 'walk'], surge: ['surge', 'ems', 'walk'], alert: ['alert'] };
+function pickCase(srcs, log) {
+  log = log || 'x';
+  const C = G.caseLog || (G.caseLog = {}), lg = k => C['_' + k] || (C['_' + k] = {}), L = lg(log), sees = (CASE_SEES[log] || [log]).map(lg);
+  const mix = wxOf().mix || {};
+  const c = wpick(CASES.filter(c => srcs.includes(c.src)), c => { const w = c.wt * (mix[c.k] || 1); let last = null; for (const S of sees) if (S[c.k] && (last == null || S[c.k].t > last)) last = S[c.k].t; if (last == null) return w; const ago = G.t - last; return w * (ago < 45 ? 0.1 : ago < 120 ? 0.4 : 1); });
   L[c.k] = { n: (L[c.k] ? L[c.k].n : 0) + 1, t: G.t };
   return c;
 }
@@ -659,7 +670,7 @@ const VDOOR = { 1: { hr: 124, sbp: 94, dbp: 56, rr: 24, spo2: 95 }, 2: { hr: 104
 const VCASE = {
   refill: { sbp: 164, dbp: 98 }, otitis: { temp: 101.3 }, strep: { temp: 101.5, hr: 100 }, uti: { temp: 99.8 },
   gastro: { hr: 106, sbp: 108, dbp: 66, spo2: 98 }, appy: { temp: 100.6, hr: 102 }, chole: { temp: 100.4, hr: 98 }, hipfx: { hr: 96, sbp: 148, dbp: 86 },
-  pna: { temp: 101.6, hr: 98, rr: 24, spo2: 92.6 }, copd: { hr: 98 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
+  pna: { temp: 101.6, hr: 98, rr: 24, spo2: 92.6 }, pnalow: { temp: 100.9, hr: 92, rr: 20, spo2: 96 }, copd: { hr: 98 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
   migraine: { sbp: 140, dbp: 86 }, tb: { temp: 100.8, spo2: 95 }, bh: { hr: 98 }, etoh: { hr: 104 }, cell: { temp: 100.9 },
   syncope: { hr: 62, sbp: 108, dbp: 64, spo2: 98 }, tia: { hr: 80, sbp: 172, dbp: 96 }, dehyd: { hr: 104, sbp: 106, dbp: 64 }, mcimin: { hr: 100, sbp: 138, dbp: 84 }, mcigrn: { hr: 98 }, mciwr: { hr: 96, sbp: 134, dbp: 82 }, mcired: { rr: 28, spo2: 94 }, mciyel: { rr: 20 },
   chf: { hr: 108, rr: 26 }, od: { hr: 64, sbp: 104, dbp: 62 }, synchigh: { hr: 70, sbp: 124, dbp: 74, rr: 16, spo2: 97 }, chb: { rr: 18, spo2: 97 },
@@ -798,7 +809,7 @@ function makePatient(c, src) {
     lang: age < 2 ? null : pickLang(), interp: 'none', interpDue: 0,
     bb: null, shock: false, pitSeen: false, pitQ: false, pitDcQ: false, ret: false, amaSafe: 0,
     reg: 'none', regBy: null, tri: 'none', triBy: null, offload: false, needCC: c.ift === 'cct', iftLevel: null, xBy: null,
-    px: 85, esiT: null, gray: c.gray ? grayScore(c) : null, grayPick: null, cosign: null, lastUpdate: null, lastRecheck: null, quick: false, missedDx: null, outHit: null,
+    px: 85, esiT: null, hardAirway: HARD_AIRWAY.has(c.k), gray: c.gray ? grayScore(c) : null, grayPick: null, cosign: null, lastUpdate: null, lastRecheck: null, quick: false, missedDx: null, outHit: null,
   };
   if (p.alert) for (const g of ALERTS[p.alert].goals) p.goals[g] = null;
   if (p.ecg10 && !('ecg10' in p.goals)) p.goals.ecg10 = null;
@@ -838,7 +849,8 @@ function npo(p) {
 }
 /* Gray-zone patients: a validated risk score, the usual right call, and calls that are also defensible. */
 function grayScore(c) {
-  const g = (tool, score, band, right, ok) => ({ tool, short: { 'HEART score': 'HEART', 'Canadian Syncope Risk Score': 'CSRS', 'ABCD2 score': 'ABCD2' }[tool], score, band, right, ok: ok || [] });
+  const g = (tool, score, band, right, ok) => ({ tool, short: { 'HEART score': 'HEART', 'Canadian Syncope Risk Score': 'CSRS', 'ABCD2 score': 'ABCD2', 'CURB-65': 'CURB-65' }[tool], score, band, right, ok: ok || [] });
+  if (c.gray === 'pna') { const s = chance(0.7) ? randi(0, 1) : 2; return s <= 1 ? g('CURB-65', s, 'low', 'home') : g('CURB-65', s, 'moderate', 'obs', ['admit']); }   // v0.26: confusion, BUN, breathing rate, blood pressure, age 65 or more
   if (c.gray === 'chest') { const s = c.k === 'cpmod' ? randi(4, 6) : randi(1, 3); return s <= 3 ? g('HEART score', s, 'low', 'home') : g('HEART score', s, 'moderate', 'obs', ['admit']); }
   if (c.gray === 'syncope') {
     if (c.k !== 'synchigh') return g('Canadian Syncope Risk Score', randi(-2, 0), 'low', 'home');
@@ -866,7 +878,7 @@ function sub(fn) { const s = (rnd() * 2147483647) | 0 || 1, keep = G.rng; G.rng 
 function arrivals0() {
   const L = LEVELS[G.level], t = G.t, hm = hourMul(t);
   let guard = 0;
-  inStream('rngA', () => { while (t >= G.nextArr.walk && guard++ < 5) { sub(spawnWalk); G.nextArr.walk += expo(60 / (L.walk * hm)); } });
+  inStream('rngA', () => { while (t >= G.nextArr.walk && guard++ < 5) { sub(spawnWalk); G.nextArr.walk += expo(60 / (L.walk * (wxOf().walk || 1) * hm)); } });
   const surge = (G.mods.surge > t ? 1.6 : 1) * (1 + 0.12 * G.region.hosps.filter(h => h.st !== 'open').length);
   guard = 0;
   inStream('rngM', () => { while (t >= G.nextArr.ems && guard++ < 5) { sub(spawnEms); G.nextArr.ems += expo(60 / (L.ems * hm)); } });
@@ -932,11 +944,11 @@ function creditDivert(kind) {
   }
 }
 function spawnWalk() {
-  const p = makePatient(pickCase(['w', 'b']), 'walk'); p.sched = true;   // a scheduled arrival (not a return or an event)
+  const p = makePatient(pickCase(['w', 'b'], 'walk'), 'walk'); p.sched = true;   // a scheduled arrival (not a return or an event)
   p.loc = 'triage'; p.tArrive = G.t; G.triageQ.push(p.id); onArrive(p);
 }
 function spawnEms(extra) {
-  const c = pickCase(['e', 'b']);
+  const c = pickCase(['e', 'b'], extra ? 'surge' : 'ems');
   const dk = diverted(c);
   if (dk) { G.stats.diverted++; if (!extra) (G.divLog = G.divLog || []).push(c.k + '@' + Math.round(G.t)); note(`An ambulance went elsewhere (${DIVERTS[dk].name}): ${c.cc}`); return; }
   const p = makePatient(c, 'ems'); p.sched = !extra;
@@ -945,7 +957,7 @@ function spawnEms(extra) {
   note(`${p.unit} at the bay: ${ageSex(p)}, ${p.cc}`);
 }
 function spawnAlert() {
-  const c = pickCase(['a']);
+  const c = pickCase(['a'], 'alert');
   const dk = diverted(c);
   if (dk) { G.stats.diverted++; note(`A ${ALERTS[c.alert].name} alert went elsewhere (${DIVERTS[dk].name})`); return; }
   const p = makePatient(c, 'ems');
@@ -1231,6 +1243,7 @@ const EXAM = {
   chole: 'Tender under the right ribs. The breath catches when you press there.',
   hipfx: 'Leg shortened and turned outward. Cannot lift it. Foot pulse is good. Tripped on a rug. Did not pass out.',
   pna: 'Crackles at the right base. Breathing fast. Looks tired.',
+  pnalow: 'Crackles at the right base. Talking in full sentences, alert, eating and drinking.',
   copd: 'Wheezing, long breath out, neck muscles working. Drowsy.',
   chf: 'Crackles halfway up both lungs. Swollen legs. Neck veins up.',
   stone: 'Cannot hold still. Tender in the flank. Belly soft.',
@@ -1287,6 +1300,7 @@ const ORD_WHY = {
   chole: 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.',
   hipfx: 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.',
   pna: 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.',
+  pnalow: 'Chest X-ray finds it. The BUN from the labs feeds the CURB-65 score. Antibiotics; most go home on pills.',
   copd: 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP. A steroid is reasonable.',
   chf: 'ECG looks for a heart attack as the cause. X-ray shows the fluid. Labs check the heart and kidneys. BiPAP, nitroglycerin, and a water pill.',
   stone: 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.',
@@ -1334,7 +1348,7 @@ const FIND_PLAIN = {
   'WBC 15.8': 'white cells high: infection or inflammation', 'Inflamed appendix': 'appendicitis',
   'WBC 13.1, liver tests up': 'white cells high; the liver is irritated', 'Gallstones, thick gallbladder wall': 'an inflamed gallbladder',
   'Femoral neck fracture': 'a broken hip', 'Hgb 11.9': 'blood count a little low', 'WBC 17.2': 'white cells high: infection',
-  'Right lower lobe infiltrate': 'pneumonia low in the right lung', 'Hyperinflated, no pneumonia': 'over-full lungs, no infection',
+  'Right lower lobe infiltrate': 'pneumonia low in the right lung', 'WBC 13.1': 'white cells a little high: infection', 'Small right lower lobe infiltrate': 'a small pneumonia low in the right lung', 'Hyperinflated, no pneumonia': 'over-full lungs, no infection',
   'VBG pCO2 58': 'CO2 building up: not breathing enough out', 'Sinus tach, old Q waves': 'fast and regular; a scar from an old heart attack',
   'Pulmonary edema': 'fluid in the lungs', 'BNP 2,400': 'heart strain marker very high', '4 mm ureteral stone': 'a small stone; most pass on their own',
   'Femoral vein clot': 'a clot in the big thigh vein', 'Cavity in the upper lobe': 'a hole in the lung: classic for TB', 'WBC 11.4': 'white cells a little high',
@@ -1396,7 +1410,7 @@ const RADIO_PLAIN = {
 const DX_PLAIN = {
   'Contact dermatitis': 'A skin reaction to something touched', 'Medication refill': 'Ran out of a regular medicine', 'Dental abscess': 'A pocket of infection at a tooth', 'Strep throat': 'A bacterial throat infection',
   'Ankle sprain': 'Stretched ligaments, no break', 'Simple laceration': 'A cut that needs stitches', 'Urinary tract infection': 'A bladder infection', 'Gastroenteritis': 'A stomach bug',
-  'Appendicitis': 'An inflamed appendix. It comes out in surgery', 'Cholecystitis': 'An inflamed gallbladder', 'Hip fracture': 'A broken hip. It needs surgery', 'Pneumonia': 'A lung infection',
+  'Appendicitis': 'An inflamed appendix. It comes out in surgery', 'Cholecystitis': 'An inflamed gallbladder', 'Hip fracture': 'A broken hip. It needs surgery', 'Pneumonia, low risk': 'A lung infection mild enough to treat at home with pills', 'Pneumonia': 'A lung infection',
   'COPD flare': 'Lungs damaged by smoking, flaring up', 'Heart failure flare': 'A weak heart, with fluid backing up into the lungs', 'Kidney stone': 'A small stone stuck on its way out of the kidney',
   'Deep vein thrombosis': 'A blood clot in a leg vein', 'Migraine': 'A severe headache that comes in attacks', 'Suspected tuberculosis': 'A lung infection that spreads through the air',
   'Behavioral health emergency': 'A mental health crisis', 'Alcohol intoxication': 'Drunk, and watched until sober', 'Opioid overdose': 'Too much of an opioid. It slows the breathing', 'Cellulitis': 'A skin infection',
@@ -1537,7 +1551,7 @@ function harmCheck(p, k) {
 function mdDecide(pid, pick) {
   const p = pt(pid);
   if (!p || !mdMine(p) || p.dsp !== 'mddecide') return { ok: false, why: 'There’s no decision waiting for this patient' };
-  const want = p.dispo, S = G.stats.md;
+  let want = p.dispo; const S = G.stats.md;
   if (pick === 'home') {
     if (want === 'home') { S.dispoRight++; care(12, 'dispo', p); }
     else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; mm(65, `${p.name} went home with ${(/^[A-Z][a-z]/.test(p.dx) ? p.dx.charAt(0).toLowerCase() + p.dx.slice(1) : p.dx)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
@@ -1545,9 +1559,10 @@ function mdDecide(pid, pick) {
     return { ok: true, msg: `${label(p)} is going home once treatment is done.` };
   }
   if (pick === 'transfer') {
+    if (want === 'icu' && G.beds && G.beds.icu.used >= UNITS.icu.cap) { p.txNeed = 'icu'; p.needCC = true; p.txTo = 'a hospital with an open ICU bed'; p.dispo = 'transfer'; want = 'transfer'; }   // v0.26: no ICU bed here, so they can't stay
     if (want !== 'transfer') { S.dispoWrong++; care(-10, 'dispo', p); return { ok: false, why: `The receiving hospital declined: ${p.name} can be cared for here.` }; }
     S.dispoRight++; care(12, 'dispo', p); p.mdPick = 'transfer'; p.dsp = 'readytx';
-    return { ok: true, msg: `Transfer to ${p.txTo}. The charge nurse calls the transfer center and books the ambulance.` };
+    return { ok: true, msg: `Transfer to ${p.txTo}. Find a hospital that can take them.` };
   }
   return { ok: false, why: 'Pick home, a consult, or a transfer' };
 }
@@ -1743,6 +1758,10 @@ function treatDone(p, key) {
   const it = p.treat[key]; if (!it) return;
   it.st = 'done'; it.tDone = G.t;
   harmCheck(p, key);
+  if (key === 'intub' && p.hardAirway && !G.train && !G.pre) {   // v0.26: a hard airway goes better with anesthesia in the room
+    if (helpHere(p, 'anes')) note(`${label(p)}: anesthesia got the tube on the first pass`);
+    else if (chance(0.4)) { care(-12, 'harm', p); mm(45, `${p.name}’s oxygen dropped into the 70s during a hard intubation`, 'A difficult airway, and nobody called anesthesia', true); toast(`${p.name} desaturated during a hard intubation. Anesthesia could have helped.`, 'bad'); }
+  }
   if (key === 'abx') goalHit(p, 'abx60');
   if (key === 'tnk') goalHit(p, 'dtn60');
   if (key === 'mtp') { p.shock = false; note(`${label(p)}: massive transfusion running, pressure coming up`); }
@@ -1872,23 +1891,176 @@ function tpTick(dt) {
   }
 }
 
-/* ---------- interfacility ambulances ---------- */
+/* ---------- interfacility transport (v0.26: five levels) ---------- */
 const IFT = {
-  als: { name: 'ALS ambulance', short: 'ALS', eta: [30, 50] },
-  cct: { name: 'Critical care transport', short: 'CCT', eta: [45, 80] },
-  air: { name: 'Helicopter', short: 'Air', eta: [20, 30] },
+  wc: { name: 'Wheelchair van', short: 'Van', eta: [15, 30], lv: 0, what: 'Sits up, walks, needs no care on the way' },
+  bls: { name: 'BLS ambulance', short: 'BLS', eta: [20, 40], lv: 1, what: 'EMTs: a stretcher, oxygen, no monitor or IV drugs' },
+  als: { name: 'ALS ambulance', short: 'ALS', eta: [30, 50], lv: 2, what: 'Paramedics: a monitor, IV drugs, an airway' },
+  cct: { name: 'Critical care ground', short: 'CCT', eta: [45, 80], lv: 3, what: 'A nurse or medic team for drips, a vent, ICU care' },
+  air: { name: 'Critical care flight', short: 'Flight', eta: [20, 30], lv: 3, what: 'ICU care at speed, when time is the problem' },
 };
+const IFT_LV = ['wc', 'bls', 'als', 'cct'];
+/* v0.26: the hospitals around us: what each can do and how long the trip takes (minutes by ground and by air). */
+const HOSPS = [
+  { k: 'valley', name: 'Valley Community Hospital', short: 'Valley', caps: ['icu', 'pci'], gnd: 18, air: null },
+  { k: 'heart', name: 'Riverside Heart Institute', short: 'Riverside', caps: ['pci', 'stroke', 'icu'], gnd: 24, air: 9 },
+  { k: 'metro', name: 'Metro Trauma Center', short: 'Metro', caps: ['trauma', 'neuro', 'burn', 'pci', 'icu'], gnd: 38, air: 13 },
+  { k: 'univ', name: 'University Medical Center', short: 'University', caps: ['stroke', 'pci', 'trauma', 'neuro', 'picu', 'icu', 'ob'], gnd: 48, air: 16 },
+  { k: 'kids', name: 'Children’s Hospital', short: 'Children’s', caps: ['picu', 'peds'], gnd: 55, air: 18 },
+  { k: 'lake', name: 'Lakeview Behavioral Health', short: 'Lakeview', caps: ['psych'], gnd: 30, air: null },
+];
+const CAP_NAME = { pci: 'Cath lab', stroke: 'Stroke clot removal', trauma: 'Level I trauma', neuro: 'Neurosurgery', burn: 'Burn center', picu: 'Pediatric ICU', peds: 'Kids’ floor', icu: 'Adult ICU', ob: 'Labor and delivery', psych: 'Psych beds' };
+const TX_NEED = { lvo: 'stroke', rsv: 'picu', burn: 'burn' };
+const TX_FAST = new Set(['stroke', 'pci', 'trauma', 'burn']);
+function txNeedOf(p) { return p.txNeed || TX_NEED[p.ck] || 'icu'; }
+function iftNeed(p) {   // the least crew that can safely take them
+  const c = CASES.find(x => x.k === p.ck) || {};
+  if (p.needCC || c.ift === 'cct' || txNeedOf(p) === 'icu' || p.arrest || p.crash) return 3;
+  if (txNeedOf(p) === 'psych') return 1;
+  return 2;
+}
+const txFast = p => TX_FAST.has(txNeedOf(p));
+const crewOf = p => (p.iftLevel === 'air' ? 'flight' : IFT[p.iftLevel].short);
+/* v0.26: the beds upstairs. A bed opens when someone upstairs goes home; direct admissions from clinics and the OR want them too. */
+const UNITS = {
+  icu: { name: 'ICU', cap: 10, fill: 9, out: 100, what: 'Vents, drips, the sickest' },
+  step: { name: 'Step-down', cap: 8, fill: 7, out: 85, what: 'Sick but not ICU sick' },
+  tele: { name: 'Telemetry', cap: 16, fill: 15, out: 55, what: 'Heart monitors: chest pain, fainting, A-fib' },
+  med: { name: 'Med-surg', cap: 28, fill: 26, out: 32, what: 'The general floor' },
+  bh: { name: 'Psych', cap: 6, fill: 6, out: 190, what: 'Mental health beds' },
+};
+function unitOf(p) {
+  if (p.dispo === 'icu') return 'icu';
+  if (p.dispo === 'bh') return 'bh';
+  if (p.con === 'cards' || p.gray) return 'tele';
+  return p.esi <= 2 ? 'step' : 'med';
+}
+/* v0.26: weather. It changes who comes in, how fast ambulances drive, and whether the helicopters fly. */
+const WX = {
+  clear: { name: 'Clear', blurb: 'A normal day.' },
+  rain: { name: 'Rain', blurb: 'More crashes. Ground ambulances a little slower.', gnd: 1.15, abort: 0.15, mix: { mvc: 1.5, moto: 0.6 } },
+  snow: { name: 'Snow and ice', blurb: 'Falls and crashes. Roads slow. Fewer walk-ins.', gnd: 1.5, abort: 0.3, walk: 0.85, mix: { hipfx: 1.8, tfall: 1.8, mvc: 1.6, moto: 0.3 } },
+  fog: { name: 'Fog', blurb: 'No helicopters until it lifts mid-morning.', gnd: 1.1, air: [[-1e9, 210]] },
+  storm: { name: 'Thunderstorms', blurb: 'Helicopters grounded while storms pass.', gnd: 1.2, abort: 0.25, mix: { mvc: 1.3 } },
+};
+const wxOf = () => WX[(G && G.wx) || 'clear'] || WX.clear;
+function wxGrounded() { return G.mods.airWx > G.t || (G.wxAir || []).some(([a, b]) => G.t >= a && G.t < b); }
+/* v0.26: help from upstairs for procedures. */
+const HELP = {
+  anes: { name: 'Anesthesia', short: 'AN', doc: 'Dr. Reyes-Kim', what: 'A hard airway: they intubate with you', for: ['intub'] },
+  icu: { name: 'Critical care', short: 'CC', doc: 'Dr. Okonjo', what: 'Shock: lines, pressors, the vent. They take the ICU bed request.', for: ['pressor', 'vent', 'intub'] },
+};
+const HARD_AIRWAY = new Set(['burn', 'anaph']);
+const HELP_STAY = 15;
 function bookIFT(pid, level) {
   const p = pt(pid), L = IFT[level];
   if (!p || p.dsp !== 'txok') return { ok: false, why: 'The receiving hospital hasn’t accepted yet' };
   if (!L) return { ok: false, why: 'Pick a service' };
-  if (level === 'air' && G.mods.airWx > G.t) return { ok: false, why: 'Helicopters are grounded for weather' };
+  const H = HOSPS.find(h => h.k === p.txHosp);
+  if (level === 'air' && wxGrounded()) return { ok: false, why: 'Helicopters are grounded for weather' };
+  if (level === 'air' && H && !H.air) return { ok: false, why: `${H.short} has no helipad. Send them by ground.` };
   let eta = randi(L.eta[0], L.eta[1]);
-  if (level !== 'air' && G.mods.iftSlow > G.t) eta += 30;
-  p.dsp = 'iftwait'; p.iftLevel = level; p.due = G.t + eta; p.airAbort = level === 'air' && chance(0.2);
-  if (!G.pre) G.stats.ift[level]++;
-  return { ok: true, msg: `${L.name} booked for ${label(p)}, about ${eta} min out. The patient holds the room until the crew arrives.` };
+  if (level !== 'air') { if (G.mods.iftSlow > G.t) eta += 30; eta = Math.round(eta * (wxOf().gnd || 1)); }
+  p.dsp = 'iftwait'; p.iftLevel = level; p.due = G.t + eta; p.airAbort = level === 'air' && chance(wxOf().abort || 0.06); p.iftT0 = null; p.iftRep = null;
+  if (!G.pre) G.stats.ift[level] = (G.stats.ift[level] || 0) + 1;
+  // v0.26: the right crew for the patient. Too little and they refuse at the bedside; too much ties up a scarce unit.
+  const need = iftNeed(p); let why = '';
+  p.iftMiss = L.lv < need;
+  if (!p.iftMiss) {
+    if (L.lv > need) { care(-3 * (L.lv - need), 'admin', p); why = ` More crew than ${p.name} needs: that unit can’t run a sicker call.`; }
+    else care(3, 'transfer', p);
+    if (level === 'air') {
+      if (!txFast(p)) { care(-6, 'admin', p); why = ' A flight for a patient who isn’t time-critical is expensive and risky.'; }
+      else if (H && H.gnd >= 30) { care(5, 'dispo', p); why = ` Flight saves about ${H.gnd - H.air} min for a time-critical patient.`; }
+    } else if (txFast(p) && H && H.air && H.gnd >= 40 && !wxGrounded()) why = ` By ground it’s ${H.gnd} min; a flight would be ${H.air}.`;
+  }
+  return { ok: true, msg: `${L.name} booked for ${label(p)}, about ${eta} min out.${why}` };
 }
+/* v0.26: the doctor calls a hospital to accept the patient. */
+function callHosp(pid, hk) {
+  const p = pt(pid), H = HOSPS.find(h => h.k === hk);
+  if (!p || p.dsp !== 'readytx') return { ok: false, why: 'Not ready for transfer yet' };
+  if (!H) return { ok: false, why: 'Pick a hospital' };
+  if ((p.txNo || []).includes(hk)) return { ok: false, why: `${H.short} already said no` };
+  const need = txNeedOf(p), st = G.hosp && G.hosp[hk];
+  p.txYes = !H.caps.includes(need) ? 'cap' : st && st.full > G.t ? 'full' : !G.train && chance(0.1) ? 'busy' : 'yes';
+  p.dsp = 'txcall'; p.txHosp = hk; p.due = G.t + randi(5, 12); goalHit(p, 'tx45');
+  return { ok: true, msg: `Calling ${H.name} to accept ${label(p)}` };
+}
+function bestHosp(p) {
+  const need = txNeedOf(p), no = p.txNo || [];
+  const ok = HOSPS.filter(h => h.caps.includes(need) && !no.includes(h.k) && !(G.hosp && G.hosp[h.k] && G.hosp[h.k].full > G.t));
+  return ok.sort((a, b) => a.gnd - b.gnd)[0] || HOSPS.filter(h => h.caps.includes(need) && !no.includes(h.k))[0] || null;
+}
+/* v0.26: report to the transport crew. The doctor gives it on their own patients; otherwise the provider does it. */
+function giveReport(pid) {
+  const p = pt(pid);
+  if (!p || p.dsp !== 'iftreport') return { ok: false, why: 'No crew is waiting for report' };
+  if (p.iftRep != null) return { ok: false, why: 'Report is done. They’re packaging.' };
+  p.iftRep = G.t; if (p.iftNag == null) care(2, 'dispo', p);
+  return { ok: true, msg: `Report given to the ${crewOf(p)} crew. They’re packaging ${p.name} for the trip.` };
+}
+/* v0.26: a patient who can’t stay: no bed of the kind they need, so they go to a hospital that has one. */
+function txInstead(pid) {
+  const p = pt(pid);
+  if (!p || p.dsp !== 'board' || !p.bedU || p.bedGot) return { ok: false, why: 'Only an admitted patient still waiting for a bed can be transferred instead' };
+  if (G.mode === 'md' && !mdMine(p)) return { ok: false, why: 'That’s another doctor’s patient' };
+  const u = UNITS[p.bedU], b = G.beds[p.bedU];
+  if (!['icu', 'step', 'bh'].includes(p.bedU)) return { ok: false, why: `${u.name} beds turn over fast. Wait for one.` };
+  if (b.used < u.cap) return { ok: false, why: `The ${u.name} has a bed. Wait for it.` };
+  p.dispo = 'transfer'; p.txNeed = p.bedU === 'bh' ? 'psych' : 'icu'; p.needCC = p.bedU === 'icu'; p.txInst = p.bedU;
+  p.txTo = p.bedU === 'bh' ? 'a psych hospital' : `a hospital with an open ${u.name} bed`; p.dsp = 'readytx'; p.mdPick = 'transfer';
+  care(4, 'flow', p); if (!G.pre) G.stats.txInstead = (G.stats.txInstead || 0) + 1;
+  return { ok: true, msg: `${label(p)} can’t stay: no ${u.name} bed. Find a hospital that has one.` };
+}
+/* v0.26: call anesthesia or critical care to the bedside. */
+function helpCall(pid, k) {
+  const p = pt(pid), H = HELP[k];
+  if (!p || !H) return { ok: false, why: 'Pick who to call' };
+  if (p.loc !== 'room') return { ok: false, why: 'Put the patient in a room first' };
+  if (p.help && p.help.st !== 'done') return { ok: false, why: `${HELP[p.help.k].name} is already coming` };
+  p.help = { k, st: 'req', due: G.t + randi(6, 12), t0: G.t };
+  const useful = H.for.some(x => p.tr.includes(x) || (p.treat[x] && p.treat[x].st !== 'done')) || (k === 'icu' && p.dispo === 'icu');
+  if (!useful) { care(-4, 'admin', p); p.help.waste = true; }
+  return { ok: true, msg: `${H.name} paged for ${label(p)}. ${H.doc} is coming down.` };
+}
+const helpHere = (p, k) => !!(p.help && p.help.k === k && (p.help.st === 'here' || p.help.st === 'done'));
+function helpTick() {
+  for (const p of active()) {
+    const h = p.help; if (!h) continue;
+    if (h.st === 'req' && G.t >= h.due) {
+      h.st = 'here'; h.tVisit = p.loc === 'room' ? G.t : null; const H = HELP[h.k];
+      if (!h.waste) { care(p.hardAirway && h.k === 'anes' && !(p.treat.intub && p.treat.intub.st === 'done') ? 6 : 3, 'dispo', p); if (h.k === 'icu') p.bedPri = true; }
+      note(`${H.doc} (${H.name}) is at the bedside with ${label(p)}${h.waste ? '. Nothing for them to do here' : ''}`, h.waste ? 'bad' : undefined);
+    } else if (h.st === 'here') { if (h.tVisit == null && p.loc === 'room') h.tVisit = G.t; if (h.tVisit != null && G.t - h.tVisit >= HELP_STAY) h.st = 'done'; }
+  }
+}
+/* v0.26: the beds upstairs. */
+function bedInit() {
+  G.beds = {}; for (const k in UNITS) G.beds[k] = { used: G.train ? Math.max(0, UNITS[k].cap - 4) : UNITS[k].fill, next: G.t + randi(5, UNITS[k].out) };   // Orientation has room upstairs
+  G.hosp = {}; for (const h of HOSPS) G.hosp[h.k] = { full: !G.train && chance(0.15) ? randi(60, 240) : -1e9 };
+}
+function bedOut(k) {   // how long until the next person upstairs goes home: few before 10:00, most around midday
+  const L = LEVELS[G.level], t = G.t, tod = t < 180 ? 1.6 : t < 540 ? 0.8 : 1.1;
+  return UNITS[k].out * L.board * (G.scen === 'board' ? 1.6 : 1) * tod * (0.6 + rnd() * 0.8);
+}
+function bedGive(p) {
+  const b = G.beds[p.bedU]; b.used++; p.bedGot = true; p.due = G.t + randi(8, 18);
+  note(`${UNITS[p.bedU].name} bed assigned for ${label(p)}. EVS is turning it over.`);
+}
+function bedTick() {
+  if (!G.beds) bedInit();
+  for (const k in UNITS) {
+    const u = UNITS[k], b = G.beds[k];
+    if (G.t >= b.next) { b.next = G.t + bedOut(k); if (b.used > 0) b.used--; if (b.used < u.cap && chance(0.35)) b.used++; }   // a direct admission can take the open bed first
+    while (b.used < u.cap) {
+      const w = active().filter(p => p.dsp === 'board' && p.bedU === k && !p.bedGot).sort((a, x) => (x.bedPri ? 1 : 0) - (a.bedPri ? 1 : 0) || a.tBoard - x.tBoard)[0];
+      if (!w) break; bedGive(w);
+    }
+  }
+  for (const h of HOSPS) { const st = G.hosp[h.k]; if (st.full < G.t && G.t > 0 && !G.train && chance(0.0015)) st.full = G.t + randi(60, 180); }
+}
+const bedWait = k => active().filter(p => p.dsp === 'board' && p.bedU === k && !p.bedGot).length;
 
 /* ---------- patient care techs ---------- */
 function pctItems(sitSlots) {
@@ -2245,7 +2417,7 @@ function checkDispo(p) {
     if (p.ev !== 'done' || !p.dxK || p.arrest || p.ord !== 'signed' || !allWorkDone(p)) return;
     if (p.mdPick !== 'transfer' && ((p.dispo === 'cath' && outActive('cath')) || (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')))) {
       const cath = p.dispo === 'cath';
-      p.dispo = 'transfer'; p.txTo = cath ? 'another hospital with a cath lab' : 'another trauma center'; if (!cath) p.needCC = true; else delete p.goals.d2b90;
+      p.dispo = 'transfer'; p.txTo = cath ? 'another hospital with a cath lab' : 'another trauma center'; p.txNeed = cath ? 'pci' : 'trauma'; if (!cath) p.needCC = true; else delete p.goals.d2b90;
       p.mdPick = 'transfer'; p.dsp = 'readytx';
       note(`${label(p)} needs ${cath ? 'a cath lab' : 'an OR'} and ours is down. The charge nurse is calling the transfer center.`, 'bad');
       return;
@@ -2265,8 +2437,8 @@ function checkDispo(p) {
   if (p.ev !== 'done' || !p.dxK || p.arrest || p.reg !== 'done') return;
   if (p.cosign === 'need' || p.cosign === 'wait') return;
   if (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done')) return;
-  if (p.dispo === 'cath' && outActive('cath')) { p.dispo = 'transfer'; p.txTo = 'another hospital with a cath lab'; delete p.goals.d2b90; note(`${label(p)} needs a cath lab and ours is down. Transfer them.`, 'bad'); }
-  if (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')) { p.dispo = 'transfer'; p.txTo = 'another trauma center'; p.needCC = true; note(`${label(p)} needs an OR and there isn't one. Transfer them.`, 'bad'); }
+  if (p.dispo === 'cath' && outActive('cath')) { p.dispo = 'transfer'; p.txTo = 'another hospital with a cath lab'; p.txNeed = 'pci'; delete p.goals.d2b90; note(`${label(p)} needs a cath lab and ours is down. Transfer them.`, 'bad'); }
+  if (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')) { p.dispo = 'transfer'; p.txTo = 'another trauma center'; p.txNeed = 'trauma'; p.needCC = true; note(`${label(p)} needs an OR and there isn't one. Transfer them.`, 'bad'); }
   // Transfers get called in as soon as the diagnosis is clear. Treatment keeps going while the crew drives in.
   if (p.dispo === 'transfer') { p.dsp = 'readytx'; return; }
   if (p.con && p.consult.st !== 'here') return;
@@ -2284,9 +2456,11 @@ function setDispo(p) {
   else if (p.dispo === 'transfer') p.dsp = 'readytx';
   else if (p.dispo === 'obs') obsAdmit(p);
   else if (p.dispo === 'admit' || p.dispo === 'icu' || p.dispo === 'bh') {
-    const base = p.dispo === 'icu' ? randi(30, 90) : p.dispo === 'bh' ? randi(100, 200) : randi(45, 110);
-    p.dsp = 'board'; p.due = G.t + base * L.board * (G.scen === 'board' ? 1.6 : 1); p.tBoard = G.t;
-    note(`${label(p)} admitted. Waiting on an inpatient bed.`);
+    if (!G.beds) bedInit();
+    p.dsp = 'board'; p.due = 1e9; p.tBoard = G.t; p.bedU = unitOf(p); p.bedGot = false;
+    const u = UNITS[p.bedU], b = G.beds[p.bedU];
+    if (b.used < u.cap) bedGive(p);
+    else note(`${label(p)} admitted to ${u.name}. ${u.name} is full (${b.used}/${u.cap}): they wait for a bed.`);
   } else if (p.dispo === 'or' || p.dispo === 'cath') { p.dsp = 'toproc'; p.due = G.t + 4; }
 }
 /* Gray zone: the player makes the home / observation / admit call. */
@@ -2327,7 +2501,7 @@ function fullCapacity() {
   const list = inRooms().filter(p => p.dsp === 'board' && p.dispo === 'admit' && !p.obsWait).sort((a, b) => a.tBoard - b.tBoard);
   if (list.length < 3) return { ok: false, why: 'It needs at least 3 admitted floor patients waiting for beds' };
   const n = Math.min(4, list.length);
-  for (const p of list.slice(0, n)) { p.due = G.t; p.fcp = true; }
+  for (const p of list.slice(0, n)) { p.due = G.t; p.fcp = true; p.bedGot = true; }
   G.fcp.last = G.t; G.stats.fcp++; care(-5, 'admin');
   G.spec.hosp.mood = Math.min(G.spec.hosp.mood, -1); G.spec.hosp.at = G.t;
   return { ok: true, msg: `Full-capacity protocol: ${n} admitted patients go to inpatient hallway beds now. Their nurses still have to call report. The hospitalists aren’t thrilled.` };
@@ -2335,21 +2509,35 @@ function fullCapacity() {
 function dspTimers(p) {
   if (p.dsp === 'board' && G.t >= p.due) { p.dsp = 'callrep'; p.tBed = G.t; note(`Bed assigned upstairs for ${label(p)}. Their nurse needs to call report.`); }
   else if (p.dsp === 'toproc' && G.t >= p.due) leave(p, p.dispo);
-  else if (p.dsp === 'txcall' && G.t >= p.due) { p.dsp = 'txok'; note(`${cap(p.txTo)} accepted ${label(p)}. Book an interfacility ambulance.`); }
+  else if (p.dsp === 'txcall' && G.t >= p.due) {
+    const H = HOSPS.find(h => h.k === p.txHosp);
+    if (!H || !p.txYes || p.txYes === 'yes') { if (H) p.txTo = H.name; p.dsp = 'txok'; note(`${cap(p.txTo)} accepted ${label(p)}. Pick the transport.`); }
+    else {
+      (p.txNo = p.txNo || []).push(H.k); p.dsp = 'readytx';
+      const why = p.txYes === 'cap' ? `doesn’t have ${CAP_NAME[txNeedOf(p)].toLowerCase()}` : p.txYes === 'full' ? 'is full and not taking transfers' : 'has no bed right now';
+      if (p.txYes !== 'busy') care(-3, 'transfer', p);
+      toast(`${H.short} declined ${label(p)}: it ${why}. Call another hospital.`, 'bad');
+    }
+  }
   else if (p.dsp === 'iftwait' && p.airAbort && G.t >= p.due - 8) { p.dsp = 'txok'; p.airAbort = false; G.stats.airAbort++; toast(`The helicopter for ${label(p)} turned back for weather. Book ground transport.`, 'bad'); }
   else if (p.dsp === 'iftwait' && G.t >= p.due) {
-    if (p.needCC && p.iftLevel === 'als') { p.dsp = 'txok'; care(-10, 'transfer'); G.stats.iftRefused++; toast(`The ALS crew can't take ${label(p)}: this patient needs critical care transport. Book again.`, 'bad'); }
-    else { p.dsp = 'iftreport'; p.due = G.t + 5; note(`${IFT[p.iftLevel].name} crew is at the bedside in ${label(p)}, taking report`); }
+    if (p.iftMiss || (p.needCC && IFT[p.iftLevel].lv < 3)) { p.dsp = 'txok'; p.iftMiss = false; care(-10, 'transfer'); G.stats.iftRefused++; toast(`The ${crewOf(p)} crew can't take ${label(p)}: this patient needs ${IFT[IFT_LV[iftNeed(p)]].name.toLowerCase()} or more. Book again.`, 'bad'); }
+    else { p.dsp = 'iftreport'; p.iftT0 = G.t; p.iftRep = null; p.due = 1e9; note(`${IFT[p.iftLevel].name} crew is at the bedside in ${label(p)}. ${mdMine(p) ? 'Give them report.' : 'Taking report.'}`); }
   }
-  else if (p.dsp === 'iftreport' && G.t >= p.due) {
+  else if (p.dsp === 'iftreport' && p.iftRep == null) {
+    if (p.iftT0 == null) p.iftT0 = G.t;
+    if (!mdMine(p) && G.t - p.iftT0 >= 2) p.iftRep = G.t;
+    else if (G.t - p.iftT0 >= 12 && p.iftNag == null) { p.iftNag = G.t; care(-4, 'transfer', p); toast(`The ${crewOf(p)} crew in ${label(p)} is still waiting for your report`, 'bad'); }
+  }
+  else if (p.dsp === 'iftreport' && G.t >= p.iftRep + 6) {
     const owed = p.tr.filter(k => !p.treat[k] || p.treat[k].st !== 'done').map(k => TREAT[k].label.toLowerCase()).join(', ');
     if (treatsDone(p)) leave(p, 'tx');
-    else if (p.crewWait == null) { p.crewWait = G.t; note(`The ${IFT[p.iftLevel].short} crew in ${label(p)} is waiting on ${owed} before they go`, 'bad'); }
+    else if (p.crewWait == null) { p.crewWait = G.t; note(`The ${crewOf(p)} crew in ${label(p)} is waiting on ${owed} before they go`, 'bad'); }
     else if (G.t - p.crewWait > 20) {
       // A crew can't hold a room forever. They go, and the receiving team finishes the job.
       care(-10, 'transfer');
-      mm(30, `The ${IFT[p.iftLevel].short} crew left with ${p.name} before ${owed} was done`, 'Treatment was still pending when the crew was ready to go');
-      toast(`The ${IFT[p.iftLevel].short} crew couldn't wait any longer and left with ${label(p)} (${owed} not done)`, 'bad');
+      mm(30, `The ${crewOf(p)} crew left with ${p.name} before ${owed} was done`, 'Treatment was still pending when the crew was ready to go');
+      toast(`The ${crewOf(p)} crew couldn't wait any longer and left with ${label(p)} (${owed} not done)`, 'bad');
       leave(p, 'tx');
     }
   }
@@ -2398,25 +2586,27 @@ function ucTick() {
 }
 function clerkDone(t) {
   const p = t.pid ? pt(t.pid) : null;
-  if (t.k === 'ride' && p && p.dsp === 'rehab') { p.dsp = 'rideeta'; p.due = G.t + randi(25, 40); toast(`Ride to rehab booked for ${label(p)}: here in about ${Math.round(p.due - G.t)} min`, 'info', true); }
+  if (t.k === 'ride' && p && p.dsp === 'rehab') { p.dsp = 'rideeta'; p.due = G.t + Math.round(randi(25, 40) * (wxOf().gnd || 1)); toast(`Ride to rehab booked for ${label(p)}: here in about ${Math.round(p.due - G.t)} min`, 'info', true); }
   if (t.k === 'family') {
     const list = active().filter(x => ['room', 'waiting', 'wall'].includes(x.loc)).sort((a, b) => a.px - b.px).slice(0, 3);
     for (const x of list) x.px = Math.min(100, x.px + 7);
     if (list.length) toast(`Families updated: ${list.map(x => x.name).join(', ')}`, 'good', true);
   }
 }
-function requestTransfer(pid) {
+function requestTransfer(pid) {   // the transfer center picks the nearest hospital that can take them
   const p = pt(pid); if (!p) return { ok: false, why: 'No patient' };
   if (p.dsp !== 'readytx') return { ok: false, why: 'Not ready for transfer yet' };
-  p.dsp = 'txcall'; p.due = G.t + randi(8, 15); goalHit(p, 'tx45');
-  return { ok: true, msg: `Transfer center is calling ${p.txTo} for ${label(p)}` };
+  const H = bestHosp(p); if (!H) return { ok: false, why: 'No hospital nearby can take them' };
+  return callHosp(pid, H.k);
 }
 function escalate(pid) {
   const p = pt(pid);
   if (!p || p.dsp !== 'board') return { ok: false, why: 'Only admitted patients waiting for a bed can be escalated' };
   if (p.obsWait) return { ok: false, why: 'The obs unit is full. Its next discharge frees a bed.' };
   if (G.house.esc <= 0) return { ok: false, why: 'The House Supervisor is out of favors for this shift' };
-  G.house.esc--; p.due = G.t + (p.due - G.t) * 0.45;
+  G.house.esc--;
+  if (p.bedU && !p.bedGot) { p.bedGot = true; p.due = G.t + randi(10, 20); return { ok: true, msg: `House Sup pulled a discharge forward: a ${UNITS[p.bedU].name} bed for ${label(p)} (${G.house.esc} favors left)` }; }
+  p.due = G.t + (p.due - G.t) * 0.45;
   return { ok: true, msg: `House Sup is pushing a bed for ${label(p)} (${G.house.esc} favors left)` };
 }
 function toggleStat(pid) {
@@ -2646,6 +2836,7 @@ function minuteTick() {
   const t = G.t;
   let amaCand = null;
   obsTick();
+  bedTick();
   regionTick();
   for (const p of active()) {
     if (p.loc === 'triage') {
@@ -3532,8 +3723,8 @@ function botStep(o) {
     }
     if (p.loc !== 'room') continue;
     if (p.dsp === 'ready') add(3, () => (p.rehab ? dischargeRehab(p.id) : discharge(p.id)).ok);   // the bot reads the exam
-    if (p.dsp === 'readytx') add(3.2, () => requestTransfer(p.id).ok);
-    if (p.dsp === 'txok' && o.ift !== false) add(3.3, () => bookIFT(p.id, p.needCC ? 'cct' : 'als').ok);
+    if (p.dsp === 'readytx' && !mdMine(p)) add(3.2, () => requestTransfer(p.id).ok);
+    if (p.dsp === 'txok' && o.ift !== false && !mdMine(p)) add(3.3, () => bookIFT(p.id, IFT_LV[iftNeed(p)]).ok);
     if (p.dsp === 'bedready' && o.up !== false) add(3.4, () => {
       if (p.dsp !== 'bedready') return false;
       const tp = G.staff.filter(s => s.role === 'tp' && s.st === 'on').sort((a, x) => load(a) - load(x))[0];
@@ -3636,7 +3827,7 @@ const OC = {
   CONS_VISIT, place, move, evsTap, assign, consult, discharge, dischargeRehab, ucDo, clerkOpen, CLERK, RIDE, requestTransfer, escalate, toggleStat,
   boxNotify, boxTake, boxDecide, chooseCard, sendBreak, toggleZone, setZoneClosed, callAgency, orderPizza, setYellow, setDivert, starsFor,
   setPit, activateMTP, releaseONeg, requestInterp, overrideRx,
-  register, triage, toWaiting, sendUp, bookIFT, IFT, emergent, DIVERTS, OUTAGES, outActive, justified,
+  register, triage, toWaiting, sendUp, bookIFT, IFT, IFT_LV, HOSPS, CAP_NAME, UNITS, WX, HELP, callHosp, giveReport, txInstead, helpCall, helpHere, txNeedOf, iftNeed, txFast, wxGrounded, wxOf, bedWait, emergent, DIVERTS, OUTAGES, outActive, justified,
   startOutage, sickEnough, looksSick, classCode, readCode, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,

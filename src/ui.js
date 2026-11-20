@@ -43,7 +43,7 @@ const intakeDone = p => p.loc === 'waiting' || p.loc === 'room' || (E.regQuick(p
 /* Who registration can take next: new arrivals, plus quick-registered patients who still need the full version. */
 const regable = p => p.loc !== 'enroute' && (p.reg === 'none' || (p.reg === 'quick' && (p.loc === 'room' || p.loc === 'waiting')));
 const hasHold = () => E.holdNurses().length > 0;
-const GRAY_GUIDE = { 'HEART score': '0 to 3 is low risk (home). 4 to 6 is moderate (observation). 7 to 10 is high (admit).', 'Canadian Syncope Risk Score': '0 or below is low risk (home). 1 to 3 is medium. 4 to 5 is high (observation). 6 and up is very high (admit).', 'ABCD2 score': '0 to 3 is low risk (home with fast follow-up). 4 to 5 is moderate (observation). 6 to 7 is high (admit or observation).' };
+const GRAY_GUIDE = { 'HEART score': '0 to 3 is low risk (home). 4 to 6 is moderate (observation). 7 to 10 is high (admit).', 'Canadian Syncope Risk Score': '0 or below is low risk (home). 1 to 3 is medium. 4 to 5 is high (observation). 6 and up is very high (admit).', 'ABCD2 score': '0 to 3 is low risk (home with fast follow-up). 4 to 5 is moderate (observation). 6 to 7 is high (admit or observation).', 'CURB-65': 'One point each: Confusion, Urea (BUN) over 19, Respiratory rate 30 or more, Blood pressure under 90/60, age 65 or more. 0 to 1 goes home on pills. 2 is observation or a short admission. 3 or more is admit, and think about the ICU.' };
 function istChip(lbl, st) { const k = st === 'done' ? 'done' : st === 'doing' ? 'doing' : st === 'q' ? 'q' : 'need'; return `<i class="ist ${k}">${k === 'need' ? 'NEEDS ' : ''}${lbl}${k === 'done' ? ' ✓' : k === 'doing' ? ' NOW' : k === 'q' ? ' IN LINE' : ''}</i>`; }   // needs it, in line for it, being done, done
 function intakeChips(p) { const reg = istChip('REG', E.regQuick(p) ? 'done' : p.reg); return p.loc === 'wall' ? istChip('REPORT', p.tri) + reg : reg + istChip('TRIAGE', p.tri); }   // on the wall, report comes first
 function alertTag(p) { return p.alertOn && p.alert ? `<i class="atag a-${p.alert}">${esc(E.ALERTS[p.alert].name)}</i>` : ''; }
@@ -366,6 +366,10 @@ function renderObjs(G) {
   if (G.region.susp > t) it.push(`<span class="ob bad">Region: no capacity alerts · <span data-cd="${G.region.susp}"></span></span>`);
   if (G.mods.noReport > t) it.push(`<span class="ob bad">Floors not taking report · <span data-cd="${G.mods.noReport}"></span></span>`);
   if (G.obsUnit.filled >= G.obsUnit.cap) it.push('<span class="ob warn">Obs unit full</span>');
+  if (G.beds) { const full = G.beds.icu.used >= E.UNITS.icu.cap, w = E.bedWait('icu'); it.push(`<button type="button" class="ob ${full ? 'warn' : 'beds'}" data-act="bedsOpen">Beds: ICU ${G.beds.icu.used}/${E.UNITS.icu.cap}${w ? ` · ${w} waiting` : ''}</button>`); }
+  if (U.view === 'map' && E.active().some(p => p.iftLevel === 'air' && ((p.dsp === 'iftwait' && p.due - t <= 3 && !p.airAbort) || p.dsp === 'iftreport'))) it.push('<button type="button" class="ob heli" data-act="watchPad">Helicopter on the pad · watch</button>');
+  if (G.wx && G.wx !== 'clear') it.push(`<span class="ob wx">${esc(E.WX[G.wx].name)}${E.wxGrounded() ? ' · no flights' : ''}</span>`);
+  else if (E.wxGrounded()) it.push('<span class="ob wx">No flights: weather</span>');
   if (G.mods.survey > t) it.push(`<span class="ob warn">Box audit · <span data-cd="${G.mods.survey}"></span></span>`);
   const el = $('#objs'); setH(el, it.join('')); el.hidden = !it.length;
 }
@@ -506,17 +510,17 @@ function nextStep(p, r, G) {
     case 'rehab': { const t = (G.clerk || []).find(x => x.k === 'ride' && x.pid === p.id); return t && t.by ? { t: 'Ride to rehab: calling', c: 'n-wait', i: 'phone' } : { t: 'Rehab: call the ride', c: 'n-act fl', i: 'phone' }; }
     case 'rideeta': return { t: `Ride to rehab <span data-cd="${p.due}"></span>`, c: 'n-wait', i: 'amb' };
     case 'ridehere': return { t: 'Rehab crew here', c: 'n-go', i: 'amb' };
-    case 'readytx': return { t: 'Request transfer', c: 'n-act fl', i: 'amb' };
-    case 'txcall': return { t: 'Transfer center…', c: 'n-wait', i: 'amb' };
+    case 'readytx': return MD() && !mine(p) ? { t: 'Transfer: charge nurse', c: 'n-wait', i: 'amb' } : { t: 'Transfer: find a hospital', c: 'n-act fl', i: 'amb' };
+    case 'txcall': { const H = E.HOSPS.find(h => h.k === p.txHosp); return { t: `Calling ${H ? esc(H.short) : 'transfer'}…`, c: 'n-wait', i: 'phone' }; }
     case 'decide': return { t: `${esc(p.gray.short || 'Risk')} ${p.gray.score}: your call`, c: 'n-act fl', i: 'decide' };
-    case 'board': return p.obsWait ? { t: 'Obs unit full', c: 'n-board', i: 'bed' } : { t: `${p.dispo === 'obs' ? 'Obs' : 'Admitted'} · bed <span data-cd="${p.due}"></span>`, c: 'n-board', i: 'bed' };
+    case 'board': return p.obsWait ? { t: 'Obs unit full', c: 'n-board', i: 'bed' } : p.bedU && !p.bedGot ? { t: `Waiting: ${E.UNITS[p.bedU].name} bed`, c: 'n-board', i: 'bed' } : { t: `${p.dispo === 'obs' ? 'Obs' : 'Admitted'} · bed <span data-cd="${p.due}"></span>`, c: 'n-board', i: 'bed' };
     case 'callrep': return { t: G.mods.noReport > G.t ? 'Floor won\'t take report' : 'Bed ready: nurse calls report', c: 'n-board', i: 'talk' };
     case 'reporting': return { t: 'Calling report', c: 'n-board', i: 'talk' };
     case 'bedready': return { t: 'Bed ready: send up', c: 'n-act fl', i: 'up' };
     case 'xportq': { const s = E.staff(p.xBy); return { t: `${s ? esc(s.short) : 'Transport'} taking them up`, c: 'n-board', i: 'up' }; }
-    case 'txok': return { t: 'Accepted: book ambulance', c: 'n-act fl', i: 'amb' };
+    case 'txok': return MD() && !mine(p) ? { t: 'Accepted: booking', c: 'n-wait', i: 'amb' } : { t: 'Accepted: pick transport', c: 'n-act fl', i: 'amb' };
     case 'iftwait': return { t: `${E.IFT[p.iftLevel].short} crew <span data-cd="${p.due}"></span>`, c: 'n-wait', i: 'amb' };
-    case 'iftreport': return p.crewWait != null && !E.treatsDone(p) ? { t: 'Crew waiting on treatment', c: 'n-warn', i: 'amb' } : { t: 'Crew taking report', c: 'n-wait', i: 'amb' };
+    case 'iftreport': return p.crewWait != null && !E.treatsDone(p) ? { t: 'Crew waiting on treatment', c: 'n-warn', i: 'amb' } : p.iftRep == null && MD() && mine(p) ? { t: 'Crew here: give report', c: 'n-act fl', i: 'talk' } : { t: p.iftRep == null ? 'Crew taking report' : 'Crew packaging', c: 'n-wait', i: 'amb' };
     case 'toproc': return { t: p.dispo === 'cath' ? 'To the cath lab' : 'To the OR', c: 'n-go', i: 'up' };
     case 'family': return { t: 'Family at bedside', c: 'n-wait', i: 'heart' };
     case 'morgue': case 'morguing': return { t: 'Morgue transport', c: 'n-wait', i: 'wait' };
@@ -529,6 +533,7 @@ function nextStep(p, r, G) {
   if (p.consult.st === 'req') return { t: `${E.SPECS[p.consult.spec].short} <span data-cd="${p.consult.due}"></span>`, c: 'n-wait', i: 'phone' };
   if (p.re === 'q' || p.re === 'doing') return { t: `${nm} rechecking`, c: 'n-wait', i: 'steth' };
   if (p.cosign === 'need' || p.cosign === 'wait') return { t: 'Attending co-sign', c: 'n-wait', i: 'pen' };
+  { const Gi = E.G.img, sc = ['ct', 'xr', 'mri'].find(m => Gi[m] && Gi[m].busy && Gi[m].busy.pid === p.id); if (sc) return { t: `At ${sc === 'xr' ? 'X-ray' : sc.toUpperCase()}`, c: 'n-wait', i: 'flask' }; }   // v0.26: away for a scan
   if (!p.dxK || (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done'))) return { t: 'Workup pending', c: 'n-wait', i: 'flask' };
   if (!E.treatsDone(p)) { const why = treatReason(p); return { t: why, c: /pharmacy|RT|Pressure too high/.test(why) ? 'n-warn' : 'n-wait', i: 'pill' }; }
   return { t: 'Wrapping up', c: 'n-wait', i: 'wait' };
@@ -675,7 +680,7 @@ function dispoText(p) {
   if (p.dsp === 'decide') return `Your call: home, observation, or admit (${esc(p.gray.tool)} ${p.gray.score})`;
   if (p.dsp === 'board' && p.obsWait) return 'Going to observation. The obs unit is full; next obs discharge frees a bed.';
   if (p.dsp === 'mddecide') return 'Your call: discharge, admit, or transfer';
-  const m = { callrep: G0().mods.noReport > G0().t ? 'Bed assigned. The floor is in shift change and won\'t take report yet.' : 'Bed assigned. Their nurse is calling report to the floor.', reporting: 'Their nurse is on the phone giving report', ready: 'Ready to go home', watch: `Treated. Being watched until ${E.clock(p.due)}: ${E.WATCH_WHY[p.ck] || 'not safe to go yet'}.`, dc: 'Discharge teaching (nurse)', dcing: 'Discharge teaching (nurse)', readytx: `Transfer to ${p.txTo}`, txcall: 'Transfer center is calling', txok: `${cap(p.txTo)} accepted. Book an interfacility ambulance.`, iftwait: `${p.iftLevel ? E.IFT[p.iftLevel].name : 'Ambulance'} arrives in <span data-cd="${p.due}"></span>`, iftreport: 'Interfacility crew taking report at the bedside', board: `${p.dispo === 'obs' ? 'Going to the observation unit' : `Admitted to ${{ admit: p.gray || p.con === 'cards' ? 'a monitored bed' : 'the floor', icu: 'the ICU', bh: 'the psych unit' }[p.dispo]}`} · bed in <span data-cd="${p.due}"></span>`, bedready: 'Bed ready upstairs. Send them with a transporter or a tech.', xportq: 'Transport is on the way to the room', toproc: p.dispo === 'cath' ? 'Going to the cath lab' : 'Going to the OR', family: 'Family at the bedside', morgue: 'Waiting for transport', morguing: 'Transport underway' };
+  const m = { callrep: G0().mods.noReport > G0().t ? 'Bed assigned. The floor is in shift change and won\'t take report yet.' : 'Bed assigned. Their nurse is calling report to the floor.', reporting: 'Their nurse is on the phone giving report', ready: 'Ready to go home', watch: `Treated. Being watched until ${E.clock(p.due)}: ${E.WATCH_WHY[p.ck] || 'not safe to go yet'}.`, dc: 'Discharge teaching (nurse)', dcing: 'Discharge teaching (nurse)', readytx: `Transfer to ${p.txTo}`, txcall: 'Calling a hospital to accept', txok: `${cap(p.txTo)} accepted. Pick the transport.`, iftwait: `${p.iftLevel ? E.IFT[p.iftLevel].name : 'Ambulance'} arrives in <span data-cd="${p.due}"></span>`, iftreport: p.iftRep == null ? 'Transport crew at the bedside, waiting for report' : 'Transport crew packaging them for the trip', board: `${p.dispo === 'obs' ? 'Going to the observation unit' : `Admitted to ${{ admit: p.gray || p.con === 'cards' ? 'a monitored bed' : 'the floor', icu: 'the ICU', bh: 'the psych unit' }[p.dispo]}`} · bed in <span data-cd="${p.due}"></span>`, bedready: 'Bed ready upstairs. Send them with a transporter or a tech.', xportq: 'Transport is on the way to the room', toproc: p.dispo === 'cath' ? 'Going to the cath lab' : 'Going to the OR', family: 'Family at the bedside', morgue: 'Waiting for transport', morguing: 'Transport underway' };
   return m[p.dsp] || 'Not decided yet';
 }
 function bloodText(p, k) {
@@ -754,7 +759,8 @@ function goalRow(p, k) {
   const v = p.goals[k], gl = E.GOALS[k];
   return `<div class="goal ${v === true ? 'ok' : v === false ? 'bad' : ''}"><span>${gl.label} under ${gl.lim} min</span><b>${v === null ? `<span data-cd="${p.tArrive + gl.lim}"></span> left` : v ? 'Met' : 'Missed'}</b></div>`;
 }
-function primary(p, G) {
+function primary(p, G) { return primary0(p, G) + helpBlock(p); }
+function primary0(p, G) {
   const mtpBtn = p.bleed === 'mtp' && !p.bb ? `<button type="button" class="big bad" data-act="mtp" data-arg="${p.id}">Activate massive transfusion</button>` : '';
   if ((p.loc === 'wall' || p.loc === 'triage') && !intakeDone(p)) return intakeBlock(p, G, mtpBtn);
   if (['wall', 'waiting', 'triage'].includes(p.loc)) return `<div class="prim">${mtpBtn}<button type="button" class="big act" data-act="placeSel" data-arg="${p.id}">Choose a room</button>${p.loc === 'wall' && ve(p) >= 3 && !p.alertOn ? `<button type="button" class="big" data-act="toWait" data-arg="${p.id}">Hand off to the waiting room</button>` : ''}${p.loc === 'waiting' ? recheckBlock(p, G) : ''}</div>`;
@@ -766,12 +772,11 @@ function primary(p, G) {
   if (p.dsp === 'rideeta') return `<p class="hint">Ride to rehab booked. The ambulance is here in <span data-cd="${p.due}"></span>.${E.roomOf(p).kind !== 'chair' ? ' They can wait in a chair to free the bed.' : ''}</p>`;
   if (p.dsp === 'ridehere') return '<p class="hint">The ambulance crew is here to take them to rehab.</p>';
   if (p.dsp === 'watch') return `<p class="hint">Not safe to go until <b>${E.clock(p.due)}</b>. A chair frees this room while they wait.</p><div class="prim"><button type="button" class="big" data-act="dc" data-arg="${p.id}">Discharge early (risky)</button></div>`;
-  if (p.dsp === 'readytx') return `<div class="prim"><button type="button" class="big act" data-act="tx" data-arg="${p.id}">Request transfer to ${esc(p.txTo)}</button></div>`;
+  if (['readytx', 'txcall', 'txok', 'iftreport'].includes(p.dsp)) return txBlock(p, G);
   if (p.dsp === 'decide') return grayBlock(p);
-  if (p.dsp === 'board') return p.obsWait ? '<p class="hint">The obs unit is full. The next obs discharge frees a bed for them.</p>' : `<div class="prim"><button type="button" class="big" data-act="esc" data-arg="${p.id}" ${G.house.esc ? '' : 'disabled'}>Push the House Supervisor for a bed (${G.house.esc} left)</button></div>`;
+  if (p.dsp === 'board') return boardBlock(p, G);
   if (p.dsp === 'callrep' || p.dsp === 'reporting') return `<p class="hint">Their nurse calls report to the floor, then you send them up.${hasHold() ? ' Your hold nurse has them.' : ''}${E.roomOf(p).kind === 'chair' ? ' They’re in a chair: move them to a bed if one opens.' : ''}</p>`;
   if (p.dsp === 'bedready') return `<div class="prim"><div class="prim-l">Bed ready upstairs. Who takes them?</div><div class="pgrid">${upButtons(p, G)}</div>${p.dispo === 'icu' ? '<p class="hint" style="margin:0">ICU patient: their nurse goes along for about 10 minutes.</p>' : ''}</div>`;
-  if (p.dsp === 'txok') return `<div class="prim"><div class="prim-l">${esc(cap(p.txTo))} accepted. Book the ambulance</div><div class="cgrid">${iftButtons(p, G)}</div><p class="hint" style="margin:0">ICU-level patients need critical care transport. The patient keeps the room until the crew arrives.</p></div>`;
   const regBlk = p.reg === 'none' ? `<div class="prim"><div class="prim-l">Register them at the bedside${p.bedFirst ? '' : ' before they leave the ED'}</div><div class="pgrid">${regButtons(p, G)}</div></div>` : '';
   if (E.needsProv(p)) return `<div class="prim"><div class="prim-l">Assign a provider</div><div class="pgrid">${provButtons(p, G)}</div></div>${regBlk}`;   // bedded first: the registrar is the other thing they need
   if (regBlk) return regBlk;
@@ -826,10 +831,62 @@ function upButtons(p, G) {
   return tps.map(s => { const n = s.q.length + (s.task ? 1 : 0); return staffBtn('sendUp', p.id, s, s.st !== 'on' ? stLabel(s) : `Transporter · ${n ? n + ' ahead' : 'free'}`, s.st !== 'on'); }).join('')
     + pcts.map(s => { const sit = s.task && s.task.kind === 'sit'; return staffBtn('sendUp', p.id, s, sit ? 'Sitting 1:1' : `Tech · ${s.task || s.q.length ? 'after this job' : 'free'}`, sit); }).join('');
 }
-function iftButtons(p, G) {
-  const opt = (k, note, dis) => `<button type="button" class="cbtn" data-act="ift" data-arg="${p.id}|${k}" ${dis ? 'disabled' : ''}><b>${E.IFT[k].name}</b><small>${E.IFT[k].eta[0]}–${E.IFT[k].eta[1]} min${G.mods.iftSlow > G.t && k !== 'air' ? ' (+30 now)' : ''} · ${note}</small></button>`;
-  const grounded = G.mods.airWx > G.t;
-  return opt('als', 'paramedic crew') + opt('cct', 'critical care crew') + opt('air', grounded ? 'grounded for weather' : 'fastest; weather can turn it back', grounded);
+function iftButtons(p, G) {   // v0.26: five levels of transport
+  const H = E.HOSPS.find(h => h.k === p.txHosp), gr = E.wxGrounded(), m = E.wxOf().gnd || 1, slow = G.mods.iftSlow > G.t ? 30 : 0;
+  return ['wc', 'bls', 'als', 'cct', 'air'].map(k => {
+    const L = E.IFT[k], air = k === 'air', noPad = air && H && !H.air, dis = air && (gr || noPad);
+    const a = air ? L.eta[0] : Math.round(L.eta[0] * m) + slow, b = air ? L.eta[1] : Math.round(L.eta[1] * m) + slow;
+    return `<button type="button" class="cbtn" data-act="ift" data-arg="${p.id}|${k}" ${dis ? 'disabled' : ''}><b>${L.name}</b><small>${gr && air ? 'Grounded for weather' : noPad ? 'No helipad there' : `${esc(L.what)} · here in ${a}–${b} min`}</small></button>`;
+  }).join('');
+}
+/* v0.26: a transfer, step by step: find a hospital, call it, pick the transport, give report. */
+function txBlock(p, G) {
+  const H = E.HOSPS.find(h => h.k === p.txHosp), mineTx = !MD() || mine(p);
+  if (p.dsp === 'readytx') return mineTx ? `<div class="prim"><div class="prim-l">Transfer: needs ${esc(E.CAP_NAME[E.txNeedOf(p)].toLowerCase())}</div><button type="button" class="big act" data-act="hospOpen" data-arg="${p.id}">Find a hospital…</button>${p.txNo && p.txNo.length ? `<p class="hint" style="margin:0">Said no: ${p.txNo.map(k => esc((E.HOSPS.find(h => h.k === k) || {}).short || k)).join(', ')}.</p>` : ''}</div>` : '<p class="hint">The charge nurse is finding a hospital.</p>';
+  if (p.dsp === 'txcall') return `<p class="hint">Calling ${H ? esc(H.name) : 'the transfer center'}. Their answer comes in <span data-cd="${p.due}"></span>.</p>`;
+  if (p.dsp === 'txok') return mineTx ? `<div class="prim"><div class="prim-l">${esc(H ? H.short : cap(p.txTo))} accepted. Which transport?</div><div class="cgrid">${iftButtons(p, G)}</div><p class="hint" style="margin:0">Match the crew to the patient. Too little and they refuse at the bedside; too much ties up a unit someone else needs.${H ? ` The trip: ${H.gnd} min by ground${H.air ? `, ${H.air} by air` : ''}.` : ''}</p></div>` : '<p class="hint">Accepted. The charge nurse is booking the transport.</p>';
+  if (p.dsp === 'iftreport') {
+    if (p.iftRep == null && MD() && mine(p)) return `<div class="prim"><div class="prim-l">The ${esc(E.IFT[p.iftLevel].short)} crew is at the bedside</div><button type="button" class="big act" data-act="giveRep" data-arg="${p.id}">Give report</button><p class="hint" style="margin:0">They don’t move the patient until the doctor gives report.</p></div>`;
+    return `<p class="hint">${p.iftRep == null ? 'The doctor is giving report to the crew.' : 'Report given. The crew is packaging them for the trip.'}</p>`;
+  }
+  return '';
+}
+/* v0.26: an admitted patient waiting upstairs: which unit, how full, and the way out when there is no bed. */
+function boardBlock(p, G, md) {
+  if (p.obsWait) return '<p class="hint">The obs unit is full. The next obs discharge frees a bed for them.</p>';
+  const u = p.bedU && E.UNITS[p.bedU], b = u && G.beds[p.bedU];
+  let h = !u ? '' : p.bedGot ? `<p class="hint">${u.name} bed assigned. EVS is turning it over: ready in <span data-cd="${p.due}"></span>.</p>` : `<p class="hint">Waiting for a <b>${u.name}</b> bed. ${u.name} is ${b.used}/${u.cap} full; ${E.bedWait(p.bedU)} from the ED in line. <button type="button" class="lnk" data-act="bedsOpen">Beds upstairs</button></p>`;
+  const canTx = u && !p.bedGot && ['icu', 'step', 'bh'].includes(p.bedU) && b.used >= u.cap && (!MD() || mine(p));
+  const esc1 = !md && !(u && p.bedGot) ? `<button type="button" class="big" data-act="esc" data-arg="${p.id}" ${G.house.esc ? '' : 'disabled'}>Push the House Supervisor for a bed (${G.house.esc} left)</button>` : '';
+  const tx = canTx ? `<button type="button" class="big" data-act="txInst" data-arg="${p.id}">Can’t stay: transfer to a hospital with a bed</button>` : '';
+  return h + (esc1 || tx ? `<div class="prim">${esc1}${tx}</div>` : '');
+}
+/* v0.26: help from upstairs for procedures. */
+function helpBlock(p) {
+  if (!p || p.loc !== 'room' || ['dc', 'dcing', 'iftwait', 'iftreport', 'xportq', 'family', 'morgue', 'morguing', 'toproc', 'ready', 'rehab', 'rideeta', 'ridehere'].includes(p.dsp)) return '';
+  if (MD() && !mine(p)) return '';
+  if (p.help) { const H = E.HELP[p.help.k]; return `<p class="hint">${p.help.st === 'req' ? `${H.name} is on the way: <span data-cd="${p.help.due}"></span>.` : p.help.st === 'here' ? `${H.doc} (${H.name}) is at the bedside.` : `${H.name} came down to help.`}</p>`; }
+  const need = p.hardAirway || p.esi <= 2 || p.crash || p.arrest || p.tr.some(k => ['intub', 'pressor', 'vent'].includes(k));
+  if (!need) return '';
+  return `<div class="prim"><div class="prim-l">Call for help from upstairs${p.hardAirway ? ' · <b class="hintb">hard airway</b>' : ''}</div><div class="cgrid">${Object.entries(E.HELP).map(([k, H]) => `<button type="button" class="cbtn" data-act="helpCall" data-arg="${p.id}|${k}"><b>${H.name}</b><small>${esc(H.what)}</small></button>`).join('')}</div></div>`;
+}
+/* v0.26: the hospitals around us. */
+function hospSheet(G, p) {
+  if (!p) return '';
+  const need = E.txNeedOf(p), no = p.txNo || [];
+  let h = head('Find a hospital', `${esc(p.name)} needs ${esc(E.CAP_NAME[need].toLowerCase())}`);
+  h += '<p class="hint">Call one to accept. A hospital that can’t do it, or one that’s full, says no and costs you time.</p><div class="hlist">';
+  for (const H of E.HOSPS) {
+    const st = G.hosp[H.k], full = st.full > G.t, said = no.includes(H.k);
+    h += `<div class="hrow${said ? ' no' : ''}"><div class="hrow-h"><b>${esc(H.name)}</b><span>${H.gnd} min by ground · ${H.air ? `${H.air} by air` : 'no helipad'}</span></div><div class="caps">${H.caps.map(c => `<i class="cap${c === need ? ' on' : ''}">${esc(E.CAP_NAME[c])}</i>`).join('')}</div><div class="hrow-f"><span class="${full || said ? 'bad' : 'okk'}">${said ? 'Said no' : full ? `Full until ${E.clock(st.full)}` : 'Taking transfers'}</span><button type="button" class="cbtn sm" data-act="callHosp" data-arg="${p.id}|${H.k}" ${said || p.dsp !== 'readytx' ? 'disabled' : ''}>Call</button></div></div>`;
+  }
+  return h + '</div>';
+}
+function bedsHTML(G) {
+  let h = head('Beds upstairs', 'A bed opens when someone upstairs goes home. Direct admissions from clinics and the OR want them too.');
+  const row = (n, used, cap, w, what) => `<div class="brow${used >= cap ? ' full' : ''}"><div class="brow-h"><b>${n}</b><span>${used}/${cap}${w ? ` · ${w} from the ED waiting` : ''}</span></div><span class="bbar"><i style="width:${Math.min(100, Math.round(100 * used / cap))}%"></i></span><small>${esc(what)}</small></div>`;
+  h += '<div class="btab">' + Object.entries(E.UNITS).map(([k, u]) => row(u.name, G.beds[k].used, u.cap, E.bedWait(k), u.what)).join('') + row('Observation', G.obsUnit.filled, G.obsUnit.cap, E.active().filter(p => p.obsWait).length, 'Short stays: watch and retest') + '</div>';
+  return h + '<p class="hint">No ICU, step-down, or psych bed and a long line? The doctor can transfer the patient to a hospital that has one.</p>';
 }
 function ptSheet(G, p) {
   if (!p) return '';
@@ -876,7 +933,8 @@ const ORDER_TESTS = [['ecg', 'ECG', 'A tracing of the heart rhythm'], ['lab', 'L
 const ORDER_TX = [['meds', 'Medications', 'Pain, nausea, pills, the usual drug'], ['fluids', 'IV fluids', 'Salt water into a vein'], ['abx', 'Antibiotics', 'By vein, for a serious infection'], ['o2', 'Oxygen', 'Prongs or a mask, for a low SpO2'], ['nebs', 'Nebulizer', 'A mist that opens the airways'], ['bipap', 'BiPAP', 'A mask that pushes air in'], ['hfnc', 'High-flow oxygen', 'Warm, fast oxygen by nose'], ['intub', 'Intubate', 'A breathing tube and ventilator'],
   ['epi', 'Epinephrine', 'For a severe allergic reaction'], ['nalox', 'Naloxone', 'Reverses an opioid overdose'], ['insulin', 'Insulin drip', 'For DKA: steady insulin by vein'], ['pressor', 'Vasopressor', 'Holds the pressure up'], ['pace', 'Atropine and pacing', 'For a heart that is too slow'], ['bp', 'Blood pressure control', 'Brings a high pressure down'], ['tnk', 'Thrombolytic', 'The clot drug, for a stroke'], ['reverse', 'Reversal agent', 'Undoes a blood thinner'],
   ['blood', 'Blood transfusion', 'Units of blood, one at a time'], ['mtp', 'Massive transfusion', 'Coolers of blood, right now'], ['repair', 'Laceration repair', 'Stitches. You do them']];
-function mdPrimary(p, G) {
+function mdPrimary(p, G) { return mdPrimary0(p, G) + helpBlock(p); }
+function mdPrimary0(p, G) {
   const mtpBtn = p.bleed === 'mtp' && !p.bb ? `<button type="button" class="big bad" data-act="mtp" data-arg="${p.id}">Activate massive transfusion</button>` : '';
   if (p.loc === 'enroute') return `${mtpBtn ? `<div class="prim">${mtpBtn}</div>` : ''}<p class="hint">Inbound, ETA <span data-cd="${p.eta}"></span>. The charge nurse is getting a ${p.esi === 1 ? 'resus bay' : 'room'} ready.</p>`;
   if (p.loc !== 'room') return `<p class="hint">The charge nurse is working on a room for ${esc(p.name.split(' ')[0])}.</p>`;
@@ -893,7 +951,8 @@ function mdPrimary(p, G) {
     if ((p.txGap && p.txGap.length) || U.ordOpen === p.id) return call + ordersBlock(p, G, true);   // the call first: it used to sit under 24 order buttons
     return call + `<div class="prim"><button type="button" class="big" data-act="ordOpen" data-arg="${p.id}">Add orders</button></div>`;
   }
-  let h = mtpBtn ? `<div class="prim">${mtpBtn}</div>` : '';
+  const tb = ['readytx', 'txcall', 'txok', 'iftreport'].includes(p.dsp) ? txBlock(p, G) : p.dsp === 'board' ? boardBlock(p, G, true) : '';
+  let h = (mtpBtn ? `<div class="prim">${mtpBtn}</div>` : '') + tb;
   if (lyticHeld(p)) h += `<p class="hint bad">The nurse is holding the thrombolytic: the pressure is over ${E.LYTIC_BP.join('/')}.</p>`;
   else if (p.txGap && p.txGap.length) h += `<p class="hint bad">${gapMsg(p)}</p>`;
   if (p.ord === 'signed' && !['dc', 'dcing', 'toproc', 'iftwait', 'iftreport', 'xportq', 'family', 'morgue', 'morguing'].includes(p.dsp)) {
@@ -1123,11 +1182,18 @@ const GLOSS = [
     ['PharmD', 'The pharmacist. Checks each medication order before the nurse gives it.'],
     ['EVS', 'Environmental services. The housekeepers who clean a room between patients.'],
     ['Registrar', 'Takes the patient’s name, date of birth, and insurance, so tests and medications go to the right person.'],
-    ['Consultant', 'A specialist from upstairs. After you call, they come down, see the patient at the bedside, and go back up.'],
+    ['Beds upstairs', 'ICU, step-down, telemetry, med-surg, psych and observation. A bed opens when someone upstairs goes home. Direct admissions from clinics and the OR compete for them. Tap the Beds chip, top right, to see them.'],
+    ['Transfer', 'Sending a patient to another hospital for care you don’t have. Find a hospital that can do it, call to get them accepted, pick the transport, give report.'],
+    ['Transport levels', 'Wheelchair van: sits up, no care on the way. BLS: EMTs, a stretcher, oxygen. ALS: paramedics with a monitor and IV drugs. Critical care ground: an ICU nurse or medic team for drips and vents. Critical care flight: the same by helicopter, when time matters.'],
+    ['Helipad', 'Across the road from the ambulance bay. The helicopter lands, the flight crew comes in for report, and they fly the patient out. Tap “Helicopter on the pad” to watch.'],
+    ['Anesthesia', 'The airway experts. Call them for a hard intubation: burns to the airway, swelling in the throat.'],
+    ['Critical care team', 'The ICU doctors. Call them for shock: lines, pressors, the ventilator. They also push the ICU bed request.'],
+    ['CURB-65', 'A pneumonia risk score. One point each for confusion, a high BUN (urea), breathing 30 or faster, low blood pressure, and age 65 or more. 0 to 1 goes home on pills; 3 or more is admitted.'],
+    ['Weather', 'Picked before a shift. Rain and snow bring crashes and falls and slow the ambulances; fog and storms ground the helicopters.'],
     ['UC, unit secretary', 'The ED’s clerk: calls rides, makes calls, and handles paperwork. Tap UC and hand them a task.'],
     ['Transport', 'Staff who wheel patients to their bed upstairs, so nurses and techs can stay in the department.'],
     ['EMS, medic', 'Emergency medical services: the ambulance side of medicine. A medic is a paramedic. “Medic 7” is an ambulance crew.'],
-    ['Consultant', 'A specialist, such as a surgeon or cardiologist, called to see a patient and usually to admit them.'],
+    ['Consultant', 'A specialist, such as a surgeon or cardiologist, called to see a patient and usually to admit them. On the map they come down in the elevator, see the patient, and go back up.'],
     ['Hospitalist', 'The doctor who looks after most patients once they’re admitted. Call the hospitalist for infections, breathing trouble, and heart failure.'],
     ['Cardiology, neurology, and the rest', 'The teams you call to admit. Cardiology: heart. Neurology: brain. General surgery: belly. Trauma: serious injuries. Orthopedics: bones. GI: stomach or bowel bleeding. Psychiatry: mental health. Critical care: the ICU.'],
     ['House Supervisor', 'The nurse who manages beds for the whole hospital. The one to push when no bed opens upstairs.'],
@@ -1319,7 +1385,7 @@ function legendHTML(md) {
   const rows = md ? [['steth', 'act fl', 'Waiting for a doctor'], ['orders', 'act fl', 'Write orders'], ['decide', 'act fl', 'Your call to make'], ['alert', 'bad fl', 'Not improving'], ['code', 'code fl', 'Code'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['phone', 'wait', 'Consultant on the way'], ['steth', 'wait', 'You or another doctor is with them'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['bed', 'board', 'Admitted, waiting for a bed'], ['home', 'go', 'Ready to go home'], ['broom', 'dirtyq', 'Dirty room'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']]
     : [['steth', 'act fl', 'Needs a provider'], ['phone', 'act fl', 'Call a consult'], ['decide', 'act fl', 'Your call: home, obs, admit'], ['home', 'go fl', 'Ready to discharge'], ['up', 'act fl', 'Bed ready: send them up'], ['amb', 'act fl', 'Transfer: request or book'], ['card', 'act fl', 'Needs registration'], ['alert', 'bad fl', 'Trouble in the room'], ['blood', 'bad fl', 'Bleeding: activate MTP'], ['code', 'code fl', 'Code'], ['steth', 'wait', 'A provider has them'], ['bed', 'board', 'Admitted, waiting for a bed'], ['flask', 'wait', 'Workup pending'], ['pill', 'wait', 'Treatment underway'], ['broom', 'dirty fl', 'Dirty: tap to send EVS'], ['sparkle', 'clean', 'Being cleaned'], ['lock', 'off', 'Closed']];
   const tiles = [['#1648C8', 'Blue', 'needs you'], ['#D11A2F', 'Red', 'trouble: go now'], ['#12813A', 'Green', 'ready to go'], ['#7A4A1E', 'Brown', 'dirty'], ['#E3D7FA', 'Purple', 'admitted, waiting for a bed upstairs'], ['#FFFFFF', 'White', 'someone else has it'], ['#E7EAEE', 'Gray', 'empty']];
-  const who = [['MD', 'md', 'Attending: a fully trained emergency doctor'], ['PA', 'app', 'Physician assistant'], ['NP', 'app', 'Nurse practitioner'], ['RN', 'rn', 'Nurse'], ['T', 'pct', 'Tech: the nurses’ extra hands'], ['R', 'reg', 'Registration'], ['UC', 'uc', 'Unit secretary: calls and paperwork'], ['EV', 'evs', 'EVS: housekeeping'], ['RT', 'rt', 'Respiratory therapist'], ['Rx', 'rph', 'Pharmacist'], ['TP', 'tp', 'Transport'], ['HM', 'cons', 'Consultant from upstairs. The letters are the service (HM hospitalist, CA cardiology)']];
+  const who = [['MD', 'md', 'Attending: a fully trained emergency doctor'], ['PA', 'app', 'Physician assistant'], ['NP', 'app', 'Nurse practitioner'], ['RN', 'rn', 'Nurse'], ['T', 'pct', 'Tech: the nurses’ extra hands'], ['R', 'reg', 'Registration'], ['UC', 'uc', 'Unit secretary: calls and paperwork'], ['EV', 'evs', 'EVS: housekeeping'], ['RT', 'rt', 'Respiratory therapist'], ['Rx', 'rph', 'Pharmacist'], ['TP', 'tp', 'Transport'], ['HM', 'cons', 'Consultant from upstairs. The letters are the service (HM hospitalist, CA cardiology)'], ['AN', 'help', 'Help from upstairs: AN anesthesia, CC critical care'], ['FL', 'flt', 'Flight crew']];
   if (floor3d()) {   // the 3D floor: since v0.20 the flat map's colours on each room's floor and badge, plus icons, the call light, the red ring, and uniforms
     const uni = [['#F4F4F2', 'MD', 'white coat: attending'], ['#7A0A1A', 'PA', 'burgundy scrubs'], ['#4F1580', 'NP', 'purple scrubs'], ['#0B2DBF', 'RN', 'royal blue scrubs: nurse'], ['#0A6B24', 'T', 'green scrubs: tech'], ['#9C7A3A', 'R', 'shirt and slacks: registration'], ['#9C7A3A', 'UC', 'shirt and slacks: unit secretary'], ['#2B2E34', 'EV', 'charcoal: EVS'], ['#0F5F70', 'RT', 'teal: respiratory'], ['#5E2F14', 'TP', 'brown: transport'], ['#0A1430', 'EMS', 'navy: ambulance crews']];
     return `<h4 class="lgh">Rooms</h4><p class="hint" style="margin:0 0 4px">Each room shows its <b>number</b>, the patient’s <b>ESI</b> and <b>name</b>, and an <b>icon</b> for what’s next. A <b>shaking</b> icon is waiting on you. A <b>flashing red ring</b> is a patient crashing. Rooms that can take a selected patient <b>glow green</b>.</p>`
@@ -1342,12 +1408,14 @@ function helpHTML() {
 <li><b>The waiting room.</b> Recheck people who’ve waited a while. Some are sicker than they looked. Walk the waiting room to keep people from leaving.</li>
 <li><b>Beds.</b> Tap a patient, then a green room. ESI 1 goes to Resus. Fast Track (from 09:00) takes ESI 4 and 5. Rooms 8 and 16 are isolation. 19 and 20 are safe rooms. Chairs free a bed for someone just waiting on results.</li>
 <li><b>Providers.</b> Nobody is seen until you send a provider. Tap one ${SIDE()}, then the patients. PAs and NPs take ESI 2–5. A long line means more mistakes.</li>
-<li><b>Gray-zone calls.</b> Chest pain, fainting, and TIA get a risk score. You pick home, observation, or admit.</li>
+<li><b>Gray-zone calls.</b> Chest pain, fainting, TIA and mild pneumonia (CURB-65) get a risk score. You pick home, observation, or admit.</li>
 <li><b>The Box.</b> Take alert reports. When a medic needs medical direction, tap Find a doctor and pick one who isn’t in a code.</li>
 <li><b>Consults.</b> Call the right service once their results are back.</li>
 <li><b>Meds and blood.</b> The pharmacist checks most meds first. Bleeding trauma needs massive transfusion fast.</li>
 <li><b>Interpreters.</b> A language tag means get one. Without it, care is slower and riskier.</li>
-<li><b>Admits and transfers.</b> When a bed is ready, the nurse calls report, then pick a transporter or tech. For a transfer, request it early, then book the right ambulance.</li>
+<li><b>Admits.</b> Admitted patients wait for a bed upstairs on their unit: ICU, step-down, telemetry, med-surg, psych. The <b>Beds</b> chip, top right, shows how full the ICU is. Tap it for every unit. When a bed is ready, the nurse calls report, then pick a transporter or tech.</li>
+<li><b>Transfers.</b> Find a hospital that can do what the patient needs, call it to accept, then pick the transport: wheelchair van, BLS, ALS, critical care ground, or flight. Too little crew refuses at the bedside; too much wastes a unit.</li>
+<li><b>Help from upstairs.</b> Hard airway? Call anesthesia. Shock? Call critical care.</li>
 <li><b>Cleaning.</b> EVS only cleans when you tap a dirty room. Tap again to move it to the front.</li>
 <li><b>Nurses.</b> Each nurse handles 4 points. Tap a pod ${fp ? 'sign' : 'header'} to move nurses. Casey floats. Reyes is new: no Resus or triage. Give breaks.</li>
 <li><b>Divert.</b> Match the divert to what broke: CT, STEMI (cath lab), Trauma, or Internal Disaster (lab or power). Lift it once fixed. ED Full and No Monitored Beds are for when you’re full.</li>
@@ -1360,7 +1428,9 @@ function helpMD() {
 <li><b>Pick up patients.</b> ${U.view === 'map' ? (floor3d() ? 'A stethoscope' : 'A blue stethoscope') : 'Needs a provider'} means waiting for a doctor. Tap the room, then See this patient. Sickest first.</li>
 <li><b>Write orders.</b> Pick tests and treatment, then Sign. Order what they need, nothing extra. Extra tests cost time and points. Tap a scan on the card to see it.</li>
 <li><b>Close the gaps.</b> Missing a test? You’ll hear about it. Not improving? A treatment is missing. Read the vitals.</li>
-<li><b>Make the call.</b> Home, rehab (can leave, can’t manage alone: the exam says so), admit (call the right consultant once results are back), or transfer. Chest pain, fainting, and TIA get a risk score.</li>
+<li><b>Make the call.</b> Home, rehab (can leave, can’t manage alone: the exam says so), admit (call the right consultant once results are back), or transfer. Chest pain, fainting, TIA and mild pneumonia (CURB-65) get a risk score.</li>
+<li><b>Transfers.</b> Pick a hospital that has what they need, call it to accept, pick the transport, and give the crew report. No ICU bed here? An ICU patient can’t stay: transfer them.</li>
+<li><b>Help from upstairs.</b> Hard airway: anesthesia. Shock: critical care. Call them before the procedure, not after.</li>
 <li><b>Answer the radio.</b> Tap Answer, read the call, approve or deny. Only you can.</li>
 <li><b>Alerts.</b> Time goals: ECG in 10, CT in 25, needle in 60, balloon in 90.</li>
 <li><b>Your scores.</b> Patients, Clinical (your own patients), Admin, Staff. The meter counts patients waiting on their next step.</li>
@@ -1383,6 +1453,8 @@ function renderSheet(G) {
     else if (s.type === 'msgs') h = msgsHTML(s);
     else if (s.type === 'queue') h = queueHTML(G);
     else if (s.type === 'uc') h = ucSheet(G, E.staff(s.sid));
+    else if (s.type === 'hosp') h = hospSheet(G, E.pt(s.pid));
+    else if (s.type === 'beds') h = bedsHTML(G);
     else if (s.type === 'legend') h = head('What the map shows') + legendHTML(MD()) + `<p class="hint">The <b>circle</b> is the ESI: 1 is sickest. <b>Orange dashes</b>: isolation. <b>Blue dots</b>: safe room.${MD() ? ' <b>Gold ring</b>: your patient. <b>Gold star</b>: you.' : ''}</p><p class="hint"><b>The bell</b> holds every event this shift.</p><p class="hint"><b>Pod signs.</b> Each <b>dot</b> is a nurse. <b>3/4</b> is workload over safe capacity. <b>Orange</b>: full. <b>Red</b>: over.</p><div class="wlink"><button type="button" data-act="words">What the words mean</button></div>`;
     if (!h) U.sheet = null;
   } else if (s && s.type === 'help') h = helpHTML();
@@ -1558,11 +1630,12 @@ const STEPS = [
     spot: () => (sheetIs('divert') ? ['#sheet [data-act="divertSet"][data-arg="ct|0"]'] : ['#btnYellow']),
     done: () => !g().dv.ct.on, auto: () => E.setDivert('ct', false) },
 
-  { id: 'x1', title: 'A transfer', text: `[[Zoe]], 1, has **RSV**, a virus that clogs a baby’s airways. She’s tiring out.\nShe needs a **PICU** (children’s ICU). You don’t have one.\nTap **her room**, then **Request transfer**.`,
+  { id: 'x1', title: 'A transfer', text: `[[Zoe]], 1, has **RSV**, a virus that clogs a baby’s airways. She’s tiring out.\nShe needs a **PICU** (children’s ICU). You don’t have one.\nTap **her room**, **Find a hospital**, then **Call** beside **Children’s Hospital**.`,
     setup: () => ({ zoe: E.trainPatient('rsv', 'seat', { room: 'R2', prov: 'md1', name: 'Zoe N.', age: 1, sex: 'F', dsp: 'readytx' }) }),
-    ...roomAct('zoe', '[data-act="tx"]'), done: () => tid('zoe').dsp !== 'readytx', auto: () => E.requestTransfer(tid('zoe').id) },
-  { id: 'x2', wait: true, title: 'Calling around', text: `The transfer center finds a PICU. Meanwhile **RT**, the respiratory therapist, starts **high-flow oxygen**.`, done: () => tid('zoe').dsp !== 'txcall' },
-  { id: 'x3', title: 'Book the ambulance', text: `The PICU said yes. Now she needs a ride.\n**ALS** is a paramedic ambulance. **Critical care transport** adds an ICU nurse and gear. She needs that one.\nTap **her room**, then **Critical care transport**.`,
+    spot: () => { const p = tid('zoe'); return sheetIs('hosp') ? ['#sheet [data-act="callHosp"][data-arg$="|kids"]'] : onSheet(p) ? ['#sheet [data-act="hospOpen"]'] : [roomSel(p)]; },
+    done: () => tid('zoe').dsp !== 'readytx', auto: () => E.callHosp(tid('zoe').id, 'kids') },
+  { id: 'x2', wait: true, title: 'Calling', text: `Children’s is deciding. Meanwhile **RT**, the respiratory therapist, starts **high-flow oxygen**.`, done: () => tid('zoe').dsp !== 'txcall' },
+  { id: 'x3', title: 'Pick the ride', text: `They said yes. Now the ride.\n**BLS** is EMTs. **ALS** is paramedics. **Critical care** adds an ICU nurse and gear. A **flight** is for when time is the problem.\nShe needs **Critical care ground**. Tap **her room**, then that.`,
     ...roomAct('zoe', '[data-act="ift"][data-arg$="|cct"]'), done: () => tid('zoe').dsp !== 'txok', auto: () => E.bookIFT(tid('zoe').id, 'cct') },
 
   { id: 'k1', next: true, title: 'Alerts you will hear', text: `Other alerts on the Box, each with a **time goal**:\n**STEMI**: a heart attack. The **cath lab** opens the artery.\n**Stroke**: a clot or bleed in the brain.\n**Sepsis**: an infection taking over. Antibiotics within the hour.\n**Code**: the heart has stopped.`},
@@ -2216,6 +2289,14 @@ const ACT = {
   toWait: pid => { const r = E.toWaiting(pid); if (r.ok) U.sel = null; res(r, true); },
   sendUp: a => { const [pid, sid] = a.split('|'); res(E.sendUp(pid, sid), true); },
   ift: a => { const [pid, k] = a.split('|'); res(E.bookIFT(pid, k), true); },
+  hospOpen: pid => { U.sel = null; U.sheet = { type: 'hosp', pid }; },
+  callHosp: a => { const [pid, k] = a.split('|'); const r = E.callHosp(pid, k); res(r, false); if (r.ok) U.sheet = { type: 'pt', pid }; },
+  giveRep: pid => res(E.giveReport(pid), true),
+  txInst: pid => { const r = E.txInstead(pid); res(r, false); if (r.ok) U.sheet = { type: 'hosp', pid }; },
+  helpCall: a => { const [pid, k] = a.split('|'); res(E.helpCall(pid, k), true); },
+  bedsOpen: () => { U.sel = null; U.sheet = { type: 'beds' }; },
+  watchPad: () => { U.sheet = null; U.sel = null; watchPad(); },
+  weather: k => { U.wx = E.WX[k] ? k : 'clear'; store('oc-wx', U.wx); setH($('#title'), titleHTML()); },
   prov: id => { const s = E.staff(id); if (MD() || (s && s.pit)) { U.sheet = { type: 'staff', sid: id }; return; } U.sel = U.sel && U.sel.type === 'prov' && U.sel.sid === id ? null : { type: 'prov', sid: id }; },
   zone: z => { if (MD() && z !== 'triage') { toast('The charge nurse runs nursing assignments.', 'info'); return; } U.sheet = { type: 'zone', z }; },
   cluster: k => {   // the line at the door, the wall, or the waiting room
@@ -2358,7 +2439,8 @@ function titleHTML() {
   const set = (act, label, on) => `<button type="button" class="t-set" data-act="${act}"><span>${label}</span><b>${on}</b></button>`;
   const role = md ? 'Attending' : 'Charge nurse';
   if (U.tm === 'about') return aboutHTML(store('oc-seen-about') ? head('About Code Black') : '');
-  if (U.tm === 'play') return `<div class="card t-sub-menu">${head('Play a shift', role + ', 07:00 to 19:00.')}<div class="levels">${lv}<button type="button" class="lvl t-go cc-go" data-act="classCode"><span class="dot" style="background:#4F5A6B"></span><span><b>Class code</b><small>Play your instructor's shift, or make one for a class.</small></span><span class="t-chev" aria-hidden="true">›</span></button></div>${scens}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}</div>`;
+  const wxs = `<div class="packs wxp"><span id="wxLab">Weather</span><div class="segs s5">${Object.entries(E.WX).map(([k, W]) => `<button type="button" class="seg${(U.wx || 'clear') === k ? ' on' : ''}" data-act="weather" data-arg="${k}" aria-pressed="${(U.wx || 'clear') === k}">${esc(W.name.split(' ')[0])}</button>`).join('')}</div><select class="wx-sel" data-pick="weather" aria-labelledby="wxLab">${Object.entries(E.WX).map(([k, W]) => `<option value="${k}"${(U.wx || 'clear') === k ? ' selected' : ''}>${esc(W.name)}</option>`).join('')}</select><small>${esc(E.WX[U.wx || 'clear'].blurb)}</small></div>`;
+  if (U.tm === 'play') return `<div class="card t-sub-menu">${head('Play a shift', role + ', 07:00 to 19:00.')}<div class="levels">${lv}<button type="button" class="lvl t-go cc-go" data-act="classCode"><span class="dot" style="background:#4F5A6B"></span><span><b>Class code</b><small>Play your instructor's shift, or make one for a class.</small></span><span class="t-chev" aria-hidden="true">›</span></button></div>${scens}${wxs}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}</div>`;
   if (U.tm === 'learn') return `<div class="card t-sub-menu">${head('Learn', 'Start with the introductory orientation. Then learn to manage disease-specific conditions.')}<div class="levels">${train}${lessons}</div><div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="words">What the words mean</button></div></div>`;
   if (U.tm === 'set') return `<div class="card t-sub-menu">${head('Settings')}<div class="t-sets">${set('view', 'Board', U.view === 'map' ? 'floor plan' : 'list')}${U.view === 'map' ? set('three', 'Floor', U.three ? '3D' : 'flat') : ''}${U.view === 'map' && U.three ? set('q3d', '3D detail', Q3D_NAME[U.q3d]) : ''}${set('sound', 'Sound', U.sound ? 'on' : 'off')}${set('plain', 'Plain words', PLAIN() ? 'on' : 'off')}${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? set('fullscreen', 'Full screen', document.fullscreenElement ? 'on' : 'off') : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
   const stars = ['easy', 'med', 'hard'].reduce((n, k) => n + (bestOf(k) ? E.scoreStars(bestOf(k)) : 0), 0);
@@ -2398,7 +2480,7 @@ function start(lvl, lesson, chapter, code) {
   U.lvl = lvl; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = false; U.speed = 1;
   U.needSeen = {}; U.needLast = null; U.needRing = null; U.msgs = []; U.msgNew = 0;
   store('oc-save', null);
-  E.newGame(lvl, lvl === 'train' ? 20261116 : code ? code.seed : (Math.random() * 2147483647) | 0, { pack: U.pack, mode: lesson ? 'md' : U.mode, scen: lesson ? 'none' : U.scen, code: code ? code.code : null });
+  E.newGame(lvl, lvl === 'train' ? 20261116 : code ? code.seed : (Math.random() * 2147483647) | 0, { pack: U.pack, mode: lesson ? 'md' : U.mode, scen: lesson ? 'none' : U.scen, wx: lesson || code ? 'clear' : (U.wx || 'clear'), code: code ? code.code : null });
   if (lesson) g().tr.lesson = lesson;   // kept with the game, so a saved lesson resumes as that lesson
   else if (lvl === 'train' && chapter > 0) { const C = chList(chMode())[chapter]; if (C) { g().tr.step = C.at; g().tr.need = 1; } }   // a later chapter: the Next button is already known
   $('#title').hidden = true; $('#report').hidden = true;
@@ -2605,6 +2687,7 @@ function boot2(data) {
   if (store('oc-3d') === '0') U.three = false;
   if (Q3D_NAME[store('oc-3dq')]) U.q3d = store('oc-3dq');
   if (E.SCENS[store('oc-scen')]) U.scen = store('oc-scen');
+  if (E.WX[store('oc-wx')]) U.wx = store('oc-wx');
   if (/^https?:$/.test(location.protocol) && window.top === window.self) {   // on the web (not inside another page): a home-screen icon and a full-screen app
     const link = (rel, href) => { const l = document.createElement('link'); l.rel = rel; l.href = href; document.head.appendChild(l); };
     link('manifest', 'manifest.webmanifest'); link('apple-touch-icon', 'apple-touch-icon.png'); link('icon', 'icons/icon-192.png');
