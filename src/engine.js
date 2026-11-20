@@ -146,19 +146,22 @@ const SPECS = {
 
 const WORK = {
   ecg: { label: 'ECG', by: 'pct', dur: 3 },
+  poc: { label: 'POC', by: 'pct', dur: 2 },   // v0.27: bedside tests: a fingerstick, a urine dip. Results in a minute, even when the lab is down
   lab: { label: 'LAB', by: 'pct', dur: 4 },
   xr:  { label: 'XR', by: 'img', scan: 6, read: 8 },
   ct:  { label: 'CT', by: 'img', scan: 7, read: 10 },
   us:  { label: 'US', by: 'img', scan: 12, read: 6 },
   mri: { label: 'MRI', by: 'img', scan: 40, read: 25 },
 };
-const MISS_NAME = { ecg: 'an ECG', lab: 'labs', xr: 'the X-ray', ct: 'the CT', us: 'the ultrasound', mri: 'the MRI' };
+const MISS_NAME = { poc: 'a bedside test', ecg: 'an ECG', lab: 'labs', xr: 'the X-ray', ct: 'the CT', us: 'the ultrasound', mri: 'the MRI' };
 
 /* ---------- v0.19: the attending orders single tests and named studies ----------
    The engine still runs work by kind (lab, xr, ct, us, mri: one draw or one trip to the scanner covers everything of that
    kind ordered together). The attending picks the tests inside each kind, and each case scores the ones it needs.
    g: the group on the order sheet. p: a plain line. Imaging m: the kind of work it is. */
 const LABS = {
+  gluc: { n: 'Fingerstick glucose', g: 'Bedside (point of care)', p: 'Blood sugar in a minute, at the bedside', poc: true },
+  udip: { n: 'Urine dip', g: 'Bedside (point of care)', p: 'Infection or blood in the urine, in a minute', poc: true },
   cbc: { n: 'CBC', g: 'Blood counts and chemistry', p: 'White count, hemoglobin, platelets' },
   bmp: { n: 'BMP', g: 'Blood counts and chemistry', p: 'Sodium, potassium, kidneys, sugar' },
   lft: { n: 'Liver tests', g: 'Blood counts and chemistry', p: 'Liver enzymes and bilirubin' },
@@ -195,15 +198,15 @@ const IMGS = {
   duplex: { n: 'Leg vein ultrasound', m: 'us', p: 'A clot in a leg vein (DVT)' },
   pelus: { n: 'Pelvic ultrasound', m: 'us', p: 'Pregnancy, ovaries' },
 };
-const DET_KIND = id => (LABS[id] ? 'lab' : IMGS[id] ? IMGS[id].m : WORK[id] ? id : null);
+const DET_KIND = id => (LABS[id] ? (LABS[id].poc ? 'poc' : 'lab') : IMGS[id] ? IMGS[id].m : WORK[id] ? id : null);
 const DET_NAME = id => (LABS[id] ? LABS[id].n : IMGS[id] ? IMGS[id].n : WK_NAME[id] || id);
 const DET_EXTRA = { lab: 1, xr: 2, us: 2, ct: 6, mri: 8, ecg: 3 };   // points off for a test the patient did not need
-const DET_RIGHT = { lab: 1, xr: 2, us: 2, ct: 2, mri: 2, ecg: 2 };
+const DET_RIGHT = { poc: 1, lab: 1, xr: 2, us: 2, ct: 2, mri: 2, ecg: 2 };
 /* What each case needs (n) and what is reasonable but not needed (ok). Anything else costs DET_EXTRA. */
 const NEED = {
   strep: { n: ['strep'] }, ankle: { n: ['extxr'] }, uti: { n: ['ua'], ok: ['hcg'] }, gastro: { n: ['bmp'], ok: ['cbc', 'lip', 'ua', 'hcg'] },
   appy: { n: ['cbc', 'bmp', 'ctap'], ok: ['lip', 'lft', 'ua', 'hcg'] }, chole: { n: ['cbc', 'lft', 'lip', 'ruq'], ok: ['bmp', 'hcg', 'ua'] },
-  hipfx: { n: ['cbc', 'bmp', 'ts', 'hipxr'], ok: ['coag', 'ck', 'ua', 'pelxr', 'cxr'] }, pna: { n: ['cbc', 'bmp', 'cxr'], ok: ['lact', 'bcx', 'resp', 'vbg'] }, pnalow: { n: ['cbc', 'bmp', 'cxr'], ok: ['resp'] },
+  hipfx: { n: ['cbc', 'bmp', 'ts', 'hipxr'], ok: ['coag', 'ck', 'ua', 'pelxr', 'cxr'] }, pna: { n: ['cbc', 'bmp', 'cxr'], ok: ['lact', 'bcx', 'resp', 'vbg'] }, pnalow: { n: ['cbc', 'bmp', 'cxr'], ok: ['resp'] }, flu: { n: ['resp'], ok: ['cbc', 'bmp'] },
   copd: { n: ['vbg', 'cxr'], ok: ['cbc', 'bmp', 'bnp', 'resp', 'trop'] }, chf: { n: ['bnp', 'bmp', 'cxr'], ok: ['trop', 'cbc'] },
   stone: { n: ['ua', 'bmp', 'ctap'], ok: ['cbc', 'hcg'] }, dvt: { n: ['bmp', 'duplex'], ok: ['cbc', 'coag'] }, tb: { n: ['cbc', 'cxr'], ok: ['bmp', 'resp'] },
   bh: { n: ['tox'], ok: ['cbc', 'bmp', 'hcg', 'ua', 'ck'] }, etoh: { n: ['tox', 'bmp'], ok: ['cbc'] }, od: { n: ['tox'], ok: ['bmp', 'cbc', 'vbg', 'ck'] },
@@ -222,12 +225,12 @@ const NEED = {
   mcimin: { n: ['ctcs'] }, mciwr: { n: ['extxr'] },
 };
 /* Results. Defaults are normal; each case names what is not. img: a picture in img/ (see img/CREDITS.md). */
-const LAB_NORMAL = { cbc: 'WBC 8.1, Hgb 13.8, platelets 241', bmp: 'Na 139, K 4.1, creatinine 0.9, glucose 104', lft: 'Liver tests normal', lip: 'Lipase 32 (normal)', trop: 'Troponin below the cutoff', bnp: 'BNP 60 (normal)', ddim: 'D-dimer negative', lact: 'Lactate 1.1 (normal)', bcx: 'Sent. Results in 1 to 2 days', vbg: 'pH 7.39, pCO2 42', resp: 'Flu, COVID, RSV negative', strep: 'Rapid strep negative', coag: 'INR 1.0', ts: 'O positive, antibody screen negative', ua: 'No blood, no infection', hcg: 'Not pregnant', tox: 'Ethanol none, drug screen negative', ck: 'CK 140 (normal)' };
+const LAB_NORMAL = { gluc: 'Glucose 104', udip: 'Negative: no blood, no infection', cbc: 'WBC 8.1, Hgb 13.8, platelets 241', bmp: 'Na 139, K 4.1, creatinine 0.9, glucose 104', lft: 'Liver tests normal', lip: 'Lipase 32 (normal)', trop: 'Troponin below the cutoff', bnp: 'BNP 60 (normal)', ddim: 'D-dimer negative', lact: 'Lactate 1.1 (normal)', bcx: 'Sent. Results in 1 to 2 days', vbg: 'pH 7.39, pCO2 42', resp: 'Flu, COVID, RSV negative', strep: 'Rapid strep negative', coag: 'INR 1.0', ts: 'O positive, antibody screen negative', ua: 'No blood, no infection', hcg: 'Not pregnant', tox: 'Ethanol none, drug screen negative', ck: 'CK 140 (normal)' };
 const IMG_NORMAL = { cxr: ['Clear lungs', 'cxr_normal'], pelxr: ['No fracture', 'pelvis_normal'], hipxr: ['No fracture', 'hip_normal'], extxr: ['No fracture', 'ankle_normal'], cthead: ['No bleed, no acute findings', 'cthead_normal'], cta: ['Arteries open', 'cta_normal'], ctcs: ['No fracture', 'ctcs_normal'], ctpe: ['No clot in the lungs', 'ctpe_normal'], ctap: ['No acute findings', 'ctap_normal'], mrib: ['No stroke, no acute findings', 'mrib_normal'], mris: ['No acute findings', 'mris_normal'], fast: ['No free fluid', 'fast_negative'], ruq: ['Normal gallbladder', 'ruq_normal'], duplex: ['No clot', 'duplex_normal'], pelus: ['Normal ovaries and uterus', 'pelus_normal'] };
 const RES = {
   strep: { strep: 'Rapid strep positive' }, ankle: { extxr: ['No fracture', 'ankle_normal'] }, uti: { ua: 'Nitrite positive, white cells, bacteria' }, gastro: { bmp: 'Na 136, K 3.6, BUN 24, creatinine 1.0: mildly dry' },
   appy: { cbc: 'WBC 15.8, Hgb 13.9, platelets 280', ctap: ['Inflamed appendix', 'ct_appy'] }, chole: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', lft: 'ALT 88, alk phos 210, bilirubin 1.6', ruq: ['Gallstones, thick gallbladder wall', 'us_gallstones'] },
-  hipfx: { cbc: 'WBC 9.0, Hgb 11.9, platelets 220', hipxr: ['Femoral neck fracture', 'xr_hipfx'] }, pna: { cbc: 'WBC 17.2, Hgb 13.1, platelets 310', bmp: 'Na 134, K 4.0, creatinine 1.1, glucose 140', cxr: ['Right lower lobe pneumonia', 'cxr_pna'] }, pnalow: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', bmp: 'Na 139, K 4.1, BUN 14, creatinine 0.9', cxr: ['Small right lower lobe pneumonia', 'cxr_pna'] },
+  hipfx: { cbc: 'WBC 9.0, Hgb 11.9, platelets 220', hipxr: ['Femoral neck fracture', 'xr_hipfx'] }, pna: { cbc: 'WBC 17.2, Hgb 13.1, platelets 310', bmp: 'Na 134, K 4.0, creatinine 1.1, glucose 140', cxr: ['Right lower lobe pneumonia', 'cxr_pna'] }, flu: { resp: 'Influenza A positive' }, pnalow: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', bmp: 'Na 139, K 4.1, BUN 14, creatinine 0.9', cxr: ['Small right lower lobe pneumonia', 'cxr_pna'] },
   copd: { vbg: 'pH 7.31, pCO2 58', cxr: ['Hyperinflated, no pneumonia', 'cxr_copd'] }, chf: { bnp: 'BNP 2,400', bmp: 'Na 133, K 4.6, creatinine 1.5', cxr: ['Pulmonary edema', 'cxr_edema'] },
   stone: { ua: 'Blood in the urine, no infection', ctap: ['4 mm stone in the ureter', 'ct_stone'] }, dvt: { duplex: ['Clot in the femoral vein', 'us_dvt'] }, tb: { cbc: 'WBC 11.4, Hgb 11.8, platelets 300', cxr: ['Cavity in the upper lobe', 'cxr_tb'] },
   etoh: { tox: 'Ethanol 280, drug screen negative', bmp: 'Glucose 96, Na 140, K 3.9' }, od: { tox: 'Fentanyl positive' }, cell: { cbc: 'WBC 14.0, Hgb 13.5, platelets 250' },
@@ -242,7 +245,11 @@ const RES = {
   mcimin: { ctcs: ['No fracture', 'ctcs_normal'] }, mciwr: { extxr: ['Distal radius fracture', 'xr_wrist'] },
 };
 /* Each named test has a result: [text, picture or null]. */
+const POC_RES = { gluc: { dka: 'Glucose HI (over 500)', strokew: 'Glucose 141', stroke: 'Glucose 148', lvo: 'Glucose 141', od: 'Glucose 96', etoh: 'Glucose 72', syncope: 'Glucose 98', synchigh: 'Glucose 110', tia: 'Glucose 122' },
+  udip: { uti: 'Leukocytes and nitrites positive', stone: 'Blood 3+, no infection', appy: 'Trace white cells', dehyd: 'Ketones 2+, concentrated' } };
+for (const [ks, t] of [[['stroke', 'strokew', 'lvo', 'dka', 'syncope', 'synchigh', 'od', 'etoh', 'tia', 'tfall'], 'gluc'], [['uti', 'stone', 'appy', 'dehyd', 'pnalow'], 'udip']]) for (const k of ks) if (NEED[k]) NEED[k].ok = (NEED[k].ok || []).concat(t);
 function detResult(p, id) {
+  if (POC_RES[id] && POC_RES[id][p.ck]) return [POC_RES[id][p.ck], null];
   const r = (RES[p.ck] || {})[id];
   if (r) return Array.isArray(r) ? r : [r, null];
   if (id === 'hcg' && p.sex === 'M') return ['Not done: male patient', null];
@@ -336,7 +343,8 @@ const CASES = [
   { k: 'gastro', cc: 'Belly pain, vomiting', dx: 'Gastroenteritis', esi: 3, src: 'b', age: [18, 60], wt: 5, wk: ['lab'], tr: ['fluids', 'meds'], dispo: 'home', find: { lab: 'Mild dehydration' } },
   { k: 'appy', cc: 'Belly pain', dx: 'Appendicitis', esi: 3, src: 'w', age: [12, 45], wt: 3, wk: ['lab', 'ct'], tr: ['meds'], con: 'surg', pre: ['lab', 'ct'], dispo: 'or', find: { lab: 'WBC 15.8', ct: 'Inflamed appendix' }, ok: ['abx'] },
   { k: 'chole', cc: 'Belly pain after meals', dx: 'Cholecystitis', esi: 3, src: 'b', age: [30, 70], sex: 'F', wt: 3, wk: ['lab', 'us'], tr: ['meds'], con: 'surg', pre: ['lab', 'us'], dispo: 'admit', find: { lab: 'WBC 13.1, liver tests up', us: 'Gallstones, thick gallbladder wall' }, ok: ['abx'] },
-  { k: 'hipfx', cc: 'Fell, hip pain', dx: 'Hip fracture', esi: 3, src: 'e', age: [70, 95], wt: 5, wk: ['xr', 'lab'], tr: ['meds'], con: 'ortho', pre: ['xr'], dispo: 'admit', find: { xr: 'Femoral neck fracture', lab: 'Hgb 11.9' }, ok: ['ecg'] },
+  { k: 'hipfx', con2: 'hosp', cc: 'Fell, hip pain', dx: 'Hip fracture', esi: 3, src: 'e', age: [70, 95], wt: 5, wk: ['xr', 'lab'], tr: ['meds'], con: 'ortho', pre: ['xr'], dispo: 'admit', find: { xr: 'Femoral neck fracture', lab: 'Hgb 11.9' }, ok: ['ecg'] },
+  { k: 'flu', cc: 'Fever, cough, body aches', dx: 'Influenza', esi: 4, src: 'w', age: [18, 75], wt: 2, wk: ['lab'], tr: ['meds'], dispo: 'home', iso: 'drop', find: { lab: 'Flu A positive' } },
   { k: 'pnalow', cc: 'Cough and fever for three days', dx: 'Pneumonia, low risk', esi: 3, src: 'w', age: [25, 64], wt: 2, wk: ['lab', 'xr'], tr: ['abx'], dispo: 'home', gray: 'pna', find: { lab: 'WBC 13.1', xr: 'Small right lower lobe infiltrate' } },
   { k: 'pna', cc: 'Cough and fever', dx: 'Pneumonia', esi: 3, src: 'b', age: [50, 90], wt: 4, wk: ['lab', 'xr'], tr: ['o2', 'abx'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', find: { lab: 'WBC 17.2', xr: 'Right lower lobe infiltrate' } },
   { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 1, anyRoom: true, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 90%, RR 24, wheezing', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' }, ok: ['meds'] },
@@ -358,7 +366,7 @@ const CASES = [
   { k: 'nstemi', cc: 'Chest pain', dx: 'NSTEMI (heart attack)', esi: 2, src: 'b', age: [50, 85], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', ecg10: true, find: { ecg: 'ST depression V4–V6', lab: 'Troponin elevated' }, ok: ['xr'] },
   { k: 'afib', cc: 'Racing heart', dx: 'A-fib with rapid rate', esi: 2, src: 'b', age: [55, 90], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', vit: 'HR 152, BP 118/76', find: { ecg: 'A-fib, rate 152', lab: 'Troponin negative' } },
   { k: 'chb', cc: 'Dizzy, nearly passed out', dx: 'Complete heart block', esi: 1, src: 'b', age: [60, 90], wt: 1.2, wk: ['ecg', 'lab'], tr: ['pace'], con: 'cards', pre: ['ecg'], dispo: 'icu', ecg10: true, vit: 'HR 38, BP 102/60, lightheaded', find: { ecg: 'Third-degree heart block, rate 38', lab: 'Potassium 4.4, troponin negative' } },
-  { k: 'gib', cc: 'Vomiting blood', dx: 'Upper GI bleed', esi: 2, src: 'b', age: [40, 85], wt: 2, wk: ['lab'], tr: ['fluids', 'blood'], con: 'gi', pre: ['lab'], dispo: 'admit', bleed: 'prbc', vit: 'HR 122, BP 92/58', find: { lab: 'Hemoglobin 6.8' } },
+  { k: 'gib', con2: 'hosp', cc: 'Vomiting blood', dx: 'Upper GI bleed', esi: 2, src: 'b', age: [40, 85], wt: 2, wk: ['lab'], tr: ['fluids', 'blood'], con: 'gi', pre: ['lab'], dispo: 'admit', bleed: 'prbc', vit: 'HR 122, BP 92/58', find: { lab: 'Hemoglobin 6.8' } },
   { k: 'dka', cc: 'Vomiting, sugar very high', dx: 'Diabetic ketoacidosis', esi: 2, src: 'b', age: [16, 45], wt: 1.5, wk: ['lab'], tr: ['fluids', 'insulin'], con: 'icu', pre: ['lab'], dispo: 'icu', ok: ['ecg'], find: { lab: 'Glucose 540, anion gap 26, potassium 4.8', ecg: 'Sinus tachycardia, T waves normal' } },
   { k: 'asthma', cc: 'Wheezing', dx: 'Asthma attack', esi: 2, src: 'w', age: [5, 30], wt: 3, wk: [], tr: ['nebs', 'meds'], dispo: 'home', vit: 'SpO2 91%, can speak 3 words', watch: 60 },
   { k: 'anaph', cc: 'Throat tight after eating shrimp', dx: 'Anaphylaxis', esi: 1, anyRoom: true, src: 'b', age: [12, 60], wt: 1.5, wk: [], tr: ['epi', 'meds'], dispo: 'home', vit: 'Hives, wheeze, BP 96/60', watch: 240 },
@@ -670,7 +678,7 @@ const VDOOR = { 1: { hr: 124, sbp: 94, dbp: 56, rr: 24, spo2: 95 }, 2: { hr: 104
 const VCASE = {
   refill: { sbp: 164, dbp: 98 }, otitis: { temp: 101.3 }, strep: { temp: 101.5, hr: 100 }, uti: { temp: 99.8 },
   gastro: { hr: 106, sbp: 108, dbp: 66, spo2: 98 }, appy: { temp: 100.6, hr: 102 }, chole: { temp: 100.4, hr: 98 }, hipfx: { hr: 96, sbp: 148, dbp: 86 },
-  pna: { temp: 101.6, hr: 98, rr: 24, spo2: 92.6 }, pnalow: { temp: 100.9, hr: 92, rr: 20, spo2: 96 }, copd: { hr: 98 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
+  pna: { temp: 101.6, hr: 98, rr: 24, spo2: 92.6 }, pnalow: { temp: 100.9, hr: 92, rr: 20, spo2: 96 }, flu: { temp: 102.1, hr: 104, rr: 18, spo2: 97 }, copd: { hr: 98 }, stone: { hr: 106, sbp: 152, dbp: 92 }, dvt: { hr: 84, sbp: 130, dbp: 80, spo2: 98 },
   migraine: { sbp: 140, dbp: 86 }, tb: { temp: 100.8, spo2: 95 }, bh: { hr: 98 }, etoh: { hr: 104 }, cell: { temp: 100.9 },
   syncope: { hr: 62, sbp: 108, dbp: 64, spo2: 98 }, tia: { hr: 80, sbp: 172, dbp: 96 }, dehyd: { hr: 104, sbp: 106, dbp: 64 }, mcimin: { hr: 100, sbp: 138, dbp: 84 }, mcigrn: { hr: 98 }, mciwr: { hr: 96, sbp: 134, dbp: 82 }, mcired: { rr: 28, spo2: 94 }, mciyel: { rr: 20 },
   chf: { hr: 108, rr: 26 }, od: { hr: 64, sbp: 104, dbp: 62 }, synchigh: { hr: 70, sbp: 124, dbp: 74, rr: 16, spo2: 97 }, chb: { rr: 18, spo2: 97 },
@@ -804,16 +812,17 @@ function makePatient(c, src) {
     arrest: !!c.arrest, ecg10: !!c.ecg10, vit: c.vit || null, bleed: c.bleed || null, amaMul: c.ama || 1, tag: c.tag || null,
     loc: 'new', room: null, unit: null, eta: 0, tArrive: G.t, tTriage: null, tRoom: null, tProv: null, tDone: null, tWall: null,
     patience: 1e9, rn: 'none', prov: null, ev: 'none', re: 'none', work: {}, treat: {}, dxK: false,
-    consult: { st: 'none', spec: null, due: 0 }, dsp: 'none', due: 0, goals: {},
+    consult: { st: 'none', spec: null, due: 0 }, con2: null, consult2: null, dsp: 'none', due: 0, goals: {},
     stat: false, vip: false, pren: false, missN: false, crash: false, tCrash: 0, sitBy: null, triaging: false, outcome: null,
     lang: age < 2 ? null : pickLang(), interp: 'none', interpDue: 0,
     bb: null, shock: false, pitSeen: false, pitQ: false, pitDcQ: false, ret: false, amaSafe: 0,
     reg: 'none', regBy: null, tri: 'none', triBy: null, offload: false, needCC: c.ift === 'cct', iftLevel: null, xBy: null,
-    px: 85, esiT: null, hardAirway: HARD_AIRWAY.has(c.k), gray: c.gray ? grayScore(c) : null, grayPick: null, cosign: null, lastUpdate: null, lastRecheck: null, quick: false, missedDx: null, outHit: null,
+    con2x: c.con2 || null, px: 85, esiT: null, hardAirway: HARD_AIRWAY.has(c.k), screen: c.iso ? 'pending' : null, gray: c.gray ? grayScore(c) : null, grayPick: null, cosign: null, lastUpdate: null, lastRecheck: null, quick: false, missedDx: null, outHit: null,
   };
   if (p.alert) for (const g of ALERTS[p.alert].goals) p.goals[g] = null;
   if (p.ecg10 && !('ecg10' in p.goals)) p.goals.ecg10 = null;
-  p.rehab = !G.train && c.dispo === 'home' && age >= 70 && vhash(p.id + 'rehab') < 0.45;   // v0.25: safe to leave the ED, not safe to go home alone
+  p.rehab = !G.train && c.dispo === 'home' && age >= 70 && vhash(p.id + 'rehab') < 0.45;
+  if (c.con2 && !G.train && vhash(p.id + 'con2') < 0.6) p.con2 = c.con2;   // v0.27: about one consulted patient in five needs a second service   // v0.25: safe to leave the ED, not safe to go home alone
   if (p.alert === 'stroke') strokeSetup(p);
   G.pts[p.id] = p; G.order.push(p.id);
   return p;
@@ -1244,6 +1253,7 @@ const EXAM = {
   hipfx: 'Leg shortened and turned outward. Cannot lift it. Foot pulse is good. Tripped on a rug. Did not pass out.',
   pna: 'Crackles at the right base. Breathing fast. Looks tired.',
   pnalow: 'Crackles at the right base. Talking in full sentences, alert, eating and drinking.',
+  flu: 'Feverish and achy, dry cough. Lungs clear. Drinking fine.',
   copd: 'Wheezing, long breath out, neck muscles working. Drowsy.',
   chf: 'Crackles halfway up both lungs. Swollen legs. Neck veins up.',
   stone: 'Cannot hold still. Tender in the flank. Belly soft.',
@@ -1300,6 +1310,7 @@ const ORD_WHY = {
   chole: 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.',
   hipfx: 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.',
   pna: 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.',
+  flu: 'A respiratory swab confirms flu. Fever medicine and fluids at home. Mask and an isolation room while they are here.',
   pnalow: 'Chest X-ray finds it. The BUN from the labs feeds the CURB-65 score. Antibiotics; most go home on pills.',
   copd: 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP. A steroid is reasonable.',
   chf: 'ECG looks for a heart attack as the cause. X-ray shows the fluid. Labs check the heart and kidneys. BiPAP, nitroglycerin, and a water pill.',
@@ -1348,7 +1359,7 @@ const FIND_PLAIN = {
   'WBC 15.8': 'white cells high: infection or inflammation', 'Inflamed appendix': 'appendicitis',
   'WBC 13.1, liver tests up': 'white cells high; the liver is irritated', 'Gallstones, thick gallbladder wall': 'an inflamed gallbladder',
   'Femoral neck fracture': 'a broken hip', 'Hgb 11.9': 'blood count a little low', 'WBC 17.2': 'white cells high: infection',
-  'Right lower lobe infiltrate': 'pneumonia low in the right lung', 'WBC 13.1': 'white cells a little high: infection', 'Small right lower lobe infiltrate': 'a small pneumonia low in the right lung', 'Hyperinflated, no pneumonia': 'over-full lungs, no infection',
+  'Right lower lobe infiltrate': 'pneumonia low in the right lung', 'WBC 13.1': 'white cells a little high: infection', 'Flu A positive': 'the flu virus', 'Small right lower lobe infiltrate': 'a small pneumonia low in the right lung', 'Hyperinflated, no pneumonia': 'over-full lungs, no infection',
   'VBG pCO2 58': 'CO2 building up: not breathing enough out', 'Sinus tach, old Q waves': 'fast and regular; a scar from an old heart attack',
   'Pulmonary edema': 'fluid in the lungs', 'BNP 2,400': 'heart strain marker very high', '4 mm ureteral stone': 'a small stone; most pass on their own',
   'Femoral vein clot': 'a clot in the big thigh vein', 'Cavity in the upper lobe': 'a hole in the lung: classic for TB', 'WBC 11.4': 'white cells a little high',
@@ -1410,7 +1421,7 @@ const RADIO_PLAIN = {
 const DX_PLAIN = {
   'Contact dermatitis': 'A skin reaction to something touched', 'Medication refill': 'Ran out of a regular medicine', 'Dental abscess': 'A pocket of infection at a tooth', 'Strep throat': 'A bacterial throat infection',
   'Ankle sprain': 'Stretched ligaments, no break', 'Simple laceration': 'A cut that needs stitches', 'Urinary tract infection': 'A bladder infection', 'Gastroenteritis': 'A stomach bug',
-  'Appendicitis': 'An inflamed appendix. It comes out in surgery', 'Cholecystitis': 'An inflamed gallbladder', 'Hip fracture': 'A broken hip. It needs surgery', 'Pneumonia, low risk': 'A lung infection mild enough to treat at home with pills', 'Pneumonia': 'A lung infection',
+  'Appendicitis': 'An inflamed appendix. It comes out in surgery', 'Cholecystitis': 'An inflamed gallbladder', 'Hip fracture': 'A broken hip. It needs surgery', 'Influenza': 'The flu: a virus. Most people get better at home', 'Pneumonia, low risk': 'A lung infection mild enough to treat at home with pills', 'Pneumonia': 'A lung infection',
   'COPD flare': 'Lungs damaged by smoking, flaring up', 'Heart failure flare': 'A weak heart, with fluid backing up into the lungs', 'Kidney stone': 'A small stone stuck on its way out of the kidney',
   'Deep vein thrombosis': 'A blood clot in a leg vein', 'Migraine': 'A severe headache that comes in attacks', 'Suspected tuberculosis': 'A lung infection that spreads through the air',
   'Behavioral health emergency': 'A mental health crisis', 'Alcohol intoxication': 'Drunk, and watched until sober', 'Opioid overdose': 'Too much of an opioid. It slows the breathing', 'Cellulitis': 'A skin infection',
@@ -1767,7 +1778,23 @@ function treatDone(p, key) {
   if (key === 'mtp') { p.shock = false; note(`${label(p)}: massive transfusion running, pressure coming up`); }
   if (key === 'blood' && p.shock) { p.shock = false; note(`${label(p)}: blood is in, pressure coming up`); }
 }
+/* v0.27: screening at the door. The first person to talk to them (quick registration or triage) asks about cough, fever, rash and travel. */
+function screenDone(p, who) {
+  if (p.screen !== 'pending') return;
+  p.screen = 'pos'; p.mask = true;
+  toast(`${who} screened ${label(p)}: ${p.iso === 'air' ? 'cough and night sweats' : 'cough and fever'}. Mask on, and an isolation room${p.iso === 'air' ? ' (8 or 16)' : ''}.`, 'alert');
+}
+function screenTick(p) {   // nobody asked: they sat coughing near everyone else
+  if (p.screen !== 'pending' || p.exposed || G.pre || G.train) return;
+  if (['triage', 'waiting', 'wall'].includes(p.loc) && G.t - p.tArrive > 12) {
+    p.exposed = true; care(-6, 'safety', p); if (!G.pre) G.stats.exposed = (G.stats.exposed || 0) + 1;
+    for (const st of G.staff) if (st.st === 'on' && (st.role === 'reg' || (st.role === 'rn' && st.zones.includes('triage')))) st.morale -= 2;
+    mm(25, `${p.name} sat unscreened in the waiting area for ${Math.round(G.t - p.tArrive)} min with ${p.iso === 'air' ? 'possible TB' : 'a contagious illness'}`, 'Nobody screened them at the door', false);
+    toast(`${p.name} waited ${Math.round(G.t - p.tArrive)} min unscreened with ${p.iso === 'air' ? 'possible TB' : 'a contagious illness'}. Others were exposed.`, 'bad');
+  }
+}
 function finishTriage(p, s) {
+  screenDone(p, 'Triage');
   p.tri = 'done'; p.triBy = null; p.tTriage = G.t; p.triaging = false;
   if (!G.pre) G.stats.triaged++;
   const risk = (s && (s.skill === 'new' || s.skill === 'agency') ? 0.1 : 0.05) * (p.lang && p.interp !== 'on' ? 1.5 : 1);
@@ -1801,6 +1828,7 @@ function regTick(dt) {
       if (s.task.left <= 0) {
         const full = s.task.full; s.task = null; s.done++; p.regBy = null;
         if (full) { p.reg = 'done'; if (!G.pre) G.stats.registered++; } else { p.reg = 'quick'; p.quick = true; if (!G.pre) G.stats.quickReg++; }
+        screenDone(p, 'Registration');
       }
       continue;
     }
@@ -2070,6 +2098,7 @@ function pctItems(sitSlots) {
     if (inRoom && p.sitter && !p.sitBy && !roomOf(p).safe && sitSlots > 0) { out.push({ kind: 'sit', p, pr: 0 }); sitSlots--; }
     if (p.bb && p.bb.st === 'cooler') out.push({ kind: 'run', p, pr: 0.5, dur: 4 });
     const e = p.work.ecg; if (e && e.st === 'todo') out.push({ kind: 'ecg', p, pr: (p.alertOn || p.ecg10) ? 1 : 4, dur: 3 });
+    const pc = p.work.poc; if (pc && pc.st === 'todo' && inRoom) out.push({ kind: 'poc', p, pr: (p.alertOn || p.esi <= 2) ? 1 : 3, dur: 2 });
     const l = p.work.lab; if (l && l.st === 'todo' && (inRoom || (p.loc === 'waiting' && p.pitSeen))) out.push({ kind: 'lab', p, pr: (p.alertOn || p.esi <= 2 || p.stat) ? 2 : 5, dur: 4 });
     if (p.dsp === 'morgue') out.push({ kind: 'morgue', p, pr: 6, dur: 8 });
   }
@@ -2114,10 +2143,20 @@ function pctTick(dt) {
     if (it.kind === 'sit') { p.sitBy = s.id; s.task = { kind: 'sit', pid: p.id, left: 1e9, dur: 1e9, t0: G.t }; continue; }
     if (it.kind === 'errand') { G.errands.splice(G.errands.indexOf(it.e), 1); s.task = { kind: 'errand', label: it.e.label, left: it.dur, dur: it.dur, t0: G.t }; continue; }
     if (it.kind === 'ecg') p.work.ecg.st = 'doing';
+    if (it.kind === 'poc') p.work.poc.st = 'doing';
     if (it.kind === 'lab') p.work.lab.st = 'doing';
     if (it.kind === 'morgue') p.dsp = 'morguing';
     if (it.kind === 'run') p.bb.st = 'run';
     s.task = { kind: it.kind, pid: p.id, left: it.dur, dur: it.dur, t0: G.t };
+  }
+}
+/* v0.27: a bedside test reads in a minute. A sugar checked early on a stroke, or a DKA sugar confirmed at once, earns a little. */
+function pocDone(p) {
+  const w = p.work.poc; if (!w) return;
+  w.st = 'done'; w.tDone = G.t;
+  if (!G.pre && p.det && p.det.includes('gluc') && !p.pocCredit) {
+    if (p.alert === 'stroke' && !(p.work.ct && p.work.ct.st === 'done')) { p.pocCredit = true; care(2, 'dispo', p); note(`${label(p)}: sugar checked at the bedside before the CT. Low sugar can look like a stroke.`); }
+    else if (p.ck === 'dka') { p.pocCredit = true; care(2, 'dispo', p); note(`${label(p)}: the fingerstick reads HI in a minute. Start the DKA care now.`); }
   }
 }
 function labTat(p) { let m = (p.alertOn || p.stat || p.esi <= 2) ? 10 : 16; if (G.mods.lab > G.t) m *= 2; return m; }
@@ -2127,6 +2166,7 @@ function labDrawn(p) {
 }
 function pctDone(k, p) {
   if (k.kind === 'ecg') { p.work.ecg.st = 'done'; p.work.ecg.tDone = G.t; ecgRead(p); goalHit(p, 'ecg10'); }
+  else if (k.kind === 'poc') pocDone(p);
   else if (k.kind === 'lab') labDrawn(p);
   else if (k.kind === 'morgue') leave(p, 'expired');
   else if (k.kind === 'run') { if (p.bb) { p.bb.st = 'here'; note(`MTP cooler is at the bedside in ${label(p)}`); } }
@@ -2305,24 +2345,40 @@ function resultTick() {
 }
 function consultTick() {
   for (const p of active()) {
+    const c2 = p.consult2;   // v0.27: a second service
+    if (c2 && c2.st === 'req' && G.t >= c2.due) { c2.st = 'here'; c2.tArr = G.t; const S2 = SPECS[c2.spec]; note(`${S2.doc} (${S2.name}) is at the bedside in ${label(p)} too`); }
+    if (c2 && c2.st === 'here' && c2.tVisit == null && p.loc === 'room') c2.tVisit = G.t;
     const c = p.consult;
     if (c.st === 'req' && G.t >= c.due) {
       c.st = 'here'; c.tArr = G.t;
       const S = SPECS[c.spec];
-      if (p.loc === 'room') note(`${S.doc} (${S.name}) is at the bedside in ${roomName(p.room)}`);
+      if (c.phone) { note(`${S.doc} accepted ${label(p)} by phone. They'll see them upstairs.`); c.tVisit = -1e9; }
+      else if (p.loc === 'room') note(`${S.doc} (${S.name}) is at the bedside in ${roomName(p.room)}`);
       else toast(`${S.doc} (${S.name}) is here, but ${p.name} still has no room`, 'bad');
+      if (p.con2 && !p.consult2) note(`${label(p)} also needs ${SPECS[p.con2].name}: ${CON2_WHY[p.ck] || 'a second service'}.`);
     }
     if (c.st === 'here' && c.tVisit == null && p.loc === 'room') c.tVisit = G.t;   // v0.25: the consultant walks in, sees the patient, and walks out (map)
   }
 }
-function consult(pid, spec) {
+const CON2_WHY = { hipfx: 'an older patient going to surgery needs medicine to manage everything else', gib: 'GI scopes them; the hospitalist admits them' };
+function consult(pid, spec, o) {
+  o = o || {};
   const p = pt(pid), S = SPECS[spec];
   if (!p || !S) return { ok: false, why: 'Pick a patient and a service' };
   if (!p.alertOn) {
     if (p.loc !== 'room') return { ok: false, why: 'Put the patient in a room first' };
     if (p.ev !== 'done') return { ok: false, why: 'A provider has to see the patient before you consult' };
   }
+  if (p.consult.st !== 'none' && p.con2 && !p.consult2 && !o.phone) {   // v0.27: the second service
+    if (spec === p.consult.spec) return { ok: false, why: `${S.name} is already involved` };
+    const m2 = G.spec[spec];
+    if (spec !== p.con2) { m2.mood = Math.max(-3, m2.mood - 1); m2.at = G.t; care(-6, 'consult', p); G.stats.wrongSpec++; return { ok: false, mad: true, why: `${S.doc} (${S.name}): "Not ours. ${SPECS[p.con2].name} should co-manage this one."` }; }
+    const mins2 = Math.round(randi(10, 18) * ([1, 1.2, 1.5, 1.9][-m2.mood] || 1));
+    p.consult2 = { st: 'req', spec, due: G.t + mins2, t0: G.t }; care(3, 'dispo', p); G.stats.con2 = (G.stats.con2 || 0) + 1;
+    return { ok: true, msg: `${S.doc} (${S.name}) will also see ${label(p)} in about ${mins2} min` };
+  }
   if (p.consult.st !== 'none') return { ok: false, why: `${SPECS[p.consult.spec].name} is already involved` };
+  if (o.phone && spec === 'hosp' && p.con !== 'hosp') { care(-4, 'consult', p); return { ok: false, mad: true, why: `${S.doc} (Hospitalist): "I can't take this one sight unseen. ${p.con ? SPECS[p.con].name + ' needs to see them.' : 'They don’t need admission.'}"` }; }
   const m = G.spec[spec];
   if (p.con !== spec) {
     if (mdMine(p) && !p.con) G.stats.md.dispoWrong++;
@@ -2335,12 +2391,16 @@ function consult(pid, spec) {
     m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-15, 'consult', p); G.stats.angry++; provHit(p, 4); sound('bad');
     return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${S.mad(miss.map(k => MISS_NAME[k]).join(' and '))}"` };
   }
-  const base = (spec === 'trauma' ? randi(8, 14) : randi(12, 22)) + (spec === 'trauma' && outActive('or') ? 30 : 0), mult = [1, 1.2, 1.5, 1.9][-m.mood] || 1;
+  const phone = !!o.phone && spec === 'hosp';   // v0.27: the ED doctor admits by phone; the hospitalist sees them upstairs
+  const base = phone ? randi(3, 6) : (spec === 'trauma' ? randi(8, 14) : randi(12, 22)) + (spec === 'trauma' && outActive('or') ? 30 : 0), mult = phone ? 1 : [1, 1.2, 1.5, 1.9][-m.mood] || 1;
   const mins = Math.round(base * mult);
-  p.consult = { st: 'req', spec, due: G.t + mins, t0: G.t };
+  p.consult = { st: 'req', spec, due: G.t + mins, t0: G.t, phone };
+  if (phone) { care(4, 'flow', p); G.stats.phoneAdmit = (G.stats.phoneAdmit || 0) + 1; }
   if (mdMine(p) && !p.mdPick) { p.mdPick = 'consult'; if (p.dsp === 'mddecide') p.dsp = 'none'; G.stats.md.dispoRight++; care(12, 'dispo', p); }
-  return { ok: true, msg: `${S.doc} (${S.name}) will see ${label(p)} in about ${mins} min` };
+  return { ok: true, msg: phone ? `Calling ${S.doc} to admit ${label(p)} by phone: about ${mins} min` : `${S.doc} (${S.name}) will see ${label(p)} in about ${mins} min` };
 }
+const con2Open = p => !!(p.con2 && p.consult.st === 'here' && !p.consult2);
+const con2Wait = p => !!(p.con2 && !(p.consult2 && p.consult2.st === 'here'));
 function provHit(p, n) { const s = staff(p.prov); if (s) s.morale -= n; }
 
 /* ---------- goals ---------- */
@@ -2429,7 +2489,7 @@ function checkDispo(p) {
     }
     if (p.reg !== 'done') return;
     if (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done')) return;
-    if (p.mdPick === 'consult' && p.consult.st !== 'here') return;
+    if (p.mdPick === 'consult' && (p.consult.st !== 'here' || con2Wait(p))) return;
     if (!treatsDone(p)) return;
     setDispo(p);
     return;
@@ -2441,7 +2501,7 @@ function checkDispo(p) {
   if (p.dispo === 'or' && p.alert === 'trauma' && outActive('or')) { p.dispo = 'transfer'; p.txTo = 'another trauma center'; p.txNeed = 'trauma'; p.needCC = true; note(`${label(p)} needs an OR and there isn't one. Transfer them.`, 'bad'); }
   // Transfers get called in as soon as the diagnosis is clear. Treatment keeps going while the crew drives in.
   if (p.dispo === 'transfer') { p.dsp = 'readytx'; return; }
-  if (p.con && p.consult.st !== 'here') return;
+  if (p.con && (p.consult.st !== 'here' || con2Wait(p))) return;
   if (!treatsDone(p)) return;
   if (p.gray && !p.grayPick) { p.dsp = 'decide'; note(`${label(p)}: ${p.gray.tool} ${p.gray.score} (${p.gray.band} risk). Your call: home, observation, or admit.`); return; }
   setDispo(p);
@@ -2847,6 +2907,7 @@ function minuteTick() {
       if (p.esi >= 3 && t - p.tTriage > p.patience && !p.pitDcQ) { toast(`${p.name} (ESI ${vEsi(p)}) left without being seen after ${Math.round(t - p.tArrive)} min`, 'bad'); mm(25, `${p.name} (ESI ${vEsi(p)}) left without being seen after ${Math.round(t - p.tArrive)} min`, crowdWhy()); leave(p, 'lwbs'); continue; }
       if (!G.train && p.esi === 2 && !p.crash && !p.alertOn && t - p.tTriage > 30 && chance(0.012) && !p.gray && p.ck !== 'bh') crash(p);
     }
+    screenTick(p);
     if (p.crash && !p.arrest && p.loc !== 'room' && t - p.tCrash > 15) waitingArrest(p);
     hemorrhageTick(p);
     if (G.pre) continue;
@@ -2996,6 +3057,7 @@ function revertTask(s) {
   if (k.kind === 'dc' && p.dsp === 'dcing') p.dsp = 'dc';
   if (k.kind === 'triage') p.triaging = false;
   if (k.kind === 'ecg' && p.work.ecg && p.work.ecg.st === 'doing') p.work.ecg.st = 'todo';
+  if (k.kind === 'poc' && p.work.poc && p.work.poc.st === 'doing') p.work.poc.st = 'todo';
   if (k.kind === 'lab' && p.work.lab && p.work.lab.st === 'doing') p.work.lab.st = 'todo';
   if (k.kind === 'walk' && p.dsp === 'xportq') p.dsp = 'bedready';
   if (k.kind === 'reg' && p.reg === 'doing') { p.reg = 'none'; p.regBy = null; }
@@ -3310,7 +3372,7 @@ const EV = {
   sick: {
     w: () => (G.t > 25 && G.t < G.shift - 40 && G.ev.sick < LEVELS[G.level].sickMax) ? 1.1 : 0,
     fire() {
-      const pool = G.staff.filter(s => s.st === 'on' && !s.tag && s.id !== 'rnF');
+      const pool = G.staff.filter(s => s.st === 'on' && !s.tag && s.id !== 'rnF' && s.id !== G.me);   // the player never calls out sick on themselves
       if (!pool.length) return;
       const s = wpick(pool, x => ({ rn: 3, pct: 2, evs: 2, app: 1.2, md: 0.7, rt: 1, rph: 0.6, reg: 1, tp: 0.8 })[x.role] || 0);
       G.ev.sick++;
@@ -3742,6 +3804,7 @@ function botStep(o) {
       return assign(opts[0].id, p.id).ok;
     });
     if (p.reg === 'none' && o.intake !== false) add(6.2, () => { const s = regPick(); return !!s && p.reg === 'none' && register(p.id, s.id).ok; });
+    if (con2Open(p) && !mdMine(p)) add(7.4, () => con2Open(p) && consult(p.id, p.con2).ok);
     if (p.con && p.consult.st === 'none' && !mdMine(p) && !(G.mode === 'md' && !p.prov) && (p.alertOn || p.ev === 'done') && preDone(p) && (p.dxK || o.early)) add(7.5, () => p.consult.st === 'none' && consult(p.id, p.con).ok);
     if (p.lang && p.interp === 'none' && (o.interp == null || chance(o.interp))) add(8, () => requestInterp(p.id).ok);
     if (!G.staff.some(s => s.role === 'rph' && s.st === 'on') && !G.mods.remoteRph && Object.keys(p.treat).some(k => p.treat[k].st === 'verify')) add(8.5, () => overrideRx(p.id).ok);
@@ -3809,6 +3872,10 @@ function mdPlay(o) {
       return p.con && preDone(p) ? consult(p.id, p.con).ok : false;
     });
     if (p.dsp === 'decide') act(() => grayDispo(p.id, chance(acc) ? p.gray.right : 'home').ok);
+    if (con2Open(p)) act(() => consult(p.id, p.con2).ok);   // v0.27: the second service
+    if (p.dsp === 'readytx') act(() => requestTransfer(p.id).ok);   // v0.26: find a hospital, pick the crew, give report
+    if (p.dsp === 'txok') act(() => bookIFT(p.id, IFT_LV[iftNeed(p)]).ok);
+    if (p.dsp === 'iftreport' && p.iftRep == null) act(() => giveReport(p.id).ok);
   }
   const line = me.q.filter(k => !k.started && k.type !== 'box').length;
   if (line < (o.line || 2) && me.st === 'on') {
@@ -3827,7 +3894,7 @@ const OC = {
   CONS_VISIT, place, move, evsTap, assign, consult, discharge, dischargeRehab, ucDo, clerkOpen, CLERK, RIDE, requestTransfer, escalate, toggleStat,
   boxNotify, boxTake, boxDecide, chooseCard, sendBreak, toggleZone, setZoneClosed, callAgency, orderPizza, setYellow, setDivert, starsFor,
   setPit, activateMTP, releaseONeg, requestInterp, overrideRx,
-  register, triage, toWaiting, sendUp, bookIFT, IFT, IFT_LV, HOSPS, CAP_NAME, UNITS, WX, HELP, callHosp, giveReport, txInstead, helpCall, helpHere, txNeedOf, iftNeed, txFast, wxGrounded, wxOf, bedWait, emergent, DIVERTS, OUTAGES, outActive, justified,
+  register, triage, toWaiting, sendUp, bookIFT, IFT, IFT_LV, HOSPS, CAP_NAME, UNITS, WX, HELP, con2Open, con2Wait, POC_RES, setDispo, awaitOrders, callHosp, giveReport, txInstead, helpCall, helpHere, txNeedOf, iftNeed, txFast, wxGrounded, wxOf, bedWait, emergent, DIVERTS, OUTAGES, outActive, justified,
   startOutage, sickEnough, looksSick, classCode, readCode, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,

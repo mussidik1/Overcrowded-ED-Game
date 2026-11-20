@@ -531,6 +531,8 @@ function nextStep(p, r, G) {
   if (p.ev === 'doing') return { t: `${nm} in the room`, c: 'n-wait', i: 'steth' };
   if (p.con && p.consult.st === 'none' && p.dxK) return { t: 'Call a consult', c: 'n-act fl', i: 'phone' };
   if (p.consult.st === 'req') return { t: `${E.SPECS[p.consult.spec].short} <span data-cd="${p.consult.due}"></span>`, c: 'n-wait', i: 'phone' };
+  if (E.con2Open(p)) return MD() && !mine(p) ? { t: 'Second consult: charge nurse', c: 'n-wait', i: 'phone' } : { t: 'Call a 2nd consult', c: 'n-act fl', i: 'phone' };
+  if (p.consult2 && p.consult2.st === 'req') return { t: `${E.SPECS[p.consult2.spec].short} <span data-cd="${p.consult2.due}"></span>`, c: 'n-wait', i: 'phone' };
   if (p.re === 'q' || p.re === 'doing') return { t: `${nm} rechecking`, c: 'n-wait', i: 'steth' };
   if (p.cosign === 'need' || p.cosign === 'wait') return { t: 'Attending co-sign', c: 'n-wait', i: 'pen' };
   { const Gi = E.G.img, sc = ['ct', 'xr', 'mri'].find(m => Gi[m] && Gi[m].busy && Gi[m].busy.pid === p.id); if (sc) return { t: `At ${sc === 'xr' ? 'X-ray' : sc.toUpperCase()}`, c: 'n-wait', i: 'flask' }; }   // v0.26: away for a scan
@@ -748,10 +750,12 @@ function pathRows(p, G) {
   const cs = p.consult;
   let cv, cst = 'idle';
   if (cs.st === 'none') { if (MD() && (mine(p) || !p.prov) && !p.alertOn) cv = p.dxK && p.ev === 'done' ? 'Your call' : 'Unknown until the workup is back'; else if (p.dxK && p.con) { cv = 'Needed. Pick the right service.'; cst = 'need'; } else if (p.dxK && p.loc === 'room' && !p.arrest) cv = 'Not needed'; else cv = 'Unknown until the workup is back'; }
-  else if (cs.st === 'req') cv = `${E.SPECS[cs.spec].doc} (${E.SPECS[cs.spec].name}) coming in <span data-cd="${cs.due}"></span>`;
-  else { cv = `${E.SPECS[cs.spec].doc} (${E.SPECS[cs.spec].name}) at the bedside`; cst = 'ok'; }
+  else if (cs.st === 'req') cv = cs.phone ? `Calling ${E.SPECS[cs.spec].doc} to admit by phone: <span data-cd="${cs.due}"></span>` : `${E.SPECS[cs.spec].doc} (${E.SPECS[cs.spec].name}) coming in <span data-cd="${cs.due}"></span>`;
+  else { cv = cs.phone ? `${E.SPECS[cs.spec].doc} accepted by phone` : `${E.SPECS[cs.spec].doc} (${E.SPECS[cs.spec].name}) at the bedside`; cst = 'ok'; }
   if (p.conNote && cs.st === 'none') { cv += `<small class="dxp bad">${esc(p.conNote)}</small>`; }
   rows.push(row('Consult', cv, cst));
+  if (p.con2 && cs.st === 'here') { const c2 = p.consult2, S2 = E.SPECS[p.con2]; rows.push(row('Second consult', !c2 ? 'Needed: a second service' : c2.st === 'req' ? `${E.SPECS[c2.spec].doc} (${E.SPECS[c2.spec].name}) coming in <span data-cd="${c2.due}"></span>` : `${E.SPECS[c2.spec].doc} (${E.SPECS[c2.spec].name}) at the bedside`, !c2 ? 'need' : c2.st === 'here' ? 'ok' : 'idle')); }
+  if (p.screen) rows.unshift(row('Screening', p.screen === 'pending' ? 'Not screened yet: the first person to see them asks about cough, fever, rash and travel' : `Positive: mask on, ${p.iso === 'air' ? 'airborne isolation (Room 8 or 16)' : 'isolation room with a door'}`, p.screen === 'pending' ? 'need' : 'ok'));
   rows.push(row('Plan', dispoText(p), p.dsp === 'none' ? 'idle' : 'ok'));
   return rows.join('');
 }
@@ -781,6 +785,7 @@ function primary0(p, G) {
   if (E.needsProv(p)) return `<div class="prim"><div class="prim-l">Assign a provider</div><div class="pgrid">${provButtons(p, G)}</div></div>${regBlk}`;   // bedded first: the registrar is the other thing they need
   if (regBlk) return regBlk;
   if (p.dxK && p.con && p.consult.st === 'none') return `<div class="prim"><button type="button" class="big act" data-act="consultOpen" data-arg="${p.id}">Call a consult…</button></div>`;
+  if (E.con2Open(p)) return `<div class="prim"><div class="prim-l">${esc(E.SPECS[p.consult.spec].name)} is on board. A second service is needed.</div><button type="button" class="big act" data-act="consultOpen" data-arg="${p.id}">Call a second consult…</button></div>`;
   if (p.reg === 'quick' && p.ev === 'done') return `<div class="prim"><div class="prim-l">Finish their registration</div><div class="pgrid">${regButtons(p, G)}</div><p class="hint" style="margin:0">Registration does this at the bedside when the desk is quiet. They can't leave the ED until it's done.</p></div>`;
   return '';
 }
@@ -899,7 +904,7 @@ function ptSheet(G, p) {
   if (p.ev === 'done' && E.examOf(p) && p.loc !== 'gone') kv.push(['Exam', esc(E.examOf(p))]);
   if (p.tag) kv.push(['Field tag', `${cap(p.tag)}: ${{ red: 'immediate', yellow: 'can wait a little', green: 'walking wounded' }[p.tag]}`]);
   if (p.lkwT != null && p.alertOn) kv.push(['Onset', `Last known well <b>${E.clock(p.lkwT)}</b> · the thrombolytic has to be in by ${E.clock(p.lkwT + E.LYTIC_WINDOW)}`]);
-  if (p.iso) kv.push(['Isolation', 'Airborne. Room 8 or 16.']);
+  if (p.iso && p.screen !== 'pending') kv.push(['Isolation', p.iso === 'air' ? 'Airborne. Room 8 or 16.' : 'Droplet. Mask, and a room with a door.']);
   if (p.sitter) kv.push(['Safety', 'Needs a safe room (19 or 20) or a 1:1 sitter']);
   if (p.bleed === 'mtp') kv.push(['Bleeding', p.bb ? 'Massive transfusion activated' : '<b>Hemorrhage. Activate MTP.</b>']);
   else if (p.bleed === 'prbc' && (!MD() || p.treat.blood)) kv.push(['Blood', p.treat.blood && p.treat.blood.st === 'done' ? 'Transfusion given' : MD() ? 'Transfusion ordered' : 'Needs a transfusion']);   // the attending decides that for themselves
@@ -951,7 +956,7 @@ function mdPrimary0(p, G) {
     if ((p.txGap && p.txGap.length) || U.ordOpen === p.id) return call + ordersBlock(p, G, true);   // the call first: it used to sit under 24 order buttons
     return call + `<div class="prim"><button type="button" class="big" data-act="ordOpen" data-arg="${p.id}">Add orders</button></div>`;
   }
-  const tb = ['readytx', 'txcall', 'txok', 'iftreport'].includes(p.dsp) ? txBlock(p, G) : p.dsp === 'board' ? boardBlock(p, G, true) : '';
+  const tb = ['readytx', 'txcall', 'txok', 'iftreport'].includes(p.dsp) ? txBlock(p, G) : p.dsp === 'board' ? boardBlock(p, G, true) : E.con2Open(p) ? `<div class="prim"><div class="prim-l">${esc(E.SPECS[p.consult.spec].name)} is on board. Who else?</div><button type="button" class="big act" data-act="consultOpen" data-arg="${p.id}">Call a second consult…</button></div>` : '';
   let h = (mtpBtn ? `<div class="prim">${mtpBtn}</div>` : '') + tb;
   if (lyticHeld(p)) h += `<p class="hint bad">The nurse is holding the thrombolytic: the pressure is over ${E.LYTIC_BP.join('/')}.</p>`;
   else if (p.txGap && p.txGap.length) h += `<p class="hint bad">${gapMsg(p)}</p>`;
@@ -1048,8 +1053,10 @@ function mdDecideBlock(p) {
 }
 const MOOD = ['🙂', '😐', '😠', '🤬'];
 function consultSheet(G, p) {
-  let h = head('Who do you call?', `${esc(p.name)} · ${esc(dxOr(p))}`);
-  h += '<p class="hint">Consultants get angry if you call before the results they need are back, or if you call the wrong service. Angry consultants come slower.</p><div class="cgrid">';
+  const second = E.con2Open(p);
+  let h = head(second ? 'Who else do you call?' : 'Who do you call?', `${esc(p.name)} · ${esc(dxOr(p))}`);
+  if (second) h += `<p class="hint">${esc(E.SPECS[p.consult.spec].name)} is on board. Some patients need two services: one to fix the problem, one to manage everything else.</p><div class="cgrid">`;
+  else h += `<p class="hint">Consultants get angry if you call before the results they need are back, or if you call the wrong service. Angry consultants come slower.</p><div class="prim"><button type="button" class="cbtn" data-act="consultPhone"><b>Admit by phone: Hospitalist</b><small>You make the admission call. Dr. Fenn accepts without coming down and sees them upstairs. Medical admissions only.</small></button></div><div class="cgrid">`;
   for (const k in E.SPECS) { const S = E.SPECS[k], m = G.spec[k].mood; h += `<button type="button" class="cbtn" data-act="consultSpec" data-arg="${k}"><b>${S.name}</b><small>${S.what} · ${S.doc} ${MOOD[-m] || MOOD[0]}</small></button>`; }
   return h + '</div>';
 }
@@ -1333,7 +1340,10 @@ const GLOSS = [
   ['Where patients go next', [
     ['Disposition', 'Where the patient goes next: home, observation, admitted, or transferred.'],
     ['Discharge', 'Sending the patient home.'],
-    ['Consult', 'Calling a specialist to see the patient.'],
+    ['Consult', 'Calling a specialist to see the patient. About one consulted patient in five needs a second service: a broken hip in an older patient gets orthopedics and the hospitalist.'],
+    ['Admit by phone', 'The ED doctor makes the admission call and the hospitalist accepts without coming down first. Faster, for straightforward medical admissions. A surgical or heart problem still needs its specialist to see them.'],
+    ['Point-of-care test', 'A test done at the bedside in a minute: a fingerstick sugar, a urine dip. It still works when the lab is down. Check the sugar early on any stroke.'],
+    ['Screening', 'At the door, the first person to talk to a patient asks about cough, fever, rash and travel. A positive screen means a mask and an isolation room. Miss it, and others in the waiting room are exposed.'],
     ['Admit', 'The patient stays in the hospital, on a unit upstairs.'],
     ['Monitored bed', 'A hospital bed where the heart rhythm is watched around the clock. Also called telemetry.'],
     ['Boarding', 'An admitted patient still in an ED bed because no bed is open upstairs. The main reason emergency departments back up.'],
@@ -1416,6 +1426,8 @@ function helpHTML() {
 <li><b>Admits.</b> Admitted patients wait for a bed upstairs on their unit: ICU, step-down, telemetry, med-surg, psych. The <b>Beds</b> chip, top right, shows how full the ICU is. Tap it for every unit. When a bed is ready, the nurse calls report, then pick a transporter or tech.</li>
 <li><b>Transfers.</b> Find a hospital that can do what the patient needs, call it to accept, then pick the transport: wheelchair van, BLS, ALS, critical care ground, or flight. Too little crew refuses at the bedside; too much wastes a unit.</li>
 <li><b>Help from upstairs.</b> Hard airway? Call anesthesia. Shock? Call critical care.</li>
+<li><b>Screening.</b> Registration or triage screens everyone for contagious illness. Get to coughing walk-ins fast: unscreened, they expose the waiting room. Screened-positive patients need an isolation room.</li>
+<li><b>Two consults.</b> Some patients need a second service before they can go upstairs. The card says so.</li>
 <li><b>Cleaning.</b> EVS only cleans when you tap a dirty room. Tap again to move it to the front.</li>
 <li><b>Nurses.</b> Each nurse handles 4 points. Tap a pod ${fp ? 'sign' : 'header'} to move nurses. Casey floats. Reyes is new: no Resus or triage. Give breaks.</li>
 <li><b>Divert.</b> Match the divert to what broke: CT, STEMI (cath lab), Trauma, or Internal Disaster (lab or power). Lift it once fixed. ED Full and No Monitored Beds are for when you’re full.</li>
@@ -1431,6 +1443,8 @@ function helpMD() {
 <li><b>Make the call.</b> Home, rehab (can leave, can’t manage alone: the exam says so), admit (call the right consultant once results are back), or transfer. Chest pain, fainting, TIA and mild pneumonia (CURB-65) get a risk score.</li>
 <li><b>Transfers.</b> Pick a hospital that has what they need, call it to accept, pick the transport, and give the crew report. No ICU bed here? An ICU patient can’t stay: transfer them.</li>
 <li><b>Help from upstairs.</b> Hard airway: anesthesia. Shock: critical care. Call them before the procedure, not after.</li>
+<li><b>Admit by phone.</b> For a straightforward medical admission, admit to the hospitalist by phone instead of waiting for them to come down. Some patients need a second consult; the card says so.</li>
+<li><b>Bedside tests.</b> A fingerstick glucose or urine dip reads in a minute and works when the lab is down. Check the sugar early on every stroke.</li>
 <li><b>Answer the radio.</b> Tap Answer, read the call, approve or deny. Only you can.</li>
 <li><b>Alerts.</b> Time goals: ECG in 10, CT in 25, needle in 60, balloon in 90.</li>
 <li><b>Your scores.</b> Patients, Clinical (your own patients), Admin, Staff. The meter counts patients waiting on their next step.</li>
@@ -1441,7 +1455,7 @@ function renderSheet(G) {
   let h = '';
   if (s && U.scene === 'game') {
     if (s.type === 'pt') h = ptSheet(G, E.pt(s.pid));
-    else if (s.type === 'consult') { const p = E.pt(s.pid); h = p && p.loc !== 'gone' && p.consult.st === 'none' ? consultSheet(G, p) : ''; }
+    else if (s.type === 'consult') { const p = E.pt(s.pid); h = p && p.loc !== 'gone' && (p.consult.st === 'none' || E.con2Open(p)) ? consultSheet(G, p) : ''; }
     else if (s.type === 'prov') { const p = E.pt(s.pid); h = p && p.loc === 'room' ? head('Change provider', esc(p.name)) + `<div class="pgrid">${provButtons(p, G)}</div>` : ''; }
     else if (s.type === 'team') h = head(MD() ? 'The team' : 'Your team', MD() ? 'Who is working today. The charge nurse runs assignments and breaks.' : `Staff satisfaction ${Math.round(E.staffSat())}%`) + teamHTML(G);
     else if (s.type === 'staff') h = staffSheet(G, E.staff(s.sid));
@@ -2350,6 +2364,7 @@ const ACT = {
   card: k => { E.chooseCard(k); },
   assign: sid => { const s = U.sheet, r = E.assign(sid, s && s.pid); toast(r.ok ? r.msg : r.why, r.ok ? 'good' : 'bad'); if (r.ok) U.sheet = null; },
   consultOpen: pid => { U.sheet = { type: 'consult', pid }; },
+  consultPhone: () => { const pid = U.sheet && U.sheet.pid, r = E.consult(pid, 'hosp', { phone: true }); toast(r.ok ? r.msg : r.why, r.ok ? 'good' : r.mad ? 'mad' : 'bad'); U.sheet = r.ok ? null : { type: 'pt', pid }; },
   consultSpec: spec => { const pid = U.sheet && U.sheet.pid, r = E.consult(pid, spec); toast(r.ok ? r.msg : r.why, r.ok ? 'good' : r.mad ? 'mad' : 'bad'); U.sheet = r.ok ? null : { type: 'pt', pid }; },
   dc: pid => res(E.discharge(pid), true),
   dcRehab: pid => res(E.dischargeRehab(pid), true),
