@@ -911,6 +911,8 @@ function mapRender(G) {
     if (p.loc !== 'room') continue;
     const c = p.consult;
     if (c && c.tVisit != null && G.t - c.tVisit < E.CONS_VISIT) { const sp = E.SPECS[c.spec] || {}; visit('c-' + p.id, p, CONS_LAB[c.spec] || 'Dr', ROLEC.cons, 'lift', { role: 'cons', title: `${sp.doc || 'A consultant'}, ${sp.name || 'consultant'}`, tag: sp.short || 'Consult' }); }
+    const c2 = p.consult2;
+    if (c2 && c2.tVisit != null && G.t - c2.tVisit < E.CONS_VISIT) { const sp = E.SPECS[c2.spec] || {}; visit('d-' + p.id, p, CONS_LAB[c2.spec] || 'Dr', ROLEC.cons, 'lift', { role: 'cons', title: `${sp.doc}, ${sp.name}`, tag: sp.short || 'Consult' }); }
     const h = p.help;
     if (h && h.tVisit != null && h.st !== 'req' && G.t - h.tVisit < 15) { const H = E.HELP[h.k]; visit('h-' + p.id, p, H.short, ROLEC.help, 'lift', { role: 'help', title: `${H.doc}, ${H.name}`, tag: H.name.split(' ')[0] }); }
     if (p.dsp === 'iftreport' && p.iftLevel) {
