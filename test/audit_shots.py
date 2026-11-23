@@ -41,6 +41,13 @@ def run(pw, url, size, wh):
         except Exception: pass
         return False
     def wait(ms): page.wait_for_timeout(ms)
+    def intro(name):   # the first-shift card: photograph it, then press Start the shift
+        b = page.locator('#modal button:has-text("Start the shift")')
+        if b.count() and b.first.is_visible(): shot(name); b.first.click(); wait(500)
+        elif b.count(): J("(() => { const b = [...document.querySelectorAll('#modal button')].find(x => /Start the shift/.test(x.textContent)); if (b) b.click(); })()"); wait(500)
+    def portrait_list():   # a phone held upright gets a "turn sideways" screen; photograph it once, then take the list board
+        if size == 'phone' and page.locator('#rotate [data-act="view"]').count() and page.locator('#rotate [data-act="view"]').first.is_visible():
+            shot('portrait-turn-sideways-prompt'); page.locator('#rotate [data-act="view"]').first.click(); wait(500)
     def step(mins):   # advance the shift fast, with the autopilot playing the other roles
         J(f"(() => {{ for (let i = 0; i < {int(mins * 10)}; i++) {{ if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(c => !c.dis).k); OC.step(0.1); if (OC.G.over) break; }} OCUI.render(); }})()")
 
@@ -63,7 +70,7 @@ def run(pw, url, size, wh):
     J("OCUI.U.sheet = null; OCUI.U.tm = 'main'; OCUI.showTitle()"); wait(300)
 
     # ---- charge nurse shift (Manic Monday)
-    J("OCUI.start('med')"); wait(3500); shot('rn-shift-start')
+    J("OCUI.start('med')"); wait(3500); portrait_list(); intro('rn-first-shift-intro'); shot('rn-shift-start')
     step(30); wait(1500); shot('rn-30-min-in')
     J("(() => { const p = OC.inRooms()[0]; if (p) { OCUI.U.sheet = { type: 'pt', pid: p.id }; OCUI.render(); } })()"); wait(700); shot('rn-patient-card')
     J("OCUI.U.sheet = null; OCUI.render()"); act('needNext'); wait(500); shot('rn-needs-you-next')
@@ -71,14 +78,14 @@ def run(pw, url, size, wh):
     J("OCUI.U.sheet = null; OCUI.render()"); act('yellow'); wait(400); shot('rn-divert-status')
     J("OCUI.U.modal = null; OCUI.U.sheet = null; OCUI.render()"); step(150); wait(1500); shot('rn-busy-midday')
     J("(() => { OCUI.U.view = 'list'; OCUI.U.layKey = null; OCUI.render(); })()"); wait(800); shot('rn-list-board')
-    J("(() => { OCUI.U.view = 'map'; OCUI.U.layKey = null; OCUI.render(); })()"); wait(500)
+    if size != 'phone': J("(() => { OCUI.U.view = 'map'; OCUI.U.layKey = null; OCUI.render(); })()"); wait(500)
     act('pause'); wait(300); shot('rn-pause-menu')
     J("OCUI.U.modal = null; OCUI.render()")
     step(900); wait(2500); shot('rn-end-of-shift-report')
     J("window.scrollTo(0, 0); const r = document.querySelector('#report'); if (r) r.scrollTop = r.scrollHeight / 2"); wait(300); shot('rn-report-middle')
 
     # ---- attending shift: orders, diagnosis, radio, fired
-    J("OCUI.U.mode = 'md'; OCUI.U.scene = 'title'; document.querySelector('#report').hidden = true; OCUI.start('med')"); wait(3000); shot('md-shift-start')
+    J("OCUI.U.mode = 'md'; OCUI.U.scene = 'title'; document.querySelector('#report').hidden = true; OCUI.start('med')"); wait(3000); portrait_list(); intro('md-first-shift-intro'); shot('md-shift-start')
     J("""(() => { const free = OC.G.rooms.find(r => !r.pid && /^[0-9]+$/.test(r.id) && r.st === 'clean' && !r.closed && !r.iso);
       const id = OC.trainPatient('appy', 'room', { room: free.id, sex: 'M', age: 30 }); const p = OC.pt(id); p.prov = OC.G.me; p.mine = true; p.ev = 'done'; OC.awaitOrders(p);
       window.__p = id; OCUI.U.sheet = { type: 'pt', pid: id }; OCUI.render(); })()"""); wait(800); shot('md-order-sheet')
