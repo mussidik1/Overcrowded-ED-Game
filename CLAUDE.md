@@ -13,6 +13,42 @@ Menu structure: **Play a shift** (Five-Minute Rush, Quiet Tuesday, Manic Monday,
 
 Live at https://edcodeblack.com (CNAME; GitHub Pages serves the repo root). That site and `*.github.io` show a password gate during private testing (see "Backend" below). The repo is private.
 
+## Branches and releases
+
+- Work happens on `3d`. It is merged into `main` with `--no-ff`, and `main` deploys to Pages. (A Claude session may be told to use a different branch; follow that.)
+- A release: bump `package.json` `version`, add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
+- WebKit CI results: `git fetch origin ci-results && git show FETCH_HEAD:webkit.txt`.
+
+## Working with the owner
+
+The owner is a paramedic and EMS educator. He reads replies on the phone app.
+
+- **Replies:** short, direct, declarative sentences. Put anything he'll copy and paste in one complete block, never in pieces.
+- **Hostile review rule:** after any change bigger than a bug fix, run three subagents, each with exactly this prompt: *"Pretend you are a senior software engineer, and you absolutely HATE this project. What would you critique about this project after a comprehensive review."* Fix their serious findings before shipping. Spawn other subagents only when he asks; this rule counts as asking. Run the "CEO agent" only when he says "run the CEO agent". Never use a subagent to get around a denied action.
+- **Privacy:** never send his email to an external service without his explicit approval. The gate password stays out of the repo (it's in his status doc).
+- **Gate:** stays on until he says "launch". Launch is one SQL line: `update public.cb_gate set gate_on = false where id = 1;`
+- **Database changes** to the Supabase project need his approval each time.
+- **Third-party files:** read them before publishing them anywhere.
+
+## Design rules (his, from feedback)
+
+- Every font is **Cardo**.
+- **Not Maryland-centric.** The General radio pack is the default; the MIEMSS pack is opt-in. Capacity alerts have neutral names ("ED Full", "No Monitored Beds").
+- **The player directs the work.** Nothing that should be a player decision happens on its own: EVS, provider assignment, registration, triage, transport, IFT, diversion, gray-zone dispositions.
+- Two roles. EMS medical direction belongs to the attending only. For the charge nurse, an EMS call is a notification or gets routed to a physician.
+- Teach in Orientation and the Lessons. Don't make the regular levels easier.
+- A lay person must be able to learn from the tutorial: explain every term and acronym without cutting the complexity. Prompts use few words with key words in bold.
+- It must stay fun and credible for working charge nurses and attendings.
+- The board is a sideways floor plan, 3D by default; the list board stays as an option. 3D defaults to battery-saver detail at pixel ratio 2 (ratio 1 was blurry on a 3x iPhone).
+
+## Decisions worth knowing
+
+- **The hospital has neurosurgery** (it takes trauma) but **no cardiac surgery**: dissections transfer out, and cardiothoracic is a phone consult.
+- **Same-class drug alternatives are neutral** ("works, but not the first choice"): they neither fill the slot nor score as wrong. Ondansetron and acetaminophen are never wrong.
+- **Class codes stay six characters.** A version check folded into the check characters (planned for v0.29.1 as `codeStale`) refuses codes from another version, instead of making the code longer.
+- **Rejected:** pixel art or flat styles for 3D; Cloudflare Access or an email login for the gate; easier regular levels; routine work that runs itself; a CSP on the Claude artifact copy (it breaks the host); hardening the gate (it's deleted at launch). Renumbering rooms is left alone because Orientation, Lessons and tests name rooms by number.
+- New clinical content follows `docs/em-model/PLAN.md`: critical and emergent conditions only, high-yield first, worked in chunks by body system, each case with a lesson. When a case adds a lesson, update the lesson count in `test/train_test.py`.
+
 ## How it ships
 
 The game is **one self-contained `index.html`**. `build.js` inlines the engine, UI, floor plan, CSS and the Cardo fonts (base64) into it. Files outside it:
@@ -111,10 +147,15 @@ npm run stress    # 188 shifts across every level and scenario: stuck states, ou
 
 The UI tests are Python Playwright scripts against the **built** `index.html`, so build first. In this cloud container Chromium is preinstalled; use `python3 -m pip install playwright` if the module is missing, and don't run `playwright install`. Common ones: `test/ui_test.py`, `md_ui_test.py`, `map_test.py`, `train_test.py` (env `MODE=md`, `LESSON=stroke`, `CHAPTER=2`, `VIEW=list`), `finger_test.py`, `class_test.py`, `offline_test.py`, `map3d_test.py`, `imaging_test.py`, `gate_test.py`, `events_test.py`, `about_test.py`. `BROWSER=webkit|firefox` switches engines and `CHROME_PATH` points at a local Chrome (see `test/_browser.py`). Screenshots go to `test/shots/` (gitignored).
 
+Practical notes:
+- **Seed-dependent tests break when arrival timing changes.** If an old rule test fails after an engine change, check whether it relied on one specific random shift before assuming a real bug.
+- `map3d_test.py` needs the folder served (`python3 -m http.server 8765`) and takes about 15 minutes with software GL.
+- A full lesson sweep is `LESSON=<key> python3 test/train_test.py` for every key. Case lessons are named `c_<case>`.
+- Imaging comes from Wikimedia and Open-i. Credit each picture in `img/credits.json`, and wait 4 to 12 seconds between fetches.
+
 CI (`.github/workflows/tests.yml`): every push to `main` or `3d` runs `npm ci && npm run build && npm test` on Ubuntu. The WebKit UI suite runs on macOS only for `main` or a manual run, and writes its results to `webkit.txt` on the `ci-results` branch.
 
 ## Conventions
 
 - Player-facing text is plain, short English. Clinical terms get a plain gloss (the "Plain words" setting, `DX_PLAIN`, `FIND_PLAIN`, the Words glossary). Results read as findings, so the diagnosis stays the player's call.
-- Each release bumps `package.json` `version`, rebuilds, and adds tests for new rules. The commit history (`vX.Y.Z: ...`) is the changelog.
-- New clinical content follows `docs/em-model/PLAN.md`: critical and emergent conditions only, each with a lesson under its body system.
+- Each release adds tests for its new rules. Commit messages start `vX.Y.Z: ...`.
