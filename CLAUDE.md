@@ -11,11 +11,11 @@ The player runs one shift (07:00 to 19:00) in a 32-bed emergency department, on 
 
 Menu structure: **Play a shift** (Five-Minute Rush, Quiet Tuesday, Manic Monday, Full Moon Friday, plus scenarios, weather and class codes), **Learn** (Orientation with a scripted preceptor, and short per-condition Lessons), **Settings**. It is a teaching tool for nursing and EM classes. The README has the full player-facing description.
 
-Live at https://edcodeblack.com (CNAME; GitHub Pages serves the repo root). That site and `*.github.io` show a password gate during private testing (see "Backend" below). The repo is private.
+Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages.yml` deploys it: on a push to `main` it checks the build, runs `npm test`, and publishes only the game files (`index.html`, `sw.js`, the manifest, icons, `og.jpg`, `img/`, `3d/`). The source, tests, docs and this file stay off the website. A new file the game loads at runtime must be added to that workflow's package step. That site and `*.github.io` show a password gate during private testing (see "Backend" below). The repo is private.
 
 ## Branches and releases
 
-- Work happens on `3d`. It is merged into `main` with `--no-ff`, and `main` deploys to Pages. (A Claude session may be told to use a different branch; follow that.)
+- Work happens on `3d`. It is merged into `main` with `--no-ff`, and `main` deploys to Pages through the workflow (tests first). (A Claude session may be told to use a different branch; follow that.)
 - A release: bump `package.json` `version`, set `PAST_V` in `ui.js` to the version being replaced (one entry only: each entry makes typos more likely to read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
 - WebKit CI results: `git fetch origin ci-results && git show FETCH_HEAD:webkit.txt`.
 

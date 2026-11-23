@@ -1,0 +1,55 @@
+# Deploys the game to GitHub Pages (edcodeblack.com): only the files the game needs, and only after the rule checks pass.
+# The source, tests, docs and CLAUDE.md stay in the repo and off the website.
+# Needs Settings > Pages > Source set to "GitHub Actions" (not "Deploy from a branch").
+name: Deploy to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Check and package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+      - name: The committed build matches the source
+        run: git diff --exit-code --stat index.html sw.js 3d/map3d.js || { echo "Rebuild with npm run build and commit index.html, sw.js and 3d/map3d.js"; exit 1; }
+      - run: npm test
+      - name: Package the game files only
+        run: |
+          mkdir _site
+          cp index.html sw.js manifest.webmanifest apple-touch-icon.png og.jpg CNAME _site/
+          cp -r icons 3d _site/
+          mkdir _site/img && cp img/*.jpg img/CREDITS.md _site/img/
+          echo "Published files:"; (cd _site && find . -type f | sort | sed 's|^\./||' | awk -F/ '{print $1}' | uniq -c)
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
