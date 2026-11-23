@@ -26,10 +26,14 @@ with sync_playwright() as pw:
       const p = typeof x === 'string' ? OC.pt(x) : x; OC.assign(OC.G.me, p.id); for (let i = 0; i < 4000 && p.ord !== 'need'; i++) OC.step(0.1);
       OCUI.U.paused = true; OCUI.U.sheet = { type: 'pt', pid: p.id }; OCUI.render(); return p.id; })()""")
     page.wait_for_timeout(500)
-    ok(page.locator('#sheet .o-sec').count() == 2 and page.locator('#sheet [data-act="ordT"][data-arg$="|t|cbc"]').count() == 1 and page.locator('#sheet [data-act="ordT"][data-arg$="|t|mrib"]').count() == 1, 'the order sheet has Labs and Imaging, with single tests (CBC) and named studies (MRI brain)')
-    for k in ['cbc', 'bmp', 'ctap']:
-        page.locator(f'#sheet [data-act="ordT"][data-arg="{pid}|t|{k}"]').tap(); page.wait_for_timeout(150)
-    page.locator(f'#sheet [data-act="ordT"][data-arg="{pid}|r|meds"]').tap(); page.wait_for_timeout(150)
+    ok(page.locator('#sheet [data-act="ordMenu"][data-arg="lab"]').count() == 1 and page.locator('#sheet [data-act="ordMenu"][data-arg="img"]').count() == 1 and page.locator('#sheet [data-act="ordT"][data-arg$="|t|cbc"]').count() == 1 and page.locator('#sheet [data-act="ordT"][data-arg$="|t|mrib"]').count() == 1, 'the order sheet has Labs and Imaging, with single tests (CBC) and named studies (MRI brain)')
+    def otap(kind, k):   # v0.28: orders sit in menus
+        sel = f'#sheet [data-act="ordT"][data-arg="{pid}|{kind}|{k}"]'
+        for m in J(f"OCUI.omOf('{k}')"):
+            if not page.locator(sel).is_visible(): page.locator(f'#sheet [data-act="ordMenu"][data-arg="{m}"]').tap(); page.wait_for_timeout(150)
+        page.locator(sel).tap(); page.wait_for_timeout(150)
+    for k in ['cbc', 'bmp', 'ctap']: otap('t', k)
+    otap('r', 'morph')
     page.locator(f'#sheet [data-act="sign"]').tap(); page.wait_for_timeout(400)
     ok(J(f"OC.pt('{pid}').det.join()") == 'cbc,bmp,ctap' and J(f"OC.G.stats.md.clean") >= 1, 'tapping CBC, BMP, CT abdomen and pelvis and Sign orders exactly those, and it is a clean set')
     J(f"(() => {{ const p = OC.pt('{pid}'); for (let i = 0; i < 6000 && !(p.work.ct && p.work.ct.st === 'done' && p.work.lab && p.work.lab.st === 'done'); i++) OC.step(0.1); OCUI.U.sheet = {{ type: 'pt', pid: p.id }}; OCUI.render(); }})()")

@@ -1379,6 +1379,14 @@ const GLOSS = [
     ['Disposition', 'Where the patient goes next: home, observation, admitted, or transferred.'],
     ['Discharge', 'Sending the patient home.'],
     ['Consult', 'Calling a specialist to see the patient. About one consulted patient in five needs a second service: a broken hip in an older patient gets orthopedics and the hospitalist.'],
+    ['Clinical accuracy', 'The attending’s share of right calls: diagnoses named right and orders right, against everything called and ordered.'],
+    ['Legal risk', 'How exposed you are after today’s misses. Harm and missed must-not-miss diagnoses count most. 25%: the administrator calls. 40%: peer review. 50%: a performance improvement plan, and lawyers call. 75%: the group lets you go.'],
+    ['Peer review', 'Colleagues read a doctor’s charts and decide if the care met the standard.'],
+    ['PIP', 'Performance improvement plan: closer review of your charts, with goals to meet.'],
+    ['Risk management', 'The hospital office that handles lawsuits and complaints. Lawyers go to them, not to you.'],
+    ['Must not miss', 'A diagnosis that kills or disables if it’s missed: heart attack, stroke, sepsis, a bleed.'],
+    ['Resuscitation drugs', 'The drugs for an arrest, an unstable rhythm, or shock: epinephrine, amiodarone, adenosine, atropine, calcium, bicarbonate, vasopressors.'],
+    ['Read-back', 'The medic repeats a radio order back so the doctor can confirm it. It catches a wrong dose.'],
     ['Admit by phone', 'The ED doctor makes the admission call and the hospitalist accepts without coming down first. Faster, for straightforward medical admissions. A surgical or heart problem still needs its specialist to see them.'],
     ['Point-of-care test', 'A test done at the bedside in a minute: a fingerstick sugar, a urine dip. It still works when the lab is down. Check the sugar early on any stroke.'],
     ['Screening', 'At the door, the first person to talk to a patient asks about cough, fever, rash and travel. A positive screen means a mask and an isolation room. Miss it, and others in the waiting room are exposed.'],
@@ -1481,6 +1489,9 @@ function helpMD() {
 <li><b>Make the call.</b> Home, rehab (can leave, can’t manage alone: the exam says so), admit (call the right consultant once results are back), or transfer. Chest pain, fainting, TIA and mild pneumonia (CURB-65) get a risk score.</li>
 <li><b>Transfers.</b> Pick a hospital that has what they need, call it to accept, pick the transport, and give the crew report. No ICU bed here? An ICU patient can’t stay: transfer them.</li>
 <li><b>Help from upstairs.</b> Hard airway: anesthesia. Shock: critical care. Call them before the procedure, not after.</li>
+<li><b>Orders sit in menus.</b> Tap Labs, Imaging, Medications, Resuscitation drugs, and the rest to open them. Medications open into drug classes. Pick the drug: the wrong one doesn’t count and the patient stays untreated.</li>
+<li><b>You make the diagnosis.</b> When results are back, pick it from four. A miss costs <b>accuracy</b> and adds <b>legal risk</b>: 25% brings a call from the administrator, 40% peer review, 50% a PIP and lawyers calling (send them to risk management), 75% and you’re fired.</li>
+<li><b>Radio orders.</b> Some crews ask for a dose or an order, not a yes or no. Pick the drug, dose, and route.</li>
 <li><b>Admit by phone.</b> For a straightforward medical admission, admit to the hospitalist by phone instead of waiting for them to come down. Some patients need a second consult; the card says so.</li>
 <li><b>Bedside tests.</b> A fingerstick glucose or urine dip reads in a minute and works when the lab is down. Check the sugar early on every stroke.</li>
 <li><b>Answer the radio.</b> Tap Answer, read the call, approve or deny. Only you can.</li>
@@ -2792,5 +2803,5 @@ function boot2(data) {
 /*MAP*/
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-window.OCUI = { U, render, start, showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
+window.OCUI = { U, render, start, omOf: k => omOf(k), showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
 })();
