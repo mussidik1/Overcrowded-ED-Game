@@ -736,7 +736,7 @@ function pathRows(p, G) {
       for (const d of mineK) {
         if (!doneK) { const v = !w ? 'Ordered after the provider sees them' : w.st === 'todo' ? (k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT to draw it' : 'Drawn once roomed') : k === 'mri' ? 'Waiting for the MRI scanner' : 'In line for the scanner') : w.st === 'doing' ? (k === 'lab' ? 'Drawing now' : 'Scanning now') : `Resulting in <span data-cd="${w.due}"></span>`; rows.push(row(E.DET_NAME(d), v, 'idle')); continue; }
         const [t, img] = (p.dres && p.dres[d]) || E.detResult(p, d), pl = PLAIN() && !dxPending(p) && E.FIND_PLAIN[t];   // v0.29: plain words wait until the diagnosis is named
-        rows.push(row(E.DET_NAME(d), `${img && IMG_CREDIT[img] ? `<button type="button" class="rimg" data-act="img" data-arg="${p.id}|${d}" aria-label="Look at the ${esc(E.DET_NAME(d))}"><img src="img/${img}.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"><span>View</span></button>` : ''}<b>${esc(t)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`, 'ok'));
+        rows.push(row(E.DET_NAME(d), `${img && IMG_CREDIT[img] ? `<button type="button" class="rimg" data-act="img" data-arg="${p.id}|${d}" aria-label="Look at the ${esc(E.DET_NAME(d))}"><img src="img/${img}.jpg" alt="" loading="lazy"><span>View</span></button>` : ''}<b>${esc(t)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`, 'ok'));
       }
       continue;
     }
@@ -1918,7 +1918,7 @@ const LESSONS = {
     { id: 'f3', title: 'Hip orders', text: `**Hip X-ray** for the break. **CBC**, **BMP**, **type and screen** for surgery. **Fentanyl** for pain.\nTap **her room**, **Hip X-ray**, those three, **Fentanyl** (Medications, Pain), **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'meds']]) },
     { id: 'f4', wait: true, title: 'Results', text: `X-ray: a **femoral neck fracture**, the top of the thigh bone. A **broken hip**.`, done: lResulted },
     { id: 'f5', title: 'Call Orthopedics', text: `**Orthopedics** fixes it in the OR.\nTap **her room**, **Admit: call a consult**, then **Orthopedics**.`, ...callStep('pt', 'consult', 'ortho') },
-    { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head bump on a thinner**: **CT**, labs. **Trauma**.\n**Twisted ankle**: X-ray. No break: home.\n**Charge nurse**: hip is ESI 3. Head on a thinner **doesn’t wait**.` },
+    { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head bump on a thinner**: **CT**, labs. **Neurosurgery**.\n**Twisted ankle**: X-ray. No break: home.\n**Charge nurse**: hip is ESI 3. Head on a thinner **doesn’t wait**.` },
   ] },
 };
 // v0.29: a short card lesson for each high-yield condition, built from the case itself.
@@ -1958,10 +1958,15 @@ function chaptersHTML() {
 const lessonKey = () => { const t = g() && g().tr; return t && t.lesson && LESSONS[t.lesson] ? t.lesson : null; };
 const lessonDone = k => !!store('oc-lesson-' + k);
 const GAME_V = '/*GAMEV*/';   // the build puts the version here: a code gives the same shift only on the same version
+// v0.29.1: codes carry the version. Each release appends the version it replaces here (v0.29.2 adds '0.29.1'), so those codes
+// are named as made on another version instead of read as mistyped. '' is v0.29.0 and earlier, before codes carried a version.
+const PAST_V = [''];
+E.setCodeVersion(GAME_V, PAST_V);
+const staleWhy = c => `That code was made on ${/^\d/.test(c.stale) ? 'version ' + c.stale : c.stale} of the game. This is v${GAME_V}, so it would be a different shift. Ask your instructor for a new code.`;
 /* Class codes: an instructor makes one, students enter it, and everyone plays the same shift (same arrivals and events). */
 const codeDesc = c => `${c.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${E.LEVELS[c.level].name}${c.scen !== 'none' ? ' · ' + E.SCENS[c.scen].name + ' scenario' : ''}${c.mode === 'md' ? ' · ' + E.PACKS[c.pack].name + ' radio calls' : ''}`;
 function classHTML() {
-  const typed = E.readCode(U.codeIn || ''), made = U.codeMade ? E.readCode(U.codeMade) : null;
+  const typed = (c => (c && !c.stale ? c : null))(E.readCode(U.codeIn || '')), made = U.codeMade ? E.readCode(U.codeMade) : null;
   const lv = ['rush', 'easy', 'med', 'hard'].map(k => `<button type="button" class="cbtn" data-act="codeMake" data-arg="${k}"><b>${esc(E.LEVELS[k].name)}</b></button>`).join('');
   return head('Class code', `Everyone who enters the same code plays the same shift: the same patients and events, at the same times, on the same game version (this is v${GAME_V}). What each player does with them is theirs.`)
     + `<div class="cc-box"><label for="ccIn"><b>Play a code</b></label><div class="cc-row"><input id="ccIn" class="cc-in" data-pick="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="9" placeholder="ABC-DEF" value="${esc(U.codeIn || '')}" aria-describedby="ccWhat"><button type="button" class="big act" data-act="codePlay" ${typed ? '' : 'disabled'}>Start</button></div><small id="ccWhat" class="cc-what">${esc(codeHint(U.codeIn || ''))}</small></div>`
@@ -1999,15 +2004,18 @@ function cbListHTML() {
   else if (L && L.err) h += `<small class="cb-err">${esc(L.err)}</small>`;
   else if (L && L.rows) {
     const c = E.readCode(L.code);
-    h += `<small>${esc(L.code)}${c ? ' · ' + esc(codeDesc(c)) : ''} · ${L.rows.length} result${L.rows.length === 1 ? '' : 's'}</small>`;
+    h += `<small>${esc(L.code)}${c ? ' · ' + esc(codeDesc(c)) : ''}${c && c.stale ? ' · made on ' + esc(/^\d/.test(c.stale) ? 'v' + c.stale : c.stale) : ''} · ${L.rows.length} result${L.rows.length === 1 ? '' : 's'}</small>`;
     if (L.rows.length) h += `<table class="cb-tab"><tr><th>#</th><th>Name</th><th>Points</th><th>Stars</th><th>Played</th><th>Wait</th><th>LWBS</th></tr>${L.rows.map((r, i) => {
-      const s = r.stats || {}, m = Math.round((r.real_sec || 0) / 60);
-      return `<tr><td>${i + 1}</td><td>${esc(r.name)}${r.role === 'md' ? ' <small>MD</small>' : ''}</td><td>${r.score}</td><td>${'★'.repeat(r.stars)}${'☆'.repeat(3 - r.stars)}</td><td>${m}m</td><td>${s.wait != null ? s.wait + 'm' : ''}</td><td>${s.lwbs != null ? s.lwbs : ''}</td></tr>`; }).join('')}</table>`;
+      // every field came from the database, which anyone with the public key can write to: numbers are forced to numbers
+      const s = (r.stats && typeof r.stats === 'object') ? r.stats : {}, num = v => (Number.isFinite(+v) ? Math.round(+v) : null);
+      const m = Math.round((num(r.real_sec) || 0) / 60), st = Math.max(0, Math.min(3, num(r.stars) || 0)), w = num(s.wait), lw = num(s.lwbs);
+      const v = r.ver && r.ver !== GAME_V ? ` <small title="Played on another version">v${esc(r.ver)}</small>` : '';
+      return `<tr><td>${i + 1}</td><td>${esc(r.name)}${r.role === 'md' ? ' <small>MD</small>' : ''}${v}</td><td>${num(r.score) == null ? '' : num(r.score)}</td><td>${'★'.repeat(st)}${'☆'.repeat(3 - st)}</td><td>${m}m</td><td>${w != null ? w + 'm' : ''}</td><td>${lw != null ? lw : ''}</td></tr>`; }).join('')}</table>`;
     else h += '<p class="hint">No results sent for this code yet.</p>';
   }
   return h + '</div>';
 }
-const codeHint = v => { const c = E.readCode(v); return c ? codeDesc(c) : v.replace(/[^0-9a-z]/gi, '').length >= 6 ? 'That code doesn’t look right. Check each letter.' : 'Six letters and numbers, from your instructor.'; };
+const codeHint = v => { const c = E.readCode(v); return c && c.stale ? staleWhy(c) : c ? codeDesc(c) : v.replace(/[^0-9a-z]/gi, '').length >= 6 ? 'That code doesn’t look right. Check each letter.' : 'Six letters and numbers, from your instructor.'; };
 const codeText = c => `Code Black class code ${c.code} (v${GAME_V}): ${codeDesc(c)}. Play at ${location.origin}${location.pathname}, then Play a shift, then Class code.`;
 function copyText(t) { try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t); return true; } } catch (e) { /* no clipboard */ } return false; }
 function lessonsHTML() {
@@ -2370,6 +2378,7 @@ const ACT = {
   codeShare: () => { const c = E.readCode(U.codeMade); if (c && navigator.share) navigator.share({ title: 'Code Black class code', text: codeText(c) }).catch(() => {}); },
   codePlay: a => {
     const c = E.readCode(a || U.codeIn); if (!c) { res({ ok: false, why: 'That code doesn’t look right. It’s six letters and numbers, like ABC-DEF.' }); return; }
+    if (c.stale) { res({ ok: false, why: staleWhy(c) }); return; }
     U.mode = c.mode; U.scen = c.scen; U.pack = c.pack; store('oc-mode', c.mode); store('oc-scen', c.scen); store('oc-pack', c.pack);
     U.sheet = null; start(c.level, null, null, c);
   },
@@ -2380,13 +2389,15 @@ const ACT = {
     store('oc-cb-name', name); U.cbSent[at] = 'sending'; cbRedraw();
     const R = d.R, body = { code: R.code, name, role: R.mode === 'md' ? 'md' : 'rn', level: R.level, score: Math.round(R.avg != null ? R.avg : R.care), stars: R.stars | 0, real_sec: Math.min(86400, R.realSec | 0),
       stats: { wait: R.wait, lwbs: R.lwbs, seen: R.seen, ama: R.ama, expired: R.expired, bedFirst: R.bedFirst, scen: R.scen } };
-    cbFetch('/rest/v1/cb_results', body).then(() => { U.cbSent[at] = 'sent'; cbRedraw(); }).catch(() => { U.cbSent[at] = 'Could not send. Check the connection and tap Send again.'; cbRedraw(); });
+    // v0.29.1: the version goes with the result. Until the database has the column, the insert is refused (400), so send it again without.
+    const done = () => { U.cbSent[at] = 'sent'; cbRedraw(); }, fail = () => { U.cbSent[at] = 'Could not send. Check the connection and tap Send again.'; cbRedraw(); };
+    cbFetch('/rest/v1/cb_results', Object.assign({ ver: GAME_V }, body)).then(done).catch(e => (/HTTP 4\d\d/.test(e && e.message) ? cbFetch('/rest/v1/cb_results', body).then(done).catch(fail) : fail()));
   },
   cbShow: () => {
     const el = document.getElementById('cbCode'), c = E.readCode(el ? el.value : '');
     if (!c) { U.cbList = { code: el ? el.value : '', err: 'That code doesn’t look right. Check each letter.' }; return; }
     U.cbList = { code: c.code, loading: true };
-    cbFetch('/rest/v1/rpc/cb_class', { p_code: c.code }).then(rows => { U.cbList = { code: c.code, rows: rows || [] }; render(); }).catch(() => { U.cbList = { code: c.code, err: 'Could not load results. Check the connection and try again.' }; render(); });
+    cbFetch('/rest/v1/rpc/cb_class', { p_code: c.code }).then(rows => { U.cbList = { code: c.code, rows: Array.isArray(rows) ? rows.filter(r => r && typeof r === 'object') : [] }; render(); }).catch(() => { U.cbList = { code: c.code, err: 'Could not load results. Check the connection and try again.' }; render(); });
   },
   shareResult: () => {
     const d = lastReport(); if (!d) return; const R = d.R, L = E.LEVELS[R.level];
@@ -2503,7 +2514,7 @@ const ACT = {
   resumeSave: () => resumeSave(),
   restart: () => { const now = performance.now(); if (!U.armR || now - U.armR > 3000) { U.armR = now; render(); return; } U.armR = 0; start(U.lvl); },
   menu: () => { save(true); showTitle(); },
-  again: () => { U.armR = 0; const R = lastReport(), c = R && R.R && R.R.code ? E.readCode(R.R.code) : null; start(U.lvl, null, null, c); },   // a class shift runs back as the same shift   // from the report: the shift is over and the report is kept, so one tap is enough
+  again: () => { U.armR = 0; const R = lastReport(), c0 = R && R.R && R.R.code ? E.readCode(R.R.code) : null, c = c0 && !c0.stale ? c0 : null; start(U.lvl, null, null, c); },   // a class shift runs back as the same shift   // from the report: the shift is over and the report is kept, so one tap is enough
   lastReport: () => showLastReport(),
   pill: k => toast(PILL_HELP[k], 'info'),
 };
@@ -2749,12 +2760,13 @@ function bind() {
     const el = e.target && e.target.matches && e.target.matches('input[data-pick="code"]') ? e.target : null; if (!el) return;
     U.codeIn = el.value; const c = E.readCode(el.value), box = el.closest('.cc-box');
     const go = box && box.querySelector('[data-act="codePlay"]'), w = box && box.querySelector('.cc-what');
-    if (go) go.disabled = !c;
+    if (go) go.disabled = !c || !!c.stale;
     if (w) w.textContent = codeHint(el.value);
   });
+  document.addEventListener('error', e => { const el = e.target; if (el && el.tagName === 'IMG' && el.parentNode && el.parentNode.classList && el.parentNode.classList.contains('rimg')) el.parentNode.classList.add('none'); }, true);   // a missing picture hides its View button (no inline handler: the page's CSP forbids them)
   document.addEventListener('input', e => { const el = e.target; if (el && el.matches && el.matches('input[data-pick="cbname"]')) U.cbName = el.value; });   // the class results name box
   document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('input[data-pick="cbcode"]')) { ACT.cbShow(); render(); } });
-  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('input[data-pick="code"]')) { const c = E.readCode(e.target.value); if (c) ACT.codePlay(c.code); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('input[data-pick="code"]')) { const c = E.readCode(e.target.value); if (c && !c.stale) ACT.codePlay(c.code); } });
   document.addEventListener('input', e => {   // the Words search: hide what does not match, without redrawing the box being typed in
     const el = e.target && e.target.matches && e.target.matches('input[data-wq]') ? e.target : null; if (!el) return;
     U.wq = el.value; const q = el.value.trim().toLowerCase(); let n = 0;
