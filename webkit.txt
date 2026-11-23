@@ -1,5 +1,5 @@
-commit f0d9bda8bbb63293542544dd2e11e64aa83e8fe5
-date   2026-11-23 16:33 UTC
+commit 241d6667e926f3024a81ca7abdefa086a99038ec
+date   2026-11-23 17:00 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,8 +13,8 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 2107, "wait": 13, "sat": 58, "stars": 2, "seen": 115, "dc": 46, "adm": 33, "lwbs": 0, "ama": 0, "returns": 3, "mtp": 3, "interp": 18, "pitSeen": 0}
-53:No errors.
+1:report {"care": 1804, "wait": 24, "sat": 53, "stars": 2, "seen": 133, "dc": 65, "adm": 34, "lwbs": 0, "ama": 0, "returns": 2, "mtp": 2, "interp": 10, "pitSeen": 0}
+51:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 2264, 'stars': 3, 'wait': 21, 'left': 16} {'seen': 44, 'fast': 18, 'ordRight': 139, 'ordExtra': 6, 'ordMiss': 4, 'clean': 34, 'gaps': 4, 'harm': 0, 'untreated': 0, 'dispoRight': 38, 'dispoWrong': 0, 'dxRight': 28, 'log': [{'name': 'Walt L.', 'dx': 'Cellulitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Aisha H.', 'dx': 'Acute ischemic stroke', 'miss': [], 'extra': [], 'fine': [], 'why': 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology. An ECG is reasonable.'}, {'name': 'Yara V.', 'dx': 'Pneumonia, low risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Chest X-ray finds it. The BUN from the labs feeds the CURB-65 score. Antibiotics; most go home on pills.'}, {'name': 'Frank K.', 'dx': 'Deep vein thrombosis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Ultrasound finds the clot. Labs check the kidneys. Then a blood thinner.'}, {'name': 'Kevin J.', 'dx': 'Anaphylaxis', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.'}, {'name': 'Leo B.', 'dx': 'Strep throat', 'miss': [], 'extra': [], 'fine': [], 'why': 'A rapid strep swab proves it. Then penicillin.'}, {'name': 'Shanice J.', 'dx': 'Kidney stone', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Ruth K.', 'dx': 'Dehydration', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show the kidneys are dry. Fluids fix it.'}, {'name': 'Omar T.', 'dx': 'Cellulitis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}], 'dxWrong': 7, 'dxLog': [{'name': 'Mei D.', 'said': 'Pneumonia', 'dx': 'Heart failure flare', 'must': True}, {'name': 'Aisha L.', 'said': 'Anxiety', 'dx': 'Medication refill', 'must': False}, {'name': 'Shanice J.', 'said': 'Appendicitis', 'dx': 'Kidney stone', 'must': False}, {'name': 'Brenda H.', 'said': 'Unstable angina', 'dx': 'NSTEMI (heart attack)', 'must': True}, {'name': 'Ruth S.', 'said': 'Biliary colic', 'dx': 'Cholecystitis', 'must': False}, {'name': 'Ana N.', 'said': 'Pneumonia', 'dx': 'COPD flare', 'must': True}, {'name': 'Fatima N.', 'said': 'Pulmonary embolism', 'dx': 'NSTEMI (heart attack)', 'must': True}]}
-34:No errors.
+1:report {'care': 2018, 'stars': 3, 'wait': 20, 'left': 19} {'seen': 43, 'fast': 21, 'ordRight': 130, 'ordExtra': 16, 'ordMiss': 10, 'clean': 28, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 34, 'dispoWrong': 2, 'dxRight': 25, 'log': [{'name': 'Priya E.', 'dx': 'Migraine', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'No tests. A usual migraine with a normal nerve exam gets fluids and medication.'}, {'name': 'Fatima M.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Maria T.', 'dx': 'Dental abscess', 'miss': [], 'extra': ['Nitrofurantoin (wrong drug)', 'Chest X-ray'], 'fine': [], 'why': 'No tests. An antibiotic and pain control, then a dentist.'}, {'name': 'Dmitri T.', 'dx': 'Cellulitis', 'miss': [], 'extra': ['Acyclovir (wrong drug)'], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Dorothy G.', 'dx': 'Septic shock', 'miss': [], 'extra': ['Epinephrine'], 'fine': [], 'why': 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.'}, {'name': 'Helen P.', 'dx': 'Anaphylaxis', 'miss': [], 'extra': ['Triamcinolone cream (wrong drug)'], 'fine': [], 'why': 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.'}, {'name': 'Nora K.', 'dx': 'RSV, tiring out', 'miss': [], 'extra': [], 'fine': [], 'why': "A blood gas shows the baby is tiring. High-flow oxygen. Transfer to a children's hospital."}, {'name': 'Kwame C.', 'dx': 'Pneumonia', 'miss': [], 'extra': ['Vancomycin (wrong drug)', 'CT head'], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Linda T.', 'dx': 'Sepsis (urinary source)', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs with a lactate. Fluids and antibiotics inside the hour.'}, {'name': 'Noah S.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['Famotidine (wrong drug)'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Walt N.', 'dx': 'Subdural hematoma', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Head CT finds the bleed. Labs with an INR show the blood thinner. Reverse it. Trauma.'}, {'name': 'Andre B.', 'dx': 'Anaphylaxis', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': ['Diphenhydramine'], 'why': 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.'}, {'name': 'Kwame D.', 'dx': 'Complete heart block', 'miss': [], 'extra': ['Vasopressor'], 'fine': [], 'why': 'ECG shows the block. Labs check the potassium. Pace now. Cardiology.'}, {'name': 'Lucia R.', 'dx': 'Gastroenteritis, worse', 'miss': ['Medications (ondansetron)'], 'extra': ['Meclizine (wrong drug)'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}], 'dxWrong': 6, 'dxLog': [{'name': 'Priya E.', 'said': 'Subarachnoid hemorrhage', 'dx': 'Migraine', 'must': False}, {'name': 'Fatima M.', 'said': 'Biliary colic', 'dx': 'Cholecystitis', 'must': False}, {'name': 'Helen P.', 'said': 'Panic attack', 'dx': 'Anaphylaxis', 'must': True}, {'name': 'Maria G.', 'said': 'Bowel obstruction', 'dx': 'Gastroenteritis', 'must': False}, {'name': 'Wei K.', 'said': 'Heart failure flare', 'dx': 'COPD flare', 'must': False}, {'name': 'Kwame D.', 'said': 'Beta blocker overdose', 'dx': 'Complete heart block', 'must': True}], 'wrongDrug': 6}
+36:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (average of the four: 90)
+ok   best score kept for the attending (average of the four: 89)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 74:No errors.
 68/69 k3
 69/69 end
-taps: 78, game clock: 10:34, care 147, cards read 72, words 1765, longest 48
+taps: 78, game clock: 10:32, care 147, cards read 72, words 1765, longest 48
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -42,7 +42,7 @@ PASS
 43:No errors.
 38/39 k1
 39/39 end
-taps: 56, game clock: 09:47, care 238, cards read 41, words 992, longest 49
+taps: 56, game clock: 09:45, care 238, cards read 41, words 992, longest 49
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 74:No errors.
 68/69 k3
 69/69 end
-taps: 79, game clock: 10:33, care 147, cards read 72, words 1764, longest 48
+taps: 79, game clock: 10:34, care 147, cards read 72, words 1764, longest 48
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 9, game clock: 07:40, care 75, cards read 8, words 213, longest 36
+taps: 9, game clock: 07:41, care 75, cards read 8, words 213, longest 36
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -76,7 +76,7 @@ No errors.
 === python test/offline_test.py ===
 PASS
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.28.0-8e8044e8ad']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.28.1-b4a38a2d32']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
 9:No errors.
 ok   it keeps a copy of the game (6 files)
 ok   with the network off, the game still loads
@@ -127,7 +127,7 @@ PASS
 19:No errors.
 ok   Run it back replays the same class shift
 ok   the top-right menu offers Restart this shift and Main menu
-ok   Class results lists what was sent for the code, best first ([{'p_code': 'E9C-81P'}])
+ok   Class results lists what was sent for the code, best first ([{'p_code': '6HA-G0Q'}])
 No errors.
 
 SOME FAILED
