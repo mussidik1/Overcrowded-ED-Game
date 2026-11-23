@@ -55,8 +55,7 @@ jobs:
             echo "=== $t ==="; timeout 600 python test/$t.py || fail=1
           done
           for m in rn md; do echo "=== train_test MODE=$m ==="; MODE=$m timeout 900 python test/train_test.py || fail=1; done
-          # served over http, so the 3D floor loads under the page's CSP (any console error fails it)
-          python -m http.server 8765 >/dev/null 2>&1 & sleep 2
+          # the 3D floor, served over http by the test itself, under the page's CSP (any console error fails it)
           echo "=== map3d_test ==="; timeout 1500 python test/map3d_test.py || fail=1
           exit $fail
 
