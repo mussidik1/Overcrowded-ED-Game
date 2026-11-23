@@ -9,7 +9,7 @@ OC.newGame('easy', 901, { mode: 'md' }); const G = OC.G;
 // 1. Drugs
 assert(Object.values(OC.DRUGS).every(d => d.n && d.c && d.tx.every(t => OC.TREAT[t])), 'every drug has a name, a class, and gives a real treatment');
 assert(Object.values(OC.DRUGS).filter(d => d.c === 'resus').length >= 8, 'the resuscitation set has its own drugs');
-for (const [k, T] of Object.entries(OC.RXOK)) for (const [tx, L] of Object.entries(T)) assert(L.every(id => OC.DRUGS[id] && OC.DRUGS[id].tx.includes(tx)) || L.every(id => OC.DRUGS[id]), `right drugs for ${k} (${tx}) exist`);
+for (const [k, T] of Object.entries(OC.RXOK)) for (const [tx, L] of Object.entries(T)) assert(L.every(id => OC.DRUGS[id] && OC.DRUGS[id].tx.includes(tx)), `right drugs for ${k} (${tx}) exist and give that treatment`);
 assert(OC.CASES.every(c => (c.tr || []).every(t => ['meds', 'abx', 'nebs', 'epi', 'pressor', 'reverse', 'pace'].includes(t) ? !!OC.drugFor({ ck: c.k }, t) : true)), 'every drug treatment a case needs has a right drug to pick');
 let p = mine('strep');
 let r = OC.signOrders(p.id, ['strep'], ['dilt']);
@@ -23,8 +23,6 @@ assert(p.tr.includes('epi') && p.tr.includes('meds'), 'anaphylaxis: IM epinephri
 OC.G.train = null;
 p = mine('pna'); p.dxK = false;
 OC.signOrders(p.id, ['cbc'], []);
-p.re = 'work'; // force the ask
-if (!p.dxq) { p.dxq = null; }
 const ask = () => { p.dxK = false; p.dxPick = null; p.dxq = [p.dx, 'Pulmonary embolism', 'Heart failure flare', 'Lung cancer']; };
 ask();
 r = OC.dxPick(p.id, p.dx);
@@ -48,7 +46,7 @@ G.lawNext = G.t; for (let i = 0; i < 20 && !(G.card && G.card.eid === 'law'); i+
 assert(G.card && G.card.eid === 'law', 'a lawyer calls');
 const l0 = G.lit; OC.chooseCard('talk');
 assert(G.lit > l0, 'discussing the case with the lawyer raises the risk');
-OC.litAdd(30, 'test');
+OC.litAdd(30, 'test'); OC.step(0.1);
 assert(G.over && G.fail === 'fired' && G.report.fail === 'fired', 'at 75% the group lets you go and the shift ends');
 // 4. Radio: dose and order calls
 const mc = OC.SCEN.national.filter(s => s.opts);
@@ -59,3 +57,42 @@ r = OC.boxTake(OC.G.me); r = OC.boxDecide(1);
 assert(!r.ok && OC.G.stats.radioLog.slice(-1)[0].right === mc[0].opts[mc[0].r], 'a wrong dose is logged with the right order');
 OC.trainConsult('tdose'); r = OC.boxTake(OC.G.me); r = OC.boxDecide(0);
 assert(r.ok && r.sc.opts, 'the practice dose call has a right answer');
+
+// 5. v0.28.1: the review's findings
+assert(OC.SCEN.national.every((x, i) => x && x.q) && Object.keys(OC.SCEN.national).length === OC.SCEN.national.length, 'no holes in the radio call list');
+OC.newGame('easy', 903, { mode: 'md' }); let H = OC.G;
+let t = mine('strep'); OC.signOrders(t.id, ['strep'], ['penvk']);
+t = mine('refill'); const ex0 = H.stats.md.ordExtra; OC.signOrders(t.id, [], ['hydro']);
+assert(H.stats.md.ordExtra === ex0 + 1, 'a reasonable treatment still needs a sensible drug: hydromorphone for a refill is extra');
+t = mine('chb'); OC.signOrders(t.id, ['ecg'], ['atropine']);
+r = OC.signOrders(t.id, [], ['tcp']);
+assert(r.ok && t.drugs.includes('tcp'), 'pacing pads can be added after atropine');
+// an open diagnosis question doesn't stop the untreated clock
+t = mine('nstemi'); t.wk = []; for (const k of Object.keys(t.work || {})) delete t.work[k];
+OC.signOrders(t.id, t.right.det.concat(['ecg']), []);
+for (let i = 0; i < 4000 && !t.dxq; i++) OC.step(0.1);
+assert(t.dxq && t.dxq.length === 4 && t.dxq.includes(t.dx), 'results back: the attending gets four choices, one right');
+const u0 = H.stats.md.untreated; for (let i = 0; i < 400; i++) { if (H.card) H.card = null; OC.step(0.1); }
+assert(H.stats.md.untreated > u0, 'leaving the diagnosis unanswered does not hide an untreated patient');
+// a step behind another card shows later; the lawyer names a patient; firing keeps the last case
+OC.newGame('easy', 904, { mode: 'md' }); H = OC.G;
+H.card = { eid: 'x', title: 'Other', choices: [{ k: 'a', label: 'a' }], ctx: {} };
+OC.litAdd(30, 'test'); assert(H.litStage === 0, 'no legal-risk card over another card');
+H.card = null; for (let i = 0; i < 30 && !H.card; i++) OC.step(0.1);
+assert(H.card && H.card.eid === 'lit', 'the skipped step shows once the other card is gone');
+OC.chooseCard('ok');
+const w = mine('stemi'); w.dxq = [w.dx, 'Pericarditis', 'Aortic dissection', 'Pulmonary embolism']; w.dxK = false;
+OC.dxPick(w.id, 'Pericarditis');
+OC.litAdd(16, 'test'); while (H.card) OC.chooseCard(H.card.choices[0].k);
+H.lawNext = H.t; for (let i = 0; i < 30 && !(H.card && H.card.eid === 'law'); i++) OC.step(0.1);
+assert(H.card && H.card.eid === 'law' && H.card.text.includes(w.name), 'the lawyer calls about a patient, by name');
+OC.chooseCard('risk');
+const v = mine('stemi'); v.dxq = [v.dx, 'Pericarditis', 'Aortic dissection', 'Pulmonary embolism']; v.dxK = false;
+H.lit = 72; OC.dxPick(v.id, 'Aortic dissection'); OC.step(0.1);
+assert(H.over && H.report.fail === 'fired' && H.report.mm.some(m => m.what.includes(v.name)), 'fired: the shift ends and the case that did it is in the review');
+// 6. v0.28.1: a drug that can hurt this patient is harm
+OC.newGame('easy', 905, { mode: 'md' }); const K = OC.G;
+const g = mine('gib'); const h0 = K.stats.md.harm, l0b = K.lit;
+OC.signOrders(g.id, [], ['heparin']);
+assert(K.stats.md.harm === h0 + 1 && K.lit > l0b, 'heparin in a GI bleed is harm and adds legal risk');
+assert(!OC.MUST.has('cpmod') && !OC.MUST.has('pna'), 'moderate-risk chest pain and pneumonia are not must-not-miss calls');

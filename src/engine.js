@@ -356,11 +356,26 @@ const DRUGS = {
   halo: { n: 'Haloperidol', c: 'neuro', tx: ['meds'], p: 'Agitation, psychosis' },
   olanz: { n: 'Olanzapine', c: 'neuro', tx: ['meds'], p: 'Agitation, psychosis' },
   ketamine: { n: 'Ketamine', c: 'neuro', tx: ['meds'], p: 'Sedation and strong pain control' },
+  glucagon: { n: 'Glucagon', c: 'endo', tx: ['meds'], p: 'Low sugar with no IV; beta blocker overdose' },
+  thiamine: { n: 'Thiamine', c: 'endo', tx: ['meds'], p: 'Before sugar in heavy drinkers' },
+  panto: { n: 'Pantoprazole', c: 'other', tx: ['meds'], p: 'Acid blocker by vein: ulcer bleeding' },
+  octreo: { n: 'Octreotide', c: 'other', tx: ['meds'], p: 'Variceal bleeding' },
+  acyclo: { n: 'Acyclovir', c: 'abxi', tx: ['abx'], p: 'Herpes encephalitis, shingles' },
+  cefepime: { n: 'Cefepime', c: 'abxi', tx: ['abx'], p: 'Broad, covers Pseudomonas' },
+  tmpsmx: { n: 'Trimethoprim-sulfamethoxazole', c: 'abxo', tx: ['meds', 'abx'], p: 'MRSA skin, some urine infections' },
+  lido: { n: 'Lidocaine', c: 'analg', tx: ['meds'], p: 'Numbs the skin; a nerve block' },
+  mannitol: { n: 'Mannitol', c: 'neuro', tx: ['meds'], p: 'Brain swelling about to herniate' },
+  hts: { n: 'Hypertonic saline', c: 'neuro', tx: ['meds'], p: 'Brain swelling; very low sodium with seizures' },
+  etomidate: { n: 'Etomidate', c: 'neuro', tx: ['intub'], p: 'Sedation to intubate (RSI)' },
+  propofol: { n: 'Propofol', c: 'neuro', tx: ['intub'], p: 'Sedation to intubate; sedation on the vent' },
+  succ: { n: 'Succinylcholine', c: 'neuro', tx: ['intub'], p: 'Fast paralytic for intubation; not with high potassium' },
+  roc: { n: 'Rocuronium', c: 'neuro', tx: ['intub'], p: 'Paralytic for intubation' },
+  procain: { n: 'Procainamide', c: 'resus', tx: ['meds'], p: 'Stable wide-complex tachycardia' },
   homemed: { n: 'Home medication dose', c: 'other', tx: ['meds'], p: 'A dose of the pill they ran out of' },
   ns: { n: 'Normal saline bolus', c: 'fluid', tx: ['fluids'], p: 'Salt water into a vein' },
   lr: { n: 'Lactated Ringer’s bolus', c: 'fluid', tx: ['fluids'], p: 'Balanced fluid into a vein' },
   // the resuscitation set: its own menu
-  epiarr: { n: 'Epinephrine 1 mg IV', c: 'resus', tx: ['meds'], p: 'Cardiac arrest, every 3 to 5 minutes' },
+  epiarr: { n: 'Epinephrine 1 mg IV', c: 'resus', tx: ['epi'], p: 'Cardiac arrest, every 3 to 5 minutes' },
   amio: { n: 'Amiodarone', c: 'resus', tx: ['meds'], p: 'VF and VT; some fast rhythms' },
   adeno: { n: 'Adenosine', c: 'resus', tx: ['meds'], p: 'Breaks SVT: a fast push' },
   atropine: { n: 'Atropine', c: 'resus', tx: ['pace'], p: 'A slow heart rate' },
@@ -386,6 +401,9 @@ const RXOK = {
   tfall: { reverse: ['pcc', 'vitk'] }, chb: { pace: ['atropine'] }, vip: { meds: ['mecliz'] },
 };
 // The drug a preceptor or a bot picks for a treatment: the case's first right drug, or the usual one.
+// v0.28.1: drugs that can hurt this patient. Ordering one is harm, not just an extra.
+const CONTRA = { gib: ['heparin', 'enox', 'apixa', 'ketor', 'asa', 'tnk', 'ibu'], tfall: ['heparin', 'enox', 'apixa', 'ketor', 'asa', 'tnk', 'ibu'], mvc: ['heparin', 'enox', 'tnk', 'ketor'], mcired: ['heparin', 'enox', 'tnk', 'ketor'],
+  stroke: ['heparin', 'enox'], strokew: ['heparin', 'enox'], lvo: ['heparin', 'enox'], anaph: ['epiarr'], asthma: ['metop'], copd: ['metop'], dka: ['d50'], chb: ['metop', 'dilt'], od: ['loraz'], shock: ['labet', 'nicard', 'metop', 'furo'], sepsisw: ['furo', 'labet'] };
 const DRUG_DEF = { fluids: 'ns', nebs: 'albut', epi: 'epiim', nalox: 'nalox', insulin: 'insdrip', tnk: 'tnk', bp: 'labet', pressor: 'norepi', reverse: 'pcc', abx: 'ctx', pace: 'atropine' };
 const drugFor = (p, tx) => ((RXOK[p.ck] || {})[tx] || [])[0] || DRUG_DEF[tx] || null;
 const rxOk = (p, tx, id) => { const L = (RXOK[p.ck] || {})[tx]; return L ? L.includes(id) : DRUGS[id].tx.includes(tx); };
@@ -401,7 +419,7 @@ const PROC = { tcp: { n: 'Transcutaneous pacing', tx: 'pace', p: 'Pads that pace
    When the results are back, the attending names the diagnosis from four choices: the right one and three it could have been.
    A wrong call still shows the real diagnosis (the shift goes on), but it costs accuracy and adds litigation risk. */
 const DDX = {
-  rash: ['Cellulitis', 'Shingles', 'Scabies'], refill: ['Hypertensive emergency', 'Medication side effect', 'Anxiety'], otitis: ['Mastoiditis', 'Otitis externa', 'Strep throat'],
+  rash: ['Cellulitis', 'Shingles', 'Scabies'], refill: ['Hypertensive emergency', 'Medication side effect', 'Anxiety'], otitis: ['Mastoiditis', 'Swimmer’s ear', 'Strep throat'],
   dental: ['Ludwig’s angina', 'Peritonsillar abscess', 'Trigeminal neuralgia'], strep: ['Viral pharyngitis', 'Peritonsillar abscess', 'Mononucleosis'], ankle: ['Ankle fracture', 'Achilles tendon rupture', 'Gout'],
   lac: ['Tendon laceration', 'Retained foreign body', 'Abscess'], uti: ['Pyelonephritis', 'Kidney stone', 'Vaginitis'], gastro: ['Appendicitis', 'Bowel obstruction', 'Pancreatitis'],
   appy: ['Ovarian torsion', 'Kidney stone', 'Gastroenteritis'], chole: ['Biliary colic', 'Pancreatitis', 'Inferior MI'], hipfx: ['Hip contusion', 'Pelvic fracture', 'Hip dislocation'],
@@ -412,17 +430,17 @@ const DDX = {
   cell: ['Abscess', 'Deep vein thrombosis', 'Necrotizing fasciitis'], syncope: ['Arrhythmia', 'Pulmonary embolism', 'Seizure'], synchigh: ['Vasovagal syncope', 'Seizure', 'Dehydration'],
   tia: ['Stroke', 'Hypoglycemia', 'Complicated migraine'], dehyd: ['DKA', 'Sepsis', 'Kidney failure'], cpmod: ['Pulmonary embolism', 'Aortic dissection', 'GERD'],
   cwp: ['Acute coronary syndrome', 'Pulmonary embolism', 'Pneumothorax'], nstemi: ['Unstable angina', 'Pulmonary embolism', 'Aortic dissection'], afib: ['SVT', 'Atrial flutter', 'Sinus tachycardia'],
-  chb: ['Sinus bradycardia', 'Hyperkalemia', 'Beta blocker overdose'], gib: ['Lower GI bleed', 'Peptic ulcer without bleeding', 'Esophageal varices'], dka: ['Hyperosmolar hyperglycemic state', 'Alcoholic ketoacidosis', 'Sepsis'],
+  chb: ['Sinus bradycardia', 'Hyperkalemia', 'Beta blocker overdose'], gib: ['Lower GI bleed', 'Peptic ulcer without bleeding', 'Gastritis'], dka: ['Hyperosmolar hyperglycemic state', 'Alcoholic ketoacidosis', 'Sepsis'],
   asthma: ['COPD flare', 'Anaphylaxis', 'Pneumonia'], anaph: ['Angioedema from an ACE inhibitor', 'Asthma attack', 'Panic attack'], sepsisw: ['Pyelonephritis without sepsis', 'Kidney stone', 'Dehydration'],
   strokew: ['Hypoglycemia', 'Bell’s palsy', 'Todd’s paralysis after a seizure'], stroke: ['Hypoglycemia', 'Complicated migraine', 'Intracerebral hemorrhage'], lvo: ['Intracerebral hemorrhage', 'Todd’s paralysis after a seizure', 'Hypoglycemia'],
   stemi: ['Pericarditis', 'Aortic dissection', 'Pulmonary embolism'], mvc: ['Liver laceration', 'Pelvic fracture', 'Tension pneumothorax'], tfall: ['Epidural hematoma', 'Concussion', 'Stroke'],
-  moto: ['Closed femur fracture', 'Hip dislocation', 'Pelvic fracture'], shock: ['Cardiogenic shock', 'Hemorrhagic shock', 'Anaphylactic shock'], rsv: ['Asthma', 'Pneumonia', 'Foreign body'],
+  moto: ['Hip dislocation', 'Pelvic fracture', 'Knee dislocation'], shock: ['Cardiogenic shock', 'Hemorrhagic shock', 'Anaphylactic shock'], rsv: ['Asthma', 'Pneumonia', 'Foreign body'],
   burn: ['Superficial burns only', 'Smoke inhalation without burns', 'Carbon monoxide poisoning alone'], mcired: ['Splenic laceration', 'Kidney injury', 'Pelvic fracture'],
   mciyel: ['Hip fracture', 'Knee dislocation', 'Thigh contusion'], mcimin: ['Cervical spine fracture', 'Concussion', 'Shoulder strain'], mcigrn: ['Fracture', 'Tendon injury', 'Burn'],
-  mciwr: ['Wrist sprain', 'Scaphoid fracture', 'Elbow fracture'], vip: ['Posterior stroke', 'Inner ear infection', 'Low blood pressure'], pnalow2: [],
+  mciwr: ['Wrist sprain', 'Scaphoid fracture', 'Elbow fracture'], vip: ['Posterior stroke', 'Inner ear infection', 'Low blood pressure'],
 };
 // Must not miss: a wrong call here is the kind that ends in court.
-const MUST = new Set(['stemi', 'nstemi', 'lvo', 'stroke', 'strokew', 'tia', 'sepsisw', 'shock', 'dka', 'gib', 'appy', 'chb', 'synchigh', 'cpmod', 'mvc', 'mcired', 'tfall', 'od', 'anaph', 'pna', 'dvt', 'moto', 'burn', 'copd', 'chf', 'rsv']);
+const MUST = new Set(['stemi', 'nstemi', 'lvo', 'stroke', 'strokew', 'tia', 'sepsisw', 'shock', 'dka', 'gib', 'appy', 'chb', 'synchigh', 'mvc', 'mcired', 'tfall', 'od', 'anaph', 'moto', 'burn', 'rsv']);
 const LIT_STEPS = [
   { at: 25, k: 'admin', title: 'A call from the hospital administrator', who: 'Hospital administration', text: 'Risk management flagged some of today’s charts. The administrator wants to know what happened before families start calling.', choices: [{ k: 'ok', label: 'Walk them through it', sub: 'Honest, factual, and you’ll review the cases' }] },
   { at: 40, k: 'peer', title: 'Peer review', who: 'Your group’s medical director', text: 'Today’s cases go to **peer review**. Colleagues will read the charts and decide if the care met the standard. It’s how groups catch problems before they get worse.', choices: [{ k: 'ok', label: 'Understood', sub: 'Your cases are on the list' }] },
@@ -431,12 +449,12 @@ const LIT_STEPS = [
 function litAdd(n, why, p) {
   if (G.pre || G.mode !== 'md' || G.train || !n) return;
   G.lit = Math.max(0, Math.min(100, (G.lit || 0) + n));
-  if (n > 0) (G.stats.litLog = G.stats.litLog || []).push({ t: G.t, n, why: (p ? p.name + ': ' : '') + why });
+  if (n > 0) (G.stats.litLog = G.stats.litLog || []).push({ t: G.t, n, why: (p ? p.name + ': ' : '') + why, who: p ? p.name : null });
   litCheck();
 }
 function litCheck() {
   G.litStage = G.litStage || 0;
-  if (G.lit >= 75 && !G.over) { toast('Your group has let you go. The shift is over.', 'bad'); sound('bad'); G.fired = true; endShift('fired'); return; }
+  if (G.lit >= 75 && !G.over) { G.fireNow = true; return; }   // ends at the end of this step, after the caller finishes (and its M&M is in)
   const s = LIT_STEPS.find((x, i) => i >= G.litStage && G.lit >= x.at);
   if (!s || G.card) return;
   G.litStage = LIT_STEPS.indexOf(s) + 1;
@@ -449,9 +467,10 @@ const LAWYER = { title: 'A lawyer is on the phone', who: 'Outside line', choices
   { k: 'skip', label: 'Don’t take the call', sub: 'They’ll call back' },
 ] };
 function lawTick() {
+  if (G.mode === 'md' && !G.pre && !G.card && G.lit >= ((LIT_STEPS[G.litStage || 0] || {}).at || 1e9)) litCheck();
   if (G.mode === 'md' && !G.pre && G.lit > 0 && G.lastMin % 20 === 0) { const last = (G.stats.litLog || []).slice(-1)[0]; if (!last || G.t - last.t >= 20) G.lit = Math.max(0, G.lit - 1); }   // clean time brings it down slowly
   if (G.mode !== 'md' || G.pre || G.train || G.lawNext == null || G.t < G.lawNext || G.card) return;
-  const log = G.stats.litLog || [], who = log.length ? log[Math.floor(rnd() * log.length)].why.split(':')[0] : 'one of your patients';
+  const log = (G.stats.litLog || []).filter(x => x.who), who = log.length ? log[Math.floor(rnd() * log.length)].who : 'one of your patients';
   setCard('law', LAWYER.title, LAWYER.who, `A lawyer says they represent the family of **${who}** and want to ask you a few questions about the visit.`, LAWYER.choices.map(c => Object.assign({}, c)), { who }); G.card.mine = true;
   G.lawNext = G.t + randi(40, 70);
 }
@@ -464,7 +483,7 @@ function litPick(eid, k) {
   }
   litCheck();
 }
-function needsDx(p) { return mdMine(p) && !G.pre && !G.train && !p.dxK && !p.dxPick && !p.arrest; }
+function needsDx(p) { return mdMine(p) && !G.pre && !G.train && !p.dxK && !p.dxPick && !p.dxq && !p.arrest; }
 function dxAsk(p) {
   const d = (DDX[p.ck] || []).filter(x => x !== p.dx).slice(0, 3);
   if (d.length < 3) { const pool = CASES.filter(c => c.k !== p.ck && c.dx && !d.includes(c.dx) && c.dx !== p.dx); while (d.length < 3 && pool.length) d.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0].dx); }
@@ -481,10 +500,10 @@ function dxPick(pid, pick) {
   else {
     S.dxWrong = (S.dxWrong || 0) + 1; care(MUST.has(p.ck) ? -20 : -8, 'md', p);
     (S.dxLog = S.dxLog || []).push({ name: p.name, said: pick, dx: p.dx, must: MUST.has(p.ck) });
-    litAdd(MUST.has(p.ck) ? 6 : 2, `missed ${p.dx}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
     if (MUST.has(p.ck)) mm(60, `${p.name}: called ${pick}. It was ${p.dx}`, 'A must-not-miss diagnosis', true);
+    litAdd(MUST.has(p.ck) ? 6 : 2, `missed ${p.dx}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
   }
-  treatGap(p);
+  if (!p.txGap) treatGap(p);
   return { ok: true, right, msg: right ? `Right: ${p.dx}.` : `Not ${pick}. It’s ${p.dx}.` };
 }
 // Clinical accuracy: diagnoses called right and orders right, against everything called or ordered. Starts at 100.
@@ -611,7 +630,7 @@ const SCEN = {
     { q: '45-year-old male, intoxicated, GCS 14, with a scalp laceration from a fall. He wants to refuse. Can he refuse?', a: false, why: 'Intoxication plus a head injury makes capacity doubtful. Transport is the safer call.' },
     { q: '60-year-old male, heart rate 34, BP 70/40. Atropine did nothing. I’d like to start transcutaneous pacing.', a: true, why: 'Unstable bradycardia that atropine didn’t fix: pace (or start a chronotropic drip).' },
     { q: '30-year-old female in SVT at 210. She’s stable, and vagal maneuvers didn’t work. I’d like to give adenosine.', a: true, why: 'Stable narrow-complex SVT after failed vagal maneuvers: adenosine is the next step.' },
-    { q: '72-year-old male with CHF. Crackles up to the shoulders, SpO2 84%, BP 190/110. I’d like to start CPAP and give nitroglycerin.', a: true, why: 'Hypertensive pulmonary edema: CPAP plus nitrates take the load off the heart and lungs.' },,
+    { q: '72-year-old male with CHF. Crackles up to the shoulders, SpO2 84%, BP 190/110. I’d like to start CPAP and give nitroglycerin.', a: true, why: 'Hypertensive pulmonary edema: CPAP plus nitrates take the load off the heart and lungs.' },
     // v0.28: calls that ask for a dose or an order. Multiple choice: opts, with r the right one.
     { q: '45-year-old male, about 80 kg, seizing for 8 minutes. No IV yet. Requesting midazolam. What dose?', opts: ['10 mg IM', '2 mg IM', '0.5 mg IM', 'No benzodiazepine: transport'], r: 0, why: 'Over 40 kg, midazolam 10 mg IM stops status seizures as well as IV drugs, and faster when there’s no line (the RAMPART trial).', plain: 'A man has been seizing for 8 minutes. They ask how much of the seizure drug to give.', pwhy: '10 mg in the muscle: the full adult dose works without an IV.' },
     { q: '5-year-old, about 20 kg, seizing for 6 minutes. No IV. Requesting intranasal midazolam. What dose?', opts: ['4 mg intranasal', '10 mg intranasal', '0.4 mg intranasal', 'Wait for it to stop on its own'], r: 0, why: 'Intranasal midazolam is 0.2 mg/kg, here 4 mg, split between the nostrils. Seizures past 5 minutes get treated.', plain: 'A child is seizing. They ask how much of the drug to give in the nose.', pwhy: '0.2 mg per kg: 4 mg for a 20 kg child.' },
@@ -777,7 +796,7 @@ function newGame(level, seed, opts) {
     region: { hosps: [{ name: 'Mercy', st: 'open', since: 0, hold: 0 }, { name: "St. Luke's", st: 'open', since: 0, hold: 0 }, { name: 'County General', st: 'open', since: 0, hold: 0 }], susp: -1e9 },
     wrUpdate: -1e9,
     dv: Object.fromEntries(Object.keys(DIVERTS).map(k => [k, { on: false, mins: 0, since: 0, unjust: 0 }])), out: {},
-    pizza: false, sec: { busy: -1e9 }, agN: 0, report: null,
+    pizza: false, sec: { busy: -1e9 }, agN: 0, report: null, lit: 0, litStage: 0, lawNext: null,
     nextArr: { walk: 0, ems: 0, alert: 1e9 },
     stats: freshStats(), care: 0, ledger: {}, log: [], sc: freshSc(), clerk: [], clerkN: 0,
     train: !!L.train, tr: L.train ? { step: 0, ids: {}, setup: {} } : null,
@@ -840,6 +859,9 @@ function startShift() {
 /* ---------- main step ---------- */
 function step(dt) {
   if (!G || !G.running || G.over) return;
+  try { stepInner(dt); } finally { if (G.fireNow && !G.over) { G.fireNow = false; toast('Your group has let you go. The shift is over.', 'bad'); sound('bad'); endShift('fired'); } }
+}
+function stepInner(dt) {
   if (G.card && G.mode === 'md' && !G.pre && !G.card.mine) aiCard();
   if (G.card) return;
   G.t += dt;
@@ -1444,7 +1466,7 @@ function taskDone(s, k) {
   else if (k.type === 'reassess') {
     if (mdMine(p) && workGap(p)) return;
     p.re = 'done';
-    if (needsDx(p)) { dxAsk(p); return; }   // v0.28: the attending names it
+    if (needsDx(p)) { dxAsk(p); treatGap(p); return; }   // v0.28: the attending names it; untreated harm keeps counting meanwhile
     p.dxK = true; note(`${label(p)}: ${p.dx}`);
     if (mdMine(p)) treatGap(p);
   }
@@ -1664,7 +1686,7 @@ const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU',
 const RX = { refill: 'a dose of the usual pill', tia: 'aspirin', copd: 'a steroid', moto: 'pain control', rash: 'an antihistamine and steroid cream', otitis: 'amoxicillin', dental: 'an antibiotic and pain control', strep: 'penicillin', ankle: 'ibuprofen', uti: 'an antibiotic for the UTI',
   gastro: 'ondansetron', appy: 'pain control', chole: 'pain control', hipfx: 'pain control', chf: 'nitroglycerin and a diuretic', stone: 'ketorolac', dvt: 'an anticoagulant', migraine: 'prochlorperazine and diphenhydramine',
   cwp: 'ibuprofen', cpmod: 'aspirin', nstemi: 'aspirin and heparin', afib: 'diltiazem', asthma: 'a steroid', anaph: 'an antihistamine and a steroid', stemi: 'aspirin and heparin', burn: 'pain control', mcimin: 'pain control', mciyel: 'pain control', mciwr: 'a splint and pain control', vip: 'meclizine' };
-const rxName = p => { const L = (RXOK[p.ck] || {}).meds, got = (p.drugs || []).find(d => L && L.includes(d)); return got ? DRUGS[got].n.toLowerCase() : RX[p.ck] || 'symptom treatment'; };
+const rxName = p => { const L = (RXOK[p.ck] || {}).meds, got = (p.drugs || []).find(d => L ? L.includes(d) : DRUGS[d] && DRUGS[d].tx.includes('meds')); return got ? DRUGS[got].n.toLowerCase() : RX[p.ck] || 'symptom treatment'; };
 // An order with no indication can hurt someone: [chance, points, what happened].
 const HARM = { tnk: [0.5, 50, 'bled after a thrombolytic they didn’t need'], insulin: [0.5, 25, 'dropped their blood sugar on an insulin drip they didn’t need'],
   epi: [0.35, 20, 'went into a fast rhythm from epinephrine they didn’t need'], intub: [0.3, 25, 'had a complication from an intubation they didn’t need'],
@@ -1703,20 +1725,22 @@ function signOrders(pid, tests, treats) {
   }
   const newT = Array.from(new Set(want)).filter(k => (k === 'ecg' ? !p.wk.includes('ecg') : !p.det.includes(k)));
   // v0.28: drugs and procedures resolve to treatments. The right drug fills the need; a wrong one is wasted and counted.
-  const drugX = [], drugOk = [];
+  const drugX = [], drugOk = [], contraX = [];
   p.drugs = p.drugs || [];
   const tk = [];
   for (const k of treats || []) {
-    if (PROC[k]) { if (!p.drugs.includes(k)) p.drugs.push(k); tk.push(PROC[k].tx); continue; }
+    if (PROC[k]) { if (p.drugs.includes(k)) continue; p.drugs.push(k); if (p.tr.includes(PROC[k].tx)) drugOk.push(PROC[k].n); else tk.push(PROC[k].tx); continue; }
     if (!DRUGS[k]) { tk.push(k); continue; }
     if (p.drugs.includes(k)) continue;
     p.drugs.push(k);
+    if ((CONTRA[p.ck] || []).includes(k)) contraX.push(k);
     const D = DRUGS[k], need = D.tx.find(t => R.tr.includes(t) && !p.tr.includes(t) && !tk.includes(t) && rxOk(p, t, k));
     if (need) { tk.push(need); continue; }
     const wrong = D.tx.find(t => R.tr.includes(t) && !rxOk(p, t, k));
-    const fine = D.tx.find(t => (R.tr.includes(t) && rxOk(p, t, k)) || (R.ok || []).includes(t));
+    const fine = D.tx.find(t => (R.tr.includes(t) && rxOk(p, t, k)) || ((R.ok || []).includes(t) && ((RXOK[p.ck] || {})[t] || []).includes(k)));
     if (fine) { drugOk.push(D.n); continue; }
     if (wrong) { drugX.push(D.n + ' (wrong drug)'); G.stats.md.wrongDrug = (G.stats.md.wrongDrug || 0) + 1; continue; }
+    if ((R.ok || []).includes(D.tx[0])) { drugX.push(D.n); continue; }   // a reasonable treatment, but not with this drug
     tk.push(D.tx[0]); if (TREAT[D.tx[0]] && p.tr.includes(D.tx[0])) drugX.push(D.n);
   }
   const newR = Array.from(new Set(tk)).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
@@ -1724,6 +1748,7 @@ function signOrders(pid, tests, treats) {
   let pts = 0, extra = 0;
   const xl = [], fl = [], OKL = R.ok || [], OKD = R.detOk || [];   // fl: reasonable orders. Not required, not counted against you.
   for (const nm of drugX) { pts -= 3; extra++; S.ordExtra++; xl.push(nm); }
+  for (const k of contraX) { S.harm++; care(-20, 'harm', p); litAdd(10, `given ${DRUGS[k].n.toLowerCase()}, which can hurt them`, p); mm(55, `${p.name} was given ${DRUGS[k].n.toLowerCase()}`, 'A drug that can hurt this patient', true); toast(`${DRUGS[k].n} can hurt ${p.name}: ${p.dx.toLowerCase()}.`, 'bad'); }
   fl.push(...drugOk);
   for (const k of newT) {
     const kind = DET_KIND(k), nm = DET_NAME(k);
@@ -1766,7 +1791,7 @@ function signOrders(pid, tests, treats) {
   p.ord = 'signed';
   orders(p);
   if (p.dxK) { if (!workGap(p)) treatGap(p); }   // field diagnoses (alerts) are known already, so gaps show now
-  else if (!p.wk.length && !R.wk.length) { if (needsDx(p)) dxAsk(p); else { p.dxK = true; note(`${label(p)}: ${p.dx}`); treatGap(p); } }
+  else if (!p.wk.length && !R.wk.length) { if (needsDx(p)) { dxAsk(p); treatGap(p); } else { p.dxK = true; note(`${label(p)}: ${p.dx}`); treatGap(p); } }
   else if (!p.wk.length) workGap(p);
   if (p.txGap) p.txGap = R.tr.filter(k => !p.tr.includes(k));
   if (p.txGap && !p.txGap.length) p.txGap = null;
@@ -3150,7 +3175,7 @@ function minuteTick() {
     if (G.pre) continue;
     if (mdMine(p)) {
       if ((p.ord === 'need' || p.ord === 'more') && p.loc === 'room') { p.ordWait = (p.ordWait || 0) + 1; if (p.ordWait > 15) care(-0.3, 'md'); }
-      if (p.dsp === 'mddecide' || p.dsp === 'decide') { p.decWait = (p.decWait || 0) + 1; if (p.decWait > 15) care(-0.3, 'md'); }
+      if (p.dsp === 'mddecide' || p.dsp === 'decide' || p.dxq) { p.decWait = (p.decWait || 0) + 1; if (p.decWait > 15) care(-0.3, 'md'); }
       if (p.ev === 'q' && p.loc === 'room') { p.queueWait = (p.queueWait || 0) + 1; if (p.queueWait > 30) care(-0.2, 'md'); }
     }
     if (mdMine(p) && p.txGap && p.txGap.length && !p.txHarm && t - p.tGap > 20) {
@@ -3426,7 +3451,7 @@ function missBox() {
   if (!c) return;
   if (c.kind === 'notify') { const p = pt(c.pid); if (p) missNotify(p); return; }
   G.stats.boxC.miss++; care(-30 * surveyMul(), 'box');
-  (G.stats.radioLog = G.stats.radioLog || []).push({ q: scenOf(c).plain || scenOf(c).q, miss: true, a: scenOf(c).a, why: scenOf(c).pwhy || scenOf(c).why, btn: scenOf(c).btn || null });
+  { const sc = scenOf(c); (G.stats.radioLog = G.stats.radioLog || []).push({ q: sc.plain || sc.q, miss: true, a: sc.a, why: sc.pwhy || sc.why, btn: sc.btn || null, right: sc.opts ? sc.opts[sc.r] : null }); }
   toast(`Missed radio call. ${c.unit} rolled to another hospital's physician.`, 'bad'); sound('bad');
   G.ev.missedC++; if (G.ev.missedC >= 2) G.ev.regionDue = true;
 }
@@ -4106,9 +4131,11 @@ function mdPlay(o) {
     if (p.ord === 'need' || p.ord === 'more') act(() => {
       const R = p.right; let tests = R.wk.slice(), treats = R.tr.slice();
       if (p.ord === 'need' && !chance(acc)) { if (chance(0.5) && tests.length) tests.pop(); else tests.push(pick(['lab', 'xr', 'ct'].filter(k => !tests.includes(k))) || 'lab'); }
-      return signOrders(p.id, tests, treats).ok;
+      // v0.28: the bot picks drugs too, and sometimes the wrong one in the right class
+      const asDrug = t => { const d = drugFor(p, t); if (!d) return t; if (chance(acc)) return d; const alt = Object.keys(DRUGS).filter(id => id !== d && DRUGS[id].c === DRUGS[d].c && !rxOk(p, t, id) && !(CONTRA[p.ck] || []).includes(id)); return alt.length ? pick(alt) : d; };
+      return signOrders(p.id, tests, treats.map(asDrug)).ok;
     });
-    else if (p.txGap && p.txGap.length) act(() => signOrders(p.id, [], p.txGap).ok);
+    else if (p.txGap && p.txGap.length) act(() => signOrders(p.id, [], p.txGap.map(t => drugFor(p, t) || t)).ok);
     if (p.dxq) act(() => dxPick(p.id, chance(acc) ? p.dx : pick(p.dxq.filter(x => x !== p.dx))).ok);
     if (p.dsp === 'mddecide') act(() => {
       const want = chance(acc) ? p.dispo : pick(['home', 'admit']);
