@@ -289,6 +289,210 @@ const TREAT = {
   reverse: { label: 'Reversal agent', by: 'rn', dur: 4, rx: true },
 };
 
+/* ---------- v0.28: drugs by class, a resuscitation set, and procedures ----------
+   Each drug gives one of the engine's treatments (tx). A case that needs that treatment may name the drugs that count
+   (RXOK); another drug that gives the same treatment is the wrong drug: the order is wasted and the gap stays open. */
+const DRUG_CLASS = [
+  ['analg', 'Pain'], ['emet', 'Nausea'], ['abxo', 'Antibiotics by mouth'], ['abxi', 'Antibiotics by vein'], ['allergy', 'Allergy and steroids'],
+  ['cardiac', 'Heart and blood pressure'], ['clot', 'Clots, bleeding, and reversal'], ['resp', 'Breathing'], ['endo', 'Sugar and electrolytes'],
+  ['tox', 'Antidotes'], ['neuro', 'Seizures, agitation, and sedation'], ['other', 'Other'],
+];
+const DRUGS = {
+  apap: { n: 'Acetaminophen', c: 'analg', tx: ['meds'], p: 'Mild pain and fever, by mouth' },
+  ibu: { n: 'Ibuprofen', c: 'analg', tx: ['meds'], p: 'Pain and swelling, by mouth' },
+  ketor: { n: 'Ketorolac', c: 'analg', tx: ['meds'], p: 'Strong anti-inflammatory, by vein' },
+  morph: { n: 'Morphine', c: 'analg', tx: ['meds'], p: 'Opioid, by vein' },
+  fent: { n: 'Fentanyl', c: 'analg', tx: ['meds'], p: 'Fast, short opioid, by vein' },
+  hydro: { n: 'Hydromorphone', c: 'analg', tx: ['meds'], p: 'Strong opioid, by vein' },
+  ondan: { n: 'Ondansetron', c: 'emet', tx: ['meds'], p: 'Nausea and vomiting' },
+  reglan: { n: 'Metoclopramide', c: 'emet', tx: ['meds'], p: 'Nausea; also helps migraine' },
+  prochlor: { n: 'Prochlorperazine', c: 'emet', tx: ['meds'], p: 'Nausea; first choice for migraine' },
+  mecliz: { n: 'Meclizine', c: 'emet', tx: ['meds'], p: 'Dizziness and motion sickness' },
+  amox: { n: 'Amoxicillin', c: 'abxo', tx: ['meds', 'abx'], p: 'Ear, throat, and mild lung infections' },
+  amoxclav: { n: 'Amoxicillin-clavulanate', c: 'abxo', tx: ['meds', 'abx'], p: 'Bites, dental, sinus infections' },
+  penvk: { n: 'Penicillin VK', c: 'abxo', tx: ['meds'], p: 'Strep throat' },
+  cephalex: { n: 'Cephalexin', c: 'abxo', tx: ['meds', 'abx'], p: 'Skin and urine infections' },
+  nitrof: { n: 'Nitrofurantoin', c: 'abxo', tx: ['meds'], p: 'A simple bladder infection' },
+  doxy: { n: 'Doxycycline', c: 'abxo', tx: ['meds', 'abx'], p: 'Lung infections, tick bites, MRSA skin' },
+  azith: { n: 'Azithromycin', c: 'abxo', tx: ['meds', 'abx'], p: 'Atypical pneumonia' },
+  osel: { n: 'Oseltamivir', c: 'abxo', tx: ['meds'], p: 'Flu antiviral, best in the first 48 hours' },
+  bicillin: { n: 'Penicillin G benzathine', c: 'abxi', tx: ['meds'], p: 'One shot in the muscle for strep' },
+  ctx: { n: 'Ceftriaxone', c: 'abxi', tx: ['abx'], p: 'Broad, once a day: pneumonia, urine, meningitis' },
+  cefaz: { n: 'Cefazolin', c: 'abxi', tx: ['abx'], p: 'Skin infection, open fractures' },
+  piptazo: { n: 'Piperacillin-tazobactam', c: 'abxi', tx: ['abx'], p: 'Very broad: sepsis, belly infections' },
+  vanc: { n: 'Vancomycin', c: 'abxi', tx: ['abx'], p: 'Covers MRSA' },
+  metro: { n: 'Metronidazole', c: 'abxi', tx: ['abx'], p: 'Gut bacteria that live without air' },
+  diphen: { n: 'Diphenhydramine', c: 'allergy', tx: ['meds'], p: 'Antihistamine: itch, hives' },
+  famot: { n: 'Famotidine', c: 'allergy', tx: ['meds'], p: 'Second antihistamine (H2); also stomach acid' },
+  methylpred: { n: 'Methylprednisolone', c: 'allergy', tx: ['meds'], p: 'Steroid by vein' },
+  pred: { n: 'Prednisone', c: 'allergy', tx: ['meds'], p: 'Steroid by mouth' },
+  dexa: { n: 'Dexamethasone', c: 'allergy', tx: ['meds'], p: 'Long-acting steroid: asthma, croup' },
+  tricream: { n: 'Triamcinolone cream', c: 'allergy', tx: ['meds'], p: 'Steroid cream for a rash' },
+  epiim: { n: 'Epinephrine 0.5 mg IM', c: 'allergy', tx: ['epi'], p: 'Anaphylaxis: in the thigh, now' },
+  asa: { n: 'Aspirin', c: 'cardiac', tx: ['meds'], p: 'Chewed, for a heart attack or TIA' },
+  ntg: { n: 'Nitroglycerin', c: 'cardiac', tx: ['meds'], p: 'Chest pain; heart failure with high pressure' },
+  furo: { n: 'Furosemide', c: 'cardiac', tx: ['meds'], p: 'Diuretic: pulls off fluid' },
+  metop: { n: 'Metoprolol', c: 'cardiac', tx: ['meds'], p: 'Beta blocker: slows the heart' },
+  dilt: { n: 'Diltiazem', c: 'cardiac', tx: ['meds'], p: 'Slows a fast atrial fibrillation' },
+  labet: { n: 'Labetalol', c: 'cardiac', tx: ['bp'], p: 'Lowers blood pressure, by vein' },
+  nicard: { n: 'Nicardipine drip', c: 'cardiac', tx: ['bp'], p: 'Lowers blood pressure, steady drip' },
+  heparin: { n: 'Heparin', c: 'clot', tx: ['meds'], p: 'Blood thinner drip' },
+  enox: { n: 'Enoxaparin', c: 'clot', tx: ['meds'], p: 'Blood thinner shot' },
+  apixa: { n: 'Apixaban', c: 'clot', tx: ['meds'], p: 'Blood thinner pill' },
+  tnk: { n: 'Tenecteplase', c: 'clot', tx: ['tnk'], p: 'Clot buster for a stroke' },
+  pcc: { n: '4-factor PCC', c: 'clot', tx: ['reverse'], p: 'Reverses warfarin and factor Xa blood thinners' },
+  vitk: { n: 'Vitamin K', c: 'clot', tx: ['reverse'], p: 'Slow warfarin reversal, given with PCC' },
+  txa: { n: 'Tranexamic acid', c: 'clot', tx: ['meds'], p: 'Helps blood clot in trauma bleeding' },
+  albut: { n: 'Albuterol neb', c: 'resp', tx: ['nebs'], p: 'Opens tight airways' },
+  duoneb: { n: 'Ipratropium-albuterol neb', c: 'resp', tx: ['nebs'], p: 'Two bronchodilators: COPD, bad asthma' },
+  mag: { n: 'Magnesium sulfate', c: 'resp', tx: ['meds'], p: 'Severe asthma; torsades' },
+  insdrip: { n: 'Insulin drip', c: 'endo', tx: ['insulin'], p: 'For DKA, after potassium is checked' },
+  d50: { n: 'Dextrose', c: 'endo', tx: ['meds'], p: 'Low blood sugar' },
+  kcl: { n: 'Potassium', c: 'endo', tx: ['meds'], p: 'Low potassium' },
+  nalox: { n: 'Naloxone', c: 'tox', tx: ['nalox'], p: 'Reverses opioids' },
+  nac: { n: 'N-acetylcysteine', c: 'tox', tx: ['meds'], p: 'Acetaminophen overdose' },
+  charcoal: { n: 'Activated charcoal', c: 'tox', tx: ['meds'], p: 'Binds some pills in the gut, early only' },
+  loraz: { n: 'Lorazepam', c: 'neuro', tx: ['meds'], p: 'Seizures, alcohol withdrawal, anxiety' },
+  halo: { n: 'Haloperidol', c: 'neuro', tx: ['meds'], p: 'Agitation, psychosis' },
+  olanz: { n: 'Olanzapine', c: 'neuro', tx: ['meds'], p: 'Agitation, psychosis' },
+  ketamine: { n: 'Ketamine', c: 'neuro', tx: ['meds'], p: 'Sedation and strong pain control' },
+  homemed: { n: 'Home medication dose', c: 'other', tx: ['meds'], p: 'A dose of the pill they ran out of' },
+  ns: { n: 'Normal saline bolus', c: 'fluid', tx: ['fluids'], p: 'Salt water into a vein' },
+  lr: { n: 'Lactated Ringer’s bolus', c: 'fluid', tx: ['fluids'], p: 'Balanced fluid into a vein' },
+  // the resuscitation set: its own menu
+  epiarr: { n: 'Epinephrine 1 mg IV', c: 'resus', tx: ['meds'], p: 'Cardiac arrest, every 3 to 5 minutes' },
+  amio: { n: 'Amiodarone', c: 'resus', tx: ['meds'], p: 'VF and VT; some fast rhythms' },
+  adeno: { n: 'Adenosine', c: 'resus', tx: ['meds'], p: 'Breaks SVT: a fast push' },
+  atropine: { n: 'Atropine', c: 'resus', tx: ['pace'], p: 'A slow heart rate' },
+  calc: { n: 'Calcium chloride', c: 'resus', tx: ['meds'], p: 'High potassium; calcium channel blocker overdose' },
+  bicarb: { n: 'Sodium bicarbonate', c: 'resus', tx: ['meds'], p: 'Some overdoses; severe acidosis' },
+  norepi: { n: 'Norepinephrine drip', c: 'resus', tx: ['pressor'], p: 'First vasopressor for shock' },
+  pushepi: { n: 'Push-dose epinephrine', c: 'resus', tx: ['pressor'], p: 'A quick bridge for low pressure' },
+};
+// The right drug, by case and treatment. A case or treatment not listed takes any drug that gives it.
+const RXOK = {
+  rash: { meds: ['diphen', 'tricream', 'pred', 'methylpred'] }, refill: { meds: ['homemed'] }, otitis: { meds: ['amox', 'amoxclav'] },
+  dental: { meds: ['amoxclav', 'amox', 'penvk', 'ibu', 'apap'] }, strep: { meds: ['penvk', 'amox', 'bicillin'] }, ankle: { meds: ['ibu', 'apap', 'ketor'] },
+  uti: { meds: ['nitrof', 'cephalex'] }, gastro: { meds: ['ondan', 'reglan', 'prochlor'] }, flu: { meds: ['osel', 'apap', 'ibu'] },
+  appy: { meds: ['morph', 'fent', 'hydro', 'apap', 'ketor', 'ondan'], abx: ['piptazo', 'ctx', 'metro'] }, chole: { meds: ['morph', 'fent', 'hydro', 'ketor', 'ondan', 'apap'], abx: ['piptazo', 'ctx', 'metro'] },
+  hipfx: { meds: ['fent', 'morph', 'hydro', 'apap'] }, pnalow: { abx: ['amox', 'doxy', 'azith', 'amoxclav'] }, pna: { abx: ['ctx', 'azith'] },
+  copd: { meds: ['methylpred', 'pred'], nebs: ['duoneb', 'albut'] }, chf: { meds: ['ntg', 'furo'] }, stone: { meds: ['ketor', 'ibu', 'morph', 'fent', 'hydro'] },
+  dvt: { meds: ['apixa', 'enox', 'heparin'] }, migraine: { meds: ['prochlor', 'reglan', 'ketor', 'diphen'] }, cell: { abx: ['cefaz', 'vanc', 'ctx', 'cephalex'] },
+  tia: { meds: ['asa'] }, cpmod: { meds: ['asa'] }, cwp: { meds: ['ibu', 'apap', 'ketor'] }, nstemi: { meds: ['asa', 'heparin', 'enox'] }, afib: { meds: ['dilt', 'metop'] },
+  asthma: { meds: ['dexa', 'pred', 'methylpred', 'mag'], nebs: ['albut', 'duoneb'] }, anaph: { meds: ['diphen', 'methylpred', 'famot'], epi: ['epiim'] },
+  sepsisw: { abx: ['ctx', 'piptazo'] }, stemi: { meds: ['asa', 'heparin'] }, burn: { meds: ['fent', 'morph', 'ketamine'] },
+  mciyel: { meds: ['fent', 'morph', 'hydro'] }, mcimin: { meds: ['ibu', 'apap'] }, mciwr: { meds: ['ibu', 'apap', 'ketor'] },
+  moto: { meds: ['fent', 'morph', 'hydro', 'ketamine'], abx: ['cefaz', 'ctx'] }, shock: { abx: ['piptazo', 'vanc', 'ctx'], pressor: ['norepi', 'pushepi'] },
+  tfall: { reverse: ['pcc', 'vitk'] }, chb: { pace: ['atropine'] }, vip: { meds: ['mecliz'] },
+};
+// The drug a preceptor or a bot picks for a treatment: the case's first right drug, or the usual one.
+const DRUG_DEF = { fluids: 'ns', nebs: 'albut', epi: 'epiim', nalox: 'nalox', insulin: 'insdrip', tnk: 'tnk', bp: 'labet', pressor: 'norepi', reverse: 'pcc', abx: 'ctx', pace: 'atropine' };
+const drugFor = (p, tx) => ((RXOK[p.ck] || {})[tx] || [])[0] || DRUG_DEF[tx] || null;
+const rxOk = (p, tx, id) => { const L = (RXOK[p.ck] || {})[tx]; return L ? L.includes(id) : DRUGS[id].tx.includes(tx); };
+// Not drugs: the order sheet's other menus. Each is an engine treatment.
+const ORDER_MENUS = [
+  ['air', 'Airway and breathing', ['o2', 'hfnc', 'bipap', 'intub']],
+  ['fluid', 'Fluids and blood', ['ns', 'lr', 'blood', 'mtp']],
+  ['proc', 'Procedures', ['repair', 'tcp']],
+];
+const PROC = { tcp: { n: 'Transcutaneous pacing', tx: 'pace', p: 'Pads that pace a slow heart' } };
+
+/* ---------- v0.28: the diagnosis is the attending's call, clinical accuracy, and litigation risk ----------
+   When the results are back, the attending names the diagnosis from four choices: the right one and three it could have been.
+   A wrong call still shows the real diagnosis (the shift goes on), but it costs accuracy and adds litigation risk. */
+const DDX = {
+  rash: ['Cellulitis', 'Shingles', 'Scabies'], refill: ['Hypertensive emergency', 'Medication side effect', 'Anxiety'], otitis: ['Mastoiditis', 'Otitis externa', 'Strep throat'],
+  dental: ['Ludwig’s angina', 'Peritonsillar abscess', 'Trigeminal neuralgia'], strep: ['Viral pharyngitis', 'Peritonsillar abscess', 'Mononucleosis'], ankle: ['Ankle fracture', 'Achilles tendon rupture', 'Gout'],
+  lac: ['Tendon laceration', 'Retained foreign body', 'Abscess'], uti: ['Pyelonephritis', 'Kidney stone', 'Vaginitis'], gastro: ['Appendicitis', 'Bowel obstruction', 'Pancreatitis'],
+  appy: ['Ovarian torsion', 'Kidney stone', 'Gastroenteritis'], chole: ['Biliary colic', 'Pancreatitis', 'Inferior MI'], hipfx: ['Hip contusion', 'Pelvic fracture', 'Hip dislocation'],
+  flu: ['COVID-19', 'Pneumonia', 'Strep throat'], pnalow: ['Bronchitis', 'Pulmonary embolism', 'Heart failure flare'], pna: ['Pulmonary embolism', 'Heart failure flare', 'Lung cancer'],
+  copd: ['Pneumonia', 'Pneumothorax', 'Heart failure flare'], chf: ['COPD flare', 'Pneumonia', 'Pulmonary embolism'], stone: ['Pyelonephritis', 'Abdominal aortic aneurysm', 'Appendicitis'],
+  dvt: ['Cellulitis', 'Baker’s cyst rupture', 'Muscle strain'], migraine: ['Subarachnoid hemorrhage', 'Meningitis', 'Tension headache'], tb: ['Lung cancer', 'Pneumonia', 'Sarcoidosis'],
+  bh: ['Delirium', 'Intoxication', 'Hypoglycemia'], etoh: ['Head injury', 'Hypoglycemia', 'Opioid overdose'], od: ['Hypoglycemia', 'Stroke', 'Alcohol intoxication'],
+  cell: ['Abscess', 'Deep vein thrombosis', 'Necrotizing fasciitis'], syncope: ['Arrhythmia', 'Pulmonary embolism', 'Seizure'], synchigh: ['Vasovagal syncope', 'Seizure', 'Dehydration'],
+  tia: ['Stroke', 'Hypoglycemia', 'Complicated migraine'], dehyd: ['DKA', 'Sepsis', 'Kidney failure'], cpmod: ['Pulmonary embolism', 'Aortic dissection', 'GERD'],
+  cwp: ['Acute coronary syndrome', 'Pulmonary embolism', 'Pneumothorax'], nstemi: ['Unstable angina', 'Pulmonary embolism', 'Aortic dissection'], afib: ['SVT', 'Atrial flutter', 'Sinus tachycardia'],
+  chb: ['Sinus bradycardia', 'Hyperkalemia', 'Beta blocker overdose'], gib: ['Lower GI bleed', 'Peptic ulcer without bleeding', 'Esophageal varices'], dka: ['Hyperosmolar hyperglycemic state', 'Alcoholic ketoacidosis', 'Sepsis'],
+  asthma: ['COPD flare', 'Anaphylaxis', 'Pneumonia'], anaph: ['Angioedema from an ACE inhibitor', 'Asthma attack', 'Panic attack'], sepsisw: ['Pyelonephritis without sepsis', 'Kidney stone', 'Dehydration'],
+  strokew: ['Hypoglycemia', 'Bell’s palsy', 'Todd’s paralysis after a seizure'], stroke: ['Hypoglycemia', 'Complicated migraine', 'Intracerebral hemorrhage'], lvo: ['Intracerebral hemorrhage', 'Todd’s paralysis after a seizure', 'Hypoglycemia'],
+  stemi: ['Pericarditis', 'Aortic dissection', 'Pulmonary embolism'], mvc: ['Liver laceration', 'Pelvic fracture', 'Tension pneumothorax'], tfall: ['Epidural hematoma', 'Concussion', 'Stroke'],
+  moto: ['Closed femur fracture', 'Hip dislocation', 'Pelvic fracture'], shock: ['Cardiogenic shock', 'Hemorrhagic shock', 'Anaphylactic shock'], rsv: ['Asthma', 'Pneumonia', 'Foreign body'],
+  burn: ['Superficial burns only', 'Smoke inhalation without burns', 'Carbon monoxide poisoning alone'], mcired: ['Splenic laceration', 'Kidney injury', 'Pelvic fracture'],
+  mciyel: ['Hip fracture', 'Knee dislocation', 'Thigh contusion'], mcimin: ['Cervical spine fracture', 'Concussion', 'Shoulder strain'], mcigrn: ['Fracture', 'Tendon injury', 'Burn'],
+  mciwr: ['Wrist sprain', 'Scaphoid fracture', 'Elbow fracture'], vip: ['Posterior stroke', 'Inner ear infection', 'Low blood pressure'], pnalow2: [],
+};
+// Must not miss: a wrong call here is the kind that ends in court.
+const MUST = new Set(['stemi', 'nstemi', 'lvo', 'stroke', 'strokew', 'tia', 'sepsisw', 'shock', 'dka', 'gib', 'appy', 'chb', 'synchigh', 'cpmod', 'mvc', 'mcired', 'tfall', 'od', 'anaph', 'pna', 'dvt', 'moto', 'burn', 'copd', 'chf', 'rsv']);
+const LIT_STEPS = [
+  { at: 25, k: 'admin', title: 'A call from the hospital administrator', who: 'Hospital administration', text: 'Risk management flagged some of today’s charts. The administrator wants to know what happened before families start calling.', choices: [{ k: 'ok', label: 'Walk them through it', sub: 'Honest, factual, and you’ll review the cases' }] },
+  { at: 40, k: 'peer', title: 'Peer review', who: 'Your group’s medical director', text: 'Today’s cases go to **peer review**. Colleagues will read the charts and decide if the care met the standard. It’s how groups catch problems before they get worse.', choices: [{ k: 'ok', label: 'Understood', sub: 'Your cases are on the list' }] },
+  { at: 50, k: 'pip', title: 'Performance improvement plan', who: 'Your group’s medical director', text: 'You’re on a **performance improvement plan (PIP)**: closer chart review and a list of goals. Lawyers have started calling about today’s patients. **Don’t discuss a case with a lawyer.** Send them to risk management.', choices: [{ k: 'ok', label: 'Understood', sub: 'Every chart counts now' }] },
+];
+function litAdd(n, why, p) {
+  if (G.pre || G.mode !== 'md' || G.train || !n) return;
+  G.lit = Math.max(0, Math.min(100, (G.lit || 0) + n));
+  if (n > 0) (G.stats.litLog = G.stats.litLog || []).push({ t: G.t, n, why: (p ? p.name + ': ' : '') + why });
+  litCheck();
+}
+function litCheck() {
+  G.litStage = G.litStage || 0;
+  if (G.lit >= 75 && !G.over) { toast('Your group has let you go. The shift is over.', 'bad'); sound('bad'); G.fired = true; endShift('fired'); return; }
+  const s = LIT_STEPS.find((x, i) => i >= G.litStage && G.lit >= x.at);
+  if (!s || G.card) return;
+  G.litStage = LIT_STEPS.indexOf(s) + 1;
+  if (s.k === 'pip') G.lawNext = G.t + randi(15, 30);
+  setCard('lit', s.title, s.who, s.text, s.choices.map(c => Object.assign({}, c)), { step: s.k }); G.card.mine = true;
+}
+const LAWYER = { title: 'A lawyer is on the phone', who: 'Outside line', choices: [
+  { k: 'risk', label: 'Refer them to risk management', sub: 'Polite, no details about the patient' },
+  { k: 'talk', label: 'Explain what happened', sub: 'Tell your side of the story' },
+  { k: 'skip', label: 'Don’t take the call', sub: 'They’ll call back' },
+] };
+function lawTick() {
+  if (G.mode === 'md' && !G.pre && G.lit > 0 && G.lastMin % 20 === 0) { const last = (G.stats.litLog || []).slice(-1)[0]; if (!last || G.t - last.t >= 20) G.lit = Math.max(0, G.lit - 1); }   // clean time brings it down slowly
+  if (G.mode !== 'md' || G.pre || G.train || !G.lawNext || G.t < G.lawNext || G.card) return;
+  const log = G.stats.litLog || [], who = log.length ? log[Math.floor(rnd() * log.length)].why.split(':')[0] : 'one of your patients';
+  setCard('law', LAWYER.title, LAWYER.who, `A lawyer says they represent the family of **${who}** and want to ask you a few questions about the visit.`, LAWYER.choices.map(c => Object.assign({}, c)), { who }); G.card.mine = true;
+  G.lawNext = G.t + randi(40, 70);
+}
+function litPick(eid, k) {
+  if (eid === 'law') {
+    G.stats.lawCalls = (G.stats.lawCalls || 0) + 1;
+    if (k === 'risk') { G.lit = Math.max(0, G.lit - 2); toast('Right call: risk management handles lawyers. Never discuss a case without them.', 'good'); }
+    else if (k === 'talk') { litAdd(6, 'discussed a case with a lawyer'); toast('Never discuss a case with a lawyer on your own. Anything you say can be used. Refer them to risk management.', 'bad'); }
+    else { G.lawNext = G.t + randi(10, 20); toast('They’ll call back. Refer them to risk management when they do.', 'warn'); }
+  }
+  litCheck();
+}
+function needsDx(p) { return mdMine(p) && !G.pre && !G.train && !p.dxK && !p.dxPick && !p.arrest; }
+function dxAsk(p) {
+  const d = (DDX[p.ck] || []).filter(x => x !== p.dx).slice(0, 3);
+  if (d.length < 3) { const pool = CASES.filter(c => c.k !== p.ck && c.dx && !d.includes(c.dx) && c.dx !== p.dx); while (d.length < 3 && pool.length) d.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0].dx); }
+  const ch = [p.dx].concat(d);
+  for (let i = ch.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [ch[i], ch[j]] = [ch[j], ch[i]]; }
+  p.dxq = ch;
+  note(`${label(p)}: results are back. What’s the diagnosis?`);
+}
+function dxPick(pid, pick) {
+  const p = pt(pid); if (!p || !p.dxq) return { ok: false, why: 'No diagnosis to make for this patient' };
+  const S = G.stats.md, right = pick === p.dx;
+  p.dxPick = pick; p.dxq = null; p.dxK = true;
+  if (right) { S.dxRight = (S.dxRight || 0) + 1; care(8, 'md', p); }
+  else {
+    S.dxWrong = (S.dxWrong || 0) + 1; care(MUST.has(p.ck) ? -20 : -8, 'md', p);
+    (S.dxLog = S.dxLog || []).push({ name: p.name, said: pick, dx: p.dx, must: MUST.has(p.ck) });
+    litAdd(MUST.has(p.ck) ? 8 : 2, `missed ${p.dx}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
+    if (MUST.has(p.ck)) mm(60, `${p.name}: called ${pick}. It was ${p.dx}`, 'A must-not-miss diagnosis', true);
+  }
+  treatGap(p);
+  return { ok: true, right, msg: right ? `Right: ${p.dx}.` : `Not ${pick}. It’s ${p.dx}.` };
+}
+// Clinical accuracy: diagnoses called right and orders right, against everything called or ordered. Starts at 100.
+function accuracy() {
+  const S = G.stats.md || {}, good = (S.dxRight || 0) * 3 + (S.ordRight || 0), bad = (S.dxWrong || 0) * 3 + (S.ordMiss || 0) + (S.ordExtra || 0) + (S.harm || 0) * 3 + (S.dispoWrong || 0) * 2;
+  return Math.round(100 * (good + 10) / (good + bad + 10));
+}
+
 const ALERTS = {
   stemi:  { name: 'STEMI', goals: ['ecg10', 'd2b90'], auto: true, team: 'Cath lab activated' },
   stroke: { name: 'Stroke', goals: ['ct25', 'dtn60'], auto: true, team: 'Stroke team paged' },
@@ -407,7 +611,18 @@ const SCEN = {
     { q: '45-year-old male, intoxicated, GCS 14, with a scalp laceration from a fall. He wants to refuse. Can he refuse?', a: false, why: 'Intoxication plus a head injury makes capacity doubtful. Transport is the safer call.' },
     { q: '60-year-old male, heart rate 34, BP 70/40. Atropine did nothing. I’d like to start transcutaneous pacing.', a: true, why: 'Unstable bradycardia that atropine didn’t fix: pace (or start a chronotropic drip).' },
     { q: '30-year-old female in SVT at 210. She’s stable, and vagal maneuvers didn’t work. I’d like to give adenosine.', a: true, why: 'Stable narrow-complex SVT after failed vagal maneuvers: adenosine is the next step.' },
-    { q: '72-year-old male with CHF. Crackles up to the shoulders, SpO2 84%, BP 190/110. I’d like to start CPAP and give nitroglycerin.', a: true, why: 'Hypertensive pulmonary edema: CPAP plus nitrates take the load off the heart and lungs.' },
+    { q: '72-year-old male with CHF. Crackles up to the shoulders, SpO2 84%, BP 190/110. I’d like to start CPAP and give nitroglycerin.', a: true, why: 'Hypertensive pulmonary edema: CPAP plus nitrates take the load off the heart and lungs.' },,
+    // v0.28: calls that ask for a dose or an order. Multiple choice: opts, with r the right one.
+    { q: '45-year-old male, about 80 kg, seizing for 8 minutes. No IV yet. Requesting midazolam. What dose?', opts: ['10 mg IM', '2 mg IM', '0.5 mg IM', 'No benzodiazepine: transport'], r: 0, why: 'Over 40 kg, midazolam 10 mg IM stops status seizures as well as IV drugs, and faster when there’s no line (the RAMPART trial).', plain: 'A man has been seizing for 8 minutes. How much of the seizure drug?', pwhy: '10 mg in the muscle: the full adult dose works without an IV.' },
+    { q: '5-year-old, about 20 kg, seizing for 6 minutes. No IV. Requesting intranasal midazolam. What dose?', opts: ['4 mg intranasal', '10 mg intranasal', '0.4 mg intranasal', 'Wait for it to stop on its own'], r: 0, why: 'Intranasal midazolam is 0.2 mg/kg, here 4 mg, split between the nostrils. Seizures past 5 minutes get treated.', plain: 'A child is seizing. How much of the drug in the nose?', pwhy: '0.2 mg per kg: 4 mg for a 20 kg child.' },
+    { q: '30-year-old female, bee sting, lips swelling, BP 78/40. She got 0.5 mg epinephrine IM 5 minutes ago. Still hypotensive. What next?', opts: ['Repeat epinephrine 0.5 mg IM (1 mg/mL)', 'Epinephrine 1 mg IV push (1 mg/mL)', 'Diphenhydramine only', 'Wait 15 more minutes'], r: 0, why: 'Anaphylaxis that isn’t better gets another 0.5 mg IM every 5 to 15 minutes, with fluids. A 1 mg IV push of 1 mg/mL epinephrine in someone with a pulse causes arrhythmias and strokes.', plain: 'Severe allergy, still low pressure after one shot. What now?', pwhy: 'Another shot in the thigh. Never push the arrest dose into a vein when there’s a pulse.' },
+    { q: '28-year-old female, narrow regular tachycardia at 190. BP 118/74, talking. Vagal maneuvers failed. Requesting adenosine. What dose?', opts: ['6 mg rapid IV push with a flush', '12 mg slow IV over 2 minutes', '1 mg IV', '50 mg IV'], r: 0, why: 'Adenosine lasts seconds: 6 mg pushed fast through a big IV close to the heart, flushed right away. 12 mg is the second dose, also fast.', plain: 'A fast, steady heart rhythm in a stable patient. How much adenosine?', pwhy: '6 mg, pushed fast with a flush.' },
+    { q: '72-year-old male, heart rate 34, BP 70/40, dizzy and pale. Requesting atropine. What dose?', opts: ['1 mg IV, repeat every 3 to 5 minutes up to 3 mg', '0.1 mg IV', '5 mg IV once', 'Adenosine 6 mg instead'], r: 0, why: 'Symptomatic bradycardia: atropine 1 mg IV every 3 to 5 minutes, up to 3 mg. If it fails, pace or start a drip.', plain: 'A very slow heart and low pressure. How much atropine?', pwhy: '1 mg, repeated up to 3 mg. Too little can slow the heart more.' },
+    { q: '60-year-old male, wide regular tachycardia at 180 with a pulse. BP 72/40, confused. What do you order?', opts: ['Synchronized cardioversion', 'Unsynchronized defibrillation', 'Adenosine 6 mg', 'Amiodarone and wait 10 minutes'], r: 0, why: 'Unstable VT with a pulse gets synchronized cardioversion now. Unsynchronized shocks are for no pulse. Drugs are for stable patients.', plain: 'A fast, dangerous rhythm with a pulse and signs of shock. What do they do?', pwhy: 'Shock it, timed to the heartbeat: synchronized cardioversion.' },
+    { q: '55-year-old diabetic, unresponsive, glucose 38. IV in place. What do you order?', opts: ['Dextrose 25 g IV', 'Glucagon 10 mg IM', 'Oral glucose gel', 'Insulin'], r: 0, why: 'With an IV, dextrose (25 g, as D10 or D50) works in minutes. Glucagon is for no IV. Nothing by mouth in someone who can’t protect the airway.', plain: 'Very low sugar, unresponsive, IV in. What do they give?', pwhy: 'Sugar into the vein. Nothing by mouth when they can’t swallow.' },
+    { q: '24-year-old male, pinpoint pupils, breathing 4 a minute, we’re bagging him. Requesting naloxone. What dose?', opts: ['0.4 to 2 mg IV or IN, titrated to breathing', '10 mg IV push', 'Flumazenil instead', 'No naloxone: intubate in the field'], r: 0, why: 'Titrate naloxone to breathing, not to waking up. Small doses avoid sudden, violent withdrawal. Keep bagging meanwhile.', plain: 'Opioid overdose, barely breathing. How much naloxone?', pwhy: 'Small doses, repeated, until they breathe.' },
+    { q: '35-year-old male, about 80 kg, deformed femur after a fall. BP 132/80. Requesting fentanyl. What dose?', opts: ['1 mcg/kg IV: about 80 mcg', '10 mcg/kg IV: about 800 mcg', '1 mcg IV', 'No pain medicine until the hospital'], r: 0, why: 'Fentanyl 1 mcg/kg IV, repeated as needed, controls fracture pain safely. Withholding pain control isn’t a safety measure.', plain: 'A broken thigh bone, stable. How much fentanyl?', pwhy: '1 microgram per kilogram: about 80 for him.' },
+    { q: 'Stabbed in the right chest. No breath sounds on the right, trachea shifted left, BP 70/30. What do you order?', opts: ['Needle decompression of the right chest', 'Albuterol', 'Wait for a chest X-ray at the hospital', 'CPAP'], r: 0, why: 'Tension pneumothorax is a clinical diagnosis. Decompress now: it kills before an X-ray can be taken. CPAP makes it worse.', plain: 'A collapsed lung under pressure, shock. What do they do?', pwhy: 'Let the air out with a needle, now.' }
   ],
   miemss: [
     { q: '40-year-old female with a femur fracture. BP 132/84, heart rate 104, SpO2 98%. Her pain is still 9 out of 10 after two doses of fentanyl. I’d like to give a third.', a: true, why: 'Pain Management 4.13-A: doses after the second need consultation. Vitals are stable and pain is uncontrolled, so a third dose is reasonable.' },
@@ -625,7 +840,7 @@ function startShift() {
 /* ---------- main step ---------- */
 function step(dt) {
   if (!G || !G.running || G.over) return;
-  if (G.card && G.mode === 'md' && !G.pre) aiCard();
+  if (G.card && G.mode === 'md' && !G.pre && !G.card.mine) aiCard();
   if (G.card) return;
   G.t += dt;
   arrivals();
@@ -1228,7 +1443,9 @@ function taskDone(s, k) {
   else if (k.type === 'code') { p.ev = 'done'; codeOutcome(p); }
   else if (k.type === 'reassess') {
     if (mdMine(p) && workGap(p)) return;
-    p.re = 'done'; p.dxK = true; note(`${label(p)}: ${p.dx}`);
+    p.re = 'done';
+    if (needsDx(p)) { dxAsk(p); return; }   // v0.28: the attending names it
+    p.dxK = true; note(`${label(p)}: ${p.dx}`);
     if (mdMine(p)) treatGap(p);
   }
   else if (k.type === 'proc') { p.treat[k.key].st = 'done'; p.treat[k.key].tDone = G.t; harmCheck(p, k.key); if (k.key === 'intub') { if (!G.pre) G.stats.intub++; if (p.treat.vent) openGate(p.treat.vent, 'vent'); } }
@@ -1447,7 +1664,7 @@ const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU',
 const RX = { refill: 'a dose of the usual pill', tia: 'aspirin', copd: 'a steroid', moto: 'pain control', rash: 'an antihistamine and steroid cream', otitis: 'amoxicillin', dental: 'an antibiotic and pain control', strep: 'penicillin', ankle: 'ibuprofen', uti: 'an antibiotic for the UTI',
   gastro: 'ondansetron', appy: 'pain control', chole: 'pain control', hipfx: 'pain control', chf: 'nitroglycerin and a diuretic', stone: 'ketorolac', dvt: 'an anticoagulant', migraine: 'prochlorperazine and diphenhydramine',
   cwp: 'ibuprofen', cpmod: 'aspirin', nstemi: 'aspirin and heparin', afib: 'diltiazem', asthma: 'a steroid', anaph: 'an antihistamine and a steroid', stemi: 'aspirin and heparin', burn: 'pain control', mcimin: 'pain control', mciyel: 'pain control', mciwr: 'a splint and pain control', vip: 'meclizine' };
-const rxName = p => RX[p.ck] || 'symptom treatment';
+const rxName = p => { const L = (RXOK[p.ck] || {}).meds, got = (p.drugs || []).find(d => L && L.includes(d)); return got ? DRUGS[got].n.toLowerCase() : RX[p.ck] || 'symptom treatment'; };
 // An order with no indication can hurt someone: [chance, points, what happened].
 const HARM = { tnk: [0.5, 50, 'bled after a thrombolytic they didn’t need'], insulin: [0.5, 25, 'dropped their blood sugar on an insulin drip they didn’t need'],
   epi: [0.35, 20, 'went into a fast rhythm from epinephrine they didn’t need'], intub: [0.3, 25, 'had a complication from an intubation they didn’t need'],
@@ -1485,10 +1702,29 @@ function signOrders(pid, tests, treats) {
     else if (WORK[k]) { const mine2 = R.det.filter(d => DET_KIND(d) === k); want.push(...(mine2.length ? mine2 : DEFAULT_DET[k] || [])); }
   }
   const newT = Array.from(new Set(want)).filter(k => (k === 'ecg' ? !p.wk.includes('ecg') : !p.det.includes(k)));
-  const newR = (treats || []).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
-  if (!newT.length && !newR.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
+  // v0.28: drugs and procedures resolve to treatments. The right drug fills the need; a wrong one is wasted and counted.
+  const drugX = [], drugOk = [];
+  p.drugs = p.drugs || [];
+  const tk = [];
+  for (const k of treats || []) {
+    if (PROC[k]) { if (!p.drugs.includes(k)) p.drugs.push(k); tk.push(PROC[k].tx); continue; }
+    if (!DRUGS[k]) { tk.push(k); continue; }
+    if (p.drugs.includes(k)) continue;
+    p.drugs.push(k);
+    const D = DRUGS[k], need = D.tx.find(t => R.tr.includes(t) && !p.tr.includes(t) && !tk.includes(t) && rxOk(p, t, k));
+    if (need) { tk.push(need); continue; }
+    const wrong = D.tx.find(t => R.tr.includes(t) && !rxOk(p, t, k));
+    const fine = D.tx.find(t => (R.tr.includes(t) && rxOk(p, t, k)) || (R.ok || []).includes(t));
+    if (fine) { drugOk.push(D.n); continue; }
+    if (wrong) { drugX.push(D.n + ' (wrong drug)'); G.stats.md.wrongDrug = (G.stats.md.wrongDrug || 0) + 1; continue; }
+    tk.push(D.tx[0]); if (TREAT[D.tx[0]] && p.tr.includes(D.tx[0])) drugX.push(D.n);
+  }
+  const newR = Array.from(new Set(tk)).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
+  if (!newT.length && !newR.length && !drugX.length && !drugOk.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
   let pts = 0, extra = 0;
   const xl = [], fl = [], OKL = R.ok || [], OKD = R.detOk || [];   // fl: reasonable orders. Not required, not counted against you.
+  for (const nm of drugX) { pts -= 3; extra++; S.ordExtra++; xl.push(nm); }
+  fl.push(...drugOk);
   for (const k of newT) {
     const kind = DET_KIND(k), nm = DET_NAME(k);
     if (k !== 'ecg') { p.det.push(k); const r = detResult(p, k); (p.dres = p.dres || {})[k] = r; }
@@ -1530,7 +1766,7 @@ function signOrders(pid, tests, treats) {
   p.ord = 'signed';
   orders(p);
   if (p.dxK) { if (!workGap(p)) treatGap(p); }   // field diagnoses (alerts) are known already, so gaps show now
-  else if (!p.wk.length && !R.wk.length) { p.dxK = true; note(`${label(p)}: ${p.dx}`); treatGap(p); }
+  else if (!p.wk.length && !R.wk.length) { if (needsDx(p)) dxAsk(p); else { p.dxK = true; note(`${label(p)}: ${p.dx}`); treatGap(p); } }
   else if (!p.wk.length) workGap(p);
   if (p.txGap) p.txGap = R.tr.filter(k => !p.tr.includes(k));
   if (p.txGap && !p.txGap.length) p.txGap = null;
@@ -1554,7 +1790,7 @@ function treatGap(p) {
 function harmCheck(p, k) {
   if (!mdMine(p) || !p.extraTr || !p.extraTr.includes(k) || G.pre) return;
   const h = HARM[k]; if (!h || !chance(h[0])) return;
-  G.stats.md.harm++; care(-h[1], 'harm', p);
+  G.stats.md.harm++; care(-h[1], 'harm', p); litAdd(10, `harmed by ${TREAT[k].label.toLowerCase()} without an indication`, p);
   mm(55, `${p.name} ${h[2]}`, `${TREAT[k].label} was ordered without an indication`, true);
   toast(`${p.name} ${h[2]}.`, 'bad'); sound('bad');
 }
@@ -1565,7 +1801,7 @@ function mdDecide(pid, pick) {
   let want = p.dispo; const S = G.stats.md;
   if (pick === 'home') {
     if (want === 'home') { S.dispoRight++; care(12, 'dispo', p); }
-    else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; mm(65, `${p.name} went home with ${(/^[A-Z][a-z]/.test(p.dx) ? p.dx.charAt(0).toLowerCase() + p.dx.slice(1) : p.dx)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
+    else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; litAdd(MUST.has(p.ck) ? 12 : 6, `sent home when they needed ${DISPO_NAME[want] || 'admission'}`, p); mm(65, `${p.name} went home with ${(/^[A-Z][a-z]/.test(p.dx) ? p.dx.charAt(0).toLowerCase() + p.dx.slice(1) : p.dx)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
     p.mdPick = 'home'; p.dispo = 'home'; p.dsp = 'none';
     return { ok: true, msg: `${label(p)} is going home once treatment is done.` };
   }
@@ -2893,6 +3129,7 @@ function amaRisk(p) {
   return 0.0008 * Math.min(3, 1 + Math.max(0, waited - 90) / 60) * p.amaMul * (p.lang && p.interp !== 'on' ? 1.5 : 1) * (p.dsp === 'board' ? 0.7 : 1);
 }
 function minuteTick() {
+  lawTick();
   const t = G.t;
   let amaCand = null;
   obsTick();
@@ -2917,7 +3154,7 @@ function minuteTick() {
       if (p.ev === 'q' && p.loc === 'room') { p.queueWait = (p.queueWait || 0) + 1; if (p.queueWait > 30) care(-0.2, 'md'); }
     }
     if (mdMine(p) && p.txGap && p.txGap.length && !p.txHarm && t - p.tGap > 20) {
-      p.txHarm = true; G.stats.md.untreated++; care(-20, 'harm', p);
+      p.txHarm = true; G.stats.md.untreated++; care(-20, 'harm', p); litAdd(MUST.has(p.ck) ? 10 : 5, 'left untreated for 20 minutes', p);
       mm(50, `${p.name} got worse without ${p.txGap.map(k => TREAT[k].label.toLowerCase()).join(' or ')}`, 'It was never ordered', true);
       toast(`${label(p)} is getting worse. Something they need was never ordered.`, 'bad'); sound('bad');
     }
@@ -3173,11 +3410,14 @@ function nextScen() {
 }
 const TRAIN_SCEN = { q: '34-year-old male with a twisted ankle. He’s awake, thinking clearly, and understands the risks. He doesn’t want the ride to the hospital. OK to accept the refusal?', a: true,
   why: 'An adult who is thinking clearly and understands the risks may refuse care. The medic writes it down and tells him to call back if it gets worse.' };
-const scenOf = c => (c.sc === 'train' ? TRAIN_SCEN : (SCEN[G.pack] || SCEN.national)[c.sc]);
+const TRAIN_SCENS = { train: TRAIN_SCEN,
+  tdose: { q: '5-year-old, 20 kg, seizing for 6 minutes. No IV. Requesting intranasal midazolam, 0.2 mg per kg. What dose?', opts: ['4 mg intranasal', '10 mg intranasal', '0.4 mg intranasal', '20 mg intranasal'], r: 0, why: '0.2 mg/kg × 20 kg = 4 mg, split between the nostrils. Say the math out loud and have the medic read it back.' },
+  tord: { q: 'Stabbed in the right chest. No breath sounds on the right, trachea shifted left, BP 70/30. What do you order?', opts: ['Needle decompression of the right chest', 'Albuterol', 'Wait for a chest X-ray at the hospital', 'CPAP'], r: 0, why: 'Tension pneumothorax is diagnosed at the bedside, not on an X-ray. Decompress now. CPAP pushes more air into the chest and makes it worse.' } };
+const scenOf = c => (TRAIN_SCENS[c.sc] || (SCEN[c.pk || G.pack] || SCEN.national)[c.sc] || SCEN.national[c.sc] || SCEN.national[0]);
 function surveyMul() { return G.mods.survey > G.t ? 2 : 1; }
 function boxTick(dt) {
   const b = G.box, L = LEVELS[G.level];
-  if (G.t >= b.nextC) { b.q.push({ kind: 'consult', sc: nextScen(), unit: 'Medic ' + randi(2, 49), id: ++b.seq }); b.nextC = G.t + randi(L.consult[0], L.consult[1]); }
+  if (G.t >= b.nextC) { b.q.push({ kind: 'consult', sc: nextScen(), pk: G.pack, unit: 'Medic ' + randi(2, 49), id: ++b.seq }); b.nextC = G.t + randi(L.consult[0], L.consult[1]); }
   if (!b.cur && b.q.length) { const c = b.q.shift(); c.ring = c.kind === 'notify' ? 20 : 10; c.left = c.ring; c.t0 = G.t; b.cur = c; sound('ring'); }
   if (b.cur && !b.cur.taken) { b.cur.left -= dt; if (b.cur.left <= 0) missBox(); }
 }
@@ -3216,12 +3456,13 @@ function boxTake(sid) {
 }
 function boxDecide(approve) {
   const c = G.box.cur; if (!c || !c.taken || G.mode !== 'md') return null;   // the charge nurse routes the call; the doctor decides
-  const sc = scenOf(c), ok = !!approve === sc.a, mul = surveyMul();
-  if (!ok && c.sc !== 'train') (G.stats.radioLog = G.stats.radioLog || []).push({ q: sc.plain || sc.q, miss: false, a: sc.a, why: sc.pwhy || sc.why, btn: sc.btn || null });
+  const sc = scenOf(c), mul = surveyMul(), ok = sc.opts ? Number(approve) === sc.r : !!approve === sc.a;
+  if (!ok && !TRAIN_SCENS[c.sc]) (G.stats.radioLog = G.stats.radioLog || []).push({ q: sc.plain || sc.q, miss: false, a: sc.a, why: sc.pwhy || sc.why, btn: sc.btn || null, said: sc.opts ? sc.opts[Number(approve)] : null, right: sc.opts ? sc.opts[sc.r] : null });
+  if (!ok && !TRAIN_SCENS[c.sc]) litAdd(3, 'a wrong medical direction order');
   G.box.cur = null; G.stats.boxC.ans++;
   if (ok) { G.stats.boxC.right++; care(20 * mul, 'box'); } else { G.stats.boxC.wrong++; care(-15 * mul, 'box'); }
-  note(`Box: ${c.unit} ${approve ? 'approved' : 'denied'} (${ok ? 'correct' : 'incorrect'})`, ok ? 'good' : 'bad');
-  return { ok, sc, approve: !!approve };
+  note(`Box: ${c.unit} ${sc.opts ? 'ordered ' + sc.opts[Number(approve)] : approve ? 'approved' : 'denied'} (${ok ? 'correct' : 'incorrect'})`, ok ? 'good' : 'bad');
+  return { ok, sc, approve: sc.opts ? Number(approve) : !!approve };
 }
 
 /* ---------- objectives ---------- */
@@ -3254,6 +3495,7 @@ function chooseCard(k) {
   if (!ch || ch.dis) return;
   G.card = null;
   if (EV[c.eid] && EV[c.eid].pick) EV[c.eid].pick(k, c.ctx);
+  else if (c.eid === 'lit' || c.eid === 'law') litPick(c.eid, k);
 }
 function fireEv(k) { G.ev.used[k] = (G.ev.used[k] || 0) + 1; G.stats.events++; EV[k].fire(); }
 function scheduled() {
@@ -3640,9 +3882,9 @@ function trainPatient(k, how, o) {
   p.patience = 1e9; p.amaSafe = 1e9;
   return p.id;
 }
-function trainConsult() {
+function trainConsult(which) {
   if (G.box.cur) return false;
-  G.box.cur = { kind: 'consult', sc: 'train', unit: 'Medic 12', id: ++G.box.seq, ring: 1e9, left: 1e9, t0: G.t };
+  G.box.cur = { kind: 'consult', sc: which || 'train', unit: 'Medic 12', id: ++G.box.seq, ring: 1e9, left: 1e9, t0: G.t };
   sound('ring');
   return true;
 }
@@ -3694,7 +3936,7 @@ function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' 
 function endShift(reason) {
   if (G.over) return;
   if (!G.pre && G.stats.returnsLate && G.mode !== 'md') care(-20 * G.stats.returnsLate, 'returns');
-  G.over = true; G.running = false; G.fail = reason === 'walkout' ? 'walkout' : null;
+  G.over = true; G.running = false; G.fail = reason === 'walkout' || reason === 'fired' ? reason : null;
   const list = G.order.map(id => G.pts[id]).filter(p => p.tArrive >= 0 && p.loc !== 'enroute' && p.loc !== 'new');
   const ems = list.filter(p => p.src === 'ems');
   const walls = ems.map(p => p.tWall != null ? p.tWall : (p.loc === 'wall' ? G.t - p.tArrive : 0));
@@ -3703,6 +3945,7 @@ function endShift(reason) {
     level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
     stars: G.fail ? 0 : overallStars(), avg: avgScore(),
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama, expired: S.expired,
+    lit: Math.round(G.lit || 0), acc: G.mode === 'md' ? accuracy() : null, dxRight: (S.md && S.md.dxRight) || 0, dxWrong: (S.md && S.md.dxWrong) || 0, dxLog: ((S.md && S.md.dxLog) || []).slice(), litLog: (S.litLog || []).slice(), lawCalls: S.lawCalls || 0, wrongDrug: (S.md && S.md.wrongDrug) || 0,
     returns: S.returns + S.returnsLate, returnList: (S.returnList || []).slice(), radioLog: (S.radioLog || []).slice(), left: active().length,
     wallAvg: walls.length ? Math.round(walls.reduce((a, b) => a + b, 0) / walls.length) : 0,
     wallMax: walls.length ? Math.round(Math.max(...walls)) : 0, wallOver: walls.filter(w => w > 30).length,
@@ -3855,8 +4098,9 @@ function mdPlay(o) {
   let budget = o.budget == null ? 1e9 : o.budget;
   const act = fn => { if (budget > 0 && fn()) budget--; };
   if (!me || G.mode !== 'md') return;
+  if (G.card && G.card.mine) { act(() => { chooseCard(G.card.choices[0].k); return true; }); }   // v0.28: the call from administration, or a lawyer: refer to risk management
   const c = G.box.cur;
-  if (c && c.kind === 'consult' && !c.taken) act(() => { const r = boxTake(G.me); if (!r.ok) return false; boxDecide(chance(acc) ? r.sc.a : !r.sc.a); return true; });
+  if (c && c.kind === 'consult' && !c.taken) act(() => { const r = boxTake(G.me); if (!r.ok) return false; boxDecide(r.sc.opts ? (chance(acc) ? r.sc.r : (r.sc.r + 1) % r.sc.opts.length) : chance(acc) ? r.sc.a : !r.sc.a); return true; });
   for (const p of active()) {
     if (!mdMine(p)) continue;
     if (p.ord === 'need' || p.ord === 'more') act(() => {
@@ -3865,6 +4109,7 @@ function mdPlay(o) {
       return signOrders(p.id, tests, treats).ok;
     });
     else if (p.txGap && p.txGap.length) act(() => signOrders(p.id, [], p.txGap).ok);
+    if (p.dxq) act(() => dxPick(p.id, chance(acc) ? p.dx : pick(p.dxq.filter(x => x !== p.dx))).ok);
     if (p.dsp === 'mddecide') act(() => {
       const want = chance(acc) ? p.dispo : pick(['home', 'admit']);
       if (want === 'home') return mdDecide(p.id, 'home').ok;
@@ -3897,7 +4142,7 @@ const OC = {
   register, triage, toWaiting, sendUp, bookIFT, IFT, IFT_LV, HOSPS, CAP_NAME, UNITS, WX, HELP, con2Open, con2Wait, POC_RES, setDispo, awaitOrders, callHosp, giveReport, txInstead, helpCall, helpHere, txNeedOf, iftNeed, txFast, wxGrounded, wxOf, bedWait, emergent, DIVERTS, OUTAGES, outActive, justified,
   startOutage, sickEnough, looksSick, classCode, readCode, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
-  signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,
+  signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME, DRUGS, DRUG_CLASS, RXOK, drugFor, rxOk, ORDER_MENUS, PROC, DDX, MUST, dxPick, accuracy, litAdd, LIT_STEPS,
   ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, CRASH, needsTx, strokeSetup, DX_PLAIN,
   crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k] && EV[k].fire) fireEv(k); }, eventKeys: () => Object.keys(EV), eventReady: k => !!(EV[k] && EV[k].fire && EV[k].w && EV[k].w() > 0),
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
