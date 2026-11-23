@@ -71,7 +71,7 @@ assert(r.ok && t.drugs.includes('tcp'), 'pacing pads can be added after atropine
 t = mine('nstemi'); t.wk = []; for (const k of Object.keys(t.work || {})) delete t.work[k];
 OC.signOrders(t.id, t.right.det.concat(['ecg']), []);
 for (let i = 0; i < 4000 && !t.dxq; i++) OC.step(0.1);
-assert(t.dxq && t.dxq.length === 4 && t.dxq.includes(t.dx), 'results back: the attending gets four choices, one right');
+assert(t.dxq && t.dxq.length === 4 && t.dxq.includes(OC.dxName(t.ck)), 'results back: the attending gets four choices, one right');
 const u0 = H.stats.md.untreated; for (let i = 0; i < 400; i++) { if (H.card) H.card = null; OC.step(0.1); }
 assert(H.stats.md.untreated > u0, 'leaving the diagnosis unanswered does not hide an untreated patient');
 // a step behind another card shows later; the lawyer names a patient; firing keeps the last case
@@ -96,3 +96,22 @@ const g = mine('gib'); const h0 = K.stats.md.harm, l0b = K.lit;
 OC.signOrders(g.id, [], ['heparin']);
 assert(K.stats.md.harm === h0 + 1 && K.lit > l0b, 'heparin in a GI bleed is harm and adds legal risk');
 assert(!OC.MUST.has('cpmod') && !OC.MUST.has('pna'), 'moderate-risk chest pain and pneumonia are not must-not-miss calls');
+// 7. v0.29: the high-yield conditions and the cleaner diagnosis call
+const NEW = Object.keys(OC.LESSON_CASE);
+assert(NEW.length >= 20, `${NEW.length} high-yield conditions added, each with a lesson`);
+for (const k of NEW) {
+  const c = OC.CASES.find(x => x.k === k), N = OC.NEED[k] || { n: [] };
+  const ok = c && OC.EXAM[k] && OC.ORD_WHY[k] && OC.DX_PLAIN[c.dx] && (OC.DDX[k] || []).length === 3 && !OC.DDX[k].includes(OC.dxName(k)) && N.n.every(t => OC.LABS[t] || OC.IMGS[t])
+    && Object.values(OC.RXOK[k] || {}).every(l => l.every(d => OC.DRUGS[d])) && (OC.CONTRA[k] || []).every(d => OC.DRUGS[d]) && (!c.con || OC.SPECS[c.con]) && c.tr.every(t => OC.TREAT[t]);
+  assert(ok, `${k}: case, exam, reason, plain words, three wrong choices, tests, drugs, specialist`);
+}
+OC.newGame('easy', 906, { mode: 'md' }); const Q = OC.G;
+const hk = mine('hyperk');
+OC.signOrders(hk.id, ['bmp', 'ecg'], ['calc', 'insreg']);
+assert(hk.tr.includes('meds') && hk.tr.includes('insulin') && OC.G.stats.md.ordExtra === 0, 'hyperkalemia: calcium and regular insulin fill the orders');
+const hg = mine('hypogly'); const hh = Q.stats.md.harm;
+OC.signOrders(hg.id, ['gluc'], ['insreg']);
+assert(Q.stats.md.harm === hh + 1, 'insulin in hypoglycemia is harm');
+const cp = mine('cwp'); cp.re = 'done'; 
+assert(!OC.CASES.filter(c => c.gray).some(c => { const p = mine(c.k); p.dxK = false; for (let i = 0; i < 3000 && !p.dxq && !p.dxK; i++) OC.step(0.1); return !!p.dxq; }), 'gray-zone patients get the risk-score call, not the diagnosis quiz');
+assert(OC.dxName('nstemi') === 'NSTEMI' && OC.dxName('pe') === 'Pulmonary embolism', 'quiz labels are plain diagnoses');

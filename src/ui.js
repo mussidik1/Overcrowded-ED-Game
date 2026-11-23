@@ -735,7 +735,7 @@ function pathRows(p, G) {
       const doneK = w && w.st === 'done';
       for (const d of mineK) {
         if (!doneK) { const v = !w ? 'Ordered after the provider sees them' : w.st === 'todo' ? (k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT to draw it' : 'Drawn once roomed') : k === 'mri' ? 'Waiting for the MRI scanner' : 'In line for the scanner') : w.st === 'doing' ? (k === 'lab' ? 'Drawing now' : 'Scanning now') : `Resulting in <span data-cd="${w.due}"></span>`; rows.push(row(E.DET_NAME(d), v, 'idle')); continue; }
-        const [t, img] = (p.dres && p.dres[d]) || E.detResult(p, d), pl = PLAIN() && E.FIND_PLAIN[t];
+        const [t, img] = (p.dres && p.dres[d]) || E.detResult(p, d), pl = PLAIN() && !p.dxq && E.FIND_PLAIN[t];   // v0.29: plain words wait until the diagnosis is named
         rows.push(row(E.DET_NAME(d), `${img && IMG_CREDIT[img] ? `<button type="button" class="rimg" data-act="img" data-arg="${p.id}|${d}" aria-label="Look at the ${esc(E.DET_NAME(d))}"><img src="img/${img}.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"><span>View</span></button>` : ''}<b>${esc(t)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`, 'ok'));
       }
       continue;
@@ -745,7 +745,7 @@ function pathRows(p, G) {
     else if (w.st === 'todo') v = k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT (the nurse draws it if techs are tied up)' : 'Drawn once roomed') : k === 'ecg' ? 'Waiting for a PCT or nurse' : 'In line for the scanner';
     else if (w.st === 'doing') v = k === 'lab' ? 'Drawing now' : k === 'ecg' ? 'Doing it now' : 'Scanning now';
     else if (w.st === 'run') v = `Resulting in <span data-cd="${w.due}"></span>`;
-    else { const f = p.find[k] || 'Resulted', pl = PLAIN() && (E.FIND_PLAIN[f] || (/^Normal sinus rhythm/.test(f) ? 'a normal heartbeat' : /^Sinus tachycardia, rate/.test(f) ? 'a fast, regular heartbeat' : /^Sinus bradycardia/.test(f) ? 'a slow, regular heartbeat' : '')); v = `<b>${esc(f)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`; st = 'ok'; }
+    else { const f = p.find[k] || 'Resulted', pl = PLAIN() && !p.dxq && (E.FIND_PLAIN[f] || (/^Normal sinus rhythm/.test(f) ? 'a normal heartbeat' : /^Sinus tachycardia, rate/.test(f) ? 'a fast, regular heartbeat' : /^Sinus bradycardia/.test(f) ? 'a slow, regular heartbeat' : '')); v = `<b>${esc(f)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`; st = 'ok'; }
     rows.push(row(nm, v, st));
   }
   for (const k of p.tr) { if (unwritten && !p.treat[k]) continue; const [v, st] = treatText(p, k); rows.push(row(E.TREAT[k].label, v, st)); }
@@ -996,7 +996,7 @@ function orderMenus(chip, o) {
   h += M('lab', 'Labs', 'Blood, urine, cultures', Object.keys(E.LABS).filter(k => !E.LABS[k].poc), Object.entries(labG).map(([g, c]) => `<div class="o-grp">${g}</div><div class="ogrid o3">${c.join('')}</div>`).join(''));
   h += M('img', 'Imaging', 'X-ray, CT, MRI, ultrasound', Object.keys(E.IMGS), IMG_KINDS.map(([m, nm]) => `<div class="o-grp">${nm}</div><div class="ogrid o3">${Object.entries(E.IMGS).filter(([, I]) => I.m === m).map(([k, I]) => chip('t', k, I.n, pl ? I.p : '')).join('')}</div>`).join(''));
   if (!o) return h;
-  const dchip = id => chip('r', id, E.DRUGS[id].n, pl ? E.DRUGS[id].p : '');
+  const dchip = id => chip('r', id, E.DRUGS[id].n, pl && E.G && E.G.train ? E.DRUGS[id].p : '');   // v0.29: what a drug treats shows in Orientation and lessons, not on a real shift
   const byC = c => Object.keys(E.DRUGS).filter(id => E.DRUGS[id].c === c);
   const medIds = E.DRUG_CLASS.flatMap(([c]) => byC(c));
   let med = '';
@@ -1789,6 +1789,7 @@ const STEPS_MD = [
 
   { id: 'k0', next: true, title: 'A few last things', text: () => `**Next** jumps to what’s waiting on you.\n**Not improving** means a treatment is missing.\nSome chest pain and fainting get a **risk score**: home, **observation**, or admit.${FP() ? '\n**+** zooms in to show words.' : ''}`, spot: () => ['#needBtn'] },
   { id: 'k1', next: true, title: 'Words for a real shift', text: `**STEMI**: heart attack. The **cath lab** opens the artery.\n**Sepsis**: infection taking over. Antibiotics within the hour.\n**MTP**: blood fast for a bleeding patient.\n**Code**: heart stopped.\n**Intubation**: a breathing tube.\n**Words**, in the menu, has the rest.`},
+  { id: 'kdx', next: true, title: 'On a real shift: you name it', text: `When results are back, **you name the diagnosis** from four choices. Read the **exam and results** first.\nA miss costs **accuracy** and raises **legal risk**. At 25% administration calls; at 75% you’re let go.\nA drug that can hurt the patient counts as **harm**.` },
   { id: 'end', final: true, title: 'You’re ready, Doctor', text: `That’s the job. Sickest first. Order what they need, no more. Make the call. Answer the radio.\nPatients waiting on you **cost points**.\nStart with **Quiet Tuesday**.`},
 ];
 /* ---------- Lessons: one condition, one patient, about two minutes each. The player is the attending. ----------
@@ -1809,7 +1810,7 @@ const radioStep = n => ({
   auto: () => { const c = g().box.cur; let sc = U.modal && U.modal.sc; if (c && c.kind === 'consult') { if (!c.taken) { const r = E.boxTake(me()); sc = r.sc; } E.boxDecide(sc ? (sc.opts ? sc.r : sc.a) : true); } U.modal = null; U.sheet = null; },
 });
 // v0.28: lessons for the attending sit under body systems, in the order of the EM Model.
-const LESSON_SYS = [['cardio', 'Cardiovascular'], ['resp', 'Respiratory'], ['neuro', 'Nervous system'], ['tox', 'Toxicology'], ['trauma', 'Trauma'], ['gi', 'Abdominal and GI'], ['infect', 'Infections and sepsis'], ['ems', 'EMS medical direction']];
+const LESSON_SYS = [['cardio', 'Cardiovascular'], ['resp', 'Respiratory'], ['neuro', 'Nervous system'], ['gi', 'Abdominal and GI'], ['endo', 'Endocrine and metabolic'], ['gu', 'Renal and genitourinary'], ['obgyn', 'Obstetrics and gynecology'], ['infect', 'Infections and sepsis'], ['tox', 'Toxicology'], ['trauma', 'Trauma'], ['ems', 'EMS medical direction']];
 const LESSONS = {
   radio: { name: 'Giving medical direction', sys: 'ems', blurb: 'Take the report, give a clear order, hear it read back, know when to say no.', steps: [
     { id: 'm0', next: true, title: 'Medical direction', text: `Paramedics work from **protocols**. Some steps need a **doctor’s order** by radio: **medical direction**.\nYour order is a medical order. You’re responsible for it, just like one you write in the ED.` },
@@ -1918,6 +1919,26 @@ const LESSONS = {
     { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head bump on a thinner**: **CT**, labs. **Trauma**.\n**Twisted ankle**: X-ray. No break: home.\n**Charge nurse**: hip is ESI 3. Head on a thinner **doesn’t wait**.` },
   ] },
 };
+// v0.29: a short card lesson for each high-yield condition, built from the case itself.
+(function caseLessons() {
+  const names = ks => ks.map(k => (E.LABS[k] || E.IMGS[k] || {}).n || k);
+  const and = a => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
+  for (const [k, L] of Object.entries(E.LESSON_CASE)) {
+    const c = E.CASES.find(x => x.k === k), N = E.NEED[k] || { n: [] }, RX = E.RXOK[k] || {};
+    const drugs = Object.values(RX).map(l => E.DRUGS[l[0]] ? E.DRUGS[l[0]].n : l[0]);
+    const other = c.tr.filter(t => !RX[t] && !['meds', 'abx'].includes(t)).map(t => (E.PROC[t] ? E.PROC[t].n : E.TREAT[t].label).toLowerCase());
+    const give = and(drugs.concat(other).map(x => `**${x}**`));
+    const contra = (E.CONTRA[k] || []).slice(0, 3).map(d => E.DRUGS[d].n.toLowerCase());
+    const where = c.dispo === 'transfer' ? `transfer to ${c.txTo}` : E.DISPO_NAME[c.dispo];
+    LESSONS['c_' + k] = { name: L.name, sys: L.sys, blurb: c.cc + '.', card: true, steps: [
+      { id: k + '1', next: true, title: 'Who comes in', text: `The story: **${c.cc.toLowerCase()}**.\nThe exam: ${E.EXAM[k]}${c.vit ? `\nVitals: ${c.vit}.` : ''}` },
+      { id: k + '2', next: true, title: 'Think of it', text: L.pearl },
+      { id: k + '3', next: true, title: 'The workup', text: `Order **${and(names(N.n))}**.\n${E.ORD_WHY[k]}` },
+      { id: k + '4', next: true, title: 'Treat and decide', text: `${give ? `Give ${give}.` : 'No drug fixes this: the fix is the procedure.'}${c.con ? ` Call **${E.SPECS[c.con].name}**.` : ''} Then **${where}**.${contra.length ? `\nDon’t give ${and(contra)}: it can hurt them.` : ''}` },
+      { id: k + '5', final: true, title: `${L.name}: the short version`, text: `${L.pitfall}\nOn a shift, you’ll name it from the **exam and results**.` },
+    ] };
+  }
+})();
 const LESSON_KEYS = Object.keys(LESSONS);
 /* Orientation comes in chapters. Each starts with its own patient, so a player can stop after one and come back to the next. */
 const CHAPTERS = { rn: [['hi', 'The basics'], ['w1', 'Ambulances and admissions'], ['t1', 'Alerts and the Box'], ['h1', 'A full department']], md: [['hi', 'The basics'], ['a1', 'Sicker patients'], ['r1', 'The radio and a stroke']] };

@@ -93,7 +93,7 @@ hb.treat = { pace: { st: 'done', tDone: G.t + 60 } };
 const h70 = OC.vitalsOf(hb, G.t + 70);
 assert(h0.hr < 45 && h0.flags.hr && h60.hr <= h0.hr && h70.hr >= 60 && h70.sbp > h0.sbp, `complete heart block: slow until it is paced (${h0.hr} -> ${h60.hr} untreated, ${h70.hr} paced)`);
 const hbc = OC.CASES.find(c => c.k === 'chb');
-assert(hbc.con === 'cards' && hbc.dispo === 'icu' && /heart block/.test(hbc.find.ecg), 'and it gets cardiology and a monitored bed, with the rhythm named');
+assert(hbc.con === 'cards' && hbc.dispo === 'icu' && /unrelated to the QRS/.test(hbc.find.ecg), 'and it gets cardiology and a monitored bed, with the rhythm described as a finding');
 const tf = OC.CASES.find(c => c.k === 'tfall');
 assert(tf.tr.includes('reverse') && OC.TREAT.reverse.rx, 'a head bleed on a blood thinner gets a reversal agent, checked by pharmacy');
 
@@ -155,9 +155,9 @@ assert(tags.filter(x => x === 'red').length === 1 && tags.filter(x => x === 'yel
 assert(yel.esi === 2 && yel.loc === 'wall' && grn.every(p => p.esi >= 3 && p.dispo === 'home'), 'the yellow needs a bed soon; the greens are walking wounded');
 OC.newGame('med', 40, { scen: 'mci' }); G = OC.G; card = null;
 for (let i = 0; i < 700 && !card; i++) { OC.step(0.1); if (G.card && G.card.eid === 'mci') card = G.card; else clearCard(); }
-c0 = G.care; OC.chooseCard('green'); run(16);
+c0 = G.ledger.divert || 0; OC.chooseCard('green'); run(16);
 const tg2 = G.order.map(OC.pt).filter(p => p.tag).map(p => p.tag);
-assert(tg2.length === 4 && tg2.every(x => x === 'green') && G.care < c0, `"Greens only" sends the red and the yellow elsewhere, and costs points (${tg2})`);
+assert(tg2.length === 4 && tg2.every(x => x === 'green') && (G.ledger.divert || 0) < c0, `"Greens only" sends the red and the yellow elsewhere, and costs points (${tg2})`);
 
 // 9. Smaller corrections
 const copd = OC.CASES.find(c => c.k === 'copd');

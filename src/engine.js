@@ -229,8 +229,8 @@ const LAB_NORMAL = { gluc: 'Glucose 104', udip: 'Negative: no blood, no infectio
 const IMG_NORMAL = { cxr: ['Clear lungs', 'cxr_normal'], pelxr: ['No fracture', 'pelvis_normal'], hipxr: ['No fracture', 'hip_normal'], extxr: ['No fracture', 'ankle_normal'], cthead: ['No bleed, no acute findings', 'cthead_normal'], cta: ['Arteries open', 'cta_normal'], ctcs: ['No fracture', 'ctcs_normal'], ctpe: ['No clot in the lungs', 'ctpe_normal'], ctap: ['No acute findings', 'ctap_normal'], mrib: ['No stroke, no acute findings', 'mrib_normal'], mris: ['No acute findings', 'mris_normal'], fast: ['No free fluid', 'fast_negative'], ruq: ['Normal gallbladder', 'ruq_normal'], duplex: ['No clot', 'duplex_normal'], pelus: ['Normal ovaries and uterus', 'pelus_normal'] };
 const RES = {
   strep: { strep: 'Rapid strep positive' }, ankle: { extxr: ['No fracture', 'ankle_normal'] }, uti: { ua: 'Nitrite positive, white cells, bacteria' }, gastro: { bmp: 'Na 136, K 3.6, BUN 24, creatinine 1.0: mildly dry' },
-  appy: { cbc: 'WBC 15.8, Hgb 13.9, platelets 280', ctap: ['Inflamed appendix', 'ct_appy'] }, chole: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', lft: 'ALT 88, alk phos 210, bilirubin 1.6', ruq: ['Gallstones, thick gallbladder wall', 'us_gallstones'] },
-  hipfx: { cbc: 'WBC 9.0, Hgb 11.9, platelets 220', hipxr: ['Femoral neck fracture', 'xr_hipfx'] }, pna: { cbc: 'WBC 17.2, Hgb 13.1, platelets 310', bmp: 'Na 134, K 4.0, creatinine 1.1, glucose 140', cxr: ['Right lower lobe pneumonia', 'cxr_pna'] }, flu: { resp: 'Influenza A positive' }, pnalow: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', bmp: 'Na 139, K 4.1, BUN 14, creatinine 0.9', cxr: ['Small right lower lobe pneumonia', 'cxr_pna'] },
+  appy: { cbc: 'WBC 15.8, Hgb 13.9, platelets 280', ctap: ['Appendix 11 mm across, fat stranding around it', 'ct_appy'] }, chole: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', lft: 'ALT 88, alk phos 210, bilirubin 1.6', ruq: ['Gallstones, thick gallbladder wall', 'us_gallstones'] },
+  hipfx: { cbc: 'WBC 9.0, Hgb 11.9, platelets 220', hipxr: ['Femoral neck fracture', 'xr_hipfx'] }, pna: { cbc: 'WBC 17.2, Hgb 13.1, platelets 310', bmp: 'Na 134, K 4.0, creatinine 1.1, glucose 140', cxr: ['Right lower lobe consolidation with air bronchograms', 'cxr_pna'] }, flu: { resp: 'Influenza A positive' }, pnalow: { cbc: 'WBC 13.1, Hgb 14.0, platelets 260', bmp: 'Na 139, K 4.1, BUN 14, creatinine 0.9', cxr: ['Small right lower lobe pneumonia', 'cxr_pna'] },
   copd: { vbg: 'pH 7.31, pCO2 58', cxr: ['Hyperinflated, no pneumonia', 'cxr_copd'] }, chf: { bnp: 'BNP 2,400', bmp: 'Na 133, K 4.6, creatinine 1.5', cxr: ['Pulmonary edema', 'cxr_edema'] },
   stone: { ua: 'Blood in the urine, no infection', ctap: ['4 mm stone in the ureter', 'ct_stone'] }, dvt: { duplex: ['Clot in the femoral vein', 'us_dvt'] }, tb: { cbc: 'WBC 11.4, Hgb 11.8, platelets 300', cxr: ['Cavity in the upper lobe', 'cxr_tb'] },
   etoh: { tox: 'Ethanol 280, drug screen negative', bmp: 'Glucose 96, Na 140, K 3.9' }, od: { tox: 'Fentanyl positive' }, cell: { cbc: 'WBC 14.0, Hgb 13.5, platelets 250' },
@@ -239,7 +239,7 @@ const RES = {
   dka: { bmp: 'Glucose 540, Na 131, K 4.8, bicarb 8, anion gap 26', vbg: 'pH 7.08, pCO2 22' }, sepsisw: { lact: 'Lactate 3.1', ua: 'Nitrite positive, many white cells', cbc: 'WBC 19.6, Hgb 12.4, platelets 160' },
   strokew: { bmp: 'Glucose 118' }, stroke: { bmp: 'Glucose 132' }, lvo: { bmp: 'Glucose 141', cta: ['Left M1 occlusion', 'cta_m1'] }, stemi: { trop: 'Pending (don’t wait for it)' },
   mvc: { cbc: 'WBC 13.0, Hgb 8.1, platelets 180', fast: ['Blood in the belly (positive FAST)', 'fast_positive'], cxr: ['No pneumothorax', 'cxr_normal'], ctap: ['Grade IV splenic laceration', null] },
-  tfall: { coag: 'INR 2.9', cthead: ['Acute subdural hematoma', 'ct_sdh'] }, moto: { cbc: 'Hgb 9.4', extxr: ['Open femur fracture', 'xr_femur'] },
+  tfall: { coag: 'INR 2.9', cthead: ['A crescent of fresh blood over the left brain, 8 mm, slight shift', 'ct_sdh'] }, moto: { cbc: 'Hgb 9.4', extxr: ['Open femur fracture', 'xr_femur'] },
   shock: { lact: 'Lactate 5.4', cbc: 'WBC 22.1, Hgb 11.9, platelets 98', bmp: 'Creatinine 2.1, bicarb 15' }, rsv: { vbg: 'pH 7.27, pCO2 61', resp: 'RSV positive' }, burn: { vbg: 'Carboxyhemoglobin 6%' },
   mcired: { cbc: 'Hgb 7.9', fast: ['Blood in the belly (positive FAST)', 'fast_positive'], cxr: ['No pneumothorax', 'cxr_normal'] }, mciyel: { cbc: 'Hgb 11.2', extxr: ['Midshaft femur fracture', 'xr_femur'] },
   mcimin: { ctcs: ['No fracture', 'ctcs_normal'] }, mciwr: { extxr: ['Distal radius fracture', 'xr_wrist'] },
@@ -483,18 +483,22 @@ function litPick(eid, k) {
   }
   litCheck();
 }
-function needsDx(p) { return mdMine(p) && !G.pre && !G.train && !p.dxK && !p.dxPick && !p.dxq && !p.arrest; }
+// v0.29: the quiz names diagnoses in one plain style, and skips gray-zone calls (the risk score is their call) and non-diagnoses.
+const DXQ = { nstemi: 'NSTEMI', sepsisw: 'Sepsis', rsv: 'RSV bronchiolitis', burn: 'Burns with an airway injury', mvc: 'Splenic laceration', mcired: 'Liver laceration', afib: 'Atrial fibrillation', lvo: 'Large vessel occlusion stroke', tfall: 'Subdural hematoma', moto: 'Open femur fracture' };
+const NODX = new Set(['refill', 'bh', 'mcigrn', 'lac', 'mvc', 'mcired']);   // unstable trauma: the call is the OR, made on the FAST
+const dxName = k => DXQ[k] || (CASES.find(c => c.k === k) || {}).dx;
+function needsDx(p) { return mdMine(p) && !G.pre && !G.train && !p.dxK && !p.dxPick && !p.dxq && !p.arrest && !p.gray && !NODX.has(p.ck); }
 function dxAsk(p) {
-  const d = (DDX[p.ck] || []).filter(x => x !== p.dx).slice(0, 3);
-  if (d.length < 3) { const pool = CASES.filter(c => c.k !== p.ck && c.dx && !d.includes(c.dx) && c.dx !== p.dx); while (d.length < 3 && pool.length) d.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0].dx); }
-  const ch = [p.dx].concat(d);
+  const me = dxName(p.ck), d = (DDX[p.ck] || []).filter(x => x !== me && x !== p.dx).slice(0, 3);
+  if (d.length < 3) { const pool = CASES.filter(c => c.k !== p.ck && !c.gray && !NODX.has(c.k) && !d.includes(dxName(c.k)) && dxName(c.k) !== me); while (d.length < 3 && pool.length) d.push(dxName(pool.splice(Math.floor(rnd() * pool.length), 1)[0].k)); }
+  const ch = [me].concat(d);
   for (let i = ch.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [ch[i], ch[j]] = [ch[j], ch[i]]; }
   p.dxq = ch;
   note(`${label(p)}: results are back. What’s the diagnosis?`);
 }
 function dxPick(pid, pick) {
   const p = pt(pid); if (!p || !p.dxq) return { ok: false, why: 'No diagnosis to make for this patient' };
-  const S = G.stats.md, right = pick === p.dx;
+  const S = G.stats.md, right = pick === dxName(p.ck) || pick === p.dx;
   p.dxPick = pick; p.dxq = null; p.dxK = true;
   if (right) { S.dxRight = (S.dxRight || 0) + 1; care(8, 'md', p); }
   else {
@@ -564,7 +568,7 @@ const CASES = [
   { k: 'lac', cc: 'Cut hand', dx: 'Simple laceration', esi: 4, src: 'b', age: [16, 70], wt: 4, wk: [], tr: ['repair'], dispo: 'home' },
   { k: 'uti', cc: 'Burning with urination', dx: 'Urinary tract infection', esi: 4, src: 'w', age: [18, 70], sex: 'F', wt: 4, wk: ['lab'], tr: ['meds'], dispo: 'home', find: { lab: 'Urine: nitrite positive' } },
   { k: 'gastro', cc: 'Belly pain, vomiting', dx: 'Gastroenteritis', esi: 3, src: 'b', age: [18, 60], wt: 5, wk: ['lab'], tr: ['fluids', 'meds'], dispo: 'home', find: { lab: 'Mild dehydration' } },
-  { k: 'appy', cc: 'Belly pain', dx: 'Appendicitis', esi: 3, src: 'w', age: [12, 45], wt: 3, wk: ['lab', 'ct'], tr: ['meds'], con: 'surg', pre: ['lab', 'ct'], dispo: 'or', find: { lab: 'WBC 15.8', ct: 'Inflamed appendix' }, ok: ['abx'] },
+  { k: 'appy', cc: 'Belly pain', dx: 'Appendicitis', esi: 3, src: 'w', age: [12, 45], wt: 3, wk: ['lab', 'ct'], tr: ['meds'], con: 'surg', pre: ['lab', 'ct'], dispo: 'or', find: { lab: 'WBC 15.8', ct: 'Appendix 11 mm across, fat stranding around it' }, ok: ['abx'] },
   { k: 'chole', cc: 'Belly pain after meals', dx: 'Cholecystitis', esi: 3, src: 'b', age: [30, 70], sex: 'F', wt: 3, wk: ['lab', 'us'], tr: ['meds'], con: 'surg', pre: ['lab', 'us'], dispo: 'admit', find: { lab: 'WBC 13.1, liver tests up', us: 'Gallstones, thick gallbladder wall' }, ok: ['abx'] },
   { k: 'hipfx', con2: 'hosp', cc: 'Fell, hip pain', dx: 'Hip fracture', esi: 3, src: 'e', age: [70, 95], wt: 5, wk: ['xr', 'lab'], tr: ['meds'], con: 'ortho', pre: ['xr'], dispo: 'admit', find: { xr: 'Femoral neck fracture', lab: 'Hgb 11.9' }, ok: ['ecg'] },
   { k: 'flu', cc: 'Fever, cough, body aches', dx: 'Influenza', esi: 4, src: 'w', age: [18, 75], wt: 2, wk: ['lab'], tr: ['meds'], dispo: 'home', iso: 'drop', find: { lab: 'Flu A positive' } },
@@ -587,8 +591,8 @@ const CASES = [
   { k: 'cpmod', cc: 'Chest pressure on and off', dx: 'Chest pain, moderate risk', esi: 2, src: 'b', age: [45, 75], wt: 2.5, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'obs', ecg10: true, gray: 'chest', find: { ecg: 'Nonspecific ST changes', lab: 'First troponin negative', xr: 'Clear lungs' } },
   { k: 'cwp', cc: 'Chest pain', dx: 'Chest pain, low risk', esi: 2, src: 'b', age: [25, 60], wt: 4, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'home', ecg10: true, gray: 'chest', find: { ecg: 'Normal sinus rhythm', lab: 'Troponin negative', xr: 'Clear lungs' } },
   { k: 'nstemi', cc: 'Chest pain', dx: 'NSTEMI (heart attack)', esi: 2, src: 'b', age: [50, 85], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', ecg10: true, find: { ecg: 'ST depression V4–V6', lab: 'Troponin elevated' }, ok: ['xr'] },
-  { k: 'afib', cc: 'Racing heart', dx: 'A-fib with rapid rate', esi: 2, src: 'b', age: [55, 90], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', vit: 'HR 152, BP 118/76', find: { ecg: 'A-fib, rate 152', lab: 'Troponin negative' } },
-  { k: 'chb', cc: 'Dizzy, nearly passed out', dx: 'Complete heart block', esi: 1, src: 'b', age: [60, 90], wt: 1.2, wk: ['ecg', 'lab'], tr: ['pace'], con: 'cards', pre: ['ecg'], dispo: 'icu', ecg10: true, vit: 'HR 38, BP 102/60, lightheaded', find: { ecg: 'Third-degree heart block, rate 38', lab: 'Potassium 4.4, troponin negative' } },
+  { k: 'afib', cc: 'Racing heart', dx: 'A-fib with rapid rate', esi: 2, src: 'b', age: [55, 90], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', vit: 'HR 152, BP 118/76', find: { ecg: 'Irregularly irregular, no P waves, rate 152', lab: 'Troponin negative' } },
+  { k: 'chb', cc: 'Dizzy, nearly passed out', dx: 'Complete heart block', esi: 1, src: 'b', age: [60, 90], wt: 1.2, wk: ['ecg', 'lab'], tr: ['pace'], con: 'cards', pre: ['ecg'], dispo: 'icu', ecg10: true, vit: 'HR 38, BP 102/60, lightheaded', find: { ecg: 'P waves march through, unrelated to the QRS; rate 38', lab: 'Potassium 4.4, troponin negative' } },
   { k: 'gib', con2: 'hosp', cc: 'Vomiting blood', dx: 'Upper GI bleed', esi: 2, src: 'b', age: [40, 85], wt: 2, wk: ['lab'], tr: ['fluids', 'blood'], con: 'gi', pre: ['lab'], dispo: 'admit', bleed: 'prbc', vit: 'HR 122, BP 92/58', find: { lab: 'Hemoglobin 6.8' } },
   { k: 'dka', cc: 'Vomiting, sugar very high', dx: 'Diabetic ketoacidosis', esi: 2, src: 'b', age: [16, 45], wt: 1.5, wk: ['lab'], tr: ['fluids', 'insulin'], con: 'icu', pre: ['lab'], dispo: 'icu', ok: ['ecg'], find: { lab: 'Glucose 540, anion gap 26, potassium 4.8', ecg: 'Sinus tachycardia, T waves normal' } },
   { k: 'asthma', cc: 'Wheezing', dx: 'Asthma attack', esi: 2, src: 'w', age: [5, 30], wt: 3, wk: [], tr: ['nebs', 'meds'], dispo: 'home', vit: 'SpO2 91%, can speak 3 words', watch: 60 },
@@ -600,7 +604,7 @@ const CASES = [
   { k: 'stroke', cc: "Can't move right side", dx: 'Acute ischemic stroke', esi: 2, src: 'a', age: [55, 90], wt: 2, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], dispo: 'icu', alert: 'stroke', find: { ct: 'No bleed', lab: 'Glucose 132' }, ok: ['ecg'] },
   { k: 'lvo', cc: "Can't speak, eyes deviated", dx: 'Large vessel occlusion stroke', esi: 1, src: 'a', age: [55, 90], wt: 1.2, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], ift: 'cct', dispo: 'transfer', alert: 'stroke', txTo: 'the comprehensive stroke center', find: { ct: 'No bleed; CTA shows M1 occlusion', lab: 'Glucose 141' }, ok: ['ecg'] },
   { k: 'mvc', cc: 'Rollover crash, no seat belt', dx: 'Splenic laceration, hemorrhagic shock', esi: 1, src: 'a', age: [17, 45], wt: 2.2, wk: ['xr', 'lab'], tr: ['mtp'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'mtp', vit: 'HR 134, BP 78/40, pale', find: { xr: 'No pneumothorax, FAST positive', lab: 'Hemoglobin 8.1', ct: 'Grade IV splenic laceration' } },
-  { k: 'tfall', cc: 'Fell down stairs, on a blood thinner', dx: 'Subdural hematoma', esi: 1, src: 'a', age: [70, 95], wt: 2, wk: ['ct', 'lab'], tr: ['reverse'], con: 'trauma', pre: [], need: ['ct'], dispo: 'icu', alert: 'trauma', vit: 'GCS 12, BP 168/92', find: { ct: 'Acute subdural hematoma', lab: 'INR 2.9' } },
+  { k: 'tfall', cc: 'Fell down stairs, on a blood thinner', dx: 'Subdural hematoma', esi: 1, src: 'a', age: [70, 95], wt: 2, wk: ['ct', 'lab'], tr: ['reverse'], con: 'trauma', pre: [], need: ['ct'], dispo: 'icu', alert: 'trauma', vit: 'GCS 12, BP 168/92', find: { ct: 'A crescent of fresh blood over the left brain, 8 mm, slight shift', lab: 'INR 2.9' } },
   { k: 'moto', cc: 'Motorcycle crash, leg deformity', dx: 'Open femur fracture', esi: 1, src: 'a', age: [18, 55], wt: 1.2, wk: ['xr', 'lab'], tr: ['abx', 'blood'], con: 'trauma', pre: [], need: ['xr'], dispo: 'or', alert: 'trauma', bleed: 'prbc', vit: 'HR 118, BP 102/64', find: { xr: 'Open femur fracture', lab: 'Hemoglobin 9.4' }, ok: ['meds'] },
   { k: 'arrest', cc: 'Cardiac arrest, CPR in progress', dx: 'Cardiac arrest', esi: 1, src: 'a', age: [45, 85], wt: 1.3, wk: [], tr: [], dispo: 'code', alert: 'arrest', arrest: true, vit: 'Pulseless, VF on the monitor' },
   { k: 'shock', cc: 'Fever, BP 74/40', dx: 'Septic shock', esi: 1, src: 'a', age: [60, 90], wt: 1.8, wk: ['lab'], tr: ['o2', 'fluids', 'abx', 'pressor'], con: 'icu', pre: ['lab'], need: ['lab'], dispo: 'icu', alert: 'sepsis', vit: 'HR 128, BP 74/40, mottled', find: { lab: 'Lactate 5.4' }, ok: ['xr'] },
@@ -1595,7 +1599,7 @@ const ORD_WHY = {
 // Test results in plain words. Shown after the result when "Plain words" is on.
 const FIND_PLAIN = {
   'Rapid strep positive': 'strep bacteria found', 'No fracture': 'no broken bone', 'Urine: nitrite positive': 'bacteria in the urine',
-  'WBC 15.8': 'white cells high: infection or inflammation', 'Inflamed appendix': 'appendicitis',
+  'WBC 15.8': 'white cells high: infection or inflammation', 'Appendix 11 mm across, fat stranding around it': 'appendicitis',
   'WBC 13.1, liver tests up': 'white cells high; the liver is irritated', 'Gallstones, thick gallbladder wall': 'an inflamed gallbladder',
   'Femoral neck fracture': 'a broken hip', 'Hgb 11.9': 'blood count a little low', 'WBC 17.2': 'white cells high: infection',
   'Right lower lobe infiltrate': 'pneumonia low in the right lung', 'WBC 13.1': 'white cells a little high: infection', 'Flu A positive': 'the flu virus', 'Small right lower lobe infiltrate': 'a small pneumonia low in the right lung', 'Hyperinflated, no pneumonia': 'over-full lungs, no infection',
@@ -1606,14 +1610,14 @@ const FIND_PLAIN = {
   'WBC 14.0': 'white cells high: infection', 'Normal sinus rhythm': 'a normal heartbeat', 'New bundle branch block': 'a new fault in the heart\'s wiring',
   'No acute findings': 'nothing new or dangerous', 'BUN 34, creatinine 1.4': 'the kidneys are dry', 'Nonspecific ST changes': 'not normal, not a clear heart attack',
   'First troponin negative': 'no heart damage yet; it gets repeated', 'Troponin negative': 'no heart damage so far', 'ST depression V4–V6': 'heart muscle short of blood',
-  'Troponin elevated': 'heart muscle damage', 'A-fib, rate 152': 'a fast, irregular heartbeat', 'Third-degree heart block, rate 38': 'top and bottom of the heart out of step; very slow',
+  'Troponin elevated': 'heart muscle damage', 'Irregularly irregular, no P waves, rate 152': 'a fast, irregular heartbeat', 'P waves march through, unrelated to the QRS; rate 38': 'top and bottom of the heart out of step; very slow',
   'Potassium 4.4, troponin negative': 'potassium normal; no heart damage', 'Hemoglobin 6.8': 'blood count dangerously low', 'Glucose 540, anion gap 26, potassium 4.8': 'sugar very high; acid in the blood; potassium safe for insulin', 'Sinus tachycardia, T waves normal': 'fast and regular; no sign of high potassium',
   'Lactate 3.1, urine positive': 'organs short of oxygen; infection in the urine', 'No bleed': 'no bleeding in the brain',
   'Glucose 118': 'sugar isn’t the cause', 'Glucose 132': 'sugar isn’t the cause', 'Glucose 141': 'sugar isn’t the cause',
   'ST elevation V1–V4': 'a heart attack at the front of the heart', 'Troponin pending': 'not back yet; don’t wait for it',
   'No bleed; CTA shows M1 occlusion': 'no bleeding; a big brain artery is blocked', 'No pneumothorax, FAST positive': 'lungs are up; blood in the belly',
   'Hemoglobin 8.1': 'blood count low and falling', 'Hemoglobin 7.9': 'blood count low and falling', 'Grade IV splenic laceration': 'a deep tear in the spleen',
-  'Acute subdural hematoma': 'bleeding on the surface of the brain', 'INR 2.9': 'thin blood: it clots slowly', 'Open femur fracture': 'a broken thigh bone, through the skin',
+  'A crescent of fresh blood over the left brain, 8 mm, slight shift': 'bleeding on the surface of the brain', 'INR 2.9': 'thin blood: it clots slowly', 'Open femur fracture': 'a broken thigh bone, through the skin',
   'Hemoglobin 9.4': 'blood count low', 'Lactate 5.4': 'organs badly short of oxygen', 'VBG pCO2 61': 'CO2 building up: tiring out',
   'Carboxyhemoglobin 6%': 'some carbon monoxide from the smoke', 'Grade IV liver laceration': 'a deep tear in the liver', 'Midshaft femur fracture': 'a broken thigh bone',
   'Hemoglobin 11.2': 'blood count a little low', 'No acute injury': 'no injury seen', 'Distal radius fracture': 'a broken wrist',
@@ -4136,7 +4140,7 @@ function mdPlay(o) {
       return signOrders(p.id, tests, treats.map(asDrug)).ok;
     });
     else if (p.txGap && p.txGap.length) act(() => signOrders(p.id, [], p.txGap.map(t => drugFor(p, t) || t)).ok);
-    if (p.dxq) act(() => dxPick(p.id, chance(acc) ? p.dx : pick(p.dxq.filter(x => x !== p.dx))).ok);
+    if (p.dxq) act(() => dxPick(p.id, chance(acc) ? dxName(p.ck) : pick(p.dxq.filter(x => x !== dxName(p.ck)))).ok);
     if (p.dsp === 'mddecide') act(() => {
       const want = chance(acc) ? p.dispo : pick(['home', 'admit']);
       if (want === 'home') return mdDecide(p.id, 'home').ok;
@@ -4156,6 +4160,176 @@ function mdPlay(o) {
   }
 }
 
+/* ---------- v0.29: high-yield, must-not-miss conditions from the 2022 EM Model ----------
+   The compact case format: one entry carries everything a case needs, and addCase() files it into the engine's tables
+   (CASES, NEED, RES, VCASE, EXAM, ORD_WHY, FIND_PLAIN, DX_PLAIN, RXOK, DDX, MUST, CONTRA, RX, LESSON_CASE).
+   Results are written as findings, the way a report reads, so the diagnosis is the doctor's call. */
+const LESSON_CASE = {};
+function addCase(d) {
+  const c = Object.assign({}, d); c.wt = (c.wt || 1) * 0.4;   /* rare, as in real life */ for (const k of ['need', 'res', 'vc', 'exam', 'why', 'plain', 'dxp', 'rx', 'ddx', 'must', 'contra', 'rxn', 'sys', 'pearl', 'pitfall', 'lname']) delete c[k];
+  CASES.push(c);
+  if (d.need) NEED[d.k] = d.need;
+  if (d.res) RES[d.k] = d.res;
+  if (d.vc) VCASE[d.k] = d.vc;
+  EXAM[d.k] = d.exam; ORD_WHY[d.k] = d.why; DX_PLAIN[d.dx] = d.dxp;
+  Object.assign(FIND_PLAIN, d.plain || {});
+  if (d.rx) RXOK[d.k] = d.rx;
+  if (d.ddx) DDX[d.k] = d.ddx;
+  if (d.must) MUST.add(d.k);
+  if (d.contra) CONTRA[d.k] = d.contra;
+  if (d.rxn) RX[d.k] = d.rxn;
+  LESSON_CASE[d.k] = { sys: d.sys, name: d.lname || d.dx, pearl: d.pearl, pitfall: d.pitfall };
+}
+Object.assign(LABS, {
+  lp: { n: 'Lumbar puncture (CSF)', g: 'Infection and breathing', p: 'Spinal fluid: meningitis, bleeding' },
+  crp: { n: 'ESR and CRP', g: 'Infection and breathing', p: 'Inflammation markers' },
+  apaplev: { n: 'Acetaminophen level', g: 'Urine and other', p: 'Acetaminophen overdose: time it at 4 hours or later' },
+  sal: { n: 'Salicylate level', g: 'Urine and other', p: 'Aspirin overdose' },
+});
+Object.assign(LAB_NORMAL, { lp: 'CSF: WBC 2, glucose 64, protein 32 (normal)', crp: 'ESR 8, CRP 0.4 (normal)', apaplev: 'Acetaminophen not detected', sal: 'Salicylate not detected' });
+IMGS.scrotus = { n: 'Scrotal ultrasound', m: 'us', p: 'Blood flow to the testicles' };
+IMG_NORMAL.scrotus = ['Normal flow to both testicles', null];
+Object.assign(SPECS, {
+  vasc: { name: 'Vascular Surgery', what: 'The aorta and big arteries', short: 'Vasc', doc: 'Dr. Okafor', mad: x => `I need ${x} before I can plan anything.` },
+  nsurg: { name: 'Neurosurgery', what: 'Bleeding in the head, the spine', short: 'NSurg', doc: 'Dr. Lindqvist', mad: x => `Send me ${x} first.` },
+  obgyn: { name: 'OB/GYN', what: 'Pregnancy, the uterus and ovaries', short: 'OB', doc: 'Dr. Adeyemi', mad: x => `Is she pregnant? I need ${x}.` },
+  uro: { name: 'Urology', what: 'Kidneys, bladder, testicles', short: 'Uro', doc: 'Dr. Castellano', mad: x => `Call me back with ${x}.` },
+});
+TREAT.ctube = { label: 'Chest tube', by: 'prov', dur: 10 };
+PROC.ctube = { n: 'Chest tube', tx: 'ctube', p: 'Drains air or blood from around the lung' };
+ORDER_MENUS.find(m => m[0] === 'proc')[2].push('ctube');
+Object.assign(DRUGS, {
+  esmolol: { n: 'Esmolol drip', c: 'cardiac', tx: ['bp'], p: 'Short-acting beta blocker: heart rate first in a dissection' },
+  insreg: { n: 'Regular insulin 10 units IV', c: 'endo', tx: ['insulin'], p: 'Pushes potassium into cells; give dextrose with it' },
+  levet: { n: 'Levetiracetam', c: 'neuro', tx: ['meds'], p: 'Second drug for seizures that won’t stop' },
+  clinda: { n: 'Clindamycin', c: 'abxi', tx: ['abx'], p: 'Turns off toxin in flesh-eating infections' },
+});
+RXOK.dka = Object.assign({}, RXOK.dka, { insulin: ['insdrip'] });
+[
+  { k: 'pe', sys: 'cardio', cc: 'Short of breath, chest hurts on a deep breath', dx: 'Pulmonary embolism', esi: 2, src: 'b', age: [30, 80], wt: 1.4, wk: ['ecg', 'lab', 'ct'], tr: ['o2', 'meds'], con: 'hosp', pre: ['ct'], dispo: 'admit', vit: 'HR 118, SpO2 90%',
+    need: { n: ['ctpe', 'trop', 'bmp'], ok: ['cbc', 'bnp', 'ddim', 'cxr', 'coag', 'hcg'] }, res: { ctpe: ['Filling defects in both lower lobe arteries', null], trop: 'Troponin 0.04, just above the cutoff', bmp: 'Na 138, K 4.0, creatinine 0.9' },
+    find: { ecg: 'Sinus tachycardia 118, S wave in I, T inversion in III', lab: 'Troponin just above the cutoff', ct: 'Filling defects in both lower lobe arteries' },
+    plain: { 'Sinus tachycardia 118, S wave in I, T inversion in III': 'a fast heart with a strain pattern', 'Troponin just above the cutoff': 'a little heart strain', 'Filling defects in both lower lobe arteries': 'something blocking the lung arteries' },
+    vc: { hr: 118, rr: 24, spo2: 90.5, sbp: 124, dbp: 78 }, exam: 'Breathing fast with clear lungs. The right calf is swollen and tender.', why: 'A CT angiogram of the chest finds the clot. Troponin and a BMP check heart strain and the kidneys. Oxygen and a blood thinner; admit.',
+    rx: { meds: ['heparin', 'enox'] }, rxn: 'heparin', ddx: ['Pneumonia', 'Pneumothorax', 'NSTEMI'], must: true, dxp: 'A blood clot in the arteries of the lungs',
+    pearl: 'Clear lungs, a fast heart and low oxygen with a swollen leg is a **clot** until proven otherwise.', pitfall: 'A **D-dimer** only helps when the risk is low. With a high risk, go straight to the **CT angiogram**.' },
+  { k: 'dissect', sys: 'cardio', cc: 'Tearing chest pain into the back', dx: 'Aortic dissection', esi: 1, anyRoom: true, src: 'e', age: [50, 85], sex: 'M', wt: 0.7, wk: ['ecg', 'lab', 'ct'], tr: ['bp', 'meds'], con: 'vasc', pre: ['ct'], ift: 'cct', dispo: 'transfer', txTo: 'a cardiac surgery center', vit: 'BP 188/104 right arm, 150/86 left',
+    need: { n: ['ctpe', 'trop', 'ts'], ok: ['cbc', 'bmp', 'cxr', 'coag'] }, res: { ctpe: ['A flap inside the ascending aorta, running to the arch', null], trop: 'Troponin below the cutoff', ts: 'A positive, antibody screen negative' },
+    find: { ecg: 'Sinus rhythm, left ventricular hypertrophy', lab: 'Troponin below the cutoff', ct: 'A flap inside the ascending aorta, running to the arch' },
+    plain: { 'Sinus rhythm, left ventricular hypertrophy': 'a thick heart muscle from years of high pressure', 'Troponin below the cutoff': 'no heart muscle damage', 'A flap inside the ascending aorta, running to the arch': 'the wall of the aorta has split' },
+    vc: { hr: 104, sbp: 188, dbp: 104, rr: 20 }, exam: 'The pressure differs between the arms. A new soft murmur after the second heart sound.', why: 'A CT angiogram shows the flap. Slow the heart first (esmolol), then lower the pressure. Pain control. Type and screen for surgery. Transfer to cardiac surgery.',
+    rx: { bp: ['esmolol', 'labet', 'nicard'], meds: ['fent', 'morph', 'hydro'] }, rxn: 'pain control', contra: ['heparin', 'enox', 'tnk', 'asa'], ddx: ['NSTEMI', 'Pulmonary embolism', 'Pericarditis'], must: true, dxp: 'A tear in the wall of the aorta',
+    pearl: 'Sudden **tearing** pain to the back, a **pressure difference** between the arms, or a new murmur: think of the aorta.', pitfall: 'Never give **blood thinners** or a clot buster for chest pain until dissection is off the table. Rate first, then pressure.' },
+  { k: 'aaa', sys: 'cardio', cc: 'Sudden back pain, then passed out', dx: 'Ruptured abdominal aortic aneurysm', lname: 'Ruptured AAA', esi: 1, anyRoom: true, src: 'e', age: [60, 90], sex: 'M', wt: 0.6, wk: ['us', 'lab'], tr: ['blood'], con: 'vasc', pre: ['us'], dispo: 'or', bleed: 'prbc', vit: 'HR 124, BP 82/50',
+    need: { n: ['fast', 'ts', 'cbc'], ok: ['bmp', 'coag', 'lact', 'ctap'] }, res: { fast: ['Aorta 7.2 cm across, fluid beside it', null], cbc: 'WBC 12.0, Hgb 8.9, platelets 210', ts: 'O positive, antibody screen negative' },
+    find: { us: 'Aorta 7.2 cm across, fluid beside it', lab: 'Hgb 8.9' }, plain: { 'Aorta 7.2 cm across, fluid beside it': 'a huge aorta with blood around it', 'Hgb 8.9': 'blood count low' },
+    vc: { hr: 124, sbp: 82, dbp: 50 }, exam: 'A pulsing mass above the belly button. Pale and sweaty.', why: 'Bedside ultrasound finds the aorta. Blood, type and screen, and vascular surgery to the OR. No CT for an unstable patient.',
+    contra: ['heparin', 'tnk', 'ketor'], ddx: ['Kidney stone', 'Perforated ulcer', 'Mesenteric ischemia'], must: true, dxp: 'A ballooned main artery in the belly that burst',
+    pearl: 'An older man with **back or flank pain and low pressure** has a burst aorta until the ultrasound says no.', pitfall: 'It’s often called a **kidney stone**. Look at the aorta with the bedside ultrasound before anyone goes to CT.' },
+  { k: 'hyperk', sys: 'endo', cc: 'Weak legs, missed dialysis twice', dx: 'Hyperkalemia', esi: 2, src: 'e', age: [40, 85], wt: 1.1, wk: ['ecg', 'lab'], tr: ['meds', 'insulin'], con: 'hosp', pre: ['lab'], dispo: 'admit', vit: 'HR 52',
+    need: { n: ['bmp'], ok: ['cbc', 'vbg', 'trop', 'gluc'] }, res: { bmp: 'Na 135, K 7.1, BUN 92, creatinine 9.8' },
+    find: { ecg: 'Peaked T waves, QRS 130 ms, rate 52', lab: 'K 7.1, creatinine 9.8' }, plain: { 'Peaked T waves, QRS 130 ms, rate 52': 'tall pointed T waves and slow, wide beats', 'K 7.1, creatinine 9.8': 'potassium dangerously high; the kidneys aren’t working' },
+    vc: { hr: 52, sbp: 162, dbp: 90 }, exam: 'Weak legs. A dialysis fistula in the left arm.', why: 'The ECG shows the danger before the lab does. Calcium protects the heart; insulin with dextrose pushes potassium into cells; then dialysis.',
+    rx: { meds: ['calc', 'd50'], insulin: ['insreg'] }, rxn: 'calcium', contra: ['succ', 'kcl'], ddx: ['Hypoglycemia', 'Beta blocker overdose', 'Sick sinus syndrome'], must: true, dxp: 'Too much potassium in the blood. The heart can stop',
+    pearl: 'A dialysis patient who missed sessions, weak and slow: get the **ECG first**. Peaked T waves and a wide QRS mean treat now.', pitfall: '**Calcium** doesn’t lower potassium; it buys time. Insulin with **dextrose** (watch the sugar), then dialysis.' },
+  { k: 'sah', sys: 'neuro', cc: 'Sudden worst headache of her life', dx: 'Subarachnoid hemorrhage', esi: 2, src: 'b', age: [30, 70], wt: 0.9, wk: ['ct', 'lab'], tr: ['bp', 'meds'], con: 'nsurg', pre: ['ct'], ift: 'cct', dispo: 'transfer', txTo: 'a neurosurgery center',
+    need: { n: ['cthead', 'coag', 'bmp'], ok: ['cta', 'cbc', 'ts'] }, res: { cthead: ['Bright blood in the basal cisterns and sylvian fissures', null], coag: 'INR 1.0', bmp: 'Na 138, K 3.9, glucose 128' },
+    find: { ct: 'Bright blood in the basal cisterns and sylvian fissures', lab: 'INR 1.0' }, plain: { 'Bright blood in the basal cisterns and sylvian fissures': 'fresh blood around the base of the brain', 'INR 1.0': 'clotting normal' },
+    vc: { sbp: 178, dbp: 98, hr: 88 }, exam: 'Stiff neck. Awake but slow to answer. Pupils equal.', why: 'CT head within 6 hours finds most of these bleeds. Keep the systolic under 160, treat pain and nausea, and transfer to neurosurgery.',
+    rx: { bp: ['nicard', 'labet'], meds: ['ondan', 'fent', 'apap'] }, rxn: 'pain and nausea control', contra: ['heparin', 'enox', 'tnk', 'asa', 'ketor'], ddx: ['Migraine', 'Bacterial meningitis', 'Hypertensive emergency'], must: true, dxp: 'Bleeding around the brain, often from a burst aneurysm',
+    pearl: 'A **thunderclap** headache, worst at the start, is a bleed until proven otherwise.', pitfall: 'A normal CT after **6 hours** doesn’t rule it out: a lumbar puncture or CT angiogram comes next.' },
+  { k: 'mening', sys: 'infect', cc: 'Fever, headache, stiff neck', dx: 'Bacterial meningitis', esi: 2, src: 'b', age: [18, 70], wt: 0.9, wk: ['lab'], tr: ['abx', 'meds'], con: 'icu', pre: ['lab'], dispo: 'icu', iso: 'drop',
+    need: { n: ['bcx', 'lp', 'cbc'], ok: ['cthead', 'bmp', 'lact', 'coag'] }, res: { lp: 'CSF: WBC 2,400 (90% neutrophils), glucose 22, protein 310', cbc: 'WBC 19.4, Hgb 13.2, platelets 140', bcx: 'Sent. Results in 1 to 2 days' },
+    find: { lab: 'CSF WBC 2,400, glucose 22' }, plain: { 'CSF WBC 2,400, glucose 22': 'pus in the spinal fluid; germs eating the sugar' },
+    vc: { temp: 103.1, hr: 116, sbp: 112, dbp: 66, rr: 22 }, exam: 'Neck stiff; light hurts her eyes. A few purple spots on the legs.', why: 'Blood cultures, then antibiotics right away: don’t wait for the CT or the LP. Ceftriaxone and vancomycin, with dexamethasone. Droplet isolation.',
+    rx: { abx: ['ctx', 'vanc', 'cefepime'], meds: ['dexa'] }, rxn: 'dexamethasone', ddx: ['Viral meningitis', 'Subarachnoid hemorrhage', 'Influenza'], must: true, dxp: 'An infection of the lining of the brain',
+    pearl: 'Fever, headache and a stiff neck: **antibiotics first**, tests second.', pitfall: 'A CT before the LP is fine, but **never hold antibiotics** waiting for it.' },
+  { k: 'status', sys: 'neuro', cc: 'Seizing for 10 minutes', dx: 'Status epilepticus', esi: 1, anyRoom: true, src: 'e', age: [18, 70], wt: 0.9, wk: ['lab', 'poc'], tr: ['meds'], con: 'neuro', pre: ['lab'], dispo: 'icu', vit: 'Still seizing, jaw clenched',
+    need: { n: ['gluc', 'bmp'], ok: ['cbc', 'tox', 'cthead', 'ck'] }, res: { gluc: 'Glucose 112', bmp: 'Na 137, K 4.2, creatinine 1.1' },
+    find: { lab: 'Glucose 112, sodium 137' }, plain: { 'Glucose 112, sodium 137': 'sugar and sodium normal' },
+    vc: { hr: 132, sbp: 168, dbp: 96, rr: 12, spo2: 92 }, exam: 'Rhythmic jerking of all four limbs. Eyes open, not responding.', why: 'Check the sugar first. Lorazepam IV now, then a second drug (levetiracetam). Then look for the cause.',
+    rx: { meds: ['loraz', 'levet'] }, rxn: 'lorazepam', ddx: ['Hypoglycemia', 'Syncope', 'Psychogenic seizure'], must: true, dxp: 'A seizure that won’t stop on its own',
+    pearl: 'A seizure past **5 minutes** won’t stop on its own. **Benzodiazepine** now, a second drug by 20 minutes.', pitfall: 'Always check the **fingerstick**: low sugar seizes too, and lorazepam won’t fix it.' },
+  { k: 'cauda', sys: 'neuro', cc: 'Back pain, can’t pee', dx: 'Cauda equina syndrome', esi: 2, src: 'w', age: [30, 65], wt: 0.7, wk: ['mri'], tr: ['meds'], con: 'nsurg', pre: ['mri'], ift: 'als', dispo: 'transfer', txTo: 'a neurosurgery center',
+    need: { n: ['mris'], ok: ['bmp', 'cbc', 'udip', 'ua'] }, res: { mris: ['A large L4–L5 disc pressing on the nerve roots', null] },
+    find: { mri: 'A large L4–L5 disc pressing on the nerve roots' }, plain: { 'A large L4–L5 disc pressing on the nerve roots': 'a slipped disc squeezing the nerves' },
+    vc: {}, exam: 'Numb between the legs. Weak ankle push. 800 mL left in the bladder after trying to pee.', why: 'Saddle numbness and retention need an MRI now, and a neurosurgeon. Pain control meanwhile.',
+    rx: { meds: ['morph', 'fent', 'hydro', 'ketor', 'apap', 'dexa'] }, rxn: 'pain control', ddx: ['Muscle strain', 'Kidney stone', 'Sciatica'], must: true, dxp: 'The nerves at the bottom of the spine are squeezed',
+    pearl: 'Back pain with **saddle numbness**, retention or new weakness is an emergency MRI.', pitfall: 'Check a **bladder scan** after they try to pee. Retention is often the only clue.' },
+  { k: 'ectopic', sys: 'obgyn', cc: 'Belly pain, missed period, dizzy', dx: 'Ruptured ectopic pregnancy', esi: 1, anyRoom: true, src: 'b', age: [18, 40], sex: 'F', wt: 0.9, wk: ['lab', 'us'], tr: ['fluids', 'blood'], con: 'obgyn', pre: ['lab', 'us'], dispo: 'or', bleed: 'prbc', vit: 'HR 126, BP 86/52',
+    need: { n: ['hcg', 'fast', 'ts', 'cbc'], ok: ['pelus', 'bmp', 'coag'] }, res: { hcg: 'Positive', fast: ['Free fluid in the pelvis and beside the liver', null], cbc: 'WBC 11.0, Hgb 8.4, platelets 230', ts: 'O negative, antibody screen negative' },
+    find: { lab: 'Pregnancy test positive, Hgb 8.4', us: 'Free fluid in the pelvis and beside the liver' }, plain: { 'Pregnancy test positive, Hgb 8.4': 'pregnant, and the blood count is low', 'Free fluid in the pelvis and beside the liver': 'blood in the belly' },
+    vc: { hr: 126, sbp: 86, dbp: 52 }, exam: 'Belly rigid, worst low on the left. Her shoulder hurts.', why: 'A pregnancy test and bedside ultrasound with free fluid: ruptured ectopic until proven otherwise. Blood, type and screen, OB/GYN to the OR.',
+    contra: ['heparin', 'tnk', 'ketor'], ddx: ['Ovarian cyst rupture', 'Appendicitis', 'Miscarriage'], must: true, dxp: 'A pregnancy outside the womb that burst and is bleeding',
+    pearl: 'Every woman who could be pregnant gets a **pregnancy test**. Positive plus pain plus low pressure is a burst ectopic.', pitfall: 'She’s **Rh negative**: she’ll need anti-D immune globulin. Don’t wait for a formal ultrasound when she’s unstable.' },
+  { k: 'ttorsion', sys: 'gu', cc: 'Sudden testicle pain, vomiting', dx: 'Testicular torsion', esi: 2, src: 'w', age: [12, 25], sex: 'M', wt: 0.7, wk: ['us'], tr: ['meds'], con: 'uro', pre: [], dispo: 'or',
+    need: { n: ['scrotus'], ok: ['ua', 'udip', 'cbc'] }, res: { scrotus: ['Left testicle: no flow on Doppler; the cord swirls', null] },
+    find: { us: 'Left testicle: no flow on Doppler; the cord swirls' }, plain: { 'Left testicle: no flow on Doppler; the cord swirls': 'no blood reaching the testicle; the cord is twisted' },
+    vc: { hr: 108 }, exam: 'The left testicle sits high and sideways. No cremasteric reflex.', why: 'Call urology now: every hour counts. Ultrasound only if it won’t delay surgery. Pain control and an antiemetic.',
+    rx: { meds: ['morph', 'fent', 'hydro', 'ondan', 'ketor'] }, rxn: 'pain control', ddx: ['Epididymitis', 'Inguinal hernia', 'Kidney stone'], must: true, dxp: 'A twisted testicle with its blood supply cut off',
+    pearl: 'Sudden testicle pain in a young male is **torsion** until proven otherwise. The clock is about **6 hours**.', pitfall: 'Don’t let the ultrasound delay **urology**. A high, sideways testicle with no reflex is enough to call.' },
+  { k: 'ovtorsion', sys: 'obgyn', cc: 'Sudden one-sided pelvic pain, vomiting', dx: 'Ovarian torsion', esi: 2, src: 'w', age: [14, 45], sex: 'F', wt: 0.7, wk: ['lab', 'us'], tr: ['meds'], con: 'obgyn', pre: ['us'], dispo: 'or',
+    need: { n: ['hcg', 'pelus'], ok: ['cbc', 'ua', 'udip', 'bmp'] }, res: { hcg: 'Negative', pelus: ['Right ovary 9 cm with a cyst; no flow on Doppler', null] },
+    find: { lab: 'Pregnancy test negative', us: 'Right ovary 9 cm with a cyst; no flow on Doppler' }, plain: { 'Pregnancy test negative': 'not pregnant', 'Right ovary 9 cm with a cyst; no flow on Doppler': 'a swollen ovary with no blood flow' },
+    vc: { hr: 104 }, exam: 'Tender low on the right, no rebound. Vomited twice.', why: 'A pregnancy test, then a pelvic ultrasound with Doppler. OB/GYN to the OR to untwist it.',
+    rx: { meds: ['morph', 'fent', 'hydro', 'ondan', 'ketor'] }, rxn: 'pain control', ddx: ['Appendicitis', 'Ectopic pregnancy', 'Kidney stone'], must: true, dxp: 'A twisted ovary with its blood supply cut off',
+    pearl: 'Sudden one-sided pelvic pain with **vomiting**, often with a known cyst: think torsion.', pitfall: 'Doppler **flow doesn’t rule it out**. When the story fits, OB/GYN should look anyway.' },
+  { k: 'sbo', sys: 'gi', cc: 'Belly swollen, vomiting, no gas', dx: 'Small bowel obstruction', esi: 3, src: 'b', age: [45, 85], wt: 1.3, wk: ['lab', 'ct'], tr: ['fluids', 'meds'], con: 'surg', pre: ['ct'], dispo: 'admit',
+    need: { n: ['ctap', 'bmp', 'cbc'], ok: ['lact', 'lip', 'ua'] }, res: { ctap: ['Dilated small bowel to a transition point; the colon is empty', null], bmp: 'Na 134, K 3.2, creatinine 1.3', cbc: 'WBC 11.8, Hgb 14.6, platelets 300' },
+    find: { ct: 'Dilated small bowel to a transition point; the colon is empty', lab: 'K 3.2, creatinine 1.3' }, plain: { 'Dilated small bowel to a transition point; the colon is empty': 'the bowel is blocked at one spot', 'K 3.2, creatinine 1.3': 'potassium low, a little dry' },
+    vc: { hr: 108, sbp: 118, dbp: 72 }, exam: 'Belly swollen, tinkling bowel sounds. Old surgery scars.', why: 'CT finds the blockage. Fluids, an antiemetic, a tube to drain the stomach, and General Surgery.',
+    rx: { meds: ['ondan', 'morph', 'fent', 'hydro'] }, rxn: 'an antiemetic', ddx: ['Gastroenteritis', 'Constipation', 'Pancreatitis'], dxp: 'The small intestine is blocked',
+    pearl: 'Vomiting, a swollen belly and **old surgery scars**: adhesions block the bowel.', pitfall: 'Fever, a high lactate or pain out of proportion means the bowel may be **dying**: surgery today.' },
+  { k: 'mesisch', sys: 'gi', cc: 'Belly pain much worse than the exam', dx: 'Mesenteric ischemia', esi: 2, src: 'b', age: [65, 92], wt: 0.6, wk: ['ecg', 'lab', 'ct'], tr: ['fluids', 'meds'], con: 'surg', pre: ['ct'], dispo: 'or',
+    need: { n: ['ctap', 'lact', 'cbc', 'bmp'], ok: ['lip', 'trop', 'coag', 'ts'] }, res: { ctap: ['No contrast in the superior mesenteric artery; thick small bowel wall', null], lact: 'Lactate 4.6', cbc: 'WBC 17.0, Hgb 13.1, platelets 260', bmp: 'Na 140, K 4.4, bicarbonate 17' },
+    find: { ecg: 'Irregularly irregular, no P waves, rate 96', ct: 'No contrast in the superior mesenteric artery; thick small bowel wall', lab: 'Lactate 4.6' },
+    plain: { 'Irregularly irregular, no P waves, rate 96': 'an irregular rhythm that throws clots', 'No contrast in the superior mesenteric artery; thick small bowel wall': 'the bowel’s main artery is blocked', 'Lactate 4.6': 'tissue starved of oxygen' },
+    vc: { hr: 110, sbp: 128, dbp: 76 }, exam: 'In terrible pain, yet the belly is soft. An irregular pulse.', why: 'Pain out of proportion in an older patient with an irregular rhythm: CT angiogram and lactate. Heparin, fluids, pain control, and surgery.',
+    rx: { meds: ['heparin', 'morph', 'fent', 'hydro'] }, rxn: 'heparin and pain control', ddx: ['Gastroenteritis', 'Kidney stone', 'Diverticulitis'], must: true, dxp: 'The bowel isn’t getting blood and dies within hours',
+    pearl: 'Pain **out of proportion** to a soft belly in an older patient with A-fib is the bowel’s artery until proven otherwise.', pitfall: 'A **normal lactate** early doesn’t rule it out. Get the CT angiogram.' },
+  { k: 'apapod', sys: 'tox', cc: 'Took a bottle of acetaminophen 6 hours ago', dx: 'Acetaminophen overdose', esi: 2, src: 'b', age: [16, 45], wt: 0.9, wk: ['ecg', 'lab'], tr: ['meds'], con: 'hosp', pre: ['lab'], dispo: 'admit', sitter: true,
+    need: { n: ['apaplev', 'sal', 'lft', 'coag', 'bmp'], ok: ['tox', 'hcg', 'cbc', 'vbg'] }, res: { apaplev: 'Acetaminophen 260 at 6 hours', sal: 'Salicylate not detected', lft: 'ALT 48, bilirubin 0.8', coag: 'INR 1.1', bmp: 'Na 139, K 3.8, creatinine 0.8' },
+    find: { ecg: 'Normal sinus rhythm', lab: 'Acetaminophen 260 at 6 hours' }, plain: { 'Acetaminophen 260 at 6 hours': 'a level high enough to injure the liver' },
+    vc: {}, exam: 'Looks well. Mild nausea. Took the pills after a fight.', why: 'The level at 4 hours or later decides treatment: here, N-acetylcysteine. Check aspirin and the liver too. A sitter for safety, then psychiatry.',
+    rx: { meds: ['nac'] }, rxn: 'N-acetylcysteine', ddx: ['Gastroenteritis', 'Salicylate overdose', 'Hepatitis'], must: true, dxp: 'Too much acetaminophen. It injures the liver days later',
+    pearl: 'They look **well** for the first day. The **4-hour level** decides treatment, not how they look.', pitfall: 'Always check an **aspirin level** too, and keep them safe: a sitter, then psychiatry.' },
+  { k: 'salod', sys: 'tox', cc: 'Ears ringing, breathing fast, took aspirin', dx: 'Salicylate overdose', esi: 1, anyRoom: true, src: 'e', age: [18, 60], wt: 0.5, wk: ['lab'], tr: ['fluids', 'meds'], con: 'icu', pre: ['lab'], dispo: 'icu',
+    need: { n: ['sal', 'vbg', 'bmp'], ok: ['apaplev', 'tox', 'gluc', 'coag'] }, res: { sal: 'Salicylate 82', vbg: 'pH 7.48, pCO2 24', bmp: 'Na 140, K 3.4, bicarbonate 12, anion gap 24' },
+    find: { lab: 'Salicylate 82, anion gap 24' }, plain: { 'Salicylate 82, anion gap 24': 'a very high aspirin level; the blood is turning acid' },
+    vc: { rr: 32, hr: 118, temp: 100.4 }, exam: 'Breathing deep and fast. Sweaty and confused. Ears ringing.', why: 'The level, a blood gas and chemistry. Sodium bicarbonate pushes it into the urine; fluids; dialysis when it’s this severe. Avoid intubating if you can.',
+    rx: { meds: ['bicarb', 'charcoal'] }, rxn: 'sodium bicarbonate', contra: ['succ', 'roc', 'propofol', 'etomidate'], ddx: ['DKA', 'Sepsis', 'Panic attack'], must: true, dxp: 'Too much aspirin. The blood turns acid',
+    pearl: 'Fast deep breathing, **ringing ears** and confusion: check a salicylate level.', pitfall: 'Their fast breathing is keeping them alive. **Intubation** can kill. If you must, match the breathing rate.' },
+  { k: 'tcaod', sys: 'tox', cc: 'Drowsy after an overdose, heart racing', dx: 'Tricyclic antidepressant overdose', lname: 'Tricyclic overdose', esi: 1, anyRoom: true, src: 'e', age: [18, 60], wt: 0.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'icu', pre: ['ecg'], dispo: 'icu',
+    need: { n: ['tox', 'bmp'], ok: ['apaplev', 'sal', 'vbg', 'gluc'] }, res: { tox: 'Ethanol 40; screen sent', bmp: 'Na 138, K 3.9, creatinine 1.0' },
+    find: { ecg: 'Sinus tachycardia 128, QRS 140 ms, tall R wave in aVR', lab: 'Ethanol 40; screen sent' }, plain: { 'Sinus tachycardia 128, QRS 140 ms, tall R wave in aVR': 'fast, wide beats: the heart’s wiring is poisoned', 'Ethanol 40; screen sent': 'a little alcohol; the drug screen is pending' },
+    vc: { hr: 128, sbp: 96, dbp: 58 }, exam: 'Drowsy, dry skin, big pupils, no bowel sounds.', why: 'The ECG decides: a QRS over 100 ms needs sodium bicarbonate now. Benzodiazepines for seizures.',
+    rx: { meds: ['bicarb'] }, rxn: 'sodium bicarbonate', contra: ['procain', 'amio'], ddx: ['Opioid overdose', 'Alcohol intoxication', 'Sepsis'], must: true, dxp: 'An antidepressant overdose that poisons the heart’s wiring',
+    pearl: 'Drowsy, dry, big pupils and a **wide QRS**: a sodium channel poison.', pitfall: '**Sodium bicarbonate** is the antidote. Class IA and III antiarrhythmics (procainamide, amiodarone) make it worse.' },
+  { k: 'hypogly', sys: 'endo', cc: 'Confused and sweaty, diabetic', dx: 'Hypoglycemia', esi: 2, src: 'e', age: [40, 85], wt: 1.1, wk: ['poc'], tr: ['meds'], dispo: 'obs',
+    need: { n: ['gluc'], ok: ['bmp', 'cbc'] }, res: { gluc: 'Glucose 34' }, find: { lab: 'Glucose 34' }, plain: { 'Glucose 34': 'blood sugar dangerously low' },
+    vc: { hr: 104 }, exam: 'Sweaty and confused, can’t follow commands. Takes glipizide.', why: 'Fingerstick first. Dextrose IV now (glucagon if there’s no IV), then food. On a sulfonylurea it comes back: watch overnight.',
+    rx: { meds: ['d50', 'glucagon'] }, rxn: 'dextrose', contra: ['insreg', 'insdrip'], ddx: ['Acute ischemic stroke', 'Alcohol intoxication', 'Sepsis'], dxp: 'Blood sugar too low for the brain',
+    pearl: 'Anyone confused, seizing or with stroke signs gets a **fingerstick** in the first minutes.', pitfall: 'On a **sulfonylurea** (glipizide), the low comes back for a day: watch them, don’t send them home.' },
+  { k: 'ptx', sys: 'resp', cc: 'Sudden chest pain and short of breath, tall and thin', dx: 'Spontaneous pneumothorax', esi: 2, src: 'w', age: [18, 35], sex: 'M', wt: 0.9, wk: ['xr'], tr: ['o2', 'ctube'], con: 'surg', pre: ['xr'], dispo: 'admit',
+    need: { n: ['cxr'], ok: ['vbg'] }, res: { cxr: ['The right lung edge sits 4 cm off the chest wall, no markings beyond it', null] },
+    find: { xr: 'The right lung edge sits 4 cm off the chest wall, no markings beyond it' }, plain: { 'The right lung edge sits 4 cm off the chest wall, no markings beyond it': 'air around the right lung' },
+    vc: { hr: 110, rr: 24, spo2: 93 }, exam: 'Fewer breath sounds on the right. Trachea in the middle.', why: 'The chest X-ray shows it. A large one needs a chest tube (or a small catheter) and oxygen.',
+    ddx: ['Pulmonary embolism', 'Pneumonia', 'Pericarditis'], dxp: 'Air leaked around the lung and it collapsed',
+    pearl: 'A tall, thin young man with sudden one-sided chest pain: **pneumothorax**.', pitfall: 'Low pressure, a shifted trachea or no breath sounds is **tension**: decompress now, don’t wait for the X-ray.' },
+  { k: 'necfasc', sys: 'infect', cc: 'Leg pain much worse than it looks, fever', dx: 'Necrotizing fasciitis', esi: 2, src: 'b', age: [35, 75], wt: 0.6, wk: ['lab'], tr: ['fluids', 'abx'], con: 'surg', pre: ['lab'], dispo: 'or',
+    need: { n: ['cbc', 'bmp', 'lact', 'bcx'], ok: ['ck', 'crp', 'extxr', 'coag'] }, res: { cbc: 'WBC 24.1, Hgb 12.2, platelets 190', bmp: 'Na 129, creatinine 1.8, glucose 260', lact: 'Lactate 3.8', bcx: 'Sent. Results in 1 to 2 days' },
+    find: { lab: 'WBC 24.1, sodium 129, lactate 3.8' }, plain: { 'WBC 24.1, sodium 129, lactate 3.8': 'a severe infection with shock starting' },
+    vc: { temp: 102.4, hr: 122, sbp: 98, dbp: 58 }, exam: 'Pain past the edge of the redness. Dusky skin that crackles when pressed.', why: 'Labs support it but can’t rule it out. Broad antibiotics (vancomycin, piperacillin-tazobactam, clindamycin), fluids, and surgery now.',
+    rx: { abx: ['vanc', 'piptazo', 'clinda', 'cefepime'] }, rxn: 'broad antibiotics', ddx: ['Cellulitis', 'Deep vein thrombosis', 'Gout'], must: true, dxp: 'A fast, flesh-eating infection. It needs surgery',
+    pearl: '**Pain out of proportion**, pain past the redness, crackling skin: it’s deeper than cellulitis.', pitfall: 'Imaging and scores can’t clear it. When you suspect it, **surgery** decides.' },
+  { k: 'sea', sys: 'neuro', cc: 'Back pain and fever, uses IV drugs', dx: 'Spinal epidural abscess', esi: 2, src: 'w', age: [30, 70], wt: 0.6, wk: ['lab', 'mri'], tr: ['abx'], con: 'nsurg', pre: ['mri'], ift: 'als', dispo: 'transfer', txTo: 'a neurosurgery center',
+    need: { n: ['mris', 'cbc', 'bcx', 'crp'], ok: ['bmp', 'lact', 'ua'] }, res: { mris: ['A rim-enhancing collection behind the cord, T10 to T12', null], cbc: 'WBC 14.6, Hgb 12.8, platelets 300', crp: 'ESR 88, CRP 21', bcx: 'Sent. Results in 1 to 2 days' },
+    find: { mri: 'A rim-enhancing collection behind the cord, T10 to T12', lab: 'ESR 88, CRP 21' }, plain: { 'A rim-enhancing collection behind the cord, T10 to T12': 'a pocket of pus pressing on the spinal cord', 'ESR 88, CRP 21': 'a lot of inflammation' },
+    vc: { temp: 101.2, hr: 104 }, exam: 'Tender over the middle of the back. Legs a little weak. Needle marks on the arms.', why: 'Fever, back pain and a risk factor: MRI of the whole spine, cultures, then vancomycin and ceftriaxone. Neurosurgery.',
+    rx: { abx: ['vanc', 'ctx', 'cefepime'] }, rxn: 'vancomycin and ceftriaxone', ddx: ['Muscle strain', 'Pyelonephritis', 'Cauda equina syndrome'], must: true, dxp: 'An infection pressing on the spinal cord',
+    pearl: 'Back pain with **fever** and a risk (IV drugs, diabetes, a recent procedure): MRI the spine.', pitfall: 'Weakness comes late. A high **ESR/CRP** with back pain should push you to the MRI before it does.' },
+].forEach(addCase);
+
 const OC = {
   hooks, get G() { return G; }, load(g) { G = g; }, newGame, step, botStep,
   LEVELS, STARS, STARS_MD, ZONES, ZONE_NAME, ROOMS, SPECS, WORK, TREAT, ALERTS, GOALS, SCEN, PACKS, CASES, LANGS,
@@ -4169,8 +4343,8 @@ const OC = {
   register, triage, toWaiting, sendUp, bookIFT, IFT, IFT_LV, HOSPS, CAP_NAME, UNITS, WX, HELP, con2Open, con2Wait, POC_RES, setDispo, awaitOrders, callHosp, giveReport, txInstead, helpCall, helpHere, txNeedOf, iftNeed, txFast, wxGrounded, wxOf, bedWait, emergent, DIVERTS, OUTAGES, outActive, justified,
   startOutage, sickEnough, looksSick, classCode, readCode, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
-  signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME, DRUGS, DRUG_CLASS, RXOK, drugFor, rxOk, ORDER_MENUS, PROC, DDX, MUST, dxPick, accuracy, litAdd, LIT_STEPS,
-  ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, CRASH, needsTx, strokeSetup, DX_PLAIN,
+  signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME, DRUGS, DRUG_CLASS, RXOK, drugFor, rxOk, ORDER_MENUS, PROC, DDX, MUST, dxPick, dxName, DXQ, NODX, accuracy, litAdd, LIT_STEPS,
+  LESSON_CASE, CONTRA, ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, CRASH, needsTx, strokeSetup, DX_PLAIN,
   crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k] && EV[k].fire) fireEv(k); }, eventKeys: () => Object.keys(EV), eventReady: k => !!(EV[k] && EV[k].fire && EV[k].w && EV[k].w() > 0),
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };

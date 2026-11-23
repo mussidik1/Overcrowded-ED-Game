@@ -110,7 +110,7 @@ def run():
         if J(f"!!OC.pt('{pid}').dxq"):
             open_pt(pid)
             ok('what’s the diagnosis?' in page.inner_text('#sheet').lower() and page.locator('#sheet [data-act="dxPick"]').count() == 4, 'results back: you pick the diagnosis from four')
-            dx = J(f"OC.pt('{pid}').dx")
+            dx = J(f"OC.dxName(OC.pt('{pid}').ck)")
             tap(f'#sheet [data-act="dxPick"][data-arg="{pid}|{dx}"]')
             ok(J(f"OC.pt('{pid}').dxK") and J('OC.G.stats.md.dxRight') == 1, 'the right diagnosis counts')
             ok('Accuracy' in page.inner_text('body') and 'Legal risk' in page.inner_text('body'), 'accuracy and legal risk show on the floor')

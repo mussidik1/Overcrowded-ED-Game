@@ -309,7 +309,7 @@ const LAST = new Map(), ARRIVE = new Map(), SVGNS = 'http://www.w3.org/2000/svg'
 let LASTKEY = null, LASTT = null;
 const NOMOTION = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
 const GATE = [476, 349], HALL_Y = 349;
-const CONS_LAB = { hosp: 'HM', cards: 'CA', neuro: 'NE', surg: 'GS', trauma: 'TS', ortho: 'OR', gi: 'GI', psych: 'PY', icu: 'CC' };
+const CONS_LAB = { hosp: 'HM', cards: 'CA', neuro: 'NE', surg: 'GS', trauma: 'TS', ortho: 'OR', gi: 'GI', psych: 'PY', icu: 'CC', vasc: 'VS', nsurg: 'NS', obgyn: 'OB', uro: 'UR' };
 const LIFT = [1086, 680];   // the elevators: consultants come down and go back up this way
 const PAD = [-337, 260], PAD_X0 = -470;   // v0.26: the helipad, across the road from the ambulance bay; the camera may pan left to it
 const BAY_IN = [[64, 190], [126, 200]];
