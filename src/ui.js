@@ -1936,7 +1936,7 @@ const LESSONS = {
     LESSONS['c_' + k] = { name: L.name, sys: L.sys, blurb: c.cc + '.', steps: [
       { id: k + '1', next: true, title: 'Who comes in', text: `The story: **${c.cc.toLowerCase()}**.\nThe exam: ${E.EXAM[k]}${c.vit ? `\nVitals: ${c.vit}.` : ''}` },
       { id: k + '2', next: true, title: 'Think of it', text: L.pearl },
-      { id: k + '3', next: true, title: 'The workup', text: `Order ${and((c.wk.includes('ecg') ? ['an ECG'] : []).concat(names(N.n)).map(x => `**${x}**`)) || 'nothing first: the exam decides'}.\n${E.ORD_WHY[k]}` },
+      { id: k + '3', next: true, title: 'The workup', text: `Order ${and((c.wk.includes('ecg') ? ['an ECG'] : []).concat(names(N.n)).map(x => `**${x}**`)) || '**nothing first**: the **exam** decides'}.\n${E.ORD_WHY[k]}` },
       { id: k + '4', next: true, title: 'Treat and decide', text: `${give ? `Give ${give}.` : ''}${acts.length ? ` Start: ${and(acts.map(x => `**${x}**`))}.` : ''}${c.con ? ` Call **${E.SPECS[c.con].name}**.` : ''} Then **${where}**.${contra.length ? `\nDon’t give: ${contra.join(', ')}.` : ''}` },
       { id: k + '5', final: true, title: `${L.name}: the short version`, text: `${L.pitfall}\nOn a shift, you’ll name it from the **exam and results**.` },
     ] };

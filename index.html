@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-khMsEBCxq+HZ1iAKoX9BLnGVqqooWtCCqxFhDDQivxA=' 'sha256-9OLEUDItSE4sCZGbUG5GbdzMDzqahMIhdVFaXRxCCnQ=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-khMsEBCxq+HZ1iAKoX9BLnGVqqooWtCCqxFhDDQivxA=' 'sha256-FhVmH4Yq6R5ixGbVXt8u5HrlqxPO5Ut38dG8BA/PNW0=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1B2230">
 <meta name="mobile-web-app-capable" content="yes">
@@ -7637,7 +7637,7 @@ const LESSONS = {
     LESSONS['c_' + k] = { name: L.name, sys: L.sys, blurb: c.cc + '.', steps: [
       { id: k + '1', next: true, title: 'Who comes in', text: `The story: **${c.cc.toLowerCase()}**.\nThe exam: ${E.EXAM[k]}${c.vit ? `\nVitals: ${c.vit}.` : ''}` },
       { id: k + '2', next: true, title: 'Think of it', text: L.pearl },
-      { id: k + '3', next: true, title: 'The workup', text: `Order ${and((c.wk.includes('ecg') ? ['an ECG'] : []).concat(names(N.n)).map(x => `**${x}**`)) || 'nothing first: the exam decides'}.\n${E.ORD_WHY[k]}` },
+      { id: k + '3', next: true, title: 'The workup', text: `Order ${and((c.wk.includes('ecg') ? ['an ECG'] : []).concat(names(N.n)).map(x => `**${x}**`)) || '**nothing first**: the **exam** decides'}.\n${E.ORD_WHY[k]}` },
       { id: k + '4', next: true, title: 'Treat and decide', text: `${give ? `Give ${give}.` : ''}${acts.length ? ` Start: ${and(acts.map(x => `**${x}**`))}.` : ''}${c.con ? ` Call **${E.SPECS[c.con].name}**.` : ''} Then **${where}**.${contra.length ? `\nDon’t give: ${contra.join(', ')}.` : ''}` },
       { id: k + '5', final: true, title: `${L.name}: the short version`, text: `${L.pitfall}\nOn a shift, you’ll name it from the **exam and results**.` },
     ] };
