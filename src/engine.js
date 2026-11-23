@@ -268,7 +268,7 @@ function detResult(p, id) {
 /* What the case needs, in named tests: the attending's game. */
 /* v0.29.1: a woman who could be pregnant gets a pregnancy test before a CT, some drugs, or a decision that pregnancy changes:
    required in these cases for women 12 to 55, not just allowed. */
-const HCG_CASES = new Set(['appy', 'chole', 'gastro', 'stone', 'pe', 'sbo', 'syncope', 'synchigh', 'uti']);
+const HCG_CASES = new Set(['appy', 'chole', 'gastro', 'stone', 'pe', 'mpe', 'sbo', 'syncope', 'uti', 'od', 'apapod', 'salod', 'tcaod', 'dka', 'mesisch', 'dissect']);
 const hcgDue = p => !!(p && p.sex === 'F' && p.age >= 12 && p.age <= 55 && HCG_CASES.has(p.ck));
 function needOf(p) {
   const N = NEED[p.ck], c = CASES.find(x => x.k === p.ck) || {};
@@ -419,7 +419,9 @@ const CONTRA = { gib: ['@bleed'], tfall: ['@bleed'], mvc: ['@bleed'], mcired: ['
   stroke: ['heparin', 'enox'], strokew: ['heparin', 'enox'], lvo: ['heparin', 'enox'], anaph: ['epiarr'], asthma: ['metop'], copd: ['metop'], dka: ['d50'], chb: ['metop', 'dilt'], od: ['loraz'], shock: ['labet', 'nicard', 'metop', 'furo'], sepsisw: ['furo', 'labet'] };
 // v0.29.1: CONTRA_IF[case][drug] says when a listed drug is contraindicated. Tenecteplase in PE: only when the pressure holds (SBP 90
 // or more). A clot that drops the pressure is massive PE, and the clot buster is the treatment. Unknown vitals count as contraindicated.
-const CONTRA_IF = { pe: { tnk: p => { try { return vitalsOf(p).sbp >= 90; } catch (e) { return true; } } } };
+const CONTRA_IF = { pe: { tnk: p => { const v = p.id && G ? vRaw(p, G.t).v : null; return !(v && v.sbp < 90); } } };   // the underlying pressure, not the five-minute wobble; unknown counts as contraindicated
+// When a listed contraindication doesn't apply (an unstable PE), the treatment is the right call, not an extra.
+const treatOkNow = (p, k) => Object.entries(CONTRA_IF[p.ck] || {}).some(([d, f]) => DRUGS[d] && DRUGS[d].tx.includes(k) && !f(p));
 const contraOf = p => (CONTRA[p.ck] || []).flatMap(d => (d === '@bleed' ? BLEED_RISK : [d])).filter(d => { const f = (CONTRA_IF[p.ck] || {})[d]; return !f || !p.id || f(p); });
 const DRUG_DEF = { fluids: 'ns', nebs: 'albut', epi: 'epiim', nalox: 'nalox', insulin: 'insdrip', tnk: 'tnk', bp: 'labet', pressor: 'norepi', reverse: 'pcc', abx: 'ctx', pace: 'atropine' };
 // v0.29.1: some treatments need more than one drug (aspirin AND heparin). RXREQ[case][tx] lists groups: one drug from every group.
@@ -428,13 +430,15 @@ const RXREQ = { stemi: { meds: [['asa'], ['heparin', 'enox']] }, nstemi: { meds:
 const ALSO = { dka: ['kcl'] };   // v0.29.1: potassium in DKA (K 4.8) is reasonable, not required
 // v0.29.1: drugs that are never wrong to give, unless this patient has a reason not to (CONTRA): nausea, and fever or pain.
 const NEVER_WRONG = new Set(['ondan', 'apap']);
-// v0.29.1: in these classes a same-class drug that gives the needed treatment works. It's "not the first choice": it doesn't fill
-// the order and isn't scored as wrong. Other classes (antibiotics, heart, clots, antidotes) are specific: the wrong one is wrong.
-const SAME_CLASS_OK = new Set(['analg', 'emet', 'allergy', 'resp', 'fluid', 'neuro']);
+// v0.29.1: drugs that do the same job in the same way. When a case's right drug is in one of these groups, another drug from the
+// same group "works, but isn't the first choice": it doesn't fill the order and isn't scored as wrong. The groups are narrow on
+// purpose (opioids, not "pain"; benzodiazepines, not "neuro"): a drug from a different group is still wrong.
+const SAME_CLASS_OK = [['morph', 'fent', 'hydro'], ['ketor', 'ibu'], ['ondan', 'reglan', 'prochlor'], ['methylpred', 'pred', 'dexa'],
+  ['loraz', 'midaz'], ['levet', 'fosphen'], ['albut', 'duoneb'], ['ns', 'lr']];
 function sameClassAlt(p, k, t) {
-  const D = DRUGS[k]; if (!D || !SAME_CLASS_OK.has(D.c)) return false;
+  const grp = SAME_CLASS_OK.find(g => g.includes(k)); if (!grp) return false;
   const right = ((RXOK[p.ck] || {})[t] || []).concat(...((RXREQ[p.ck] || {})[t] || []));
-  return right.some(r => DRUGS[r] && DRUGS[r].c === D.c && r !== k);
+  return right.some(r => r !== k && grp.includes(r));
 }
 // Drugs that make bleeding worse, as one class for the harm lists.
 const BLEED_RISK = ['heparin', 'enox', 'apixa', 'tnk', 'asa', 'ketor', 'ibu'];
@@ -676,11 +680,11 @@ const SCEN = {
     // v0.28: calls that ask for a dose or an order. Multiple choice: opts, with r the right one.
     { q: '45-year-old male, about 80 kg, seizing for 8 minutes. No IV yet. Requesting midazolam. What dose?', opts: ['10 mg IM', '5 mg IM', '2 mg IM', '20 mg IM'], r: 0, why: 'Over 40 kg, midazolam 10 mg IM stops status seizures as well as IV drugs, and faster when there’s no line (the RAMPART trial).', plain: 'A man has been seizing for 8 minutes. They ask how much of the seizure drug to give.', pwhy: '10 mg in the muscle: the full adult dose works without an IV.' },
     { q: '5-year-old, about 20 kg, seizing for 6 minutes. No IV. Requesting intranasal midazolam. What dose?', opts: ['4 mg intranasal', '2 mg intranasal', '8 mg intranasal', '10 mg intranasal'], r: 0, why: 'Intranasal midazolam is 0.2 mg/kg, here 4 mg, split between the nostrils. Seizures past 5 minutes get treated.', plain: 'A child is seizing. They ask how much of the drug to give in the nose.', pwhy: '0.2 mg per kg: 4 mg for a 20 kg child.' },
-    { q: '30-year-old female, bee sting, lips swelling, BP 78/40. She got 0.5 mg epinephrine IM 5 minutes ago. Still hypotensive. What next?', opts: ['Repeat epinephrine 0.5 mg IM (1 mg/mL)', 'Epinephrine 0.5 mg IV push (1 mg/mL)', 'Diphenhydramine 50 mg IV and a fluid bolus', 'Methylprednisolone 125 mg IV, then reassess'], r: 0, why: 'Anaphylaxis that isn’t better gets another 0.5 mg IM every 5 to 15 minutes, with fluids. A 1 mg IV push of 1 mg/mL epinephrine in someone with a pulse causes arrhythmias and strokes.', plain: 'Severe allergy, still low pressure after one shot. They ask what to do next.', pwhy: 'Another shot in the thigh. Never push the arrest dose into a vein when there’s a pulse.' },
+    { q: '30-year-old female, bee sting, lips swelling, BP 78/40. She got 0.5 mg epinephrine IM 5 minutes ago. Still hypotensive. What next?', opts: ['Repeat epinephrine 0.5 mg IM (1 mg/mL)', 'Epinephrine 0.5 mg IV push (1 mg/mL)', 'Diphenhydramine 50 mg IV and a fluid bolus', 'Methylprednisolone 125 mg IV, then reassess'], r: 0, why: 'Anaphylaxis that isn’t better gets another 0.5 mg IM every 5 to 15 minutes, with fluids. An IV push of 1 mg/mL (arrest-strength) epinephrine in someone with a pulse causes arrhythmias and strokes.', plain: 'Severe allergy, still low pressure after one shot. They ask what to do next.', pwhy: 'Another shot in the thigh. Never push the arrest dose into a vein when there’s a pulse.' },
     { q: '28-year-old female, narrow regular tachycardia at 190. BP 118/74, talking. Vagal maneuvers failed. Requesting adenosine. What dose?', opts: ['6 mg rapid IV push with a flush', '6 mg slow IV push over 2 minutes', '12 mg slow IV push over 2 minutes', '1 mg rapid IV push with a flush'], r: 0, why: 'Adenosine lasts seconds: 6 mg pushed fast through a big IV close to the heart, flushed right away. 12 mg is the second dose, also fast.', plain: 'A fast, steady heart rhythm in a stable patient. They ask how much adenosine to give.', pwhy: '6 mg, pushed fast with a flush.' },
     { q: '72-year-old male, heart rate 34, BP 70/40, dizzy and pale. Requesting atropine. What dose?', opts: ['1 mg IV, repeat every 3 to 5 minutes up to 3 mg', '0.2 mg IV, repeat every 3 to 5 minutes', '3 mg IV at once', '1 mg IV every minute until the rate is over 60'], r: 0, why: 'Symptomatic bradycardia: atropine 1 mg IV every 3 to 5 minutes, up to 3 mg. If it fails, pace or start a drip.', plain: 'A very slow heart and low pressure. They ask how much atropine to give.', pwhy: '1 mg, repeated up to 3 mg. Too little can slow the heart more.' },
     { q: '60-year-old male, wide regular tachycardia at 180 with a pulse. BP 72/40, confused. What do you order?', opts: ['Synchronized cardioversion', 'Unsynchronized defibrillation', 'Adenosine 6 mg rapid IV push', 'Amiodarone 150 mg IV over 10 minutes'], r: 0, why: 'Unstable VT with a pulse gets synchronized cardioversion now. Unsynchronized shocks are for no pulse. Drugs are for stable patients.', plain: 'A fast, dangerous rhythm with a pulse and signs of shock. They ask what to do.', pwhy: 'Shock it, timed to the heartbeat: synchronized cardioversion.' },
-    { q: '55-year-old diabetic, unresponsive, glucose 38. IV in place. What do you order?', opts: ['Dextrose 25 g IV', 'Glucagon 1 mg IM', 'Oral glucose 15 g', 'Dextrose 5 g IV'], r: 0, why: 'With an IV, dextrose (25 g, as D10 or D50) works in minutes. Glucagon is for no IV. Nothing by mouth in someone who can’t protect the airway. 5 g is a tenth of the dose.', plain: 'Very low sugar, unresponsive, IV in. They ask what to give.', pwhy: 'Sugar into the vein. Nothing by mouth when they can’t swallow.' },
+    { q: '55-year-old diabetic, unresponsive, glucose 38. IV in place. What do you order?', opts: ['Dextrose 25 g IV', 'Glucagon 1 mg IM', 'Oral glucose 15 g', 'Dextrose 5 g IV'], r: 0, why: 'With an IV, dextrose (25 g, as D10 or D50) works in minutes. Glucagon is for no IV. Nothing by mouth in someone who can’t protect the airway. 5 g is a fifth of the dose.', plain: 'Very low sugar, unresponsive, IV in. They ask what to give.', pwhy: 'Sugar into the vein. Nothing by mouth when they can’t swallow.' },
     { q: '24-year-old male, pinpoint pupils, breathing 4 a minute, we’re bagging him. Requesting naloxone. What dose?', opts: ['0.4 to 2 mg IV or IN, titrated to breathing', '2 mg IV every 2 minutes until he’s awake', '0.04 mg IV once', 'Naloxone 2 mg IV, then stop bagging'], r: 0, why: 'Titrate naloxone to breathing, not to waking up. Small doses avoid sudden, violent withdrawal. Keep bagging until he breathes on his own.', plain: 'Opioid overdose, barely breathing. They ask how much naloxone to give.', pwhy: 'Small doses, repeated, until they breathe.' },
     { q: '35-year-old male, about 80 kg, deformed femur after a fall. BP 132/80. Requesting fentanyl. What dose?', opts: ['1 mcg/kg IV: about 80 mcg', '3 mcg/kg IV: about 250 mcg', '0.1 mcg/kg IV: about 8 mcg', '1 mg/kg IV: about 80 mg'], r: 0, why: 'Fentanyl 1 mcg/kg IV, repeated as needed, controls fracture pain safely. Watch the units: micrograms, not milligrams.', plain: 'A broken thigh bone, stable. They ask how much fentanyl to give.', pwhy: '1 microgram per kilogram: about 80 for him.' },
     { q: 'Stabbed in the right chest. No breath sounds on the right, trachea shifted left, BP 70/30. What do you order?', opts: ['Needle decompression of the right chest', 'Needle decompression of the left chest', 'High-flow oxygen and a fast transport', 'CPAP'], r: 0, why: 'Tension pneumothorax is a clinical diagnosis. Decompress now: it kills before an X-ray can be taken. CPAP makes it worse.', plain: 'A collapsed lung under pressure, shock. They ask what to do.', pwhy: 'Let the air out with a needle, now.' }
@@ -1776,7 +1780,7 @@ function signOrders(pid, tests, treats) {
     if (!DRUGS[k]) { tk.push(k); continue; }
     if (p.drugs.includes(k)) continue;
     p.drugs.push(k);
-    if (contraOf(p).includes(k)) contraX.push(k);
+    if (contraOf(p).includes(k)) { contraX.push(k); continue; }   // v0.29.1: harm, counted once (not also a wrong drug and an extra)
     const D = DRUGS[k];
     { const t = D.tx.find(t => reqOf(p, t) && R.tr.includes(t) && reqOf(p, t).some(g => g.includes(k)));   // one part of a combination
       if (t) { const g = reqOf(p, t), i = g.findIndex(x => x.includes(k)); p.rxg = p.rxg || {}; const got = p.rxg[t] = p.rxg[t] || []; if (!got.includes(i)) got.push(i);
@@ -1787,16 +1791,15 @@ function signOrders(pid, tests, treats) {
     const wrong = D.tx.find(t => R.tr.includes(t) && !rxOk(p, t, k));
     const fine = D.tx.find(t => (R.tr.includes(t) && rxOk(p, t, k)) || ((R.ok || []).includes(t) && ((RXOK[p.ck] || {})[t] || []).includes(k)));
     if (fine) { drugOk.push(D.n); continue; }
-    if (!contraOf(p).includes(k)) {   // v0.29.1: standard care is not scored as wrong
-      if (NEVER_WRONG.has(k)) { drugOk.push(D.n); continue; }
-      if (wrong && sameClassAlt(p, k, wrong)) { drugOk.push(D.n + ' (works, but not the first choice)'); G.stats.md.altDrug = (G.stats.md.altDrug || 0) + 1; continue; }
-    }
+    // v0.29.1: standard care is not scored as wrong (contraindicated drugs never get here)
+    if (NEVER_WRONG.has(k)) { drugOk.push(D.n); continue; }
+    if (wrong && sameClassAlt(p, k, wrong)) { drugOk.push(D.n + ' (works, but not the first choice)'); G.stats.md.altDrug = (G.stats.md.altDrug || 0) + 1; continue; }
     if (wrong) { drugX.push(D.n + ' (wrong drug)'); G.stats.md.wrongDrug = (G.stats.md.wrongDrug || 0) + 1; continue; }
     if ((R.ok || []).includes(D.tx[0])) { drugX.push(D.n); continue; }   // a reasonable treatment, but not with this drug
     tk.push(D.tx[0]); if (TREAT[D.tx[0]] && p.tr.includes(D.tx[0])) drugX.push(D.n);
   }
   const newR = Array.from(new Set(tk)).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
-  if (!newT.length && !newR.length && !drugX.length && !drugOk.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
+  if (!newT.length && !newR.length && !drugX.length && !drugOk.length && !contraX.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
   let pts = 0, extra = 0;
   const xl = [], fl = [], OKL = R.ok || [], OKD = R.detOk || [];   // fl: reasonable orders. Not required, not counted against you.
   for (const nm of drugX) { pts -= 3; extra++; S.ordExtra++; xl.push(nm); }
@@ -1819,6 +1822,7 @@ function signOrders(pid, tests, treats) {
     if (k === 'intub' && !p.tr.includes('vent')) p.tr.push('vent');
     if (R.tr.includes(k)) { pts += 3; S.ordRight++; }
     else if (k === 'o2' && vitalsOf(p).spo2 < 94) { /* a low sat gets oxygen: never wrong, even when something else will fix it */ }
+    else if (treatOkNow(p, k)) { fl.push(trName(p, k)); }   // v0.29.1: tenecteplase for a PE whose pressure has fallen
     else if (OKL.includes(k)) { fl.push(trName(p, k)); }
     else { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); (p.extraTr = p.extraTr || []).push(k); if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
   }
@@ -2778,7 +2782,7 @@ function flowTick() {
       if (s && isProv(s) && present(s) && !s.pit) { p.re = 'q'; addTask(s, { type: 'reassess', pid: p.id, dur: 3 * langMul(p), label: 'Recheck' }); }
       else { p.re = 'need'; p.prov = null; p.tNeed = G.t; }
     }
-    if (p.treat.tnk && p.treat.tnk.st === 'wait' && p.consult.st === 'here' && p.work.ct && p.work.ct.st === 'done' && bpOkForLytic(p)) openGate(p.treat.tnk, 'tnk');
+    if (p.treat.tnk && p.treat.tnk.st === 'wait' && p.consult.st === 'here' && (w => w && w.st === 'done')(p.work[p.ck === 'mpe' ? 'us' : 'ct']) && bpOkForLytic(p)) openGate(p.treat.tnk, 'tnk');   // v0.29.1: massive PE goes on the bedside ultrasound
     if (p.treat.blood && p.treat.blood.st === 'wait' && p.bb && p.bb.st === 'ready') openGate(p.treat.blood, 'blood');
     if (p.treat.mtp && p.treat.mtp.st === 'wait' && p.bb && p.bb.st === 'here') openGate(p.treat.mtp, 'mtp');
     if (p.cosign === 'wait') needCosign(p);
@@ -4263,6 +4267,8 @@ IMGS.ctaorta = { n: 'CT angiogram, aorta', m: 'ct', p: 'The aorta from chest to 
 IMGS.ctaabd = { n: 'CT angiogram, abdomen', m: 'ct', p: 'The arteries to the bowel and kidneys' };
 LABS.bscan = { n: 'Bladder scan', g: 'Bedside (point of care)', p: 'Urine left in the bladder', poc: true };
 LAB_NORMAL.bscan = 'About 40 mL left after voiding';
+IMGS.echo = { n: 'Bedside heart ultrasound', m: 'us', p: 'How the heart squeezes; a strained right side' };
+IMG_NORMAL.echo = ['Normal squeeze, normal right side, no fluid around the heart', null];
 IMG_NORMAL.scrotus = ['Normal flow to both testicles', null]; IMG_NORMAL.aous = ['Aorta 1.9 cm, normal', null]; IMG_NORMAL.ctaorta = ['Normal aorta', null]; IMG_NORMAL.ctaabd = ['Arteries to the bowel open', null];
 Object.assign(SPECS, {
   cts: { name: 'Cardiothoracic Surgery', what: 'The heart and the aorta in the chest. Not at this hospital: by phone', short: 'CT Surg', phone: true, doc: 'Dr. Rahimi', mad: x => `Is ${x} back? I need the images.` },
@@ -4296,14 +4302,14 @@ RXOK.dka = Object.assign({}, RXOK.dka, { insulin: ['insdrip'] });
     rx: { meds: ['heparin', 'enox'] }, rxn: 'heparin', contra: ['tnk'], ddx: ['Pneumonia', 'Pneumothorax', 'NSTEMI'], must: true, dxp: 'A blood clot in the arteries of the lungs',
     pearl: 'Clear lungs, a fast heart and low oxygen with a swollen leg is a **clot** until proven otherwise.', pitfall: 'A **D-dimer** only helps when the risk is low. With a high risk, go straight to the **CT angiogram**.' },
   // v0.29.1: the clot that drops the pressure. Here tenecteplase is required, not contraindicated.
-  { k: 'mpe', sys: 'cardio', cc: 'Passed out, short of breath, gray', dx: 'Massive pulmonary embolism', lname: 'Massive PE', esi: 1, src: 'e', age: [35, 80], wt: 0.5, wk: ['ecg', 'lab', 'ct'], tr: ['o2', 'tnk'], con: 'icu', pre: ['ct'], dispo: 'icu', vit: 'HR 132, BP 78/48, SpO2 86%',
-    need: { n: ['ctpe', 'trop', 'bmp'], ok: ['cbc', 'bnp', 'cxr', 'coag', 'lact', 'hcg', 'ts'] }, res: { ctpe: ['A saddle clot across both main lung arteries; the right heart is enlarged', null], trop: 'Troponin 0.31, high', bmp: 'Na 137, K 4.3, creatinine 1.2' },
-    find: { ecg: 'Sinus tachycardia 132, new right bundle branch block', lab: 'Troponin 0.31, high', ct: 'A saddle clot across both main lung arteries; the right heart is enlarged' },
-    plain: { 'Sinus tachycardia 132, new right bundle branch block': 'a fast heart; the right side is straining', 'Troponin 0.31, high': 'the heart muscle is being damaged', 'A saddle clot across both main lung arteries; the right heart is enlarged': 'a big clot blocking both lungs; the right heart is failing' },
+  { k: 'mpe', sys: 'cardio', cc: 'Passed out, short of breath, gray', dx: 'Massive pulmonary embolism', lname: 'Massive PE', esi: 1, src: 'e', age: [35, 80], wt: 0.5, wk: ['ecg', 'lab', 'us'], tr: ['o2', 'tnk'], con: 'icu', pre: ['us'], dispo: 'icu', vit: 'HR 132, BP 78/48, SpO2 86%',
+    need: { n: ['echo', 'trop', 'bmp'], ok: ['cbc', 'bnp', 'cxr', 'coag', 'lact', 'hcg', 'ts', 'duplex'] }, res: { echo: ['Right ventricle large and barely squeezing; the left side small and fast; no fluid around the heart', null], trop: 'Troponin 0.31, high', bmp: 'Na 137, K 4.3, creatinine 1.2' },
+    find: { ecg: 'Sinus tachycardia 132, new right bundle branch block', lab: 'Troponin 0.31, high', us: 'Right ventricle large and barely squeezing; the left side small and fast; no fluid around the heart' },
+    plain: { 'Sinus tachycardia 132, new right bundle branch block': 'a fast heart; the right side is straining', 'Troponin 0.31, high': 'the heart muscle is being damaged', 'Right ventricle large and barely squeezing; the left side small and fast; no fluid around the heart': 'the right side of the heart is failing against a blocked lung; no fluid squeezing the heart' },
     vc: { hr: 132, sbp: 78, dbp: 48, rr: 30, spo2: 86 }, exam: 'Gray and sweaty. Neck veins full. Clear lungs. The left leg is swollen.',
-    why: 'A CT angiogram finds a clot big enough to strain the right heart, with a pressure under 90. That is massive PE: the clot buster (tenecteplase) now, and oxygen. ICU.',
+    why: 'Too unstable for the scanner. A bedside heart ultrasound shows a failing right heart with a pressure under 90: that is massive PE. The clot buster (tenecteplase) now, and oxygen. ICU.',
     rx: { tnk: ['tnk'] }, also: ['heparin', 'enox', 'norepi', 'pushepi', 'ns', 'lr'], rxn: 'tenecteplase', ddx: ['Septic shock', 'STEMI', 'Cardiac tamponade'], must: true, dxp: 'A clot big enough to block the lungs and fail the heart',
-    pearl: 'A clot with a pressure under **90** is massive PE: the **clot buster** is the treatment.', pitfall: 'In a **stable** PE the clot buster does more harm than good. The **low pressure** changes the answer.' },
+    pearl: 'A clot with a pressure under **90** is massive PE: the **clot buster** is the treatment.', pitfall: 'Don’t send a pressure of 78 to the **CT scanner**: the **bedside ultrasound** makes the call. In a stable PE the clot buster does more harm than good.' },
   { k: 'dissect', sys: 'cardio', cc: 'Tearing chest pain into the back', dx: 'Aortic dissection', esi: 1, src: 'e', age: [50, 85], wt: 0.7, wk: ['ecg', 'lab', 'ct'], tr: ['bp', 'meds'], con: 'cts', pre: ['ct'], ift: 'cct', dispo: 'transfer', txTo: 'a hospital with cardiac surgery', vit: 'Pressure much higher in the right arm',
     need: { n: ['ctaorta', 'trop', 'ts'], ok: ['cbc', 'bmp', 'cxr', 'coag'] }, res: { ctaorta: ['A flap inside the ascending aorta, running to the arch', null], trop: 'Troponin below the cutoff', ts: 'A positive, antibody screen negative' },
     find: { ecg: 'Sinus rhythm, left ventricular hypertrophy', lab: 'Troponin below the cutoff', ct: 'A flap inside the ascending aorta, running to the arch' },
@@ -4445,6 +4451,8 @@ function lintCases() {
   for (const [k, T] of Object.entries(CONTRA_IF)) for (const d of Object.keys(T)) if (!(CONTRA[k] || []).includes(d)) bad.push(`CONTRA_IF ${k}: ${d} isn't in CONTRA`);
   for (const k of HCG_CASES) if (!CASES.some(c => c.k === k)) bad.push(`HCG_CASES: no case ${k}`);
   for (const d of NEVER_WRONG) drug(d, 'NEVER_WRONG');
+  for (const g of SAME_CLASS_OK) for (const d of g) drug(d, 'SAME_CLASS_OK');
+  for (const [k, T] of Object.entries(REQ_AGE)) for (const tx of Object.keys(T)) { if (!(RXREQ[k] || {})[tx]) bad.push(`REQ_AGE ${k}: ${tx} has no RXREQ group to add to`); for (const d of T[tx].add) drug(d, 'REQ_AGE ' + k); }
   if (bad.length) throw new Error('Case data problems:\n' + bad.join('\n'));
 }
 lintCases();

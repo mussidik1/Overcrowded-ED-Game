@@ -16,7 +16,7 @@ Live at https://edcodeblack.com (CNAME; GitHub Pages serves the repo root). That
 ## Branches and releases
 
 - Work happens on `3d`. It is merged into `main` with `--no-ff`, and `main` deploys to Pages. (A Claude session may be told to use a different branch; follow that.)
-- A release: bump `package.json` `version`, append the old version to `PAST_V` in `ui.js` (so its class codes read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
+- A release: bump `package.json` `version`, set `PAST_V` in `ui.js` to the version being replaced (one entry only: each entry makes typos more likely to read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
 - WebKit CI results: `git fetch origin ci-results && git show FETCH_HEAD:webkit.txt`.
 
 ## Working with the owner

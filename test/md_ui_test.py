@@ -106,7 +106,8 @@ def run():
 
         # ---------- name the diagnosis (v0.28) ----------
         sim(240, f"(() => {{ const p = OC.pt('{pid}'); return !!p.dxq || p.dsp === 'mddecide' || p.dsp === 'decide' || !!p.mdPick || p.loc === 'gone'; }})()")
-        ok(J(f"!!OC.pt('{pid}').dxq || OC.pt('{pid}').loc === 'gone' || !!OC.pt('{pid}').arrest"), 'results back: the diagnosis question is open')
+        # a field-activated alert (stroke, STEMI, trauma) arrives with its diagnosis known: no question to ask
+        ok(J(f"(() => {{ const p = OC.pt('{pid}'); return !!p.dxq || p.loc === 'gone' || !!p.arrest || (!!p.alertOn && !!p.dxK); }})()"), 'results back: the diagnosis question is open (or an alert arrived diagnosed)')
         if J(f"!!OC.pt('{pid}').dxq"):
             open_pt(pid)
             ok('what’s the diagnosis?' in page.inner_text('#sheet').lower() and page.locator('#sheet [data-act="dxPick"]').count() == 4, 'results back: you pick the diagnosis from four')

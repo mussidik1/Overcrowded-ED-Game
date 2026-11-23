@@ -80,7 +80,9 @@ with sync_playwright() as pw:
     ok('Sent to class' in page.locator('#report .cb-send').inner_text(), 'and says it went')
     page.screenshot(path=os.path.join(os.path.dirname(__file__), 'shots', 'class-report.png'))
     rows = [{'name': 'Sam R', 'role': 'rn', 'level': 'rush', 'score': 312, 'stars': 2, 'real_sec': 330, 'stats': {'wait': 14, 'lwbs': 1}, 'created_at': '2026-11-18T22:00:00Z'},
-            {'name': 'Ana', 'role': 'rn', 'level': 'rush', 'score': 120, 'stars': 1, 'real_sec': 290, 'stats': {'wait': 31, 'lwbs': 3}, 'created_at': '2026-11-18T22:01:00Z'}]
+            {'name': 'Ana', 'role': 'rn', 'level': 'rush', 'score': 120, 'stars': 1, 'real_sec': 290, 'stats': {'wait': 31, 'lwbs': 3}, 'created_at': '2026-11-18T22:01:00Z'},
+            # v0.29.1: a hostile row. Anyone with the public key can write one; nothing in it may run or become markup.
+            {'name': '<img src=x onerror="window.__xss=1">', 'role': 'rn', 'level': 'rush', 'score': '<img src=x onerror="window.__xss=2">', 'stars': '<b>9</b>', 'real_sec': 'x', 'stats': {'wait': '<svg onload="window.__xss=3">', 'lwbs': '<i>1</i>'}, 'ver': '<img src=x onerror="window.__xss=4">', 'created_at': '2026-11-18T22:02:00Z'}]
     asked = []
     def on_rpc(route):
         asked.append(_json.loads(route.request.post_data or '{}')); route.fulfill(status=200, content_type='application/json', body=_json.dumps(rows))
@@ -94,7 +96,10 @@ with sync_playwright() as pw:
     page.locator('[data-act="classCode"]').first.tap(); page.wait_for_timeout(400)
     page.locator('#sheet input.cb-code').fill(code.lower().replace('-', '')); page.locator('#sheet [data-act="cbShow"]').tap(); page.wait_for_timeout(600)
     tab = page.locator('#sheet .cb-tab')
-    ok(asked and asked[0].get('p_code') == code and tab.count() == 1 and tab.locator('tr').count() == 3 and 'Sam R' in tab.inner_text() and '312' in tab.inner_text(), f'Class results lists what was sent for the code, best first ({asked})')
+    ok(asked and asked[0].get('p_code') == code and tab.count() == 1 and tab.locator('tr').count() == 4 and 'Sam R' in tab.inner_text() and '312' in tab.inner_text(), f'Class results lists what was sent for the code, best first ({asked})')
+    page.wait_for_timeout(300)
+    ok(J('window.__xss') is None and tab.locator('img, svg, b, i').count() == 0, 'a hostile result row shows as text: nothing in it runs or becomes markup')
+    ok(s0.get('ver') == J('document.querySelector("#sheet") && null') or isinstance(s0.get('ver'), str) and len(s0.get('ver')) >= 5, f"the result carries the game version ({s0.get('ver')})")
     page.screenshot(path=os.path.join(os.path.dirname(__file__), 'shots', 'class-results.png'))
 
     b.close()

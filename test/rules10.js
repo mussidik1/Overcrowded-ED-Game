@@ -51,6 +51,9 @@ p = mine('pe');
 assert(OC.contraOf(p).includes('tnk'), 'a stable PE: the clot buster is contraindicated');
 OC.crashNow(p.id); for (let i = 0; i < 300 && OC.vitalsOf(p).sbp >= 90; i++) OC.step(0.1);
 assert(OC.vitalsOf(p).sbp < 90 && !OC.contraOf(p).includes('tnk'), `a PE whose pressure falls under 90: it is not (SBP ${Math.round(OC.vitalsOf(p).sbp)})`);
+{ const x0 = OC.G.stats.md.ordExtra || 0, h0 = OC.G.stats.md.harm || 0; OC.signOrders(p.id, [], ['tnk']);
+  assert((OC.G.stats.md.ordExtra || 0) === x0 && (OC.G.stats.md.harm || 0) === h0 && p.tr.includes('tnk'), 'and ordering it then is neither harm nor an extra'); }
+assert(OC.CONTRA_IF.pe.tnk({ ck: 'pe' }), 'with no patient to read, tenecteplase counts as contraindicated');
 p = mine('mpe');
 assert(p.right.tr.includes('tnk') && !OC.contraOf(p).includes('tnk'), 'massive PE: tenecteplase is required');
 
@@ -71,9 +74,9 @@ assert((OC.G.stats.md.ordExtra || 0) === x0 && (OC.G.stats.md.wrongDrug || 0) ==
 p = mine('apapod'); const h0 = OC.G.stats.md.harm || 0;
 OC.signOrders(p.id, [], ['apap']);
 assert((OC.G.stats.md.harm || 0) > h0, 'except in an acetaminophen overdose: there it is harm');
-p = mine('hipfx'); w0 = OC.G.stats.md.wrongDrug || 0;
-OC.signOrders(p.id, ['cbc'], ['ketamine'].filter(d => OC.DRUGS[d]).concat(['ketor']).slice(-1));
-assert((OC.G.stats.md.wrongDrug || 0) === w0 && !p.tr.includes('meds'), 'a same-class pain drug works but is not the first choice: not wrong, and the order still needs the right one');
+p = mine('burn'); w0 = OC.G.stats.md.wrongDrug || 0;
+OC.signOrders(p.id, ['cbc'], ['hydro']);
+assert((OC.G.stats.md.wrongDrug || 0) === w0 && !p.tr.includes('meds'), 'burns: hydromorphone (another opioid) works but is not the first choice: not wrong, and the order still needs the right one');
 p = mine('pna'); w0 = OC.G.stats.md.wrongDrug || 0;
 OC.signOrders(p.id, ['cbc'], ['metro']);
 assert((OC.G.stats.md.wrongDrug || 0) === w0 + 1 && !p.tr.includes('abx'), 'antibiotics are specific: metronidazole for pneumonia is still the wrong drug');
@@ -107,4 +110,20 @@ OC.setCodeVersion('', []);
   assert(/unknown specialist nobody/.test(msg) && /unknown treatment nothing/.test(msg), 'the load-time check names a case that points at something missing');
   let clean = true; try { OC.lintCases(); } catch (e) { clean = false; }
   assert(clean, 'and every real case passes it');
+}
+
+// same-class means the same job in the same way: wrong drugs from a broad menu class are still wrong
+{
+  let p = mine('status'); let w0 = OC.G.stats.md.wrongDrug || 0;
+  OC.signOrders(p.id, ['gluc'], ['halo']);
+  assert((OC.G.stats.md.wrongDrug || 0) === w0 + 1, 'status epilepticus: haloperidol is the wrong drug');
+  p = mine('status'); w0 = OC.G.stats.md.wrongDrug || 0;
+  OC.signOrders(p.id, ['gluc'], ['mannitol']);
+  assert((OC.G.stats.md.wrongDrug || 0) === w0 + 1, 'status epilepticus: mannitol is the wrong drug');
+  p = mine('migraine'); w0 = OC.G.stats.md.wrongDrug || 0;
+  OC.signOrders(p.id, [], ['morph']);
+  assert((OC.G.stats.md.wrongDrug || 0) === w0 + 1 || (OC.G.stats.md.ordExtra || 0) > 0, 'migraine: morphine is not a stand-in for the headache drugs');
+  p = mine('sah'); const h0 = OC.G.stats.md.harm || 0; w0 = OC.G.stats.md.wrongDrug || 0; const x0 = OC.G.stats.md.ordExtra || 0;
+  OC.signOrders(p.id, ['cthead'], ['ketor']);
+  assert((OC.G.stats.md.harm || 0) === h0 + 1 && (OC.G.stats.md.wrongDrug || 0) === w0 && (OC.G.stats.md.ordExtra || 0) === x0, 'a contraindicated drug counts as harm once, not also as a wrong drug and an extra');
 }

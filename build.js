@@ -10,6 +10,8 @@ const fonts = [
   font('Cardo', 'cardo/files/cardo-latin-700-normal.woff2', 700),
   font('Cardo', 'cardo/files/cardo-latin-400-italic.woff2', 400, 'italic'),
 ].join('\n');
+// v0.29.1: load the engine for real, so the load-time case checks (addCase, lintCases) run here, not first in a player's browser.
+try { require('./src/engine.js'); } catch (e) { console.error(`build stopped: the engine fails at load: ${e.message}`); process.exit(1); }
 // A script that does not parse would ship as a blank page, so stop here if one does not.
 const vm = require('vm');
 for (const [name, code] of [['engine.js', src('engine.js')], ['ui.js + map.js', src('ui.js').replace('/*MAP*/', () => src('map.js'))]]) {
@@ -28,7 +30,7 @@ const crypto = require('crypto');
 const hashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => `'sha256-${crypto.createHash('sha256').update(m[1], 'utf8').digest('base64')}'`);
 if (hashes.length !== 2) { console.error(`build stopped: expected 2 inline scripts, found ${hashes.length}`); process.exit(1); }
 const CSP = ["default-src 'self'", `script-src 'self' ${hashes.join(' ')} 'wasm-unsafe-eval'`, "style-src 'self' 'unsafe-inline'", "img-src 'self' data: blob:",
-  "font-src 'self' data:", "connect-src 'self' https://ecpxhcqvgxizdadwumqt.supabase.co", "worker-src 'self' blob:", "manifest-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'none'"].join('; ');
+  "font-src 'self' data:", "connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co", "worker-src 'self' blob:", "manifest-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'none'"].join('; ');
 html = html.replace('/*CSP*/', () => CSP);
 fs.writeFileSync(path.join(__dirname, 'index.html'), html);
 // The service worker: the game plays offline once it has loaded once. The cache name changes with every build.

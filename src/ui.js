@@ -938,7 +938,7 @@ function ptSheet(G, p) {
 /* ---------- physician mode: see, order, decide ---------- */
 const ORDER_TESTS = [['ecg', 'ECG', 'A tracing of the heart rhythm'], ['lab', 'Labs', 'Blood and urine tests'], ['xr', 'X-ray', 'Bones and lungs'], ['ct', 'CT', 'Detailed pictures inside'], ['us', 'Ultrasound', 'Gallbladder, clots in a leg']];
 const ORDER_TX = [['meds', 'Medications', 'Pain, nausea, pills, the usual drug'], ['fluids', 'IV fluids', 'Salt water into a vein'], ['abx', 'Antibiotics', 'By vein, for a serious infection'], ['o2', 'Oxygen', 'Prongs or a mask, for a low SpO2'], ['nebs', 'Nebulizer', 'A mist that opens the airways'], ['bipap', 'BiPAP', 'A mask that pushes air in'], ['hfnc', 'High-flow oxygen', 'Warm, fast oxygen by nose'], ['intub', 'Intubate', 'A breathing tube and ventilator'],
-  ['epi', 'Epinephrine', 'For a severe allergic reaction'], ['nalox', 'Naloxone', 'Reverses an opioid overdose'], ['insulin', 'Insulin drip', 'For DKA: steady insulin by vein'], ['pressor', 'Vasopressor', 'Holds the pressure up'], ['pace', 'Atropine and pacing', 'For a heart that is too slow'], ['bp', 'Blood pressure control', 'Brings a high pressure down'], ['tnk', 'Thrombolytic', 'The clot drug, for a stroke'], ['reverse', 'Reversal agent', 'Undoes a blood thinner'],
+  ['epi', 'Epinephrine', 'For a severe allergic reaction'], ['nalox', 'Naloxone', 'Reverses an opioid overdose'], ['insulin', 'Insulin drip', 'For DKA: steady insulin by vein'], ['pressor', 'Vasopressor', 'Holds the pressure up'], ['pace', 'Atropine and pacing', 'For a heart that is too slow'], ['bp', 'Blood pressure control', 'Brings a high pressure down'], ['tnk', 'Thrombolytic', 'The clot drug: a stroke, or a PE that drops the pressure'], ['reverse', 'Reversal agent', 'Undoes a blood thinner'],
   ['blood', 'Blood transfusion', 'Units of blood, one at a time'], ['mtp', 'Massive transfusion', 'Coolers of blood, right now'], ['repair', 'Laceration repair', 'Stitches. You do them']];
 function mdPrimary(p, G) { return mdPrimary0(p, G) + helpBlock(p); }
 function mdPrimary0(p, G) {
@@ -1760,7 +1760,7 @@ const STEPS_MD = [
   { id: 'a1', title: 'Vomiting, sugar very high', text: `**Room 5**: [[Aisha]], 24, **ESI 2**. She’s vomiting and her sugar is very high.\nTap **her room**, then **See this patient**.`,
     setup: () => ({ aisha: E.trainPatient('dka', 'room', { room: '5', name: 'Aisha K.', age: 24, sex: 'F' }) }), ...seeStep('aisha') },
   { id: 'a2', wait: true, title: 'In the room', text: `Her breath smells **fruity**. She’s breathing **fast and deep**. Her mouth is dry.`, done: () => tid('aisha').ord === 'need' },
-  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**: without **insulin**, the body burns fat and the blood turns acid.\nOrder a **BMP** (sugar and **potassium**), a **blood gas** (how acid), **fluids**, and an **insulin drip**.\nTap **her room**. **BMP**, **Blood gas**, **Normal saline** (Fluids and blood), **Insulin drip** (Medications, Sugar and electrolytes), **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin']]) },
+  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**: without **insulin**, the body burns fat and the blood turns acid.\nOrder a **BMP** (sugar and **potassium**), a **blood gas** (how acid), a **pregnancy test** (any woman who could be pregnant), **fluids**, and an **insulin drip**.\nTap **her room**. **BMP**, **Blood gas**, **Pregnancy test**, **Normal saline** (Fluids and blood), **Insulin drip** (Medications, Sugar and electrolytes), **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin']]) },
   { id: 'a4', wait: true, title: 'Results', text: `**Glucose 540** (normal about 100). **Anion gap 26**: acid in the blood (normal under 12).\n**Potassium 4.8**: safe for insulin, which drops potassium.\nIt’s DKA. Her nurse starts the drip.`, done: () => tid('aisha').dsp === 'mddecide' || !!tid('aisha').mdPick },
   { id: 'a5', title: 'Admit her', text: `An insulin drip needs hourly checks, so she goes to the **ICU**.\nTo admit, you call a **consult**, the team that takes over.\nTap **her room**, **Admit: call a consult**, then **Critical Care**.`, ...callStep('aisha', 'consult', 'icu') },
   { id: 'a6', wait: true, title: 'Admitted', text: `Critical Care **admits** her. The charge nurse handles the bed upstairs.`, done: () => E.isBoarder(tid('aisha')) || tid('aisha').loc === 'gone' },
@@ -1905,7 +1905,7 @@ const LESSONS = {
     { id: 'y1', title: 'Pain after meals', text: `**Room 5**: [[Maria]], 44. Pain under her right ribs since dinner.\nTap **her room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('chole', 'room', { room: '5', name: 'Maria G.', age: 44, sex: 'F' }) }), ...seeStep('pt') },
     { id: 'y2', wait: true, title: 'In the room', text: `Tender **under the right ribs**. Her breath catches when you press. That’s the **gallbladder**.`, done: lExamined },
-    { id: 'y3', title: 'Gallbladder orders', text: `**Ultrasound** first for the gallbladder, **not CT**. Add **CBC**, **liver tests**, **lipase**.\nTap **her room**, those three, the **ultrasound**, **Morphine** for pain (Medications, Pain), **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
+    { id: 'y3', title: 'Gallbladder orders', text: `**Ultrasound** first for the gallbladder, **not CT**. Add **CBC**, **liver tests**, **lipase**, and a **pregnancy test**: she’s 44, so she could be pregnant.\nTap **her room**, those four, the **ultrasound**, **Morphine** for pain (Medications, Pain), **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
     { id: 'y4', wait: true, title: 'Results', text: `Ultrasound: **gallstones, thick wall**. White count up.\nAn inflamed gallbladder: **cholecystitis**.`, done: lResulted },
     { id: 'y5', title: 'Call surgery', text: `It has to come out.\nTap **her room**, **Admit: call a consult**, then **General Surgery**.`, ...callStep('pt', 'consult', 'surg') },
     { id: 'y6', final: true, title: 'Belly pain: the short version', text: `**Upper right**: labs, **ultrasound**, Surgery.\n**Lower right**: labs, **CT**, Surgery.\n**Flank**: labs, **CT**, usually home.\n**Soft belly, vomiting**: labs, fluids. **No CT.**\n**Charge nurse**: mostly ESI 3. A rigid belly doesn’t wait.` },
@@ -1958,11 +1958,12 @@ function chaptersHTML() {
 const lessonKey = () => { const t = g() && g().tr; return t && t.lesson && LESSONS[t.lesson] ? t.lesson : null; };
 const lessonDone = k => !!store('oc-lesson-' + k);
 const GAME_V = '/*GAMEV*/';   // the build puts the version here: a code gives the same shift only on the same version
-// v0.29.1: codes carry the version. Each release appends the version it replaces here (v0.29.2 adds '0.29.1'), so those codes
-// are named as made on another version instead of read as mistyped. '' is v0.29.0 and earlier, before codes carried a version.
+// v0.29.1: codes carry the version. PAST_V holds only the version just before this one ('' is v0.29.0 and earlier, before codes
+// carried one): each entry is another 1-in-64 chance that a mistyped code reads as stale, so each release replaces it, never appends.
+// The check is 6 bits, so about 1 code in 64 from another version still reads as current: refused almost always, not always.
 const PAST_V = [''];
 E.setCodeVersion(GAME_V, PAST_V);
-const staleWhy = c => `That code was made on ${/^\d/.test(c.stale) ? 'version ' + c.stale : c.stale} of the game. This is v${GAME_V}, so it would be a different shift. Ask your instructor for a new code.`;
+const staleWhy = () => `That code looks mistyped, or it was made on another version of the game (this is v${GAME_V}). Check each letter. If it’s right, ask your instructor for a new code.`;
 /* Class codes: an instructor makes one, students enter it, and everyone plays the same shift (same arrivals and events). */
 const codeDesc = c => `${c.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${E.LEVELS[c.level].name}${c.scen !== 'none' ? ' · ' + E.SCENS[c.scen].name + ' scenario' : ''}${c.mode === 'md' ? ' · ' + E.PACKS[c.pack].name + ' radio calls' : ''}`;
 function classHTML() {
@@ -2004,7 +2005,7 @@ function cbListHTML() {
   else if (L && L.err) h += `<small class="cb-err">${esc(L.err)}</small>`;
   else if (L && L.rows) {
     const c = E.readCode(L.code);
-    h += `<small>${esc(L.code)}${c ? ' · ' + esc(codeDesc(c)) : ''}${c && c.stale ? ' · made on ' + esc(/^\d/.test(c.stale) ? 'v' + c.stale : c.stale) : ''} · ${L.rows.length} result${L.rows.length === 1 ? '' : 's'}</small>`;
+    h += `<small>${esc(L.code)}${c ? ' · ' + esc(codeDesc(c)) : ''}${c && c.stale ? ' · probably from another version' : ''} · ${L.rows.length} result${L.rows.length === 1 ? '' : 's'}</small>`;
     if (L.rows.length) h += `<table class="cb-tab"><tr><th>#</th><th>Name</th><th>Points</th><th>Stars</th><th>Played</th><th>Wait</th><th>LWBS</th></tr>${L.rows.map((r, i) => {
       // every field came from the database, which anyone with the public key can write to: numbers are forced to numbers
       const s = (r.stats && typeof r.stats === 'object') ? r.stats : {}, num = v => (Number.isFinite(+v) ? Math.round(+v) : null);
@@ -2015,7 +2016,7 @@ function cbListHTML() {
   }
   return h + '</div>';
 }
-const codeHint = v => { const c = E.readCode(v); return c && c.stale ? staleWhy(c) : c ? codeDesc(c) : v.replace(/[^0-9a-z]/gi, '').length >= 6 ? 'That code doesn’t look right. Check each letter.' : 'Six letters and numbers, from your instructor.'; };
+const codeHint = v => { const c = E.readCode(v); return c && c.stale ? staleWhy(c) : c ? codeDesc(c) : v.replace(/[^0-9a-z]/gi, '').length >= 6 ? 'That code doesn’t look right. Check each letter. If it’s right, reload the game: it may be from a newer version.' : 'Six letters and numbers, from your instructor.'; };
 const codeText = c => `Code Black class code ${c.code} (v${GAME_V}): ${codeDesc(c)}. Play at ${location.origin}${location.pathname}, then Play a shift, then Class code.`;
 function copyText(t) { try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t); return true; } } catch (e) { /* no clipboard */ } return false; }
 function lessonsHTML() {
@@ -2391,7 +2392,7 @@ const ACT = {
       stats: { wait: R.wait, lwbs: R.lwbs, seen: R.seen, ama: R.ama, expired: R.expired, bedFirst: R.bedFirst, scen: R.scen } };
     // v0.29.1: the version goes with the result. Until the database has the column, the insert is refused (400), so send it again without.
     const done = () => { U.cbSent[at] = 'sent'; cbRedraw(); }, fail = () => { U.cbSent[at] = 'Could not send. Check the connection and tap Send again.'; cbRedraw(); };
-    cbFetch('/rest/v1/cb_results', Object.assign({ ver: GAME_V }, body)).then(done).catch(e => (/HTTP 4\d\d/.test(e && e.message) ? cbFetch('/rest/v1/cb_results', body).then(done).catch(fail) : fail()));
+    cbFetch('/rest/v1/cb_results', Object.assign({ ver: GAME_V }, body)).then(done).catch(e => (/HTTP 400/.test(e && e.message) ? cbFetch('/rest/v1/cb_results', body).then(done).catch(fail) : fail()));   // only 400 (unknown column): not a rate limit or a refusal
   },
   cbShow: () => {
     const el = document.getElementById('cbCode'), c = E.readCode(el ? el.value : '');
@@ -2514,7 +2515,9 @@ const ACT = {
   resumeSave: () => resumeSave(),
   restart: () => { const now = performance.now(); if (!U.armR || now - U.armR > 3000) { U.armR = now; render(); return; } U.armR = 0; start(U.lvl); },
   menu: () => { save(true); showTitle(); },
-  again: () => { U.armR = 0; const R = lastReport(), c0 = R && R.R && R.R.code ? E.readCode(R.R.code) : null, c = c0 && !c0.stale ? c0 : null; start(U.lvl, null, null, c); },   // a class shift runs back as the same shift   // from the report: the shift is over and the report is kept, so one tap is enough
+  // From the report: one tap runs the same shift again (a class shift as the same class shift). A class code from another version
+  // can't be replayed: say so instead of quietly starting a different shift.
+  again: () => { U.armR = 0; const R = lastReport(), c = R && R.R && R.R.code ? E.readCode(R.R.code) : null; if (R && R.R && R.R.code && (!c || c.stale)) { res({ ok: false, why: `Class code ${R.R.code} was made on another version of the game, so it can’t be replayed. Ask your instructor for a new code.` }); return; } start(U.lvl, null, null, c); },
   lastReport: () => showLastReport(),
   pill: k => toast(PILL_HELP[k], 'info'),
 };
@@ -2532,9 +2535,10 @@ function save(force) {
   const now = Date.now();
   if (!force && now - U.lastSave < 15000) return;
   U.lastSave = now;
-  try { localStorage.setItem('oc-save', JSON.stringify({ G, lvl: U.lvl, pack: G.pack, at: now })); } catch (e) { /* storage full or blocked */ }
+  try { localStorage.setItem('oc-save', JSON.stringify({ G, lvl: U.lvl, pack: G.pack, at: now, ver: GAME_V })); } catch (e) { /* storage full or blocked */ }
 }
-function readSave() { try { const s = localStorage.getItem('oc-save'); if (!s) return null; const d = JSON.parse(s); return d && d.G && d.G.v === 5 && !d.G.over ? d : null; } catch (e) { return null; } }
+// v0.29.1: saves carry the version. A class shift saved on another version is not resumed: it would no longer be the class's shift.
+function readSave() { try { const s = localStorage.getItem('oc-save'); if (!s) return null; const d = JSON.parse(s); return d && d.G && d.G.v === 5 && !d.G.over && !(d.G.code && d.ver !== GAME_V) ? d : null; } catch (e) { return null; } }
 function resumeSave() {
   const d = readSave(); if (!d) { toast('No saved shift on this device', 'bad'); return; }
   E.load(d.G); U.lvl = d.lvl; U.mode = d.G.mode || 'rn'; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = true; U.speed = 1; U.msgs = []; U.msgNew = 0;
