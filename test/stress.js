@@ -28,6 +28,6 @@ for (const [mode, level, scen] of RUNS) {
   }
   res.sort((a, b) => a.done - b.done);
   const avg = k => (res.reduce((a, r) => a + r[k], 0) / res.length).toFixed(0);
-  console.log(mode, level + (scen ? '+' + scen : ''), 'avg done', avg('done'), 'avg care', avg('care'), '| worst 3:', res.slice(0, 3).map(r => `seed${r.seed}: done=${r.done} care=${r.care} left=${r.left}${r.fail ? ' WALKOUT' : ''}`).join(' ; '), '| walkouts', res.filter(r => r.fail).length);
+  console.log(mode, level + (scen ? '+' + scen : ''), 'avg done', avg('done'), 'avg care', avg('care'), '| worst 3:', res.slice(0, 3).map(r => `seed${r.seed}: done=${r.done} care=${r.care} left=${r.left}${r.fail ? ' ' + String(r.fail).toUpperCase() : ''}`).join(' ; '), '| walkouts', res.filter(r => r.fail).length);
 }
 if (badVitals) { console.log('FAIL: ' + badVitals + ' out-of-range vitals'); process.exitCode = 1; } else console.log('vitals stayed in range in every run');

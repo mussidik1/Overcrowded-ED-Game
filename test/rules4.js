@@ -87,7 +87,7 @@ run(3, () => !G.box.cur);
 assert(!G.box.cur && al.pren, 'the charge nurse takes the stroke alert report, not you');
 
 // 8. A full shift as the attending
-OC.newGame('med', 4242, { mode: 'md' }); G = OC.G;
+OC.newGame('med', 4244, { mode: 'md' }); G = OC.G;
 assert(OC.staff(ME).q.length === 0 && !OC.active().some(p => p.prov === ME), 'you start with an empty panel; the night doc signed out to the team');
 run(120);
 const others = OC.active().filter(p => p.prov && p.prov !== ME).length;

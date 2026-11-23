@@ -87,8 +87,16 @@ def run():
         J("OCUI.U.modal = null; OCUI.render()"); page.wait_for_timeout(150)
         # since v0.19 tests are named (CBC, chest X-ray); only the ECG is still ordered by kind
         right = J(f"(() => {{ const p = OC.pt('{pid}'); return {{ wk: [...OC.needOf(p).n.filter(d => !(p.det || []).includes(d)), ...(p.right.wk.includes('ecg') && !p.wk.includes('ecg') ? ['ecg'] : [])], tr: p.right.tr.filter(k => !p.tr.includes(k)), dx: p.dx }}; }})()")
-        for k in right['wk']: tap(f'#sheet [data-act="ordT"][data-arg="{pid}|t|{k}"]')
-        for k in right['tr']: tap(f'#sheet [data-act="ordT"][data-arg="{pid}|r|{k}"]')
+        # v0.28: orders live in menus, and treatments are picked as drugs
+        right['tr'] = J(f"(() => {{ const p = OC.pt('{pid}'); return {right['tr']}.map(k => OC.drugFor(p, k) || (k === 'pace' ? 'tcp' : k)); }})()".replace("True", "true"))
+        def otap(kind, k):
+            sel = f'#sheet [data-act="ordT"][data-arg="{pid}|{kind}|{k}"]'
+            for m in J(f"OCUI.omOf('{k}')"):
+                if not page.is_visible(sel): tap(f'#sheet [data-act="ordMenu"][data-arg="{m}"]')
+            tap(sel)
+        ok(page.locator('#sheet [data-act="ordMenu"][data-arg="med"]').count() == 1 and page.locator('#sheet [data-act="ordMenu"][data-arg="resus"]').count() == 1, 'orders sit in menus, with a separate resuscitation set')
+        for k in right['wk']: otap('t', k)
+        for k in right['tr']: otap('r', k)
         n = len(right['wk']) + len(right['tr'])
         ok(page.locator('#sheet .och.on').count() == n, f"picked {n} orders for {right['dx']}")
         page.screenshot(path=f'{OUT}/md_02_orders.png')
@@ -96,6 +104,16 @@ def run():
         tap('#sheet [data-act="sign"]')
         ok(J(f"OC.pt('{pid}').ord") == 'signed' and J('OC.G.stats.md.clean') >= 1 and J('OC.G.care') > c0, 'signed a clean order set')
 
+        # ---------- name the diagnosis (v0.28) ----------
+        sim(240, f"(() => {{ const p = OC.pt('{pid}'); return !!p.dxq || p.dsp === 'mddecide' || p.dsp === 'decide' || !!p.mdPick || p.loc === 'gone'; }})()")
+        if J(f"!!OC.pt('{pid}').dxq"):
+            open_pt(pid)
+            ok('what’s the diagnosis?' in page.inner_text('#sheet').lower() and page.locator('#sheet [data-act="dxPick"]').count() == 4, 'results back: you pick the diagnosis from four')
+            dx = J(f"OC.pt('{pid}').dx")
+            tap(f'#sheet [data-act="dxPick"][data-arg="{pid}|{dx}"]')
+            ok(J(f"OC.pt('{pid}').dxK") and J('OC.G.stats.md.dxRight') == 1, 'the right diagnosis counts')
+            ok('Accuracy' in page.inner_text('body') and 'Legal risk' in page.inner_text('body'), 'accuracy and legal risk show on the floor')
+            if page.is_visible('#sheetWrap'): tap('.sheet-x')
         # ---------- make the call ----------
         sim(240, f"(() => {{ const p = OC.pt('{pid}'); return p.dsp === 'mddecide' || p.dsp === 'decide' || !!p.mdPick || p.loc === 'gone'; }})()")
         st = J(f"(() => {{ const p = OC.pt('{pid}'); return {{ dsp: p.dsp, pick: p.mdPick || null, want: p.dispo, con: p.con || null, gray: p.gray ? p.gray.right : null, loc: p.loc }}; }})()")

@@ -1,0 +1,10650 @@
+[
+{
+"code": "1.1",
+"name": "Abnormal Vital Signs",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "1.1.1",
+"name": "Hypothermia",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.1.2",
+"name": "Fever",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.1.3",
+"name": "Bradycardia",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.1.4",
+"name": "Tachycardia",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.1.5",
+"name": "Bradypnea/Apnea",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.1.6",
+"name": "Tachypnea",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.1.7",
+"name": "Hypoxia",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.1.8",
+"name": "Hypotension",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.1.9",
+"name": "Hypertension",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.1.10",
+"name": "Hyperthermia",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.2",
+"name": "Pain",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "1.2.1",
+"name": "Pain (unspecified)",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.2.2",
+"name": "Headache (See 12.3)",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.2.3",
+"name": "Eye pain",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "1.2.4",
+"name": "Chest pain",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.2.5",
+"name": "Abdominal pain",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.2.6",
+"name": "Pelvic and genital pain",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.2.7",
+"name": "Back pain",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.2.8",
+"name": "Chronic pain",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "1.2.9",
+"name": "Extremity pain",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.2.10",
+"name": "Neck pain",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.3",
+"name": "General",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "1.3.1",
+"name": "Altered mental status",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.3.2",
+"name": "Anuria/Oliguria",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "1.3.3",
+"name": "Ascites",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "1.3.4",
+"name": "Ataxia",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "1.3.5",
+"name": "Auditory disturbances",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "1.3.6",
+"name": "Bleeding",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "1.3.7",
+"name": "Congestion/Rhinorrhea",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "1.3.8",
+"name": "Constipation/Obstipation",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "1.3.9",
+"name": "Cough",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "1.3.10",
+"name": "Crying/Fussiness",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.11",
+"name": "Cyanosis",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "1.3.12",
+"name": "Dehydration",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "1.3.13",
+"name": "Diarrhea",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.14",
+"name": "Dysmenorrhea",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "1.3.15",
+"name": "Dysphagia",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.16",
+"name": "Dysuria",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "1.3.17",
+"name": "Edema",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.18",
+"name": "Failure to thrive",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.19",
+"name": "Fatigue/Malaise",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.20",
+"name": "Feeding problems",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "1.3.21",
+"name": "Hematemesis",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "1.3.22",
+"name": "Hematuria",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.23",
+"name": "Hemoptysis",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "1.3.24",
+"name": "Hiccup",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "1.3.25",
+"name": "Jaundice",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "1.3.26",
+"name": "Joint swelling",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.27",
+"name": "Lightheadedness",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.28",
+"name": "Limp",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.29",
+"name": "Lymphadenopathy",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "1.3.30",
+"name": "Mechanical and indwelling devices, complications",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "1.3.31",
+"name": "Nausea/Vomiting",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.32",
+"name": "Occupational exposure",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.33",
+"name": "Palpitations",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.34",
+"name": "Paralysis",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "1.3.35",
+"name": "Paresthesia/Dysesthesia",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.36",
+"name": "Poisoning",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.37",
+"name": "Pruritus",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.38",
+"name": "Rash",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.39",
+"name": "Rectal bleeding",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.40",
+"name": "Shock",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "1.3.41",
+"name": "Shortness of breath",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "1.3.42",
+"name": "Sore throat",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.43",
+"name": "Stridor",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "1.3.44",
+"name": "Syncope/Near syncope",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.45",
+"name": "Tinnitus",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "1.3.46",
+"name": "Tremor",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.47",
+"name": "Urinary incontinence",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "1.3.48",
+"name": "Urinary retention",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "1.3.49",
+"name": "Vaginal bleeding",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.50",
+"name": "Vaginal discharge",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "1.3.51",
+"name": "Visual disturbances",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.52",
+"name": "Weakness",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "1.3.53",
+"name": "Wheezing",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "1.3.54",
+"name": "Toxidromes",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.55",
+"name": "Sudden unexpected infant death (SUID)",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "1.3.56",
+"name": "Suicidal ideation",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.57",
+"name": "Brief resolved unexplained events (BRUE)",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.58",
+"name": "Intoxication syndromes",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.59",
+"name": "Postsurgical complications",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.60",
+"name": "Agitation",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "1.3.61",
+"name": "Hypo/Hyperglycemia",
+"sys": 1,
+"sysname": "SIGNS, SYMPTOMS, AND PRESENTATIONS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "2.1",
+"name": "Abdominal Wall",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.1.1",
+"name": "Hernias",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.1.2",
+"name": "Hematoma",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "2.2",
+"name": "Esophagus",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.2.1",
+"name": "Infectious disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.2.1.1",
+"name": "Candida (See 4.4.2.1, 7.4.6)",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.2.2",
+"name": "Inflammatory disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.2.2.1",
+"name": "Esophagitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.2.2.2",
+"name": "Gastroesophageal reflux (GERD)",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "2.2.2.3",
+"name": "Toxic effects of caustic agents (See 17.1.16.1)",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.2.2.3.1",
+"name": "Acid",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.2.2.3.2",
+"name": "Alkali",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.2.3",
+"name": "Motor abnormalities",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.2.4",
+"name": "Structural disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.2.4.1",
+"name": "Boerhaave\u2019s syndrome",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.2.4.2",
+"name": "Diverticula",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.2.4.3",
+"name": "Foreign body",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "2.2.4.4",
+"name": "Hernias",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.2.4.5",
+"name": "Mallory-Weiss syndrome",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.2.4.6",
+"name": "Stricture and stenosis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.2.4.7",
+"name": "Tracheoesophageal fistula",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.2.4.8",
+"name": "Varices",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.2.5",
+"name": "Tumors",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.3",
+"name": "Liver",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.3.1",
+"name": "Noninfectious hepatitis/Cirrhosis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.3.1.1",
+"name": "Alcoholic",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.3.1.2",
+"name": "Biliary obstructive",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "2.3.1.3",
+"name": "Drug-induced",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.3.1.4",
+"name": "Nonalcoholic steatohepatitis (NASH)",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "2.3.1.5",
+"name": "Toxin-induced hepatitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.3.2",
+"name": "Hepatorenal failure",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.3.3",
+"name": "Infectious disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.3.3.1",
+"name": "Abscess",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "2.3.3.2",
+"name": "Hepatitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "2.3.4",
+"name": "Tumors",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.3.5",
+"name": "Hepatic encephalopathy",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.4",
+"name": "Gall Bladder and Biliary Tract",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.4.1",
+"name": "Cholangitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.4.2",
+"name": "Cholecystitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.4.3",
+"name": "Cholelithiasis/Choledocholithiasis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.4.4",
+"name": "Tumors",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.5",
+"name": "Pancreas",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.5.1",
+"name": "Pancreatitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "2.5.2",
+"name": "Tumors",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "2.5.3",
+"name": "Pseudocyst",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.6",
+"name": "Peritoneum",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.6.1",
+"name": "Spontaneous bacterial peritonitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.6.2",
+"name": "Abdominal compartment syndrome",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.7",
+"name": "Stomach",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.7.1",
+"name": "Infectious disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.7.2",
+"name": "Inflammatory disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.7.2.1",
+"name": "Gastritis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.7.3",
+"name": "Peptic ulcer disease",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.7.3.1",
+"name": "Hemorrhage",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.7.3.2",
+"name": "Perforation",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.7.4",
+"name": "Structural disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.7.4.1",
+"name": "Congenital hypertrophic pyloric stenosis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.7.4.2",
+"name": "Foreign body",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.7.5",
+"name": "Tumors",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.7.6",
+"name": "Gastroparesis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.7.7",
+"name": "Cyclic vomiting syndrome (See 17.1.24.1.1)",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.8",
+"name": "Small Bowel",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.8.1",
+"name": "Infectious disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.8.2",
+"name": "Inflammatory disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.8.2.1",
+"name": "Regional enteritis/Crohn\u2019s disease",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.8.3",
+"name": "Motor abnormalities",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.8.3.1",
+"name": "Obstruction",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.8.3.2",
+"name": "Paralytic ileus",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.8.4",
+"name": "Structural disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.8.4.1",
+"name": "Aortoenteric fistula",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.8.4.2",
+"name": "Congenital anomalies",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.8.4.3",
+"name": "Intestinal malabsorption",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.8.4.4",
+"name": "Meckel's diverticulum",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.8.5",
+"name": "Tumors",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.8.6",
+"name": "Vascular insufficiency",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9",
+"name": "Large Bowel",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.9.1",
+"name": "Infectious disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.9.1.1",
+"name": "Antibiotic-associated",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.9.1.2",
+"name": "Bacterial",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.1.3",
+"name": "Parasitic",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.1.4",
+"name": "Viral",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.2",
+"name": "Inflammatory disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.9.2.1",
+"name": "Appendicitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.9.2.2",
+"name": "Necrotizing enterocolitis (NEC)",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.2.3",
+"name": "Radiation colitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.9.2.4",
+"name": "Ulcerative colitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.2.5",
+"name": "Neutropenic enterocolitis/Typhlitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.2.6",
+"name": "Ischemic colitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.3",
+"name": "Motor abnormalities",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.9.3.1",
+"name": "Hirschsprung\u2019s disease",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.3.2",
+"name": "Irritable bowel",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.9.3.3",
+"name": "Obstruction",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.4",
+"name": "Structural disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.9.4.1",
+"name": "Congenital anomalies",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.4.2",
+"name": "Diverticular disease",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "2.9.4.3",
+"name": "Intussusception",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.4.4",
+"name": "Volvulus",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.4.5",
+"name": "Perforation",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.9.5",
+"name": "Tumors",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.10",
+"name": "Rectum and Anus",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.10.1",
+"name": "Infectious disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.10.1.1",
+"name": "Perianal/Anal abscess",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.10.1.2",
+"name": "Perirectal abscess",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.10.1.3",
+"name": "Pilonidal cyst and abscess",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.10.2",
+"name": "Inflammatory disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.10.2.1",
+"name": "Proctitis",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.10.3",
+"name": "Structural disorders",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.10.3.1",
+"name": "Anal fissure",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.10.3.2",
+"name": "Anal fistula",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.10.3.3",
+"name": "Congenital anomalies",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.10.3.4",
+"name": "Foreign body",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.10.3.5",
+"name": "Hemorrhoids",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.10.3.6",
+"name": "Rectal prolapse",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.10.4",
+"name": "Tumors",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.11",
+"name": "Spleen",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.11.1",
+"name": "Asplenism",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "2.11.2",
+"name": "Splenomegaly",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "2.11.3",
+"name": "Vascular insufficiency/Infarction",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "2.12",
+"name": "Specific Post-surgical Populations",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "2.12.1",
+"name": "Bariatric surgery complications",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "2.12.2",
+"name": "Ostomy",
+"sys": 2,
+"sysname": "ABDOMINAL AND GASTROINTESTINAL DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "3.1",
+"name": "Cardiopulmonary Arrest",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "3.2",
+"name": "Congenital Abnormalities of the Cardiovascular System",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.2.1",
+"name": "Tetralogy of Fallot spells",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.2.2",
+"name": "Patent ductus arteriosus-dependent congenital heart anomalies",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.3",
+"name": "Disorders of Circulation",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.3.1",
+"name": "Arterial",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.3.1.1",
+"name": "Aneurysm",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.3.1.2",
+"name": "Dissection",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "3.3.1.2.1",
+"name": "Aortic",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.3.1.2.2",
+"name": "Non-aortic",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.3.1.3",
+"name": "Thromboembolism",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.3.2",
+"name": "Venous",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.3.2.1",
+"name": "Thromboembolism (See 16.6.2)",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.4",
+"name": "Disturbances of Cardiac Rhythm",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.4.1",
+"name": "Cardiac dysrhythmias",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.4.1.1",
+"name": "Ventricular",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.4.1.2",
+"name": "Supraventricular",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.4.1.3",
+"name": "Pulseless electrical activity",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "3.4.2",
+"name": "Conduction disorders",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.5",
+"name": "Diseases of the Myocardium, Acquired",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.5.1",
+"name": "Cardiac failure",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.5.1.1",
+"name": "Cor pulmonale",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.5.1.2",
+"name": "High output",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.5.1.3",
+"name": "Low output",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.5.2",
+"name": "Cardiomyopathy",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.5.2.1",
+"name": "Hypertrophic",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.5.2.2",
+"name": "Dilated",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.5.2.3",
+"name": "Takotsubo",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.5.3",
+"name": "Congestive heart failure",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.5.4",
+"name": "Coronary syndromes",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.5.5",
+"name": "Ischemic heart disease",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.5.6",
+"name": "Myocardial infarction",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.5.7",
+"name": "Myocarditis",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.5.8",
+"name": "Ventricular aneurysm",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.6",
+"name": "Diseases of the Pericardium",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.6.1",
+"name": "Pericardial effusion/tamponade (See 18.1.2.6)",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.6.2",
+"name": "Pericarditis",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "3.7",
+"name": "Hypertension",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "3.7.1",
+"name": "Asymptomatic hypertension",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "3.7.2",
+"name": "Hypertensive emergency",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "3.8",
+"name": "Tumors",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "3.9",
+"name": "Valvular Disorders",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "3.9.1",
+"name": "Endocarditis",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "3.9.2",
+"name": "Valvular stenosis/insufficiency",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "3.10",
+"name": "Cardiovascular Devices",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.10.1",
+"name": "Pacemaker/Automatic implantable cardioverter- defibrillator (AICD) complication",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "3.10.2",
+"name": "Left ventricular assist device (LVAD)",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "3.10.3",
+"name": "Extracorporeal membrane oxygenation (ECMO) (See 19.2.11)",
+"sys": 3,
+"sysname": "CARDIOVASCULAR DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.1",
+"name": "Cancers of the Skin",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.1.1",
+"name": "Basal cell carcinoma",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.1.2",
+"name": "Kaposi's sarcoma",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.1.3",
+"name": "Melanoma",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.1.4",
+"name": "Squamous cell carcinoma",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.2",
+"name": "Cutaneous Ulcers",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.2.1",
+"name": "Decubitus ulcer",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "4.2.2",
+"name": "Venous stasis ulcer",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.2.3",
+"name": "Diabetic foot ulcers",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "4.2.4",
+"name": "Arterial insufficiency ulcer",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.2.5",
+"name": "Calciphylaxis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.3",
+"name": "Dermatitis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.3.1",
+"name": "Eczema",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.3.2",
+"name": "Contact dermatitis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.3.3",
+"name": "Psoriasis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.3.4",
+"name": "Seborrheic dermatitis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.3.5",
+"name": "Diaper dermatitis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4",
+"name": "Infections",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.4.1",
+"name": "Bacterial",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.4.1.1",
+"name": "Abscess",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "4.4.1.2",
+"name": "Cellulitis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "4.4.1.3",
+"name": "Erysipelas",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "4.4.1.4",
+"name": "Impetigo/Ecthyma",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4.1.5",
+"name": "Necrotizing infection",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "4.4.1.6",
+"name": "Spirochete/Rickettsia",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "4.4.2",
+"name": "Fungal",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.4.2.1",
+"name": "Candida (See 2.2.1.1, 7.4.6)",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4.2.2",
+"name": "Dermatophytes (tinea)",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4.3",
+"name": "Ectoparasites",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4.3.1",
+"name": "Pediculosis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4.3.2",
+"name": "Scabies",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4.3.3",
+"name": "Bed bugs",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4.4",
+"name": "Viral",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.4.4.1",
+"name": "Herpetic infections",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "4.4.4.1.1",
+"name": "Herpes simplex (See 10.6.4, 13.1.3.1)",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.4.4.1.2",
+"name": "Herpes zoster (See 10.6.5)",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4.4.2",
+"name": "Human papillomavirus (HPV) (See 13.1.3.2)",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.4.4.3",
+"name": "Molluscum contagiosum",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.4.4.4",
+"name": "Hand-foot-mouth disease",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.5",
+"name": "Maculopapular Lesions",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.5.1",
+"name": "Erythema multiforme",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "4.5.2",
+"name": "Pityriasis rosea",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "4.5.3",
+"name": "Urticaria",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "4.5.4",
+"name": "Drug eruptions",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "4.5.4.1",
+"name": "Drug rash with eosinophilia and systemic symptoms syndrome (DRESS)",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.6",
+"name": "Papular/Nodular Lesions",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.6.1",
+"name": "Hemangioma/Lymphangioma",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "4.6.2",
+"name": "Lipoma",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "4.6.3",
+"name": "Sebaceous cyst",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "4.6.4",
+"name": "Erythema nodosum",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "4.6.5",
+"name": "Hidradenitis suppurativa",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "4.6.6",
+"name": "Lichen planus",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "4.6.7",
+"name": "Pyogenic granuloma",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "4.7",
+"name": "Vesicular/Bullous/Sloughing Conditions or Syndromes",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "4.7.1",
+"name": "Pemphigus vulgaris",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "4.7.2",
+"name": "Staphylococcal scalded skin syndrome",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "4.7.3",
+"name": "Stevens-Johnson syndrome",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "4.7.4",
+"name": "Toxic epidermal necrolysis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "4.7.5",
+"name": "Bullous pemphigoid",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "4.7.6",
+"name": "Toxicodendron",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "4.8",
+"name": "Purpuric Rash",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "4.8.1",
+"name": "Vasculitis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "4.8.1.1",
+"name": "Infectious",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "4.8.1.2",
+"name": "Drug-induced",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "4.8.1.3",
+"name": "Autoimmune",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "4.8.1.3.1",
+"name": "IgA vasculitis",
+"sys": 4,
+"sysname": "CUTANEOUS DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "5.1",
+"name": "Acid-base Disturbances",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.1.1",
+"name": "Metabolic or respiratory",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.1.1.1",
+"name": "Acidosis",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "5.1.1.2",
+"name": "Alkalosis",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "5.1.2",
+"name": "Mixed acid-base balance disorder",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "5.2",
+"name": "Adrenal Disease",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.2.1",
+"name": "Corticoadrenal insufficiency",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "5.2.2",
+"name": "Cushing\u2019s syndrome",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "5.3",
+"name": "Fluid and Electrolyte Disturbances",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.3.1",
+"name": "Calcium metabolism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "5.3.2",
+"name": "Hypervolemia/Hypovolemia",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "5.3.3",
+"name": "Potassium metabolism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "5.3.4",
+"name": "Sodium metabolism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "5.3.5",
+"name": "Magnesium metabolism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "5.3.6",
+"name": "Phosphorus metabolism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "5.4",
+"name": "Glucose Metabolism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.4.1",
+"name": "Diabetes mellitus",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "5.4.1.1",
+"name": "Complications in glucose metabolism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.4.1.1.1",
+"name": "Hyperglycemia",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "5.4.1.1.2",
+"name": "Diabetic ketoacidosis (DKA)",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "5.4.1.1.2.1",
+"name": "Euglycemic DKA",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "5.4.1.1.3",
+"name": "Hyperosmolar hyperglycemic state",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.4.1.1.4",
+"name": "Hypoglycemia",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "5.5",
+"name": "Nutritional Disorders",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.5.1",
+"name": "Vitamin deficiencies",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "5.5.2",
+"name": "Wernicke-Korsakoff syndrome",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "5.5.3",
+"name": "Malnutrition",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "5.6",
+"name": "Parathyroid Disease",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "5.7",
+"name": "Pituitary Disorders",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "5.7.1",
+"name": "Panhypopituitarism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "5.8",
+"name": "Thyroid Disorders",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.8.1",
+"name": "Hyperthyroidism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "5.8.1.1",
+"name": "Thyroid storm",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "5.8.2",
+"name": "Hypothyroidism",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "5.8.2.1",
+"name": "Myxedema coma",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "5.9",
+"name": "Tumors of Endocrine Glands",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "5.9.1",
+"name": "Adrenal",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "5.9.1.1",
+"name": "Pheochromocytoma",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "5.9.2",
+"name": "Pituitary",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "5.9.3",
+"name": "Thyroid",
+"sys": 5,
+"sysname": "ENDOCRINE, METABOLIC, AND NUTRITIONAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "6.1",
+"name": "Bites and Envenomation (See 18.1.3.2)",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "6.1.1",
+"name": "Arthropods",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "6.1.1.1",
+"name": "Insects",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "6.1.1.1.1",
+"name": "Hymenoptera",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "6.1.1.2",
+"name": "Arachnids",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "6.1.2",
+"name": "Mammals",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "6.1.3",
+"name": "Marine organisms (See 17.1.20)",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "6.1.4",
+"name": "Reptiles",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "6.2",
+"name": "Dysbarism",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "6.2.1",
+"name": "Air embolism",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "6.2.2",
+"name": "Barotrauma",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "6.2.3",
+"name": "Decompression syndrome",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "6.3",
+"name": "Electrical Injury (See 18.1.3.3.1)",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "6.3.1",
+"name": "Lightning",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "6.4",
+"name": "High-altitude Illness",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "6.4.1",
+"name": "Acute mountain sickness",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "6.4.2",
+"name": "High-altitude cerebral edema",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "6.4.3",
+"name": "High-altitude pulmonary edema",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "6.5",
+"name": "Submersion Incidents",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "6.6",
+"name": "Temperature-related Illness",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "6.6.1",
+"name": "Heat",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "6.6.2",
+"name": "Cold",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "6.6.2.1",
+"name": "Frostbite",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "6.6.2.2",
+"name": "Hypothermia",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "6.7",
+"name": "Radiation Emergencies",
+"sys": 6,
+"sysname": "ENVIRONMENTAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "7.1",
+"name": "Ear",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.1.1",
+"name": "Foreign body",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.1.1.1",
+"name": "Impacted cerumen",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.1.2",
+"name": "Inner ear disorders",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.1.3",
+"name": "Mastoiditis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.1.4",
+"name": "Otitis externa",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.1.4.1",
+"name": "Infective",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.1.4.1.1",
+"name": "Malignant",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.1.5",
+"name": "Otitis media",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.1.6",
+"name": "Perforated tympanic membrane (See 18.1.11.2)",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.2",
+"name": "Eye",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.2.1",
+"name": "External eye",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.2.1.1",
+"name": "Burn confined to eye (See 18.1.10.2)",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.2.1.2",
+"name": "Conjunctivitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.2.1.3",
+"name": "Corneal abrasions (See 18.1.10.1)",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.2.1.4",
+"name": "Disorders of lacrimal system",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.2.1.5",
+"name": "Foreign body",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.2.1.6",
+"name": "Disorders of the eyelids",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.2.1.7",
+"name": "Keratitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.2.1.8",
+"name": "Chemical exposure",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "7.2.2",
+"name": "Anterior pole",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.2.2.1",
+"name": "Glaucoma",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.2.2.2",
+"name": "Hyphema (See 18.1.10.5)",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.2.2.3",
+"name": "Iritis (See 18.1.10.8)",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.2.2.4",
+"name": "Hypopyon",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.2.3",
+"name": "Posterior pole",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.2.3.1",
+"name": "Optic neuritis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.2.3.2",
+"name": "Papilledema",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "7.2.3.3",
+"name": "Retinal detachments and defects (See 18.1.10.7)",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.2.3.4",
+"name": "Retinal vascular occlusion",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.2.3.5",
+"name": "Vitreous hemorrhage",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.2.4",
+"name": "Orbit",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.2.4.1",
+"name": "Cellulitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.2.4.1.1",
+"name": "Preseptal",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.2.4.1.2",
+"name": "Septal/Orbital",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.2.4.2",
+"name": "Endophthalmitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "7.3",
+"name": "Nose",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.3.1",
+"name": "Epistaxis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "7.3.2",
+"name": "Foreign body",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "7.3.3",
+"name": "Rhinitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.3.4",
+"name": "Sinusitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.4",
+"name": "Oropharynx/Throat",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.4.1",
+"name": "Dentalgia",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "7.4.2",
+"name": "Diseases of the oral soft tissue",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.4.2.1",
+"name": "Ludwig's angina (see 16.1.1.3)",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "7.4.2.2",
+"name": "Stomatitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "7.4.2.3",
+"name": "Gingival and periodontal disorders",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "7.4.2.4",
+"name": "Odontogenic infections/Abscesses",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "7.4.2.5",
+"name": "Aphthous ulcers",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "7.4.3",
+"name": "Diseases of the salivary glands",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.4.3.1",
+"name": "Sialolithiasis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "7.4.3.2",
+"name": "Suppurative parotitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "7.4.4",
+"name": "Foreign body",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "7.4.5",
+"name": "Larynx/Trachea",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "7.4.5.1",
+"name": "Epiglottitis (See 16.1.1.2)",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "7.4.5.2",
+"name": "Laryngitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "7.4.5.3",
+"name": "Tracheitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "7.4.5.4",
+"name": "Tracheostomy complications",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "7.4.6",
+"name": "Oral candidiasis (See 2.2.1.1, 4.4.2.1)",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "7.4.7",
+"name": "Pharyngitis/Tonsillitis",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "7.4.7.1",
+"name": "Post-tonsillectomy bleeding",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "7.4.7.2",
+"name": "Peritonsillar abscess",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "7.4.8",
+"name": "Retropharyngeal abscess",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "7.4.9",
+"name": "Temporomandibular joint disorders",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "7.5",
+"name": "Tumors",
+"sys": 7,
+"sysname": "HEAD, EAR, EYE, NOSE, THROAT DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "8.1",
+"name": "Blood Transfusion",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "8.1.1",
+"name": "Complications",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "8.2",
+"name": "Hemostatic Disorders",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "8.2.1",
+"name": "Coagulation defects",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.2.1.1",
+"name": "Acquired",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.2.1.2",
+"name": "Hemophilias",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.2.1.3",
+"name": "Anticoagulation agents",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.2.1.4",
+"name": "Anticoagulation reversal",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "8.2.2",
+"name": "Disseminated intravascular coagulation",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "8.2.3",
+"name": "Platelet disorders",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.2.3.1",
+"name": "Thrombocytopenia",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.2.3.2",
+"name": "Idiopathic thrombocytopenic purpura",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "8.2.3.3",
+"name": "Thrombotic thrombocytopenic purpura",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "8.3",
+"name": "Lymphomas",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.4",
+"name": "Pancytopenia",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "8.5",
+"name": "Red Blood Cell Disorders",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "8.5.1",
+"name": "Anemias",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "8.5.1.1",
+"name": "Aplastic",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "8.5.1.2",
+"name": "Hemoglobinopathies",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.5.1.2.1",
+"name": "Sickle cell anemia",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.5.1.2.2",
+"name": "Thalassemia",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.5.1.3",
+"name": "Hemolytic",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "8.5.1.4",
+"name": "Hypochromic",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "8.5.1.4.1",
+"name": "Iron deficiency",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.5.1.5",
+"name": "Megaloblastic",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.5.2",
+"name": "Polycythemia",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.5.3",
+"name": "Methemoglobinemia (See 17.1.21)",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "8.6",
+"name": "White Blood Cell Disorders",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "8.6.1",
+"name": "Leukemia",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.6.2",
+"name": "Multiple myeloma",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.6.3",
+"name": "Leukopenia",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "8.7",
+"name": "Oncologic Emergencies",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.7.1",
+"name": "Febrile neutropenia",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.7.2",
+"name": "Hypercalcemia of malignancy",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.7.3",
+"name": "Hyperviscosity syndrome",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.7.4",
+"name": "Malignant pericardial effusion",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.7.5",
+"name": "Spinal cord compression (See 12.10)",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "8.7.6",
+"name": "Superior vena cava syndrome",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "8.7.7",
+"name": "Tumor hemorrhage",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.7.8",
+"name": "Tumor lysis syndrome",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "8.7.9",
+"name": "Chemotherapy complications",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "8.7.10",
+"name": "Immunotherapy complications",
+"sys": 8,
+"sysname": "HEMATOLOGIC AND ONCOLOGIC DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "9.1",
+"name": "Collagen Vascular Disease",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "9.1.1",
+"name": "Raynaud\u2019s disease",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "9.1.2",
+"name": "Reactive arthritis (See 11.3.1.6)",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.1.3",
+"name": "Rheumatoid arthritis (See 11.3.1.3)",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.1.4",
+"name": "Scleroderma",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.1.5",
+"name": "Systemic lupus erythematosus",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.1.6",
+"name": "Vasculitis",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.2",
+"name": "Hypersensitivity",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "9.2.1",
+"name": "Allergic reaction",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.2.2",
+"name": "Anaphylaxis",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "9.2.3",
+"name": "Angioedema",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "9.2.4",
+"name": "Drug allergies",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "9.3",
+"name": "Transplant-related Problems",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "9.3.1",
+"name": "Immunosuppression",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.3.2",
+"name": "Rejection",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "9.4",
+"name": "Immune Complex Disorders",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "9.4.1",
+"name": "Kawasaki Disease",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.4.2",
+"name": "Rheumatic fever",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.4.3",
+"name": "Sarcoidosis",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "9.4.4",
+"name": "Post-streptococcal glomerulonephritis (See 15.3.1)",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "9.5",
+"name": "Medication-induced Immunosuppression",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "9.5.1",
+"name": "Chemotherapeutic agents",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "9.5.2",
+"name": "Steroids",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "9.5.3",
+"name": "Targeted immune modulators",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "9.6",
+"name": "Multisystem Inflammatory Syndrome in Children",
+"sys": 9,
+"sysname": "IMMUNE SYSTEM DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "10.1",
+"name": "Bacterial",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "10.1.1",
+"name": "Bacterial food poisoning",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.1.1.1",
+"name": "Botulism",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.1.2",
+"name": "Chlamydia",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.1.3",
+"name": "Gonococcus",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.1.4",
+"name": "Meningococcus",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.1.5",
+"name": "Mycobacterium",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "10.1.5.1",
+"name": "Atypical mycobacteria",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.1.5.2",
+"name": "Tuberculosis",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.1.6",
+"name": "Other bacterial diseases",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.1.6.1",
+"name": "Gas gangrene (See 11.6.3)",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.1.7",
+"name": "Sepsis/Bacteremia",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.1.7.1",
+"name": "Septic shock",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "10.1.7.2",
+"name": "Toxic shock syndrome",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.1.8",
+"name": "Spirochetes",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "10.1.8.1",
+"name": "Syphilis",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.1.9",
+"name": "Tetanus",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.1.10",
+"name": "Scarlet fever",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.2",
+"name": "Bioterrorism Agents/Diseases",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.2.1",
+"name": "Class A agents",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.2.2",
+"name": "Other microorganisms, viruses, and toxins",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "10.3",
+"name": "Fungal Infections",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.4",
+"name": "Protozoan/Parasites",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "10.4.1",
+"name": "Malaria",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "10.4.2",
+"name": "Toxoplasmosis",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.5",
+"name": "Tick-borne",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "10.5.1",
+"name": "Anaplasmosis (Ehrlichiosis)",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "10.5.2",
+"name": "Lyme disease",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "10.5.3",
+"name": "Rocky Mountain spotted fever",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "10.5.4",
+"name": "Babesiosis",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "10.5.5",
+"name": "Southern tick-associated rash illness (STARI)",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.6",
+"name": "Viral",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.6.1",
+"name": "Infectious mononucleosis",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.6.2",
+"name": "Influenza/Parainfluenza",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.6.3",
+"name": "Arbovirus",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "10.6.4",
+"name": "Herpes simplex (See 4.4.4.1.1, 13.1.3.1)",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.6.5",
+"name": "Herpes zoster/Varicella (See 4.4.4.1.2)",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.6.6",
+"name": "HIV/AIDS",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "10.6.7",
+"name": "Rabies",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "10.6.8",
+"name": "Roseola",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "10.6.9",
+"name": "Rubella",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "10.6.10",
+"name": "Measles",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "10.6.11",
+"name": "Mumps (Paramyxovirus)",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "10.6.12",
+"name": "COVID-19 (SARS-CoV2)",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "10.6.13",
+"name": "Parvovirus (fifth disease)",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "10.7",
+"name": "Emerging Infections/Pandemics",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "10.8",
+"name": "Drug Resistance",
+"sys": 10,
+"sysname": "SYSTEMIC INFECTIOUS DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "11.1",
+"name": "Bony Abnormalities",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "11.1.1",
+"name": "Aseptic/Avascular necrosis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.1.2",
+"name": "Osteomyelitis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "11.1.3",
+"name": "Tumors",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.1.4",
+"name": "Atypical fractures",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.1.4.1",
+"name": "Osteoporotic",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.1.4.2",
+"name": "Tumor-related",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.1.4.3",
+"name": "Congenital disorders",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.2",
+"name": "Disorders of the Spine",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "11.2.1",
+"name": "Disc disorders",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.2.2",
+"name": "Inflammatory/Infectious spondylopathies",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.2.3",
+"name": "Radiculopathy (See 12.7.3)",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.2.4",
+"name": "Spinal stenosis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.2.5",
+"name": "Cervical pain",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "11.2.6",
+"name": "Thoracic pain",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "11.2.7",
+"name": "Lumbosacral pain",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "11.2.7.1",
+"name": "Cauda equina syndrome (See 18.1.15.1)",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "11.2.7.2",
+"name": "Sacroiliitis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.2.7.3",
+"name": "Sciatica",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.2.8",
+"name": "Discitis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.3",
+"name": "Joint Abnormalities",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "11.3.1",
+"name": "Arthritis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "11.3.1.1",
+"name": "Septic",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "11.3.1.2",
+"name": "Crystal arthropathies",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.3.1.3",
+"name": "Rheumatoid (See 9.1.3)",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.3.1.4",
+"name": "Juvenile idiopathic arthritis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.3.1.5",
+"name": "Osteoarthrosis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.3.1.6",
+"name": "Reactive arthritis (See 9.1.2)",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.3.2",
+"name": "Developmental dysplasia of the hip",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.3.3",
+"name": "Slipped capital femoral epiphysis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "11.3.4",
+"name": "Synovitis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.4",
+"name": "Muscle Abnormalities",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "11.4.1",
+"name": "Myositis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.4.2",
+"name": "Rhabdomyolysis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "11.4.3",
+"name": "Compartment syndrome (See 18.1.14.2)",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "11.5",
+"name": "Overuse Syndromes",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "11.5.1",
+"name": "Bursitis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.5.2",
+"name": "Muscle strains",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.5.3",
+"name": "Peripheral nerve syndrome",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.5.3.1",
+"name": "Carpal tunnel syndrome",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.5.4",
+"name": "Tendinopathy",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "11.5.5",
+"name": "Stress reaction fracture",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "11.6",
+"name": "Soft Tissue Infections",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "11.6.1",
+"name": "Necrotizing infections",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "11.6.2",
+"name": "Felon",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "11.6.3",
+"name": "Gangrene (See 10.1.6.1)",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "11.6.4",
+"name": "Paronychia",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "11.6.5",
+"name": "Tenosynovitis",
+"sys": 11,
+"sysname": "MUSCULOSKELETAL DISORDERS (NONTRAUMATIC)",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.1",
+"name": "Cranial Nerve Disorders",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "12.1.1",
+"name": "Idiopathic facial nerve paralysis (Bell\u2019s palsy)",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "12.1.2",
+"name": "Trigeminal neuralgia",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "12.2",
+"name": "Demyelinating Disorders",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "12.2.1",
+"name": "Multiple sclerosis",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "12.3",
+"name": "Headache (See 1.2.2)",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "12.3.1",
+"name": "Tension",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "12.3.2",
+"name": "Migraine",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "12.3.3",
+"name": "Cluster",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "12.3.4",
+"name": "Giant cell arteritis",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "12.4",
+"name": "Hydrocephalus",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "12.4.1",
+"name": "Normal pressure",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "12.4.2",
+"name": "Shunt complications",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "12.5",
+"name": "Infections/Inflammatory Disorders",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "12.5.1",
+"name": "Encephalitis",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "12.5.2",
+"name": "Intracranial and intraspinal abscess",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "12.5.3",
+"name": "Meningitis",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "12.5.3.1",
+"name": "Bacterial",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "12.5.3.2",
+"name": "Viral",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "12.5.3.3",
+"name": "Fungal",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "12.5.4",
+"name": "Myelitis",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "12.5.4.1",
+"name": "Acute flaccid myelitis",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "12.5.5",
+"name": "Epidural abscess",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "12.6",
+"name": "Movement Disorders",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "12.6.1",
+"name": "Dystonic reaction",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "12.6.2",
+"name": "Chorea/Choreiform",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "12.6.3",
+"name": "Tardive dyskinesia",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "12.7",
+"name": "Neuromuscular Disorders",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "12.7.1",
+"name": "Guillain-Barr\u00e9 syndrome",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "12.7.2",
+"name": "Myasthenia gravis",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "12.7.3",
+"name": "Peripheral neuropathy (See 11.2.3)",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "12.8",
+"name": "Other Conditions of the Brain",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "12.8.1",
+"name": "Dementia (See 14.5.2)",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "12.8.2",
+"name": "Parkinson\u2019s disease",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "12.8.3",
+"name": "Idiopathic intracranial hypertension",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "12.8.4",
+"name": "Cerebral venous sinus thrombosis",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "12.8.5",
+"name": "Posterior reversible encephalopathy syndrome (PRES)",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "12.8.6",
+"name": "Transient global amnesia",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "12.9",
+"name": "Seizure Disorders",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "12.9.1",
+"name": "Epileptiform",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "12.9.1.1",
+"name": "Neonatal",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.9.1.2",
+"name": "Febrile",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "12.9.1.3",
+"name": "Status epilepticus",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "12.9.1.4",
+"name": "Nonconvulsive",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.9.1.5",
+"name": "Drug-induced",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.9.1.6",
+"name": "Withdrawal",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.9.2",
+"name": "Nonepileptic seizure",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "12.10",
+"name": "Spinal Cord Compression (See 8.7.5)",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.11",
+"name": "Stroke",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "12.11.1",
+"name": "Hemorrhagic",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "12.11.1.1",
+"name": "Intracerebral",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.11.1.2",
+"name": "Subarachnoid",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.11.2",
+"name": "Ischemic",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "12.11.2.1",
+"name": "Embolic",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.11.2.2",
+"name": "Thrombotic",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.12",
+"name": "Transient Cerebral Ischemia",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "12.13",
+"name": "Tumors",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "12.14",
+"name": "Delirium",
+"sys": 12,
+"sysname": "NERVOUS SYSTEM DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "13.1",
+"name": "Female Genital Tract",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.1",
+"name": "Cervix",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.1.1",
+"name": "Cervicitis and endocervicitis",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "13.1.1.2",
+"name": "Tumors",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.1.2",
+"name": "Infectious disorders",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.2.1",
+"name": "Pelvic inflammatory disease",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "13.1.2.1.1",
+"name": "Fitz-Hugh-Curtis syndrome",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.2.1.2",
+"name": "Tuboovarian abscess",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "13.1.2.2",
+"name": "Urethritis",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.1.2.3",
+"name": "Gangrene of perineum",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "13.1.3",
+"name": "Lesions",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.3.1",
+"name": "Herpes simplex (See 4.4.4.1.1, 10.6.4)",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.1.3.2",
+"name": "Human papillomavirus (HPV) (See 4.4.4.2)",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.3.3",
+"name": "Chancres",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.1.4",
+"name": "Ovary",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.4.1",
+"name": "Cyst",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.1.4.2",
+"name": "Torsion",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "13.1.4.3",
+"name": "Tumors",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "13.1.5",
+"name": "Uterus",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.5.1",
+"name": "Abnormal bleeding",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "13.1.5.2",
+"name": "Endometriosis",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.1.5.3",
+"name": "Prolapse",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.1.5.4",
+"name": "Tumors",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "13.1.5.4.1",
+"name": "Gestational trophoblastic disease",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.5.4.2",
+"name": "Leiomyoma",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.1.6",
+"name": "Vagina and vulva",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.1.6.1",
+"name": "Bartholin\u2019s cyst",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "13.1.6.2",
+"name": "Foreign body",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "13.1.6.3",
+"name": "Vaginitis/Vulvovaginitis",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.2",
+"name": "Normal Pregnancy",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "13.3",
+"name": "Complications of Pregnancy",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.3.1",
+"name": "Abortion",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "13.3.2",
+"name": "Ectopic pregnancy",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "13.3.3",
+"name": "Hemolysis, elevated liver enzymes, low platelets (HELLP) syndrome",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.3.4",
+"name": "Hemorrhage, antepartum",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.3.4.1",
+"name": "Abruptio placentae (See 18.2.1)",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "13.3.4.2",
+"name": "Placenta previa",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "13.3.5",
+"name": "Hyperemesis gravidarum",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "13.3.6",
+"name": "Gestational hypertension",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "13.3.6.1",
+"name": "Eclampsia",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "13.3.6.2",
+"name": "Preeclampsia",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "13.3.7",
+"name": "Infections",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "13.3.8",
+"name": "Rh isoimmunization",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "13.3.9",
+"name": "First trimester bleeding",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "13.3.10",
+"name": "Gestational diabetes",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "13.4",
+"name": "High-risk Pregnancy",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "13.4.1",
+"name": "Assisted reproductive therapies",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "13.4.2",
+"name": "Pre-existing medical problems",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "13.5",
+"name": "Normal Labor and Delivery",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "13.6",
+"name": "Complications of Labor",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.6.1",
+"name": "Fetal distress",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "13.6.2",
+"name": "Premature labor (See 18.2.3)",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "13.6.3",
+"name": "Premature rupture of membranes",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "13.6.4",
+"name": "Rupture of uterus (See 18.2.4)",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "13.7",
+"name": "Complications of Delivery",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.7.1",
+"name": "Malposition of fetus",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "13.7.2",
+"name": "Nuchal cord",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "13.7.3",
+"name": "Prolapse of cord",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "13.7.4",
+"name": "Amniotic fluid embolism",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "13.7.5",
+"name": "Shoulder dystocia",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "13.8",
+"name": "Postpartum Complications",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "13.8.1",
+"name": "Endometritis",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "13.8.2",
+"name": "Hemorrhage",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "13.8.3",
+"name": "Mastitis",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "13.8.4",
+"name": "Pituitary infarction",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "13.9",
+"name": "Contraception",
+"sys": 13,
+"sysname": "OBSTETRICS AND GYNECOLOGY",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "14.1",
+"name": "Substance Use Disorders",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "14.1.1",
+"name": "Alcohol use disorder (See 17.1.1)",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "14.1.2",
+"name": "Illicit drug use",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "14.1.3",
+"name": "Prescription drug use",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "14.1.3.1",
+"name": "Drug diversion",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.1.4",
+"name": "Tobacco use disorder",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.1.5",
+"name": "Withdrawal syndromes",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "14.1.6",
+"name": "Opioid use disorder (See 17.1.2.3)",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "14.1.7",
+"name": "Stimulant use disorder",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "14.1.8",
+"name": "Medication for substance use disorder",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "14.2",
+"name": "Mood Disorders and Thought Disorders",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "14.2.1",
+"name": "Acute psychosis",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "14.2.2",
+"name": "Bipolar disorder",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "14.2.3",
+"name": "Depression",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "14.2.3.1",
+"name": "Suicidal risk",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "14.2.4",
+"name": "Grief reaction",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.2.5",
+"name": "Schizophrenia",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "14.3",
+"name": "Factitious Disorders",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "14.4",
+"name": "Neurotic Disorders",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "14.4.1",
+"name": "Anxiety/Panic",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.4.2",
+"name": "Obsessive compulsive",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.4.3",
+"name": "Phobic",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.4.4",
+"name": "Post-traumatic stress",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.5",
+"name": "Organic Psychoses",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "14.5.1",
+"name": "Chronic organic psychotic conditions",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.5.1.1",
+"name": "Alcoholic psychoses",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "14.5.1.2",
+"name": "Drug psychoses",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "14.5.2",
+"name": "Dementia (See 12.8.1)",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.6",
+"name": "Patterns of Violence/Abuse/Neglect",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "14.6.1",
+"name": "Interpersonal violence",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "14.6.1.1",
+"name": "Child",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "14.6.1.2",
+"name": "Intimate partner",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "14.6.1.3",
+"name": "Vulnerable adult",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "14.6.1.4",
+"name": "Elder",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "14.6.2",
+"name": "Homicidal risk",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "14.6.3",
+"name": "Sexual assault",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "14.6.3.1",
+"name": "Post-exposure prophylaxis",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "14.6.4",
+"name": "Staff/Patient safety",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "14.6.5",
+"name": "Human trafficking",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "14.7",
+"name": "Personality Disorders",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.8",
+"name": "Psychosomatic Disorders",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "14.8.1",
+"name": "Hypochondriasis",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "14.8.2",
+"name": "Conversion disorder",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "14.9",
+"name": "Feeding and Eating Disorders",
+"sys": 14,
+"sysname": "PSYCHOBEHAVIORAL DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "15.1",
+"name": "Acute and Chronic Renal Failure",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "15.2",
+"name": "Complications of Dialysis",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "15.2.1",
+"name": "Vascular",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "15.2.2",
+"name": "Peritoneal",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "15.3",
+"name": "Glomerular Disorders",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "15.3.1",
+"name": "Glomerulonephritis (See 9.4.4)",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.3.2",
+"name": "Nephrotic syndrome",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.4",
+"name": "Infection",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "15.4.1",
+"name": "Cystitis",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "15.4.2",
+"name": "Pyelonephritis",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "15.4.3",
+"name": "Asymptomatic bacteriuria",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "15.5",
+"name": "Male Genital Tract",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "15.5.1",
+"name": "Genital lesions",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "15.5.2",
+"name": "Hernias",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.5.3",
+"name": "Inflammation/Infection",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "15.5.3.1",
+"name": "Balanitis/Balanoposthitis",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.5.3.2",
+"name": "Epididymitis/Orchitis",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.5.3.3",
+"name": "Gangrene of the perineum (Fournier's gangrene)",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "15.5.3.4",
+"name": "Prostatitis",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.5.3.5",
+"name": "Urethritis",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "15.5.4",
+"name": "Structural",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "15.5.4.1",
+"name": "Paraphimosis/Phimosis",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "15.5.4.2",
+"name": "Priapism",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "15.5.4.2.1",
+"name": "Medication induced",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.5.4.3",
+"name": "Prostatic hypertrophy (BPH)",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "15.5.4.4",
+"name": "Torsion",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "15.5.5",
+"name": "Testicular masses",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "15.6",
+"name": "Nephritis",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.6.1",
+"name": "Hemolytic uremic syndrome",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "15.7",
+"name": "Structural Disorders",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "15.7.1",
+"name": "Calculus of urinary tract",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.7.2",
+"name": "Obstructive uropathy",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "15.7.3",
+"name": "Polycystic kidney disease",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "15.8",
+"name": "Tumors",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "15.9",
+"name": "Urologic Devices",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "15.9.1",
+"name": "Nephrostomy tube",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.9.2",
+"name": "Malfunctioning indwelling catheter",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.9.3",
+"name": "Ureteral stents",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "15.10",
+"name": "Gender Affirming Procedural Complications",
+"sys": 15,
+"sysname": "RENAL AND UROGENITAL DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "16.1",
+"name": "Acute Upper Airway Disorders",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.1.1",
+"name": "Infections",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.1.1.1",
+"name": "Croup",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "16.1.1.2",
+"name": "Epiglottitis (See 7.4.5.1)",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.1.1.3",
+"name": "Ludwig\u2019s angina (See 7.4.2.1)",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.1.2",
+"name": "Obstruction/Foreign body (See 16.4.7)",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "16.2",
+"name": "Disorders of Pleura, Mediastinum, and Chest Wall",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.2.1",
+"name": "Costochondritis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "16.2.2",
+"name": "Mediastinitis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.2.3",
+"name": "Pleural effusion",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "16.2.4",
+"name": "Pleuritis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "16.2.5",
+"name": "Pneumomediastinum",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "16.2.6",
+"name": "Pneumothorax (See 18.1.2.7)",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.2.6.1",
+"name": "Simple",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "16.2.6.2",
+"name": "Tension",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "16.2.6.3",
+"name": "Open",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "16.2.7",
+"name": "Empyema",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "16.3",
+"name": "Acute Respiratory Distress Syndrome",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.4",
+"name": "Obstructive/Restrictive Lung Disease",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.4.1",
+"name": "Asthma/Reactive airway disease",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.4.2",
+"name": "Bronchitis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "16.4.3",
+"name": "Bronchopulmonary dysplasia",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "16.4.4",
+"name": "Chronic obstructive pulmonary disease",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "16.4.5",
+"name": "Cystic fibrosis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "16.4.6",
+"name": "Environmental/Industrial exposure",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "16.4.7",
+"name": "Foreign body (See 16.1.2)",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.4.8",
+"name": "Bronchiolitis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "16.5",
+"name": "Physical and Chemical Irritants/Insults",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.5.1",
+"name": "Pneumoconiosis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "16.5.2",
+"name": "Toxic effects of gases, fumes, vapors (See 18.1.3.3.2)",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.6",
+"name": "Pulmonary Embolism/Infarct",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.6.1",
+"name": "Septic emboli",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.6.2",
+"name": "Venous thromboembolism (See 3.3.2.1)",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "16.6.2.1",
+"name": "Massive and submassive embolism",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.6.3",
+"name": "Fat emboli",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.7",
+"name": "Pulmonary Infections",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.7.1",
+"name": "Lung abscess",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "16.7.2",
+"name": "Pneumonia",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "16.7.2.1",
+"name": "Aspiration",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "16.7.2.2",
+"name": "Community-acquired",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "16.7.2.3",
+"name": "Healthcare-associated pneumonia",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "16.7.2.4",
+"name": "Pneumocystis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "16.7.3",
+"name": "Pulmonary tuberculosis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "16.7.4",
+"name": "Respiratory syncytial virus (RSV)",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "16.7.5",
+"name": "Pertussis",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "16.8",
+"name": "Tumors",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "C",
+"nx": 2
+},
+{
+"code": "16.9",
+"name": "Pulmonary Hypertension",
+"sys": 16,
+"sysname": "THORACIC-RESPIRATORY DISORDERS",
+"acuity": "C",
+"nx": 3
+},
+{
+"code": "17.1",
+"name": "Drug and Chemical Classes",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "17.1.1",
+"name": "Alcohol (See 14.1.1)",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "17.1.1.1",
+"name": "Ethanol",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "17.1.1.2",
+"name": "Ethylene glycol",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.1.3",
+"name": "Isopropyl",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "17.1.1.4",
+"name": "Methanol",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.2",
+"name": "Analgesics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "17.1.2.1",
+"name": "Acetaminophen",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.2.2",
+"name": "Nonsteroidal anti-inflammatories (NSAIDS)",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "17.1.2.3",
+"name": "Opioids (See 14.1.6)",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.2.4",
+"name": "Salicylates",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.3",
+"name": "Anticholinergics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.3.1",
+"name": "Antihistamines",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "17.1.4",
+"name": "Anticoagulants/Antithrombotics/Antiplatelets",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.4.1",
+"name": "Direct thrombin inhibitors",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "17.1.4.2",
+"name": "Factor Xa inhibitors",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "17.1.4.3",
+"name": "Heparins",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.4.4",
+"name": "Vitamin K antagonists",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CL",
+"nx": 2
+},
+{
+"code": "17.1.5",
+"name": "Anticonvulsants",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.6",
+"name": "Antidepressants",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.6.1",
+"name": "Bupropion",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "17.1.6.2",
+"name": "Selective serotonin reuptake inhibitors",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "17.1.6.3",
+"name": "Tricyclic antidepressants",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.7",
+"name": "Antiemetics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "17.1.8",
+"name": "Antimicrobials",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "17.1.8.1",
+"name": "Antibiotics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "17.1.8.1.1",
+"name": "Isoniazid",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.8.2",
+"name": "Antimalarials",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "17.1.8.3",
+"name": "Antiretrovirals",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "17.1.9",
+"name": "Antipsychotics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.10",
+"name": "Carbon monoxide",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.11",
+"name": "Cardiovascular drugs",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "17.1.11.1",
+"name": "Antiarrhythmics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.11.1.1",
+"name": "Digoxin",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.11.2",
+"name": "Antihypertensives",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.11.2.1",
+"name": "Central acting",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.11.2.2",
+"name": "Peripheral Acting",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.11.3",
+"name": "Beta blockers",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.11.4",
+"name": "Calcium channel blockers",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.12",
+"name": "Cholinergics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.12.1",
+"name": "Nerve agents",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.12.2",
+"name": "Organophosphates",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.13",
+"name": "Cyanides, hydrogen sulfide",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.14",
+"name": "Heavy metals",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.15",
+"name": "Herbicides, insecticides, and rodenticides",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.16",
+"name": "Household/Industrial chemicals",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "17.1.16.1",
+"name": "Caustic agents (See 2.2.2.3)",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.16.2",
+"name": "Hydrocarbons",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.16.3",
+"name": "Inhaled irritants",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.17",
+"name": "Hypoglycemics/Insulin",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.18",
+"name": "Lithium",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "17.1.19",
+"name": "Local anesthetics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.20",
+"name": "Marine toxins (See 6.1.3)",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "17.1.21",
+"name": "Methemoglobinemia (See 8.5.3)",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.22",
+"name": "Mushrooms/Poisonous plants",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.23",
+"name": "Nutritional supplements",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "17.1.23.1",
+"name": "Iron",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.23.2",
+"name": "Performance enhancing and weight-loss drugs",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "17.1.24",
+"name": "Recreational drugs",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "17.1.24.1",
+"name": "Cannabis",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "17.1.24.1.1",
+"name": "Cannabinoid hyperemesis syndrome/Cyclic vomiting (See 2.7.7)",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "17.1.24.2",
+"name": "Synthetic cannabinoids",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "17.1.24.3",
+"name": "Hallucinogens",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "17.1.24.4",
+"name": "GHB",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "17.1.25",
+"name": "Sedatives/Hypnotics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.26",
+"name": "Stimulants/Sympathomimetics",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.26.1",
+"name": "Amphetamines",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "17.1.26.2",
+"name": "Cocaine",
+"sys": 17,
+"sysname": "TOXICOLOGIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "18.1",
+"name": "Trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.1",
+"name": "Abdominal trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.1.1",
+"name": "Diaphragm",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.1.2",
+"name": "Hollow viscus",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.1.3",
+"name": "Penetrating",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.1.4",
+"name": "Retroperitoneum",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.1.5",
+"name": "Solid organ",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.1.6",
+"name": "Vascular",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.1.7",
+"name": "Abdominal wall",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.2",
+"name": "Thoracic trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.2.1",
+"name": "Blunt aortic injury/disruption",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "18.1.2.2",
+"name": "Contusion",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.2.2.1",
+"name": "Cardiac",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "18.1.2.2.2",
+"name": "Pulmonary",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.2.3",
+"name": "Fracture",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.2.3.1",
+"name": "Clavicle",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.2.3.2",
+"name": "Ribs/Flail chest",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "18.1.2.3.3",
+"name": "Sternum",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.2.3.4",
+"name": "Scapula",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.2.4",
+"name": "Hemothorax",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.2.5",
+"name": "Penetrating chest trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.2.6",
+"name": "Pericardial tamponade (See 3.6.1)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "18.1.2.7",
+"name": "Pneumothorax (See 16.2.6)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.2.7.1",
+"name": "Simple",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.2.7.2",
+"name": "Tension",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "18.1.2.7.3",
+"name": "Open",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "18.1.3",
+"name": "Cutaneous trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.3.1",
+"name": "Avulsions",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.3.2",
+"name": "Bite wounds (See 6.1)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.3.3",
+"name": "Burns",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.3.3.1",
+"name": "Electrical (See 6.3)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "18.1.3.3.2",
+"name": "Chemical (See 16.5.2)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "18.1.3.3.3",
+"name": "Thermal",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "18.1.3.3.4",
+"name": "Radiation",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "18.1.3.4",
+"name": "Lacerations",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.3.5",
+"name": "Puncture wounds",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.3.6",
+"name": "Nail injuries",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "18.1.4",
+"name": "Facial trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "18.1.4.1",
+"name": "Dental",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.4.2",
+"name": "Le Fort",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CEL",
+"nx": 3
+},
+{
+"code": "18.1.4.3",
+"name": "Mandibular",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.4.4",
+"name": "Orbital",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.4.5",
+"name": "Nasal",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "18.1.4.5.1",
+"name": "Septal hematoma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.4.6",
+"name": "Zygomaticomaxillary complex",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "L",
+"nx": 1
+},
+{
+"code": "18.1.5",
+"name": "Genitourinary trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.5.1",
+"name": "Bladder",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.5.2",
+"name": "External genitalia",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.5.3",
+"name": "Renal",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "EL",
+"nx": 2
+},
+{
+"code": "18.1.5.4",
+"name": "Ureteral",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.5.5",
+"name": "Urethral",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.6",
+"name": "Head trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.6.1",
+"name": "Intracranial injury",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.6.1.1",
+"name": "Concussion",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.6.1.2",
+"name": "Intracranial hemorrhage",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.6.1.3",
+"name": "Increased intracranial pressure",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.6.2",
+"name": "Scalp lacerations/Avulsions",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.6.3",
+"name": "Skull fractures",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.7",
+"name": "Spine trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.7.1",
+"name": "Dislocations/Subluxations",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.7.2",
+"name": "Fractures",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "18.1.7.3",
+"name": "Sprains/Strains",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.8",
+"name": "Extremity bony trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.8.1",
+"name": "Dislocations/Subluxations",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.8.2",
+"name": "Fractures (open and closed)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.9",
+"name": "Neck trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.9.1",
+"name": "Laryngotracheal injuries",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.9.2",
+"name": "Penetrating neck trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.9.3",
+"name": "Vascular injuries",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.9.4",
+"name": "Strangulation",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "18.1.10",
+"name": "Ophthalmologic trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.10.1",
+"name": "Corneal abrasions/Lacerations (See 7.2.1.3)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.10.2",
+"name": "Corneal burns (See 7.2.1.1)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.10.2.1",
+"name": "Acid",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.10.2.2",
+"name": "Alkali",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.10.2.3",
+"name": "Ultraviolet",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.10.3",
+"name": "Periorbital lacerations",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.10.3.1",
+"name": "Eyelid",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.10.3.2",
+"name": "Lacrimal duct",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.10.4",
+"name": "Foreign body (See 19.4.4.8)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.10.5",
+"name": "Hyphema (See 7.2.2.2)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.10.6",
+"name": "Penetrating globe injuries",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.10.7",
+"name": "Retinal detachments (See 7.2.3.3)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.10.8",
+"name": "Traumatic iritis (See 7.2.2.3)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.10.9",
+"name": "Retrobulbar hematoma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.11",
+"name": "Otologic trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.11.1",
+"name": "Hematoma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.11.2",
+"name": "Perforated tympanic membrane (See 7.1.6)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.12",
+"name": "Pediatric fractures",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.12.1",
+"name": "Epiphyseal",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.12.1.1",
+"name": "Salter-Harris classification",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.12.2",
+"name": "Greenstick",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.12.3",
+"name": "Torus",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.12.4",
+"name": "Apophyseal avulsion",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.13",
+"name": "Pelvic fracture",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.14",
+"name": "Soft-tissue extremity injuries",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.14.1",
+"name": "Amputations/Replantation",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.14.2",
+"name": "Compartment syndromes (See 11.4.3)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.14.3",
+"name": "High-pressure injection",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.14.4",
+"name": "Injuries to joints",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.14.5",
+"name": "Penetrating trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.14.6",
+"name": "Periarticular",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.14.7",
+"name": "Sprains/Strains",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.14.8",
+"name": "Tendon injuries",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.14.8.1",
+"name": "Lacerations/Transections",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.1.14.8.2",
+"name": "Ruptures",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.14.9",
+"name": "Vascular injuries",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.1.15",
+"name": "Spinal cord and nervous system trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.15.1",
+"name": "Cauda equina syndrome (See 11.2.7.1)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.1.15.2",
+"name": "Injury to nerve roots",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.15.3",
+"name": "Peripheral nerve injury",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 2
+},
+{
+"code": "18.1.15.4",
+"name": "Spinal cord injury",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "18.1.15.4.1",
+"name": "Spinal cord injury without radiologic abnormality (SCIWORA)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.2",
+"name": "Trauma in Pregnancy",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "18.2.1",
+"name": "Abruptio placentae (See 13.3.4.1)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.2.2",
+"name": "Resuscitative hysterotomy (See 19.4.8.2)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "18.2.3",
+"name": "Premature labor (See 13.6.2)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "E",
+"nx": 1
+},
+{
+"code": "18.2.4",
+"name": "Rupture of uterus (See 13.6.4)",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "C",
+"nx": 1
+},
+{
+"code": "18.3",
+"name": "Multi-system Trauma",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.3.1",
+"name": "Blast injury",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 2
+},
+{
+"code": "18.3.2",
+"name": "Falls",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "18.3.3",
+"name": "Motor vehicle collision",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "18.3.4",
+"name": "Assault MEDICINE",
+"sys": 18,
+"sysname": "TRAUMATIC DISORDERS",
+"acuity": "CE",
+"nx": 3
+},
+{
+"code": "19.1",
+"name": "Airway Techniques",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.1",
+"name": "Intubation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.1.1",
+"name": "Direct laryngoscopy",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.1.2",
+"name": "Video-assisted laryngoscopy",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.2",
+"name": "Airway adjuncts",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.2.1",
+"name": "Flexible endoscopic techniques",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.3",
+"name": "Surgical airway",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.4",
+"name": "Mechanical ventilation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.5",
+"name": "Non-invasive ventilatory management",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.5.1",
+"name": "CPAP/BiPAP",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.5.2",
+"name": "High flow oxygen",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.1.6",
+"name": "Ventilatory monitoring",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2",
+"name": "Resuscitation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.1",
+"name": "Cardiopulmonary resuscitation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.2",
+"name": "Neonatal resuscitation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.3",
+"name": "Pediatric resuscitation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.4",
+"name": "Post-resuscitative care",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.4.1",
+"name": "Targeted temperature management",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.5",
+"name": "Blood, fluid, and component therapy",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.6",
+"name": "Arterial catheter insertion",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.7",
+"name": "Central venous access",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.8",
+"name": "Intraosseous line placement",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.9",
+"name": "Defibrillation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.10",
+"name": "Thoracotomy",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.11",
+"name": "Extracorporeal membrane oxygenation (ECMO) (See 3.10.3)",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.12",
+"name": "Thermoregulation procedures",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.2.13",
+"name": "Neurocritical care resuscitation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.3",
+"name": "Anesthesia and Acute Pain Management",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.3.1",
+"name": "Regional anesthesia",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.3.2",
+"name": "Procedural sedation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.3.3",
+"name": "Analgesia",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4",
+"name": "Diagnostic and Therapeutic Procedures",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.1",
+"name": "Abdominal and gastrointestinal",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.1.1",
+"name": "Anoscopy",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.1.2",
+"name": "Excision of thrombosed hemorrhoid",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.1.3",
+"name": "Gastrostomy tube replacement",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.1.4",
+"name": "Nasogastric tube",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.1.5",
+"name": "Paracentesis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.1.6",
+"name": "Mechanical control of upper gastrointestinal bleeding",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.2",
+"name": "Cardiovascular and thoracic",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.2.1",
+"name": "Cardiac pacing",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.2.2",
+"name": "Cardioversion",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.2.3",
+"name": "ECG interpretation",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.2.4",
+"name": "Pericardiocentesis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.2.5",
+"name": "Thoracentesis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.2.6",
+"name": "Thoracostomy (including small bore catheters)",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.3",
+"name": "Cutaneous",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.3.1",
+"name": "Escharotomy",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.3.2",
+"name": "Incision and drainage",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.3.3",
+"name": "Trephination, nails",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.3.4",
+"name": "Wound closure techniques",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.3.5",
+"name": "Wound management",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4",
+"name": "Head, ear, eye, nose, and throat",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4.1",
+"name": "Control of epistaxis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4.2",
+"name": "Drainage of peritonsillar abscess",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4.3",
+"name": "Laryngoscopy",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4.4",
+"name": "Lateral canthotomy",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4.5",
+"name": "Slit lamp examination",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4.6",
+"name": "Tonometry",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4.7",
+"name": "Tooth stabilization",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4.8",
+"name": "Corneal foreign body removal (See 18.1.10.4)",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.4.9",
+"name": "Drainage of hematoma",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.5",
+"name": "Systemic infectious",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.5.1",
+"name": "Personal protection (equipment and techniques)",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.5.2",
+"name": "Universal precautions and exposure management",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.6",
+"name": "Musculoskeletal",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.6.1",
+"name": "Arthrocentesis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.6.2",
+"name": "Compartment pressure measurement",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.6.3",
+"name": "Fracture/Dislocation immobilization techniques",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.6.4",
+"name": "Fracture/Dislocation reduction techniques",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.6.5",
+"name": "Spine immobilization techniques",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.7",
+"name": "Nervous system",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.7.1",
+"name": "Lumbar puncture",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.8",
+"name": "Obstetrics and gynecology",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.8.1",
+"name": "Delivery of newborn",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.8.2",
+"name": "Resuscitative hysterotomy (See 18.2.2)",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.8.3",
+"name": "Sexual assault examination",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.9",
+"name": "Psychobehavioral",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.9.1",
+"name": "Violent patient management/Restraint",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.10",
+"name": "Renal and urogenital",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.10.1",
+"name": "Bladder catheterization",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.10.1.1",
+"name": "Urethral catheter",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.10.1.2",
+"name": "Suprapubic catheter",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.10.2",
+"name": "Cystourethrogram",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.10.3",
+"name": "Testicular detorsion",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.11",
+"name": "Toxicologic",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.11.1",
+"name": "Decontamination",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.4.11.2",
+"name": "Antidote administration",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5",
+"name": "Ultrasound",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.1",
+"name": "Ultrasound physics, artifacts, knobology, and safety (ALARA)",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2",
+"name": "Diagnostic ultrasound",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.1",
+"name": "Aorta",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.1.1",
+"name": "Abdominal aortic aneurysm",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.2",
+"name": "Biliary",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.2.1",
+"name": "Cholelithiasis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.2.2",
+"name": "Cholecystitis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.3",
+"name": "Bowel",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.3.1",
+"name": "Peritoneal fluid assessment",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.3.2",
+"name": "Small bowel obstruction",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.4",
+"name": "Cardiac",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.4.1",
+"name": "Asystole",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.4.2",
+"name": "Global left ventricular function",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.4.3",
+"name": "Global right ventricular size",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.4.4",
+"name": "Pericardial fluid",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.5",
+"name": "Ocular",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.5.1",
+"name": "Undifferentiated vitreous chamber",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.6",
+"name": "Female pelvis (transabdominal and transvaginal approaches)",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.6.1",
+"name": "Intrauterine pregnancy",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.6.2",
+"name": "Fetal assessment",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.6.2.1",
+"name": "Fetal heart rate",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.7",
+"name": "Renal and bladder",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.7.1",
+"name": "Hydronephrosis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.7.2",
+"name": "Bladder volume assessment",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.8",
+"name": "Soft tissue/Musculoskeletal",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.8.1",
+"name": "Abscess",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.8.2",
+"name": "Cellulitis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.8.3",
+"name": "Necrotizing fasciitis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.8.4",
+"name": "Foreign body detection",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.8.5",
+"name": "Joint effusion",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.9",
+"name": "Thoracic",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.9.1",
+"name": "Pleural effusion",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.9.2",
+"name": "Pneumothorax",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.9.3",
+"name": "Alveolar interstitial syndrome",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.10",
+"name": "Venous/Arterial assessment",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.10.1",
+"name": "Deep venous thrombosis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.2.10.2",
+"name": "Inferior vena cava",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.3",
+"name": "Resuscitative",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.3.1",
+"name": "Cardiac arrest",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.3.2",
+"name": "Medical",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.3.3",
+"name": "Traumatic",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.3.3.1",
+"name": "Pericardial fluid",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.3.3.2",
+"name": "Peritoneal fluid",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.3.3.3",
+"name": "Pleural fluid",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.3.3.4",
+"name": "Pneumothorax",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.3.4",
+"name": "Undifferentiated hypotension",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4",
+"name": "Procedural applications",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.1",
+"name": "Abscess incision and drainage",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.2",
+"name": "Arthrocentesis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.3",
+"name": "Foreign body removal",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.4",
+"name": "Paracentesis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.5",
+"name": "Pericardiocentesis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.6",
+"name": "Regional anesthesia",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.7",
+"name": "Thoracentesis",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.8",
+"name": "Vascular access",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.8.1",
+"name": "Central venous",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.8.2",
+"name": "Peripheral venous",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.5.4.8.3",
+"name": "Arterial",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.6",
+"name": "Other Diagnostic and Therapeutic Procedures",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.6.1",
+"name": "Foreign body removal",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "19.6.2",
+"name": "Collection and handling of forensic material",
+"sys": 19,
+"sysname": "PROCEDURES AND SKILLS INTEGRAL TO THE PRACTICE OF EMERGENCY",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1",
+"name": "Interpersonal and Communication Skills",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.1",
+"name": "Interpersonal skills",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.1.1",
+"name": "Inter-departmental and medical staff relations",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.1.2",
+"name": "Intra-departmental relations, teamwork, and collaboration skills",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.1.3",
+"name": "Patient and family-centered care and patient/family engagement",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.1.4",
+"name": "Empathetic and compassionate care management skills",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2",
+"name": "Communication skills",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.1",
+"name": "Complaint management and service recovery",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.2",
+"name": "Conflict management and resolution",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.3",
+"name": "Crisis resource management",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.4",
+"name": "Delivering difficult information to patient and family",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.5",
+"name": "Notification of family/loved ones of deceased patient",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.6",
+"name": "Cultural humility",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.6.1",
+"name": "Implicit bias",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.6.2",
+"name": "Systemic racism",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.7",
+"name": "Social determinants of health resource management",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.8",
+"name": "Negotiation skills",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.9",
+"name": "Partnering with patients and families to discuss, address, and manage their plan of care",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.10",
+"name": "Shared decision-making",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.11",
+"name": "Active listening and building trust",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.12",
+"name": "Discharge planning, medication management, and patient/family education",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.1.2.13",
+"name": "Handoffs, hospital admission, and patient/family education",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2",
+"name": "Practice-based Learning and Improvement",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.1",
+"name": "Performance improvement and lifelong learning",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.1.1",
+"name": "Evidence-based medicine",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.1.2",
+"name": "Interpretation of medical literature",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.1.3",
+"name": "Knowledge translation",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.1.4",
+"name": "Patient safety and medical errors",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.1.5",
+"name": "Performance evaluation and feedback",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.1.6",
+"name": "Research",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.2",
+"name": "Practice guidelines",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.3",
+"name": "Education",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.3.1",
+"name": "Patient and family",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.3.2",
+"name": "Care teams",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.2.4",
+"name": "Principles of quality improvement",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3",
+"name": "Professionalism",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.1",
+"name": "Advocacy",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.1.1",
+"name": "Patient",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.1.2",
+"name": "Professional",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.1.3",
+"name": "Healthcare disparities",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.1.4",
+"name": "Injury prevention",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.1.4.1",
+"name": "Firearm injury",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2",
+"name": "Ethical principles",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2.1",
+"name": "Conflicts of interest",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2.2",
+"name": "Diversity and inclusion awareness",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2.3",
+"name": "Management of medical misinformation and disinformation",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2.4",
+"name": "Medical ethics",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2.5",
+"name": "Stewardship of resources",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2.6",
+"name": "Care of vulnerable populations",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2.7",
+"name": "Gender and sexual orientation",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2.7.1",
+"name": "Transgender care",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.2.7.1.1",
+"name": "Gender-affirming therapy and procedures",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.3",
+"name": "Leadership and management principles",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.4",
+"name": "Well-being and resilience",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.4.1",
+"name": "Fatigue and impairment",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.4.1.1",
+"name": "Sleep hygiene",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.4.2",
+"name": "Time management/Organizational skills",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.4.3",
+"name": "Work/Life balance",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.4.4",
+"name": "Physician burnout",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.4.5",
+"name": "Job and contract evaluation",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.3.4.6",
+"name": "Care for the caregiver",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4",
+"name": "Systems-based Practice",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.1",
+"name": "Clinical informatics",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.1.1",
+"name": "Computerized order entry",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.1.2",
+"name": "Clinical decision support",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.1.3",
+"name": "Electronic health record",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.1.4",
+"name": "Health information exchange and interoperability",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.1.5",
+"name": "Telemedicine",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2",
+"name": "ED administration",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.1",
+"name": "Contracts and practice models",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.2",
+"name": "Patient flow and throughput",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.2.1",
+"name": "Patient triage and classification",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.2.2",
+"name": "Hospital crowding and diversion",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.2.3",
+"name": "Observation and rapid treatment units",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.3",
+"name": "Financial principles",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.3.1",
+"name": "Billing and coding",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.3.2",
+"name": "Cost-effective care and resource utilization",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.3.3",
+"name": "Reimbursement issues",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.4",
+"name": "Human resource management",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.4.1",
+"name": "Allied health professionals",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.4.2",
+"name": "Recruitment, credentialing, and orientation",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.4.3",
+"name": "Staffing/Scheduling",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.5",
+"name": "Emergency preparedness",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.5.1",
+"name": "Emergency operations plan",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.5.2",
+"name": "Supplies/Materials procurement and stockpiling",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.5.2.1",
+"name": "Personal protective equipment",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.5.3",
+"name": "Hospital-based casualty/disaster protocols",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.5.3.1",
+"name": "Incident command system",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.5.3.2",
+"name": "Decontamination, triage, and treatment areas",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.2.5.4",
+"name": "External disaster planning",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.3",
+"name": "ED operations",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.3.1",
+"name": "Policies and procedures",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.3.2",
+"name": "ED data acquisition and operational metrics",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.3.3",
+"name": "Safety, security, and violence in the ED",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.3.4",
+"name": "Patient satisfaction",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.3.5",
+"name": "Clinical quality measurement",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.3.6",
+"name": "Physician-led care team",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4",
+"name": "Health care coordination",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.1",
+"name": "Advance directives",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.1.1",
+"name": "Physician orders for life-sustaining treatment (POLST)",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.2",
+"name": "Palliative care",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.2.1",
+"name": "Patient identification for palliative care",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.2.2",
+"name": "Withdrawal of support",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.2.3",
+"name": "Hospice referral",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.3",
+"name": "Placement options",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.3.1",
+"name": "Activities of daily living/Functional assessment",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.4",
+"name": "Outpatient services",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.4.5",
+"name": "Organ donation",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.5",
+"name": "Regulatory/Legal",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.5.1",
+"name": "Accreditation",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.5.2",
+"name": "Compliance and reporting requirements",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.5.3",
+"name": "Confidentiality, privacy, and HIPAA",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.5.4",
+"name": "Consent, capacity, and refusal of care",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.5.5",
+"name": "Emergency Medical Treatment and Active Labor Act (EMTALA)",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.5.6",
+"name": "External quality metrics",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.5.7",
+"name": "Good Samaritan emergency care",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.5.8",
+"name": "Treatment of unaccompanied minors",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.6",
+"name": "Risk management",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.6.1",
+"name": "Liability and litigation",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.6.2",
+"name": "Professional liability insurance",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.6.3",
+"name": "Risk mitigation",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.6.4",
+"name": "Error disclosure",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.6.5",
+"name": "Root cause analysis",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.7",
+"name": "Regionalization of emergency care",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+},
+{
+"code": "20.4.8",
+"name": "Evolving trends in health care delivery",
+"sys": 20,
+"sysname": "OTHER CORE COMPETENCIES OF THE PRACTICE OF EMERGENCY MEDICINE",
+"acuity": "",
+"nx": 0
+}
+]

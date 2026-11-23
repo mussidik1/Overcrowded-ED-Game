@@ -1111,6 +1111,29 @@ button.ob { border: 0; font: inherit; color: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .map .mheli .rotor, .map .wxr, .map .wxs, .map .wxf { animation: none; } }
 .ob.heli { background: #C8243A; color: #fff; font-weight: 700; }
 .ob.beds { background: #E3ECE5; color: #1E5A35; }
+/* v0.28: order menus, diagnosis call, accuracy and legal risk */
+.om { display: grid; gap: 6px; }
+.om-h { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1px 8px; width: 100%; min-height: 44px; padding: 8px 12px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); text-align: left; }
+.om-h b { font: 700 15px/1.15 var(--ui); }
+.om-h small { grid-column: 1; color: var(--ink-2); font-size: 12px; }
+.om-h::after { content: '▸'; grid-column: 2; grid-row: 1 / span 2; font-size: 14px; }
+.om-h.open { background: var(--ink); color: #fff; }
+.om-h.open small { color: #D7DCE2; }
+.om-h.open::after { content: '▾'; }
+.om-n { grid-column: 2; grid-row: 1; margin-right: 18px; min-width: 22px; padding: 1px 6px; border-radius: 11px; background: var(--accent); color: #fff; font: 700 12px/1.4 var(--ui); text-align: center; }
+.om-b { padding: 4px 0 6px 10px; border-left: 3px solid var(--ink); }
+.om-sub { display: grid; gap: 5px; }
+.om-sub .om-h { min-height: 38px; padding: 6px 10px; border-width: 1.5px; }
+.om-sub .om-h b { font-size: 14px; }
+.ob.acc { background: #E6EEF9; color: #22426E; }
+.litbox { margin: 10px 0; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; }
+.lit-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.lit-row b { display: block; font: 700 22px/1.1 var(--ui); }
+.lit-row small { color: var(--ink-2); font-size: 12px; }
+.lit-row .warn b { color: #9A5B00; }
+.lit-row .bad b { color: #B3261E; }
+.dxmiss { margin: 4px 0; padding-left: 18px; }
+.lsn-sys { margin-top: 10px; }
 
 </style>
 </head>
@@ -1474,6 +1497,210 @@ const TREAT = {
   reverse: { label: 'Reversal agent', by: 'rn', dur: 4, rx: true },
 };
 
+/* ---------- v0.28: drugs by class, a resuscitation set, and procedures ----------
+   Each drug gives one of the engine's treatments (tx). A case that needs that treatment may name the drugs that count
+   (RXOK); another drug that gives the same treatment is the wrong drug: the order is wasted and the gap stays open. */
+const DRUG_CLASS = [
+  ['analg', 'Pain'], ['emet', 'Nausea'], ['abxo', 'Antibiotics by mouth'], ['abxi', 'Antibiotics by vein'], ['allergy', 'Allergy and steroids'],
+  ['cardiac', 'Heart and blood pressure'], ['clot', 'Clots, bleeding, and reversal'], ['resp', 'Breathing'], ['endo', 'Sugar and electrolytes'],
+  ['tox', 'Antidotes'], ['neuro', 'Seizures, agitation, and sedation'], ['other', 'Other'],
+];
+const DRUGS = {
+  apap: { n: 'Acetaminophen', c: 'analg', tx: ['meds'], p: 'Mild pain and fever, by mouth' },
+  ibu: { n: 'Ibuprofen', c: 'analg', tx: ['meds'], p: 'Pain and swelling, by mouth' },
+  ketor: { n: 'Ketorolac', c: 'analg', tx: ['meds'], p: 'Strong anti-inflammatory, by vein' },
+  morph: { n: 'Morphine', c: 'analg', tx: ['meds'], p: 'Opioid, by vein' },
+  fent: { n: 'Fentanyl', c: 'analg', tx: ['meds'], p: 'Fast, short opioid, by vein' },
+  hydro: { n: 'Hydromorphone', c: 'analg', tx: ['meds'], p: 'Strong opioid, by vein' },
+  ondan: { n: 'Ondansetron', c: 'emet', tx: ['meds'], p: 'Nausea and vomiting' },
+  reglan: { n: 'Metoclopramide', c: 'emet', tx: ['meds'], p: 'Nausea; also helps migraine' },
+  prochlor: { n: 'Prochlorperazine', c: 'emet', tx: ['meds'], p: 'Nausea; first choice for migraine' },
+  mecliz: { n: 'Meclizine', c: 'emet', tx: ['meds'], p: 'Dizziness and motion sickness' },
+  amox: { n: 'Amoxicillin', c: 'abxo', tx: ['meds', 'abx'], p: 'Ear, throat, and mild lung infections' },
+  amoxclav: { n: 'Amoxicillin-clavulanate', c: 'abxo', tx: ['meds', 'abx'], p: 'Bites, dental, sinus infections' },
+  penvk: { n: 'Penicillin VK', c: 'abxo', tx: ['meds'], p: 'Strep throat' },
+  cephalex: { n: 'Cephalexin', c: 'abxo', tx: ['meds', 'abx'], p: 'Skin and urine infections' },
+  nitrof: { n: 'Nitrofurantoin', c: 'abxo', tx: ['meds'], p: 'A simple bladder infection' },
+  doxy: { n: 'Doxycycline', c: 'abxo', tx: ['meds', 'abx'], p: 'Lung infections, tick bites, MRSA skin' },
+  azith: { n: 'Azithromycin', c: 'abxo', tx: ['meds', 'abx'], p: 'Atypical pneumonia' },
+  osel: { n: 'Oseltamivir', c: 'abxo', tx: ['meds'], p: 'Flu antiviral, best in the first 48 hours' },
+  bicillin: { n: 'Penicillin G benzathine', c: 'abxi', tx: ['meds'], p: 'One shot in the muscle for strep' },
+  ctx: { n: 'Ceftriaxone', c: 'abxi', tx: ['abx'], p: 'Broad, once a day: pneumonia, urine, meningitis' },
+  cefaz: { n: 'Cefazolin', c: 'abxi', tx: ['abx'], p: 'Skin infection, open fractures' },
+  piptazo: { n: 'Piperacillin-tazobactam', c: 'abxi', tx: ['abx'], p: 'Very broad: sepsis, belly infections' },
+  vanc: { n: 'Vancomycin', c: 'abxi', tx: ['abx'], p: 'Covers MRSA' },
+  metro: { n: 'Metronidazole', c: 'abxi', tx: ['abx'], p: 'Gut bacteria that live without air' },
+  diphen: { n: 'Diphenhydramine', c: 'allergy', tx: ['meds'], p: 'Antihistamine: itch, hives' },
+  famot: { n: 'Famotidine', c: 'allergy', tx: ['meds'], p: 'Second antihistamine (H2); also stomach acid' },
+  methylpred: { n: 'Methylprednisolone', c: 'allergy', tx: ['meds'], p: 'Steroid by vein' },
+  pred: { n: 'Prednisone', c: 'allergy', tx: ['meds'], p: 'Steroid by mouth' },
+  dexa: { n: 'Dexamethasone', c: 'allergy', tx: ['meds'], p: 'Long-acting steroid: asthma, croup' },
+  tricream: { n: 'Triamcinolone cream', c: 'allergy', tx: ['meds'], p: 'Steroid cream for a rash' },
+  epiim: { n: 'Epinephrine 0.5 mg IM', c: 'allergy', tx: ['epi'], p: 'Anaphylaxis: in the thigh, now' },
+  asa: { n: 'Aspirin', c: 'cardiac', tx: ['meds'], p: 'Chewed, for a heart attack or TIA' },
+  ntg: { n: 'Nitroglycerin', c: 'cardiac', tx: ['meds'], p: 'Chest pain; heart failure with high pressure' },
+  furo: { n: 'Furosemide', c: 'cardiac', tx: ['meds'], p: 'Diuretic: pulls off fluid' },
+  metop: { n: 'Metoprolol', c: 'cardiac', tx: ['meds'], p: 'Beta blocker: slows the heart' },
+  dilt: { n: 'Diltiazem', c: 'cardiac', tx: ['meds'], p: 'Slows a fast atrial fibrillation' },
+  labet: { n: 'Labetalol', c: 'cardiac', tx: ['bp'], p: 'Lowers blood pressure, by vein' },
+  nicard: { n: 'Nicardipine drip', c: 'cardiac', tx: ['bp'], p: 'Lowers blood pressure, steady drip' },
+  heparin: { n: 'Heparin', c: 'clot', tx: ['meds'], p: 'Blood thinner drip' },
+  enox: { n: 'Enoxaparin', c: 'clot', tx: ['meds'], p: 'Blood thinner shot' },
+  apixa: { n: 'Apixaban', c: 'clot', tx: ['meds'], p: 'Blood thinner pill' },
+  tnk: { n: 'Tenecteplase', c: 'clot', tx: ['tnk'], p: 'Clot buster for a stroke' },
+  pcc: { n: '4-factor PCC', c: 'clot', tx: ['reverse'], p: 'Reverses warfarin and factor Xa blood thinners' },
+  vitk: { n: 'Vitamin K', c: 'clot', tx: ['reverse'], p: 'Slow warfarin reversal, given with PCC' },
+  txa: { n: 'Tranexamic acid', c: 'clot', tx: ['meds'], p: 'Helps blood clot in trauma bleeding' },
+  albut: { n: 'Albuterol neb', c: 'resp', tx: ['nebs'], p: 'Opens tight airways' },
+  duoneb: { n: 'Ipratropium-albuterol neb', c: 'resp', tx: ['nebs'], p: 'Two bronchodilators: COPD, bad asthma' },
+  mag: { n: 'Magnesium sulfate', c: 'resp', tx: ['meds'], p: 'Severe asthma; torsades' },
+  insdrip: { n: 'Insulin drip', c: 'endo', tx: ['insulin'], p: 'For DKA, after potassium is checked' },
+  d50: { n: 'Dextrose', c: 'endo', tx: ['meds'], p: 'Low blood sugar' },
+  kcl: { n: 'Potassium', c: 'endo', tx: ['meds'], p: 'Low potassium' },
+  nalox: { n: 'Naloxone', c: 'tox', tx: ['nalox'], p: 'Reverses opioids' },
+  nac: { n: 'N-acetylcysteine', c: 'tox', tx: ['meds'], p: 'Acetaminophen overdose' },
+  charcoal: { n: 'Activated charcoal', c: 'tox', tx: ['meds'], p: 'Binds some pills in the gut, early only' },
+  loraz: { n: 'Lorazepam', c: 'neuro', tx: ['meds'], p: 'Seizures, alcohol withdrawal, anxiety' },
+  halo: { n: 'Haloperidol', c: 'neuro', tx: ['meds'], p: 'Agitation, psychosis' },
+  olanz: { n: 'Olanzapine', c: 'neuro', tx: ['meds'], p: 'Agitation, psychosis' },
+  ketamine: { n: 'Ketamine', c: 'neuro', tx: ['meds'], p: 'Sedation and strong pain control' },
+  homemed: { n: 'Home medication dose', c: 'other', tx: ['meds'], p: 'A dose of the pill they ran out of' },
+  ns: { n: 'Normal saline bolus', c: 'fluid', tx: ['fluids'], p: 'Salt water into a vein' },
+  lr: { n: 'Lactated Ringer’s bolus', c: 'fluid', tx: ['fluids'], p: 'Balanced fluid into a vein' },
+  // the resuscitation set: its own menu
+  epiarr: { n: 'Epinephrine 1 mg IV', c: 'resus', tx: ['meds'], p: 'Cardiac arrest, every 3 to 5 minutes' },
+  amio: { n: 'Amiodarone', c: 'resus', tx: ['meds'], p: 'VF and VT; some fast rhythms' },
+  adeno: { n: 'Adenosine', c: 'resus', tx: ['meds'], p: 'Breaks SVT: a fast push' },
+  atropine: { n: 'Atropine', c: 'resus', tx: ['pace'], p: 'A slow heart rate' },
+  calc: { n: 'Calcium chloride', c: 'resus', tx: ['meds'], p: 'High potassium; calcium channel blocker overdose' },
+  bicarb: { n: 'Sodium bicarbonate', c: 'resus', tx: ['meds'], p: 'Some overdoses; severe acidosis' },
+  norepi: { n: 'Norepinephrine drip', c: 'resus', tx: ['pressor'], p: 'First vasopressor for shock' },
+  pushepi: { n: 'Push-dose epinephrine', c: 'resus', tx: ['pressor'], p: 'A quick bridge for low pressure' },
+};
+// The right drug, by case and treatment. A case or treatment not listed takes any drug that gives it.
+const RXOK = {
+  rash: { meds: ['diphen', 'tricream', 'pred', 'methylpred'] }, refill: { meds: ['homemed'] }, otitis: { meds: ['amox', 'amoxclav'] },
+  dental: { meds: ['amoxclav', 'amox', 'penvk', 'ibu', 'apap'] }, strep: { meds: ['penvk', 'amox', 'bicillin'] }, ankle: { meds: ['ibu', 'apap', 'ketor'] },
+  uti: { meds: ['nitrof', 'cephalex'] }, gastro: { meds: ['ondan', 'reglan', 'prochlor'] }, flu: { meds: ['osel', 'apap', 'ibu'] },
+  appy: { meds: ['morph', 'fent', 'hydro', 'apap', 'ketor', 'ondan'], abx: ['piptazo', 'ctx', 'metro'] }, chole: { meds: ['morph', 'fent', 'hydro', 'ketor', 'ondan', 'apap'], abx: ['piptazo', 'ctx', 'metro'] },
+  hipfx: { meds: ['fent', 'morph', 'hydro', 'apap'] }, pnalow: { abx: ['amox', 'doxy', 'azith', 'amoxclav'] }, pna: { abx: ['ctx', 'azith'] },
+  copd: { meds: ['methylpred', 'pred'], nebs: ['duoneb', 'albut'] }, chf: { meds: ['ntg', 'furo'] }, stone: { meds: ['ketor', 'ibu', 'morph', 'fent', 'hydro'] },
+  dvt: { meds: ['apixa', 'enox', 'heparin'] }, migraine: { meds: ['prochlor', 'reglan', 'ketor', 'diphen'] }, cell: { abx: ['cefaz', 'vanc', 'ctx', 'cephalex'] },
+  tia: { meds: ['asa'] }, cpmod: { meds: ['asa'] }, cwp: { meds: ['ibu', 'apap', 'ketor'] }, nstemi: { meds: ['asa', 'heparin', 'enox'] }, afib: { meds: ['dilt', 'metop'] },
+  asthma: { meds: ['dexa', 'pred', 'methylpred', 'mag'], nebs: ['albut', 'duoneb'] }, anaph: { meds: ['diphen', 'methylpred', 'famot'], epi: ['epiim'] },
+  sepsisw: { abx: ['ctx', 'piptazo'] }, stemi: { meds: ['asa', 'heparin'] }, burn: { meds: ['fent', 'morph', 'ketamine'] },
+  mciyel: { meds: ['fent', 'morph', 'hydro'] }, mcimin: { meds: ['ibu', 'apap'] }, mciwr: { meds: ['ibu', 'apap', 'ketor'] },
+  moto: { meds: ['fent', 'morph', 'hydro', 'ketamine'], abx: ['cefaz', 'ctx'] }, shock: { abx: ['piptazo', 'vanc', 'ctx'], pressor: ['norepi', 'pushepi'] },
+  tfall: { reverse: ['pcc', 'vitk'] }, chb: { pace: ['atropine'] }, vip: { meds: ['mecliz'] },
+};
+// The drug a preceptor or a bot picks for a treatment: the case's first right drug, or the usual one.
+const DRUG_DEF = { fluids: 'ns', nebs: 'albut', epi: 'epiim', nalox: 'nalox', insulin: 'insdrip', tnk: 'tnk', bp: 'labet', pressor: 'norepi', reverse: 'pcc', abx: 'ctx', pace: 'atropine' };
+const drugFor = (p, tx) => ((RXOK[p.ck] || {})[tx] || [])[0] || DRUG_DEF[tx] || null;
+const rxOk = (p, tx, id) => { const L = (RXOK[p.ck] || {})[tx]; return L ? L.includes(id) : DRUGS[id].tx.includes(tx); };
+// Not drugs: the order sheet's other menus. Each is an engine treatment.
+const ORDER_MENUS = [
+  ['air', 'Airway and breathing', ['o2', 'hfnc', 'bipap', 'intub']],
+  ['fluid', 'Fluids and blood', ['ns', 'lr', 'blood', 'mtp']],
+  ['proc', 'Procedures', ['repair', 'tcp']],
+];
+const PROC = { tcp: { n: 'Transcutaneous pacing', tx: 'pace', p: 'Pads that pace a slow heart' } };
+
+/* ---------- v0.28: the diagnosis is the attending's call, clinical accuracy, and litigation risk ----------
+   When the results are back, the attending names the diagnosis from four choices: the right one and three it could have been.
+   A wrong call still shows the real diagnosis (the shift goes on), but it costs accuracy and adds litigation risk. */
+const DDX = {
+  rash: ['Cellulitis', 'Shingles', 'Scabies'], refill: ['Hypertensive emergency', 'Medication side effect', 'Anxiety'], otitis: ['Mastoiditis', 'Otitis externa', 'Strep throat'],
+  dental: ['Ludwig’s angina', 'Peritonsillar abscess', 'Trigeminal neuralgia'], strep: ['Viral pharyngitis', 'Peritonsillar abscess', 'Mononucleosis'], ankle: ['Ankle fracture', 'Achilles tendon rupture', 'Gout'],
+  lac: ['Tendon laceration', 'Retained foreign body', 'Abscess'], uti: ['Pyelonephritis', 'Kidney stone', 'Vaginitis'], gastro: ['Appendicitis', 'Bowel obstruction', 'Pancreatitis'],
+  appy: ['Ovarian torsion', 'Kidney stone', 'Gastroenteritis'], chole: ['Biliary colic', 'Pancreatitis', 'Inferior MI'], hipfx: ['Hip contusion', 'Pelvic fracture', 'Hip dislocation'],
+  flu: ['COVID-19', 'Pneumonia', 'Strep throat'], pnalow: ['Bronchitis', 'Pulmonary embolism', 'Heart failure flare'], pna: ['Pulmonary embolism', 'Heart failure flare', 'Lung cancer'],
+  copd: ['Pneumonia', 'Pneumothorax', 'Heart failure flare'], chf: ['COPD flare', 'Pneumonia', 'Pulmonary embolism'], stone: ['Pyelonephritis', 'Abdominal aortic aneurysm', 'Appendicitis'],
+  dvt: ['Cellulitis', 'Baker’s cyst rupture', 'Muscle strain'], migraine: ['Subarachnoid hemorrhage', 'Meningitis', 'Tension headache'], tb: ['Lung cancer', 'Pneumonia', 'Sarcoidosis'],
+  bh: ['Delirium', 'Intoxication', 'Hypoglycemia'], etoh: ['Head injury', 'Hypoglycemia', 'Opioid overdose'], od: ['Hypoglycemia', 'Stroke', 'Alcohol intoxication'],
+  cell: ['Abscess', 'Deep vein thrombosis', 'Necrotizing fasciitis'], syncope: ['Arrhythmia', 'Pulmonary embolism', 'Seizure'], synchigh: ['Vasovagal syncope', 'Seizure', 'Dehydration'],
+  tia: ['Stroke', 'Hypoglycemia', 'Complicated migraine'], dehyd: ['DKA', 'Sepsis', 'Kidney failure'], cpmod: ['Pulmonary embolism', 'Aortic dissection', 'GERD'],
+  cwp: ['Acute coronary syndrome', 'Pulmonary embolism', 'Pneumothorax'], nstemi: ['Unstable angina', 'Pulmonary embolism', 'Aortic dissection'], afib: ['SVT', 'Atrial flutter', 'Sinus tachycardia'],
+  chb: ['Sinus bradycardia', 'Hyperkalemia', 'Beta blocker overdose'], gib: ['Lower GI bleed', 'Peptic ulcer without bleeding', 'Esophageal varices'], dka: ['Hyperosmolar hyperglycemic state', 'Alcoholic ketoacidosis', 'Sepsis'],
+  asthma: ['COPD flare', 'Anaphylaxis', 'Pneumonia'], anaph: ['Angioedema from an ACE inhibitor', 'Asthma attack', 'Panic attack'], sepsisw: ['Pyelonephritis without sepsis', 'Kidney stone', 'Dehydration'],
+  strokew: ['Hypoglycemia', 'Bell’s palsy', 'Todd’s paralysis after a seizure'], stroke: ['Hypoglycemia', 'Complicated migraine', 'Intracerebral hemorrhage'], lvo: ['Intracerebral hemorrhage', 'Todd’s paralysis after a seizure', 'Hypoglycemia'],
+  stemi: ['Pericarditis', 'Aortic dissection', 'Pulmonary embolism'], mvc: ['Liver laceration', 'Pelvic fracture', 'Tension pneumothorax'], tfall: ['Epidural hematoma', 'Concussion', 'Stroke'],
+  moto: ['Closed femur fracture', 'Hip dislocation', 'Pelvic fracture'], shock: ['Cardiogenic shock', 'Hemorrhagic shock', 'Anaphylactic shock'], rsv: ['Asthma', 'Pneumonia', 'Foreign body'],
+  burn: ['Superficial burns only', 'Smoke inhalation without burns', 'Carbon monoxide poisoning alone'], mcired: ['Splenic laceration', 'Kidney injury', 'Pelvic fracture'],
+  mciyel: ['Hip fracture', 'Knee dislocation', 'Thigh contusion'], mcimin: ['Cervical spine fracture', 'Concussion', 'Shoulder strain'], mcigrn: ['Fracture', 'Tendon injury', 'Burn'],
+  mciwr: ['Wrist sprain', 'Scaphoid fracture', 'Elbow fracture'], vip: ['Posterior stroke', 'Inner ear infection', 'Low blood pressure'], pnalow2: [],
+};
+// Must not miss: a wrong call here is the kind that ends in court.
+const MUST = new Set(['stemi', 'nstemi', 'lvo', 'stroke', 'strokew', 'tia', 'sepsisw', 'shock', 'dka', 'gib', 'appy', 'chb', 'synchigh', 'cpmod', 'mvc', 'mcired', 'tfall', 'od', 'anaph', 'pna', 'dvt', 'moto', 'burn', 'copd', 'chf', 'rsv']);
+const LIT_STEPS = [
+  { at: 25, k: 'admin', title: 'A call from the hospital administrator', who: 'Hospital administration', text: 'Risk management flagged some of today’s charts. The administrator wants to know what happened before families start calling.', choices: [{ k: 'ok', label: 'Walk them through it', sub: 'Honest, factual, and you’ll review the cases' }] },
+  { at: 40, k: 'peer', title: 'Peer review', who: 'Your group’s medical director', text: 'Today’s cases go to **peer review**. Colleagues will read the charts and decide if the care met the standard. It’s how groups catch problems before they get worse.', choices: [{ k: 'ok', label: 'Understood', sub: 'Your cases are on the list' }] },
+  { at: 50, k: 'pip', title: 'Performance improvement plan', who: 'Your group’s medical director', text: 'You’re on a **performance improvement plan (PIP)**: closer chart review and a list of goals. Lawyers have started calling about today’s patients. **Don’t discuss a case with a lawyer.** Send them to risk management.', choices: [{ k: 'ok', label: 'Understood', sub: 'Every chart counts now' }] },
+];
+function litAdd(n, why, p) {
+  if (G.pre || G.mode !== 'md' || G.train || !n) return;
+  G.lit = Math.max(0, Math.min(100, (G.lit || 0) + n));
+  if (n > 0) (G.stats.litLog = G.stats.litLog || []).push({ t: G.t, n, why: (p ? p.name + ': ' : '') + why });
+  litCheck();
+}
+function litCheck() {
+  G.litStage = G.litStage || 0;
+  if (G.lit >= 75 && !G.over) { toast('Your group has let you go. The shift is over.', 'bad'); sound('bad'); G.fired = true; endShift('fired'); return; }
+  const s = LIT_STEPS.find((x, i) => i >= G.litStage && G.lit >= x.at);
+  if (!s || G.card) return;
+  G.litStage = LIT_STEPS.indexOf(s) + 1;
+  if (s.k === 'pip') G.lawNext = G.t + randi(15, 30);
+  setCard('lit', s.title, s.who, s.text, s.choices.map(c => Object.assign({}, c)), { step: s.k }); G.card.mine = true;
+}
+const LAWYER = { title: 'A lawyer is on the phone', who: 'Outside line', choices: [
+  { k: 'risk', label: 'Refer them to risk management', sub: 'Polite, no details about the patient' },
+  { k: 'talk', label: 'Explain what happened', sub: 'Tell your side of the story' },
+  { k: 'skip', label: 'Don’t take the call', sub: 'They’ll call back' },
+] };
+function lawTick() {
+  if (G.mode === 'md' && !G.pre && G.lit > 0 && G.lastMin % 20 === 0) { const last = (G.stats.litLog || []).slice(-1)[0]; if (!last || G.t - last.t >= 20) G.lit = Math.max(0, G.lit - 1); }   // clean time brings it down slowly
+  if (G.mode !== 'md' || G.pre || G.train || G.lawNext == null || G.t < G.lawNext || G.card) return;
+  const log = G.stats.litLog || [], who = log.length ? log[Math.floor(rnd() * log.length)].why.split(':')[0] : 'one of your patients';
+  setCard('law', LAWYER.title, LAWYER.who, `A lawyer says they represent the family of **${who}** and want to ask you a few questions about the visit.`, LAWYER.choices.map(c => Object.assign({}, c)), { who }); G.card.mine = true;
+  G.lawNext = G.t + randi(40, 70);
+}
+function litPick(eid, k) {
+  if (eid === 'law') {
+    G.stats.lawCalls = (G.stats.lawCalls || 0) + 1;
+    if (k === 'risk') { G.lit = Math.max(0, G.lit - 2); toast('Right call: risk management handles lawyers. Never discuss a case without them.', 'good'); }
+    else if (k === 'talk') { litAdd(6, 'discussed a case with a lawyer'); toast('Never discuss a case with a lawyer on your own. Anything you say can be used. Refer them to risk management.', 'bad'); }
+    else { G.lawNext = G.t + randi(10, 20); toast('They’ll call back. Refer them to risk management when they do.', 'warn'); }
+  }
+  litCheck();
+}
+function needsDx(p) { return mdMine(p) && !G.pre && !G.train && !p.dxK && !p.dxPick && !p.arrest; }
+function dxAsk(p) {
+  const d = (DDX[p.ck] || []).filter(x => x !== p.dx).slice(0, 3);
+  if (d.length < 3) { const pool = CASES.filter(c => c.k !== p.ck && c.dx && !d.includes(c.dx) && c.dx !== p.dx); while (d.length < 3 && pool.length) d.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0].dx); }
+  const ch = [p.dx].concat(d);
+  for (let i = ch.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [ch[i], ch[j]] = [ch[j], ch[i]]; }
+  p.dxq = ch;
+  note(`${label(p)}: results are back. What’s the diagnosis?`);
+}
+function dxPick(pid, pick) {
+  const p = pt(pid); if (!p || !p.dxq) return { ok: false, why: 'No diagnosis to make for this patient' };
+  const S = G.stats.md, right = pick === p.dx;
+  p.dxPick = pick; p.dxq = null; p.dxK = true;
+  if (right) { S.dxRight = (S.dxRight || 0) + 1; care(8, 'md', p); }
+  else {
+    S.dxWrong = (S.dxWrong || 0) + 1; care(MUST.has(p.ck) ? -20 : -8, 'md', p);
+    (S.dxLog = S.dxLog || []).push({ name: p.name, said: pick, dx: p.dx, must: MUST.has(p.ck) });
+    litAdd(MUST.has(p.ck) ? 6 : 2, `missed ${p.dx}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
+    if (MUST.has(p.ck)) mm(60, `${p.name}: called ${pick}. It was ${p.dx}`, 'A must-not-miss diagnosis', true);
+  }
+  treatGap(p);
+  return { ok: true, right, msg: right ? `Right: ${p.dx}.` : `Not ${pick}. It’s ${p.dx}.` };
+}
+// Clinical accuracy: diagnoses called right and orders right, against everything called or ordered. Starts at 100.
+function accuracy() {
+  const S = G.stats.md || {}, good = (S.dxRight || 0) * 3 + (S.ordRight || 0), bad = (S.dxWrong || 0) * 3 + (S.ordMiss || 0) + (S.ordExtra || 0) + (S.harm || 0) * 3 + (S.dispoWrong || 0) * 2;
+  return Math.round(100 * (good + 10) / (good + bad + 10));
+}
+
 const ALERTS = {
   stemi:  { name: 'STEMI', goals: ['ecg10', 'd2b90'], auto: true, team: 'Cath lab activated' },
   stroke: { name: 'Stroke', goals: ['ct25', 'dtn60'], auto: true, team: 'Stroke team paged' },
@@ -1592,7 +1819,18 @@ const SCEN = {
     { q: '45-year-old male, intoxicated, GCS 14, with a scalp laceration from a fall. He wants to refuse. Can he refuse?', a: false, why: 'Intoxication plus a head injury makes capacity doubtful. Transport is the safer call.' },
     { q: '60-year-old male, heart rate 34, BP 70/40. Atropine did nothing. I’d like to start transcutaneous pacing.', a: true, why: 'Unstable bradycardia that atropine didn’t fix: pace (or start a chronotropic drip).' },
     { q: '30-year-old female in SVT at 210. She’s stable, and vagal maneuvers didn’t work. I’d like to give adenosine.', a: true, why: 'Stable narrow-complex SVT after failed vagal maneuvers: adenosine is the next step.' },
-    { q: '72-year-old male with CHF. Crackles up to the shoulders, SpO2 84%, BP 190/110. I’d like to start CPAP and give nitroglycerin.', a: true, why: 'Hypertensive pulmonary edema: CPAP plus nitrates take the load off the heart and lungs.' },
+    { q: '72-year-old male with CHF. Crackles up to the shoulders, SpO2 84%, BP 190/110. I’d like to start CPAP and give nitroglycerin.', a: true, why: 'Hypertensive pulmonary edema: CPAP plus nitrates take the load off the heart and lungs.' },,
+    // v0.28: calls that ask for a dose or an order. Multiple choice: opts, with r the right one.
+    { q: '45-year-old male, about 80 kg, seizing for 8 minutes. No IV yet. Requesting midazolam. What dose?', opts: ['10 mg IM', '2 mg IM', '0.5 mg IM', 'No benzodiazepine: transport'], r: 0, why: 'Over 40 kg, midazolam 10 mg IM stops status seizures as well as IV drugs, and faster when there’s no line (the RAMPART trial).', plain: 'A man has been seizing for 8 minutes. They ask how much of the seizure drug to give.', pwhy: '10 mg in the muscle: the full adult dose works without an IV.' },
+    { q: '5-year-old, about 20 kg, seizing for 6 minutes. No IV. Requesting intranasal midazolam. What dose?', opts: ['4 mg intranasal', '10 mg intranasal', '0.4 mg intranasal', 'Wait for it to stop on its own'], r: 0, why: 'Intranasal midazolam is 0.2 mg/kg, here 4 mg, split between the nostrils. Seizures past 5 minutes get treated.', plain: 'A child is seizing. They ask how much of the drug to give in the nose.', pwhy: '0.2 mg per kg: 4 mg for a 20 kg child.' },
+    { q: '30-year-old female, bee sting, lips swelling, BP 78/40. She got 0.5 mg epinephrine IM 5 minutes ago. Still hypotensive. What next?', opts: ['Repeat epinephrine 0.5 mg IM (1 mg/mL)', 'Epinephrine 1 mg IV push (1 mg/mL)', 'Diphenhydramine only', 'Wait 15 more minutes'], r: 0, why: 'Anaphylaxis that isn’t better gets another 0.5 mg IM every 5 to 15 minutes, with fluids. A 1 mg IV push of 1 mg/mL epinephrine in someone with a pulse causes arrhythmias and strokes.', plain: 'Severe allergy, still low pressure after one shot. They ask what to do next.', pwhy: 'Another shot in the thigh. Never push the arrest dose into a vein when there’s a pulse.' },
+    { q: '28-year-old female, narrow regular tachycardia at 190. BP 118/74, talking. Vagal maneuvers failed. Requesting adenosine. What dose?', opts: ['6 mg rapid IV push with a flush', '12 mg slow IV over 2 minutes', '1 mg IV', '50 mg IV'], r: 0, why: 'Adenosine lasts seconds: 6 mg pushed fast through a big IV close to the heart, flushed right away. 12 mg is the second dose, also fast.', plain: 'A fast, steady heart rhythm in a stable patient. They ask how much adenosine to give.', pwhy: '6 mg, pushed fast with a flush.' },
+    { q: '72-year-old male, heart rate 34, BP 70/40, dizzy and pale. Requesting atropine. What dose?', opts: ['1 mg IV, repeat every 3 to 5 minutes up to 3 mg', '0.1 mg IV', '5 mg IV once', 'Adenosine 6 mg instead'], r: 0, why: 'Symptomatic bradycardia: atropine 1 mg IV every 3 to 5 minutes, up to 3 mg. If it fails, pace or start a drip.', plain: 'A very slow heart and low pressure. They ask how much atropine to give.', pwhy: '1 mg, repeated up to 3 mg. Too little can slow the heart more.' },
+    { q: '60-year-old male, wide regular tachycardia at 180 with a pulse. BP 72/40, confused. What do you order?', opts: ['Synchronized cardioversion', 'Unsynchronized defibrillation', 'Adenosine 6 mg', 'Amiodarone and wait 10 minutes'], r: 0, why: 'Unstable VT with a pulse gets synchronized cardioversion now. Unsynchronized shocks are for no pulse. Drugs are for stable patients.', plain: 'A fast, dangerous rhythm with a pulse and signs of shock. They ask what to do.', pwhy: 'Shock it, timed to the heartbeat: synchronized cardioversion.' },
+    { q: '55-year-old diabetic, unresponsive, glucose 38. IV in place. What do you order?', opts: ['Dextrose 25 g IV', 'Glucagon 10 mg IM', 'Oral glucose gel', 'Insulin'], r: 0, why: 'With an IV, dextrose (25 g, as D10 or D50) works in minutes. Glucagon is for no IV. Nothing by mouth in someone who can’t protect the airway.', plain: 'Very low sugar, unresponsive, IV in. They ask what to give.', pwhy: 'Sugar into the vein. Nothing by mouth when they can’t swallow.' },
+    { q: '24-year-old male, pinpoint pupils, breathing 4 a minute, we’re bagging him. Requesting naloxone. What dose?', opts: ['0.4 to 2 mg IV or IN, titrated to breathing', '10 mg IV push', 'Flumazenil instead', 'No naloxone: intubate in the field'], r: 0, why: 'Titrate naloxone to breathing, not to waking up. Small doses avoid sudden, violent withdrawal. Keep bagging meanwhile.', plain: 'Opioid overdose, barely breathing. They ask how much naloxone to give.', pwhy: 'Small doses, repeated, until they breathe.' },
+    { q: '35-year-old male, about 80 kg, deformed femur after a fall. BP 132/80. Requesting fentanyl. What dose?', opts: ['1 mcg/kg IV: about 80 mcg', '10 mcg/kg IV: about 800 mcg', '1 mcg IV', 'No pain medicine until the hospital'], r: 0, why: 'Fentanyl 1 mcg/kg IV, repeated as needed, controls fracture pain safely. Withholding pain control isn’t a safety measure.', plain: 'A broken thigh bone, stable. They ask how much fentanyl to give.', pwhy: '1 microgram per kilogram: about 80 for him.' },
+    { q: 'Stabbed in the right chest. No breath sounds on the right, trachea shifted left, BP 70/30. What do you order?', opts: ['Needle decompression of the right chest', 'Albuterol', 'Wait for a chest X-ray at the hospital', 'CPAP'], r: 0, why: 'Tension pneumothorax is a clinical diagnosis. Decompress now: it kills before an X-ray can be taken. CPAP makes it worse.', plain: 'A collapsed lung under pressure, shock. They ask what to do.', pwhy: 'Let the air out with a needle, now.' }
   ],
   miemss: [
     { q: '40-year-old female with a femur fracture. BP 132/84, heart rate 104, SpO2 98%. Her pain is still 9 out of 10 after two doses of fentanyl. I’d like to give a third.', a: true, why: 'Pain Management 4.13-A: doses after the second need consultation. Vitals are stable and pain is uncontrolled, so a third dose is reasonable.' },
@@ -1810,7 +2048,7 @@ function startShift() {
 /* ---------- main step ---------- */
 function step(dt) {
   if (!G || !G.running || G.over) return;
-  if (G.card && G.mode === 'md' && !G.pre) aiCard();
+  if (G.card && G.mode === 'md' && !G.pre && !G.card.mine) aiCard();
   if (G.card) return;
   G.t += dt;
   arrivals();
@@ -2413,7 +2651,9 @@ function taskDone(s, k) {
   else if (k.type === 'code') { p.ev = 'done'; codeOutcome(p); }
   else if (k.type === 'reassess') {
     if (mdMine(p) && workGap(p)) return;
-    p.re = 'done'; p.dxK = true; note(`${label(p)}: ${p.dx}`);
+    p.re = 'done';
+    if (needsDx(p)) { dxAsk(p); return; }   // v0.28: the attending names it
+    p.dxK = true; note(`${label(p)}: ${p.dx}`);
     if (mdMine(p)) treatGap(p);
   }
   else if (k.type === 'proc') { p.treat[k.key].st = 'done'; p.treat[k.key].tDone = G.t; harmCheck(p, k.key); if (k.key === 'intub') { if (!G.pre) G.stats.intub++; if (p.treat.vent) openGate(p.treat.vent, 'vent'); } }
@@ -2632,7 +2872,7 @@ const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU',
 const RX = { refill: 'a dose of the usual pill', tia: 'aspirin', copd: 'a steroid', moto: 'pain control', rash: 'an antihistamine and steroid cream', otitis: 'amoxicillin', dental: 'an antibiotic and pain control', strep: 'penicillin', ankle: 'ibuprofen', uti: 'an antibiotic for the UTI',
   gastro: 'ondansetron', appy: 'pain control', chole: 'pain control', hipfx: 'pain control', chf: 'nitroglycerin and a diuretic', stone: 'ketorolac', dvt: 'an anticoagulant', migraine: 'prochlorperazine and diphenhydramine',
   cwp: 'ibuprofen', cpmod: 'aspirin', nstemi: 'aspirin and heparin', afib: 'diltiazem', asthma: 'a steroid', anaph: 'an antihistamine and a steroid', stemi: 'aspirin and heparin', burn: 'pain control', mcimin: 'pain control', mciyel: 'pain control', mciwr: 'a splint and pain control', vip: 'meclizine' };
-const rxName = p => RX[p.ck] || 'symptom treatment';
+const rxName = p => { const L = (RXOK[p.ck] || {}).meds, got = (p.drugs || []).find(d => L && L.includes(d)); return got ? DRUGS[got].n.toLowerCase() : RX[p.ck] || 'symptom treatment'; };
 // An order with no indication can hurt someone: [chance, points, what happened].
 const HARM = { tnk: [0.5, 50, 'bled after a thrombolytic they didn’t need'], insulin: [0.5, 25, 'dropped their blood sugar on an insulin drip they didn’t need'],
   epi: [0.35, 20, 'went into a fast rhythm from epinephrine they didn’t need'], intub: [0.3, 25, 'had a complication from an intubation they didn’t need'],
@@ -2670,10 +2910,29 @@ function signOrders(pid, tests, treats) {
     else if (WORK[k]) { const mine2 = R.det.filter(d => DET_KIND(d) === k); want.push(...(mine2.length ? mine2 : DEFAULT_DET[k] || [])); }
   }
   const newT = Array.from(new Set(want)).filter(k => (k === 'ecg' ? !p.wk.includes('ecg') : !p.det.includes(k)));
-  const newR = (treats || []).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
-  if (!newT.length && !newR.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
+  // v0.28: drugs and procedures resolve to treatments. The right drug fills the need; a wrong one is wasted and counted.
+  const drugX = [], drugOk = [];
+  p.drugs = p.drugs || [];
+  const tk = [];
+  for (const k of treats || []) {
+    if (PROC[k]) { if (!p.drugs.includes(k)) p.drugs.push(k); tk.push(PROC[k].tx); continue; }
+    if (!DRUGS[k]) { tk.push(k); continue; }
+    if (p.drugs.includes(k)) continue;
+    p.drugs.push(k);
+    const D = DRUGS[k], need = D.tx.find(t => R.tr.includes(t) && !p.tr.includes(t) && !tk.includes(t) && rxOk(p, t, k));
+    if (need) { tk.push(need); continue; }
+    const wrong = D.tx.find(t => R.tr.includes(t) && !rxOk(p, t, k));
+    const fine = D.tx.find(t => (R.tr.includes(t) && rxOk(p, t, k)) || (R.ok || []).includes(t));
+    if (fine) { drugOk.push(D.n); continue; }
+    if (wrong) { drugX.push(D.n + ' (wrong drug)'); G.stats.md.wrongDrug = (G.stats.md.wrongDrug || 0) + 1; continue; }
+    tk.push(D.tx[0]); if (TREAT[D.tx[0]] && p.tr.includes(D.tx[0])) drugX.push(D.n);
+  }
+  const newR = Array.from(new Set(tk)).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
+  if (!newT.length && !newR.length && !drugX.length && !drugOk.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
   let pts = 0, extra = 0;
   const xl = [], fl = [], OKL = R.ok || [], OKD = R.detOk || [];   // fl: reasonable orders. Not required, not counted against you.
+  for (const nm of drugX) { pts -= 3; extra++; S.ordExtra++; xl.push(nm); }
+  fl.push(...drugOk);
   for (const k of newT) {
     const kind = DET_KIND(k), nm = DET_NAME(k);
     if (k !== 'ecg') { p.det.push(k); const r = detResult(p, k); (p.dres = p.dres || {})[k] = r; }
@@ -2715,7 +2974,7 @@ function signOrders(pid, tests, treats) {
   p.ord = 'signed';
   orders(p);
   if (p.dxK) { if (!workGap(p)) treatGap(p); }   // field diagnoses (alerts) are known already, so gaps show now
-  else if (!p.wk.length && !R.wk.length) { p.dxK = true; note(`${label(p)}: ${p.dx}`); treatGap(p); }
+  else if (!p.wk.length && !R.wk.length) { if (needsDx(p)) dxAsk(p); else { p.dxK = true; note(`${label(p)}: ${p.dx}`); treatGap(p); } }
   else if (!p.wk.length) workGap(p);
   if (p.txGap) p.txGap = R.tr.filter(k => !p.tr.includes(k));
   if (p.txGap && !p.txGap.length) p.txGap = null;
@@ -2739,7 +2998,7 @@ function treatGap(p) {
 function harmCheck(p, k) {
   if (!mdMine(p) || !p.extraTr || !p.extraTr.includes(k) || G.pre) return;
   const h = HARM[k]; if (!h || !chance(h[0])) return;
-  G.stats.md.harm++; care(-h[1], 'harm', p);
+  G.stats.md.harm++; care(-h[1], 'harm', p); litAdd(10, `harmed by ${TREAT[k].label.toLowerCase()} without an indication`, p);
   mm(55, `${p.name} ${h[2]}`, `${TREAT[k].label} was ordered without an indication`, true);
   toast(`${p.name} ${h[2]}.`, 'bad'); sound('bad');
 }
@@ -2750,7 +3009,7 @@ function mdDecide(pid, pick) {
   let want = p.dispo; const S = G.stats.md;
   if (pick === 'home') {
     if (want === 'home') { S.dispoRight++; care(12, 'dispo', p); }
-    else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; mm(65, `${p.name} went home with ${(/^[A-Z][a-z]/.test(p.dx) ? p.dx.charAt(0).toLowerCase() + p.dx.slice(1) : p.dx)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
+    else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; litAdd(MUST.has(p.ck) ? 10 : 5, `sent home when they needed ${DISPO_NAME[want] || 'admission'}`, p); mm(65, `${p.name} went home with ${(/^[A-Z][a-z]/.test(p.dx) ? p.dx.charAt(0).toLowerCase() + p.dx.slice(1) : p.dx)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
     p.mdPick = 'home'; p.dispo = 'home'; p.dsp = 'none';
     return { ok: true, msg: `${label(p)} is going home once treatment is done.` };
   }
@@ -4078,6 +4337,7 @@ function amaRisk(p) {
   return 0.0008 * Math.min(3, 1 + Math.max(0, waited - 90) / 60) * p.amaMul * (p.lang && p.interp !== 'on' ? 1.5 : 1) * (p.dsp === 'board' ? 0.7 : 1);
 }
 function minuteTick() {
+  lawTick();
   const t = G.t;
   let amaCand = null;
   obsTick();
@@ -4102,7 +4362,7 @@ function minuteTick() {
       if (p.ev === 'q' && p.loc === 'room') { p.queueWait = (p.queueWait || 0) + 1; if (p.queueWait > 30) care(-0.2, 'md'); }
     }
     if (mdMine(p) && p.txGap && p.txGap.length && !p.txHarm && t - p.tGap > 20) {
-      p.txHarm = true; G.stats.md.untreated++; care(-20, 'harm', p);
+      p.txHarm = true; G.stats.md.untreated++; care(-20, 'harm', p); litAdd(MUST.has(p.ck) ? 10 : 5, 'left untreated for 20 minutes', p);
       mm(50, `${p.name} got worse without ${p.txGap.map(k => TREAT[k].label.toLowerCase()).join(' or ')}`, 'It was never ordered', true);
       toast(`${label(p)} is getting worse. Something they need was never ordered.`, 'bad'); sound('bad');
     }
@@ -4358,11 +4618,14 @@ function nextScen() {
 }
 const TRAIN_SCEN = { q: '34-year-old male with a twisted ankle. He’s awake, thinking clearly, and understands the risks. He doesn’t want the ride to the hospital. OK to accept the refusal?', a: true,
   why: 'An adult who is thinking clearly and understands the risks may refuse care. The medic writes it down and tells him to call back if it gets worse.' };
-const scenOf = c => (c.sc === 'train' ? TRAIN_SCEN : (SCEN[G.pack] || SCEN.national)[c.sc]);
+const TRAIN_SCENS = { train: TRAIN_SCEN,
+  tdose: { q: '5-year-old, 20 kg, seizing for 6 minutes. No IV. Requesting intranasal midazolam, 0.2 mg per kg. What dose?', opts: ['4 mg intranasal', '10 mg intranasal', '0.4 mg intranasal', '20 mg intranasal'], r: 0, why: '0.2 mg/kg × 20 kg = 4 mg, split between the nostrils. Say the math out loud and have the medic read it back.' },
+  tord: { q: 'Stabbed in the right chest. No breath sounds on the right, trachea shifted left, BP 70/30. What do you order?', opts: ['Needle decompression of the right chest', 'Albuterol', 'Wait for a chest X-ray at the hospital', 'CPAP'], r: 0, why: 'Tension pneumothorax is diagnosed at the bedside, not on an X-ray. Decompress now. CPAP pushes more air into the chest and makes it worse.' } };
+const scenOf = c => (TRAIN_SCENS[c.sc] || (SCEN[c.pk || G.pack] || SCEN.national)[c.sc] || SCEN.national[c.sc] || SCEN.national[0]);
 function surveyMul() { return G.mods.survey > G.t ? 2 : 1; }
 function boxTick(dt) {
   const b = G.box, L = LEVELS[G.level];
-  if (G.t >= b.nextC) { b.q.push({ kind: 'consult', sc: nextScen(), unit: 'Medic ' + randi(2, 49), id: ++b.seq }); b.nextC = G.t + randi(L.consult[0], L.consult[1]); }
+  if (G.t >= b.nextC) { b.q.push({ kind: 'consult', sc: nextScen(), pk: G.pack, unit: 'Medic ' + randi(2, 49), id: ++b.seq }); b.nextC = G.t + randi(L.consult[0], L.consult[1]); }
   if (!b.cur && b.q.length) { const c = b.q.shift(); c.ring = c.kind === 'notify' ? 20 : 10; c.left = c.ring; c.t0 = G.t; b.cur = c; sound('ring'); }
   if (b.cur && !b.cur.taken) { b.cur.left -= dt; if (b.cur.left <= 0) missBox(); }
 }
@@ -4401,12 +4664,13 @@ function boxTake(sid) {
 }
 function boxDecide(approve) {
   const c = G.box.cur; if (!c || !c.taken || G.mode !== 'md') return null;   // the charge nurse routes the call; the doctor decides
-  const sc = scenOf(c), ok = !!approve === sc.a, mul = surveyMul();
-  if (!ok && c.sc !== 'train') (G.stats.radioLog = G.stats.radioLog || []).push({ q: sc.plain || sc.q, miss: false, a: sc.a, why: sc.pwhy || sc.why, btn: sc.btn || null });
+  const sc = scenOf(c), mul = surveyMul(), ok = sc.opts ? Number(approve) === sc.r : !!approve === sc.a;
+  if (!ok && !TRAIN_SCENS[c.sc]) (G.stats.radioLog = G.stats.radioLog || []).push({ q: sc.plain || sc.q, miss: false, a: sc.a, why: sc.pwhy || sc.why, btn: sc.btn || null, said: sc.opts ? sc.opts[Number(approve)] : null, right: sc.opts ? sc.opts[sc.r] : null });
+  if (!ok && !TRAIN_SCENS[c.sc]) litAdd(3, 'a wrong medical direction order');
   G.box.cur = null; G.stats.boxC.ans++;
   if (ok) { G.stats.boxC.right++; care(20 * mul, 'box'); } else { G.stats.boxC.wrong++; care(-15 * mul, 'box'); }
-  note(`Box: ${c.unit} ${approve ? 'approved' : 'denied'} (${ok ? 'correct' : 'incorrect'})`, ok ? 'good' : 'bad');
-  return { ok, sc, approve: !!approve };
+  note(`Box: ${c.unit} ${sc.opts ? 'ordered ' + sc.opts[Number(approve)] : approve ? 'approved' : 'denied'} (${ok ? 'correct' : 'incorrect'})`, ok ? 'good' : 'bad');
+  return { ok, sc, approve: sc.opts ? Number(approve) : !!approve };
 }
 
 /* ---------- objectives ---------- */
@@ -4439,6 +4703,7 @@ function chooseCard(k) {
   if (!ch || ch.dis) return;
   G.card = null;
   if (EV[c.eid] && EV[c.eid].pick) EV[c.eid].pick(k, c.ctx);
+  else if (c.eid === 'lit' || c.eid === 'law') litPick(c.eid, k);
 }
 function fireEv(k) { G.ev.used[k] = (G.ev.used[k] || 0) + 1; G.stats.events++; EV[k].fire(); }
 function scheduled() {
@@ -4825,9 +5090,9 @@ function trainPatient(k, how, o) {
   p.patience = 1e9; p.amaSafe = 1e9;
   return p.id;
 }
-function trainConsult() {
+function trainConsult(which) {
   if (G.box.cur) return false;
-  G.box.cur = { kind: 'consult', sc: 'train', unit: 'Medic 12', id: ++G.box.seq, ring: 1e9, left: 1e9, t0: G.t };
+  G.box.cur = { kind: 'consult', sc: which || 'train', unit: 'Medic 12', id: ++G.box.seq, ring: 1e9, left: 1e9, t0: G.t };
   sound('ring');
   return true;
 }
@@ -4879,7 +5144,7 @@ function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' 
 function endShift(reason) {
   if (G.over) return;
   if (!G.pre && G.stats.returnsLate && G.mode !== 'md') care(-20 * G.stats.returnsLate, 'returns');
-  G.over = true; G.running = false; G.fail = reason === 'walkout' ? 'walkout' : null;
+  G.over = true; G.running = false; G.fail = reason === 'walkout' || reason === 'fired' ? reason : null;
   const list = G.order.map(id => G.pts[id]).filter(p => p.tArrive >= 0 && p.loc !== 'enroute' && p.loc !== 'new');
   const ems = list.filter(p => p.src === 'ems');
   const walls = ems.map(p => p.tWall != null ? p.tWall : (p.loc === 'wall' ? G.t - p.tArrive : 0));
@@ -4888,6 +5153,7 @@ function endShift(reason) {
     level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
     stars: G.fail ? 0 : overallStars(), avg: avgScore(),
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama, expired: S.expired,
+    lit: Math.round(G.lit || 0), acc: G.mode === 'md' ? accuracy() : null, dxRight: (S.md && S.md.dxRight) || 0, dxWrong: (S.md && S.md.dxWrong) || 0, dxLog: ((S.md && S.md.dxLog) || []).slice(), litLog: (S.litLog || []).slice(), lawCalls: S.lawCalls || 0, wrongDrug: (S.md && S.md.wrongDrug) || 0,
     returns: S.returns + S.returnsLate, returnList: (S.returnList || []).slice(), radioLog: (S.radioLog || []).slice(), left: active().length,
     wallAvg: walls.length ? Math.round(walls.reduce((a, b) => a + b, 0) / walls.length) : 0,
     wallMax: walls.length ? Math.round(Math.max(...walls)) : 0, wallOver: walls.filter(w => w > 30).length,
@@ -4928,7 +5194,7 @@ function botStep(o) {
   // A charge nurse with limited hands: list every useful move, do the most urgent ones first.
   o = o || {};
   let budget = o.budget == null ? 1e9 : o.budget;
-  if (G.card) { const ch = G.card.choices.find(c => !c.dis) || G.card.choices[0]; chooseCard(ch.k); }
+  if (G.card && !G.card.mine) { const ch = G.card.choices.find(c => !c.dis) || G.card.choices[0]; chooseCard(ch.k); }
   const acts = [], add = (pr, fn) => acts.push({ pr, fn, n: acts.length });
   const load = s => s.q.length + s.tq.length + (s.task ? 1 : 0);
   const b = G.box.cur;
@@ -5040,8 +5306,9 @@ function mdPlay(o) {
   let budget = o.budget == null ? 1e9 : o.budget;
   const act = fn => { if (budget > 0 && fn()) budget--; };
   if (!me || G.mode !== 'md') return;
+  if (G.card && G.card.mine) { act(() => { chooseCard(G.card.choices[0].k); return true; }); }   // v0.28: the call from administration, or a lawyer: refer to risk management
   const c = G.box.cur;
-  if (c && c.kind === 'consult' && !c.taken) act(() => { const r = boxTake(G.me); if (!r.ok) return false; boxDecide(chance(acc) ? r.sc.a : !r.sc.a); return true; });
+  if (c && c.kind === 'consult' && !c.taken) act(() => { const r = boxTake(G.me); if (!r.ok) return false; boxDecide(r.sc.opts ? (chance(acc) ? r.sc.r : (r.sc.r + 1) % r.sc.opts.length) : chance(acc) ? r.sc.a : !r.sc.a); return true; });
   for (const p of active()) {
     if (!mdMine(p)) continue;
     if (p.ord === 'need' || p.ord === 'more') act(() => {
@@ -5050,6 +5317,7 @@ function mdPlay(o) {
       return signOrders(p.id, tests, treats).ok;
     });
     else if (p.txGap && p.txGap.length) act(() => signOrders(p.id, [], p.txGap).ok);
+    if (p.dxq) act(() => dxPick(p.id, chance(acc) ? p.dx : pick(p.dxq.filter(x => x !== p.dx))).ok);
     if (p.dsp === 'mddecide') act(() => {
       const want = chance(acc) ? p.dispo : pick(['home', 'admit']);
       if (want === 'home') return mdDecide(p.id, 'home').ok;
@@ -5082,7 +5350,7 @@ const OC = {
   register, triage, toWaiting, sendUp, bookIFT, IFT, IFT_LV, HOSPS, CAP_NAME, UNITS, WX, HELP, con2Open, con2Wait, POC_RES, setDispo, awaitOrders, callHosp, giveReport, txInstead, helpCall, helpHere, txNeedOf, iftNeed, txFast, wxGrounded, wxOf, bedWait, emergent, DIVERTS, OUTAGES, outActive, justified,
   startOutage, sickEnough, looksSick, classCode, readCode, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
-  signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME,
+  signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME, DRUGS, DRUG_CLASS, RXOK, drugFor, rxOk, ORDER_MENUS, PROC, DDX, MUST, dxPick, accuracy, litAdd, LIT_STEPS,
   ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, CRASH, needsTx, strokeSetup, DX_PLAIN,
   crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k] && EV[k].fire) fireEv(k); }, eventKeys: () => Object.keys(EV), eventReady: k => !!(EV[k] && EV[k].fire && EV[k].w && EV[k].w() > 0),
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
@@ -5468,6 +5736,7 @@ function renderObjs(G) {
   if (G.region.susp > t) it.push(`<span class="ob bad">Region: no capacity alerts · <span data-cd="${G.region.susp}"></span></span>`);
   if (G.mods.noReport > t) it.push(`<span class="ob bad">Floors not taking report · <span data-cd="${G.mods.noReport}"></span></span>`);
   if (G.obsUnit.filled >= G.obsUnit.cap) it.push('<span class="ob warn">Obs unit full</span>');
+  if (G.mode === 'md' && !G.train) { const L = Math.round(G.lit || 0); it.push(`<span class="ob ${L >= 50 ? 'bad' : L >= 25 ? 'warn' : 'acc'}">Accuracy ${E.accuracy()}% · Legal risk ${L}%${L >= 50 ? ' · PIP' : L >= 40 ? ' · peer review' : ''}</span>`); }
   if (G.beds) { const full = G.beds.icu.used >= E.UNITS.icu.cap, w = E.bedWait('icu'); it.push(`<button type="button" class="ob ${full ? 'warn' : 'beds'}" data-act="bedsOpen">Beds: ICU ${G.beds.icu.used}/${E.UNITS.icu.cap}${w ? ` · ${w} waiting` : ''}</button>`); }
   if (U.view === 'map' && E.active().some(p => p.iftLevel === 'air' && ((p.dsp === 'iftwait' && p.due - t <= 3 && !p.airAbort) || p.dsp === 'iftreport'))) it.push('<button type="button" class="ob heli" data-act="watchPad">Helicopter on the pad · watch</button>');
   if (G.wx && G.wx !== 'clear') it.push(`<span class="ob wx">${esc(E.WX[G.wx].name)}${E.wxGrounded() ? ' · no flights' : ''}</span>`);
@@ -6052,6 +6321,7 @@ function mdPrimary0(p, G) {
   }
   if (p.ev === 'q') { const me = E.staff(G.me), i = me.q.findIndex(k => k.pid === p.id); return `<p class="hint">In your line${i > 0 ? `, #${i + 1}` : ''}. You'll see them after what you're doing now.</p>`; }
   if (p.ev === 'doing') return `<p class="hint">${p.arrest ? 'You’re running the code.' : `You are in the room: history and exam.${myLeft(p) ? ` About <b>${myLeft(p)} min</b> left.` : ''}`}</p>`;
+  if (p.dxq) return mtpBtn + dxBlock(p);
   if (p.ord === 'need' || p.ord === 'more') return mtpBtn + ordersBlock(p, G);
   if (p.dsp === 'mddecide' || p.dsp === 'decide') {
     const call = p.dsp === 'mddecide' ? mdDecideBlock(p) : grayBlock(p);
@@ -6074,14 +6344,46 @@ function gapHint(p) { const m = PLAIN() ? E.missNow(p, p.ord === 'more') : []; r
 const lyticHeld = p => !!(p.treat.tnk && p.treat.tnk.st === 'wait' && !p.treat.bp && p.alert === 'stroke' && !E.bpOkForLytic(p));
 /* Tests on the order sheet: the ECG, single labs in their groups, and named studies by kind. */
 const IMG_KINDS = [['xr', 'X-ray'], ['ct', 'CT'], ['mri', 'MRI'], ['us', 'Ultrasound']];
-function testsBlock(chip) {
-  const pl = PLAIN(), labG = {};
-  for (const [k, L] of Object.entries(E.LABS)) (labG[L.g] = labG[L.g] || []).push(chip('t', k, L.n, pl ? L.p : ''));
-  let h = `<div class="ogrid">${chip('t', 'ecg', 'ECG', pl ? 'A tracing of the heart rhythm' : '')}</div><div class="o-sec">Labs</div>`;
-  for (const [g, chips] of Object.entries(labG)) h += `<div class="o-grp">${g}</div><div class="ogrid o3">${chips.join('')}</div>`;
-  h += '<div class="o-sec">Imaging</div>';
-  for (const [m, nm] of IMG_KINDS) h += `<div class="o-grp">${nm}</div><div class="ogrid o3">${Object.entries(E.IMGS).filter(([, I]) => I.m === m).map(([k, I]) => chip('t', k, I.n, pl ? I.p : '')).join('')}</div>`;
+function testsBlock(chip) { return orderMenus(chip, null); }
+/* v0.28: the order sheet is parent menus. Tap one to open it; Medications opens into drug classes.
+   Closed menus keep their chips in the page (hidden), so a lit target can name the menu it lives in. */
+const OM_OPEN = () => (U.ordM = U.ordM || new Set());
+function omHead(id, label, n, sub) {
+  const open = OM_OPEN().has(id);
+  return `<button type="button" class="om-h${open ? ' open' : ''}" data-act="ordMenu" data-arg="${id}" aria-expanded="${open}"><b>${label}</b>${n ? `<span class="om-n">${n}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}</button>`;
+}
+function omBody(id, inner) { return `<div class="om-b" data-m="${id}"${OM_OPEN().has(id) ? '' : ' hidden'}>${inner}</div>`; }
+function orderMenus(chip, o) {
+  const pl = PLAIN(), labG = {}, picked = k => (o ? o.tests.concat(o.treats) : []).includes(k);
+  const cnt = keys => keys.filter(picked).length;
+  const M = (id, label, sub, keys, inner) => omHead(id, label, cnt(keys), sub) + omBody(id, inner);
+  let h = '';
+  const bedside = ['ecg'].concat(Object.keys(E.LABS).filter(k => E.LABS[k].poc));
+  h += M('bed', 'ECG and bedside tests', 'ECG, fingerstick, urine dip', bedside, `<div class="ogrid o3">${chip('t', 'ecg', 'ECG', pl ? 'A tracing of the heart rhythm' : '')}${bedside.slice(1).map(k => chip('t', k, E.LABS[k].n, pl ? E.LABS[k].p : '')).join('')}</div>`);
+  for (const [k, L] of Object.entries(E.LABS)) if (!L.poc) (labG[L.g] = labG[L.g] || []).push(chip('t', k, L.n, pl ? L.p : ''));
+  h += M('lab', 'Labs', 'Blood, urine, cultures', Object.keys(E.LABS).filter(k => !E.LABS[k].poc), Object.entries(labG).map(([g, c]) => `<div class="o-grp">${g}</div><div class="ogrid o3">${c.join('')}</div>`).join(''));
+  h += M('img', 'Imaging', 'X-ray, CT, MRI, ultrasound', Object.keys(E.IMGS), IMG_KINDS.map(([m, nm]) => `<div class="o-grp">${nm}</div><div class="ogrid o3">${Object.entries(E.IMGS).filter(([, I]) => I.m === m).map(([k, I]) => chip('t', k, I.n, pl ? I.p : '')).join('')}</div>`).join(''));
+  if (!o) return h;
+  const dchip = id => chip('r', id, E.DRUGS[id].n, pl ? E.DRUGS[id].p : '');
+  const byC = c => Object.keys(E.DRUGS).filter(id => E.DRUGS[id].c === c);
+  const medIds = E.DRUG_CLASS.flatMap(([c]) => byC(c));
+  let med = '';
+  for (const [c, nm] of E.DRUG_CLASS) { const ids = byC(c); med += omHead('med:' + c, nm, cnt(ids)) + omBody('med:' + c, `<div class="ogrid o3">${ids.map(dchip).join('')}</div>`); }
+  h += M('med', 'Medications', 'By drug class', medIds, `<div class="om-sub">${med}</div>`);
+  h += M('resus', 'Resuscitation drugs', 'Arrest, unstable rhythms, shock', byC('resus'), `<div class="ogrid o3">${byC('resus').map(dchip).join('')}</div>`);
+  for (const [id, nm, keys] of E.ORDER_MENUS) {
+    const chips = keys.map(k => E.DRUGS[k] ? dchip(k) : E.PROC[k] ? chip('r', k, E.PROC[k].n, pl ? E.PROC[k].p : '') : chip('r', k, (ORDER_TX.find(x => x[0] === k) || [k, k])[1], pl ? (ORDER_TX.find(x => x[0] === k) || [])[2] || '' : ''));
+    h += M(id, nm, '', keys, `<div class="ogrid o3">${chips.join('')}</div>`);
+  }
   return h;
+}
+// Which menu an order lives in (for the preceptor's ring, and the tests).
+function omOf(key) {
+  if (key === 'ecg' || (E.LABS[key] && E.LABS[key].poc)) return ['bed'];
+  if (E.LABS[key]) return ['lab'];
+  if (E.IMGS[key]) return ['img'];
+  if (E.DRUGS[key]) { const c = E.DRUGS[key].c; if (c === 'resus') return ['resus']; const m = E.ORDER_MENUS.find(x => x[2].includes(key)); return m ? [m[0]] : ['med', 'med:' + c]; }
+  const m = E.ORDER_MENUS.find(x => x[2].includes(key)); return m ? [m[0]] : [];
 }
 /* The imaging viewer: the study full screen, what it shows, what to look for, and whose picture it is.
    LOOK: what to look for, per picture. IMG_CREDIT: filled from img/credits.json at build time. */
@@ -6141,13 +6443,17 @@ function ordersBlock(p, G, add) {
   if (!U.ord || U.ord.pid !== p.id) U.ord = { pid: p.id, tests: [], treats: [] };
   const o = U.ord;
   const chip = (kind, key, lbl, sub) => {
-    const done = kind === 't' ? (key === 'ecg' ? p.wk.includes('ecg') : (p.det || []).includes(key)) : p.tr.includes(key), on = (kind === 't' ? o.tests : o.treats).includes(key);
+    const done = kind === 't' ? (key === 'ecg' ? p.wk.includes('ecg') : (p.det || []).includes(key)) : (E.DRUGS[key] || E.PROC[key]) ? (p.drugs || []).includes(key) : p.tr.includes(key), on = (kind === 't' ? o.tests : o.treats).includes(key);
     return `<button type="button" class="och${done ? ' done' : on ? ' on' : ''}" data-act="ordT" data-arg="${p.id}|${kind}|${key}" ${done ? 'disabled' : ''} aria-pressed="${on}"><b>${lbl}</b>${done ? '<small>Ordered</small>' : sub ? `<small>${sub}</small>` : ''}</button>`;
   };
   const n = o.tests.length + o.treats.length, need = p.ord === 'need';
   const title = p.ord === 'more' ? `The workup isn’t complete. Add what is missing.${gapHint(p)}` : add ? 'Add orders' : 'Write orders';
   const lbl = n ? `Sign ${n} order${n > 1 ? 's' : ''}` : need ? 'Sign with no orders' : 'Pick orders to add';
-  return `<div class="prim"><div class="prim-l">${title}</div>${testsBlock(chip)}<div class="prim-l">Treatment</div><div class="ogrid">${ORDER_TX.map(([k, l, sub]) => chip('r', k, l, sub)).join('')}</div><button type="button" class="big act" data-act="sign" data-arg="${p.id}" ${n || need ? '' : 'disabled'}>${lbl}</button><p class="hint" style="margin:0">Order what they need and nothing extra. Extra tests cost time, and some treatments hurt people who don't need them.</p></div>`;
+  return `<div class="prim"><div class="prim-l">${title}</div><div class="om">${orderMenus(chip, o)}</div><button type="button" class="big act" data-act="sign" data-arg="${p.id}" ${n || need ? '' : 'disabled'}>${lbl}</button><p class="hint" style="margin:0">Order what they need and nothing extra. Extra tests cost time, and some treatments hurt people who don't need them.</p></div>`;
+}
+/* v0.28: the attending names the diagnosis from the exam and the results. */
+function dxBlock(p) {
+  return `<div class="prim"><div class="prim-l">What’s the diagnosis?</div><p class="hint" style="margin:0">Read the exam and the results on the card, then make the call. A missed diagnosis costs accuracy and raises your legal risk.</p><div class="cgrid">${p.dxq.map(d => `<button type="button" class="cbtn" data-act="dxPick" data-arg="${p.id}|${esc(d)}"><b>${esc(d)}</b></button>`).join('')}</div></div>`;
 }
 function mdDecideBlock(p) {
   const b = (k, l, sub) => `<button type="button" class="cbtn" data-act="mdd" data-arg="${p.id}|${k}"><b>${l}</b><small>${sub}</small></button>`;
@@ -6443,6 +6749,14 @@ const GLOSS = [
     ['Disposition', 'Where the patient goes next: home, observation, admitted, or transferred.'],
     ['Discharge', 'Sending the patient home.'],
     ['Consult', 'Calling a specialist to see the patient. About one consulted patient in five needs a second service: a broken hip in an older patient gets orthopedics and the hospitalist.'],
+    ['Clinical accuracy', 'The attending’s share of right calls: diagnoses named right and orders right, against everything called and ordered.'],
+    ['Legal risk', 'How exposed you are after today’s misses. Harm and missed must-not-miss diagnoses count most. 25%: the administrator calls. 40%: peer review. 50%: a performance improvement plan, and lawyers call. 75%: the group lets you go.'],
+    ['Peer review', 'Colleagues read a doctor’s charts and decide if the care met the standard.'],
+    ['PIP', 'Performance improvement plan: closer review of your charts, with goals to meet.'],
+    ['Risk management', 'The hospital office that handles lawsuits and complaints. Lawyers go to them, not to you.'],
+    ['Must not miss', 'A diagnosis that kills or disables if it’s missed: heart attack, stroke, sepsis, a bleed.'],
+    ['Resuscitation drugs', 'The drugs for an arrest, an unstable rhythm, or shock: epinephrine, amiodarone, adenosine, atropine, calcium, bicarbonate, vasopressors.'],
+    ['Read-back', 'The medic repeats a radio order back so the doctor can confirm it. It catches a wrong dose.'],
     ['Admit by phone', 'The ED doctor makes the admission call and the hospitalist accepts without coming down first. Faster, for straightforward medical admissions. A surgical or heart problem still needs its specialist to see them.'],
     ['Point-of-care test', 'A test done at the bedside in a minute: a fingerstick sugar, a urine dip. It still works when the lab is down. Check the sugar early on any stroke.'],
     ['Screening', 'At the door, the first person to talk to a patient asks about cough, fever, rash and travel. A positive screen means a mask and an isolation room. Miss it, and others in the waiting room are exposed.'],
@@ -6545,6 +6859,9 @@ function helpMD() {
 <li><b>Make the call.</b> Home, rehab (can leave, can’t manage alone: the exam says so), admit (call the right consultant once results are back), or transfer. Chest pain, fainting, TIA and mild pneumonia (CURB-65) get a risk score.</li>
 <li><b>Transfers.</b> Pick a hospital that has what they need, call it to accept, pick the transport, and give the crew report. No ICU bed here? An ICU patient can’t stay: transfer them.</li>
 <li><b>Help from upstairs.</b> Hard airway: anesthesia. Shock: critical care. Call them before the procedure, not after.</li>
+<li><b>Orders sit in menus.</b> Tap Labs, Imaging, Medications, Resuscitation drugs, and the rest to open them. Medications open into drug classes. Pick the drug: the wrong one doesn’t count and the patient stays untreated.</li>
+<li><b>You make the diagnosis.</b> When results are back, pick it from four. A miss costs <b>accuracy</b> and adds <b>legal risk</b>: 25% brings a call from the administrator, 40% peer review, 50% a PIP and lawyers calling (send them to risk management), 75% and you’re fired.</li>
+<li><b>Radio orders.</b> Some crews ask for a dose or an order, not a yes or no. Pick the drug, dose, and route.</li>
 <li><b>Admit by phone.</b> For a straightforward medical admission, admit to the hospitalist by phone instead of waiting for them to come down. Some patients need a second consult; the card says so.</li>
 <li><b>Bedside tests.</b> A fingerstick glucose or urine dip reads in a minute and works when the lab is down. Check the sugar early on every stroke.</li>
 <li><b>Answer the radio.</b> Tap Answer, read the call, approve or deny. Only you can.</li>
@@ -6766,14 +7083,16 @@ const seeStep = (key) => ({
 });
 /* list: [['t', 'lab'], ['r', 'meds']]. A kind of test (lab, xr, ct, us) means the named tests this patient's case needs of
    that kind (a CBC and a BMP, the CT abdomen and pelvis), so the preceptor lights each one in turn. */
-const ordList = (p, list) => list.flatMap(([k, v]) => (k === 't' && v !== 'ecg' && E.WORK[v] ? E.needOf(p).n.filter(d => E.DET_KIND(d) === v).map(d => ['t', d]) : [[k, v]]));
-const ordHas = (p, k, v) => (k === 't' ? (v === 'ecg' ? p.wk.includes('ecg') : (p.det || []).includes(v)) : p.tr.includes(v));
+const ordList = (p, list) => list.flatMap(([k, v]) => (k === 't' && v !== 'ecg' && E.WORK[v] ? E.needOf(p).n.filter(d => E.DET_KIND(d) === v).map(d => ['t', d]) : k === 'r' && E.drugFor(p, v) ? [['r', E.drugFor(p, v)]] : k === 'r' && v === 'pace' ? [['r', 'tcp']] : [[k, v]]));
+const ordHas = (p, k, v) => (k === 't' ? (v === 'ecg' ? p.wk.includes('ecg') : (p.det || []).includes(v)) : (p.drugs || []).includes(v) || p.tr.includes(v));
+// The ring goes on the closed menu first, then on the order inside it.
+const omSpot = key => { const S = OM_OPEN(), m = omOf(key).find(x => !S.has(x)); return m ? `#sheet [data-act="ordMenu"][data-arg="${m}"]` : null; };
 const ordStep = (key, list) => ({
   spot: () => {
     const p = tid(key); if (!onSheet(p)) return [roomSel(p)];
     const o = U.ord && U.ord.pid === p.id ? U.ord : { tests: [], treats: [] };
     const next = ordList(p, list).find(([k, v]) => !(k === 't' ? o.tests : o.treats).includes(v) && !ordHas(p, k, v));
-    return next ? [`#sheet [data-act="ordT"][data-arg="${p.id}|${next[0]}|${next[1]}"]`] : ['#sheet [data-act="sign"]'];
+    return next ? [omSpot(next[1]) || `#sheet [data-act="ordT"][data-arg="${p.id}|${next[0]}|${next[1]}"]`] : ['#sheet [data-act="sign"]'];
   },
   done: () => { const p = tid(key); return p.ord === 'signed' && ordList(p, list).every(([k, v]) => ordHas(p, k, v)); },
   auto: () => { const p = tid(key), L = ordList(p, list); U.ord = null; E.signOrders(p.id, L.filter(x => x[0] === 't').map(x => x[1]), L.filter(x => x[0] === 'r').map(x => x[1])); },
@@ -6798,7 +7117,7 @@ const STEPS_MD = [
   { id: 'j2', wait: true, title: 'In the room', text: `You take his **history**, his story of what happened, and examine him.`, done: () => tid('jordan').ord === 'need' },
   { id: 'jv', title: 'His card', text: `Everything about him is on his **card**.\nTap **his room** to open it.`, spot: () => [roomSel(tid('jordan'))], done: () => onSheet(tid('jordan')), auto: () => { U.sel = null; U.sheet = { type: 'pt', pid: tid('jordan').id }; } },
   { id: 'jv2', next: true, keep: true, title: 'Vital signs', text: `**Vitals**, normal for an adult:\n**HR** (heart rate) 60–100\n**BP** (blood pressure) about 120/80\n**RR** (breaths a minute) 12–20\n**SpO2** (oxygen) 95%+\n**Temp** 100.4+ is a fever\n**Red** is out of range, like his fever.`, spot: () => ['#sheet .ph-cc'] },
-  { id: 'j3', keep: true, title: 'Write orders', text: `**Orders** are the tests (the **workup**) and treatments. Order what he needs, **nothing extra**.\nHe needs a **rapid strep** (under Labs) and antibiotic pills (**Medications**). The **Antibiotics** button is IV, for serious infections.\nTap **Rapid strep**, **Medications**, then **Sign**.`, ...ordStep('jordan', [['t', 'lab'], ['r', 'meds']]) },
+  { id: 'j3', keep: true, title: 'Write orders', text: `**Orders** are the tests (the **workup**) and treatments. Order what he needs, **nothing extra**.\nHe needs a **rapid strep** and **penicillin** pills. Orders sit in menus: tap a menu to open it.\nTap **Labs**, **Rapid strep**, then **Medications**, **Antibiotics by mouth**, **Penicillin VK**, and **Sign**.`, ...ordStep('jordan', [['t', 'lab'], ['r', 'meds']]) },
   { id: 'j4', wait: true, title: 'Results', text: `A **tech** swabs his throat. The result comes to you.`, done: () => tid('jordan').dsp === 'mddecide' || !!tid('jordan').mdPick },
   { id: 'j5', title: 'Your call', text: `It’s **strep throat**.\nWhere he goes next is the **disposition**: **home**, **admit**, or **transfer**. Your call.\nTap **his room**, then **Discharge home**.`, ...callStep('jordan', 'home') },
   { id: 'j6', wait: true, title: 'Going home', text: `His nurse gives him the prescription and the **warning signs** to come back for.`, done: () => tid('jordan').loc === 'gone' },
@@ -6806,7 +7125,7 @@ const STEPS_MD = [
   { id: 'a1', title: 'Vomiting, sugar very high', text: `**Room 5**: [[Aisha]], 24, **ESI 2**. She’s vomiting and her sugar is very high.\nTap **her room**, then **See this patient**.`,
     setup: () => ({ aisha: E.trainPatient('dka', 'room', { room: '5', name: 'Aisha K.', age: 24, sex: 'F' }) }), ...seeStep('aisha') },
   { id: 'a2', wait: true, title: 'In the room', text: `Her breath smells **fruity**. She’s breathing **fast and deep**. Her mouth is dry.`, done: () => tid('aisha').ord === 'need' },
-  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**: without **insulin**, the body burns fat and the blood turns acid.\nOrder a **BMP** (sugar and **potassium**), a **blood gas** (how acid), **IV fluids**, and an **insulin drip**.\nTap **her room**, **BMP**, **Blood gas**, **IV fluids**, **Insulin drip**, **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin']]) },
+  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**: without **insulin**, the body burns fat and the blood turns acid.\nOrder a **BMP** (sugar and **potassium**), a **blood gas** (how acid), **fluids**, and an **insulin drip**.\nTap **her room**. **BMP**, **Blood gas**, **Normal saline** (Fluids and blood), **Insulin drip** (Medications, Sugar and electrolytes), **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin']]) },
   { id: 'a4', wait: true, title: 'Results', text: `**Glucose 540** (normal about 100). **Anion gap 26**: acid in the blood (normal under 12).\n**Potassium 4.8**: safe for insulin, which drops potassium.\nIt’s DKA. Her nurse starts the drip.`, done: () => tid('aisha').dsp === 'mddecide' || !!tid('aisha').mdPick },
   { id: 'a5', title: 'Admit her', text: `An insulin drip needs hourly checks, so she goes to the **ICU**.\nTo admit, you call a **consult**, the team that takes over.\nTap **her room**, **Admit: call a consult**, then **Critical Care**.`, ...callStep('aisha', 'consult', 'icu') },
   { id: 'a6', wait: true, title: 'Admitted', text: `Critical Care **admits** her. The charge nurse handles the bed upstairs.`, done: () => E.isBoarder(tid('aisha')) || tid('aisha').loc === 'gone' },
@@ -6814,7 +7133,7 @@ const STEPS_MD = [
   { id: 'b1', title: 'Belly pain', text: `**Room 9**: [[Sam]], 19. Belly pain that moved to the lower right.\nTap **his room**, then **See this patient**.`,
     setup: () => ({ sam: E.trainPatient('appy', 'room', { room: '9', name: 'Sam O.', age: 19, sex: 'M' }) }), ...seeStep('sam') },
   { id: 'b2', wait: true, title: 'In the room', text: `His lower right belly hurts to press. That’s where the **appendix** is.`, done: () => tid('sam').ord === 'need' },
-  { id: 'b3', title: 'A thin workup', text: `Let’s see what a missing test does.\nOrder only a **CBC**, a **BMP**, and **Medications**, then **Sign**.`, ...ordStep('sam', [['t', 'lab'], ['r', 'meds']]) },
+  { id: 'b3', title: 'A thin workup', text: `Let’s see what a missing test does.\nOrder only a **CBC**, a **BMP**, and **morphine** for pain (Medications, Pain), then **Sign**.`, ...ordStep('sam', [['t', 'lab'], ['r', 'meds']]) },
   { id: 'b4', wait: true, title: 'Waiting on labs', text: `The labs come back.`, done: () => tid('sam').ord === 'more' || !!tid('sam').dxK },
   { id: 'b5', title: 'Something is missing', text: `His **WBC** (white count) is 15.8, high with infection. But blood tests can’t say which organ. A **CT** scan can.\nTap **his room**, add **CT abdomen and pelvis**, then **Sign**. Gaps like this cost time.`, ...ordStep('sam', [['t', 'ct']]) },
   { id: 'b6', wait: true, title: 'CT', text: `The CT shows **appendicitis**.`, done: () => tid('sam').dsp === 'mddecide' || !!tid('sam').mdPick },
@@ -6824,14 +7143,14 @@ const STEPS_MD = [
     setup: () => { E.trainConsult(); return null; },
     spot: () => { if (U.modal && U.modal.type === 'scen') return ['#modal [data-act="scen"]']; if (U.modal && U.modal.type === 'result') return ['#modal [data-act="modalOk"]']; return ['#boxbar .bx-btn']; },
     done: () => g().stats.boxC.ans >= 1 && !U.modal,
-    auto: () => { const c = g().box.cur; let sc = U.modal && U.modal.sc; if (c && c.kind === 'consult') { if (!c.taken) { const r = E.boxTake(me()); sc = r.sc; } E.boxDecide(sc ? sc.a : true); } U.modal = null; U.sheet = null; } },
+    auto: () => { const c = g().box.cur; let sc = U.modal && U.modal.sc; if (c && c.kind === 'consult') { if (!c.taken) { const r = E.boxTake(me()); sc = r.sc; } E.boxDecide(sc ? (sc.opts ? sc.r : sc.a) : true); } U.modal = null; U.sheet = null; } },
 
   { id: 's1', wait: true, title: 'Stroke alert', text: `A **stroke alert**: a man in his 70s who can’t move his right side.\nA **stroke** is a brain blood vessel that’s blocked or burst. The alert calls **neurology**.`,
     setup: () => ({ stroke: E.trainPatient('stroke', 'alert', { name: 'Harold W.', age: 74, sex: 'M', unit: 'Medic 14', eta: 6, lkw: 40 }) }), done: () => tid('stroke').loc === 'room' },
   { id: 's2', title: 'Time is brain', text: () => `Brain dies every minute it’s blocked. A **thrombolytic** can dissolve the clot, but only in the first hours.\nTap **${E.roomName(tid('stroke').room || 'R1')}**, then **See this patient**.`, ...seeStep('stroke') },
   { id: 's3', wait: true, title: 'In the room', text: () => `Right side weak, speech slurred.\n**Last known well: ${E.clock(tid('stroke').lkwT)}**, the last time anyone saw him normal. It decides what treatments are still possible.`, done: () => tid('stroke').ord === 'need' },
   { id: 's4a', next: true, title: 'CT first', text: `The clot drug is dangerous if it’s a **bleed**, so **CT comes first**. The nurse gives it once CT is clear and neurology agrees.`},
-  { id: 's4', title: 'Stroke orders', text: `His BP is under **185/110**, the drug’s limit. Over that, you’d add **blood pressure control** first.\nTap **his room**, **CT head**, **BMP**, **Thrombolytic**, then **Sign**.`, ...ordStep('stroke', [['t', 'ct'], ['t', 'lab'], ['r', 'tnk']]) },
+  { id: 's4', title: 'Stroke orders', text: `His BP is under **185/110**, the drug’s limit. Over that, you’d add **blood pressure control** first.\nTap **his room**, **CT head**, **BMP**, then **Tenecteplase** (Medications, Clots), and **Sign**.`, ...ordStep('stroke', [['t', 'ct'], ['t', 'lab'], ['r', 'tnk']]) },
   { id: 's5', wait: true, title: 'Door to needle', text: `Two goals: **CT within 25 minutes**, drug **within 60** (**door to needle**). Both are on his card.`, done: () => { const p = tid('stroke'); return (p.treat.tnk && p.treat.tnk.st === 'done') || p.loc === 'gone'; } },
   { id: 's6', wait: true, title: 'To the ICU', text: `Neurology admits him to the **ICU** to watch for bleeding.`, done: () => E.isBoarder(tid('stroke')) || tid('stroke').loc === 'gone' },
 
@@ -6850,8 +7169,30 @@ const lExamined = () => LP().ord === 'need';
 const lResulted = () => { const p = LP(); return p.dsp === 'mddecide' || !!p.mdPick || p.loc === 'gone' || E.isBoarder(p); };
 const lLeft = () => LP().loc === 'gone' || E.isBoarder(LP());
 const lCard = { spot: () => [roomSel(LP())], done: () => onSheet(LP()), auto: () => { U.sel = null; U.sheet = { type: 'pt', pid: LP().id }; } };
+// A practice radio call: answer, decide, read why. n: how many calls answered when it's done.
+const radioStep = n => ({
+  spot: () => { if (U.modal && U.modal.type === 'scen') return ['#modal [data-act="scen"]']; if (U.modal && U.modal.type === 'result') return ['#modal [data-act="modalOk"]']; return ['#boxbar .bx-btn']; },
+  done: () => g().stats.boxC.ans >= n && !U.modal,
+  auto: () => { const c = g().box.cur; let sc = U.modal && U.modal.sc; if (c && c.kind === 'consult') { if (!c.taken) { const r = E.boxTake(me()); sc = r.sc; } E.boxDecide(sc ? (sc.opts ? sc.r : sc.a) : true); } U.modal = null; U.sheet = null; },
+});
+// v0.28: lessons for the attending sit under body systems, in the order of the EM Model.
+const LESSON_SYS = [['cardio', 'Cardiovascular'], ['resp', 'Respiratory'], ['neuro', 'Nervous system'], ['tox', 'Toxicology'], ['trauma', 'Trauma'], ['gi', 'Abdominal and GI'], ['infect', 'Infections and sepsis'], ['ems', 'EMS medical direction']];
 const LESSONS = {
-  stroke: { name: 'Stroke', blurb: 'Clot or bleed. The 185/110 limit. Door to needle.', steps: [
+  radio: { name: 'Giving medical direction', sys: 'ems', blurb: 'Take the report, give a clear order, hear it read back, know when to say no.', steps: [
+    { id: 'm0', next: true, title: 'Medical direction', text: `Paramedics work from **protocols**. Some steps need a **doctor’s order** by radio: **medical direction**.\nYour order is a medical order. You’re responsible for it, just like one you write in the ED.` },
+    { id: 'm1', next: true, title: 'Hear the whole report', text: `Listen for **age and weight**, the **problem**, **vitals**, what they’ve **done**, and what they **want**.\nMissing something? **Ask.** A dose for a child needs a weight.` },
+    { id: 'm2', title: 'Yes or no', text: `The Box is ringing. A man with a twisted ankle wants to refuse the ride.\nAn adult who’s **thinking clearly** and understands the risks **may refuse**.\nTap **Answer**, then decide.`,
+      setup: () => { E.trainConsult('train'); return null; }, ...radioStep(1) },
+    { id: 'm3', next: true, title: 'Giving an order', text: `A good order has **four parts**: the **drug**, the **dose**, the **route**, and **how often**.\n“Midazolam **10 mg IM**, once.”\nChildren: the dose is **per kilogram**. Do the math out loud.` },
+    { id: 'm4', title: 'A dose for a child', text: `A crew has a seizing **20 kg** child, no IV. They want intranasal **midazolam**: **0.2 mg/kg**.\nTap **Answer**, then pick the dose.`,
+      setup: () => { E.trainConsult('tdose'); return null; }, ...radioStep(2) },
+    { id: 'm5', next: true, title: 'Read-back', text: `The medic **reads the order back**. You say “**correct**” or fix it.\nThis is **closed-loop communication**. It catches a wrong dose before it reaches the patient.` },
+    { id: 'm6', title: 'An order to act', text: `Some calls ask for a **procedure**, not a drug. Decide fast: some can’t wait for the hospital.\nTap **Answer**, then give the order.`,
+      setup: () => { E.trainConsult('tord'); return null; }, ...radioStep(3) },
+    { id: 'm7', next: true, title: 'When to say no', text: `**Deny** a request that could hurt: nitro with a **systolic under 90**, or after **sildenafil or tadalafil**.\nThen say what to do instead: “No nitro. **Fluids** and transport.”\nYou also pick **where they go**: a stroke center, a cath lab, a trauma center.` },
+    { id: 'm8', final: true, title: 'Medical direction: the short version', text: `**Listen**: age, weight, problem, vitals, what’s done, what they want.\n**Order**: drug, dose, route, how often.\n**Read-back**: hear it repeated, then confirm.\n**Say no** when it could hurt, and **say what to do instead**.` },
+  ] },
+  stroke: { name: 'Stroke', sys: 'neuro', blurb: 'Clot or bleed. The 185/110 limit. Door to needle.', steps: [
     { id: 'k0', next: true, title: 'Stroke', text: `A **stroke** is a brain blood vessel that’s blocked or burst.\nIt hits **suddenly**: face droop, a weak arm or leg, slurred speech.\nA blocked one can be reopened, but only in the **first few hours**.`},
     { id: 'k1', wait: true, title: 'Stroke alert', text: `An ambulance is bringing [[Helen]], 68. She can’t move her right side.\nThe **stroke alert** calls **neurology** and saves the **CT** scanner for her.`,
       setup: () => ({ pt: E.trainPatient('stroke', 'alert', { name: 'Helen V.', age: 68, sex: 'F', unit: 'Medic 14', eta: 4, lkw: 50, bpOver: true }) }), done: lRoomed },
@@ -6859,36 +7200,36 @@ const LESSONS = {
     { id: 'k3', wait: true, title: 'In the room', text: () => `Right side weak, speech slurred.\n**Last known well: ${E.clock(LP().lkwT)}**. The clot drug must go in within **4½ hours** of that.`, done: lExamined },
     { id: 'k4', next: true, title: 'Clot or bleed', text: `A **CT** shows if it’s a **clot** or a **bleed**.\nA **thrombolytic** dissolves clots, but it makes a bleed worse. So **CT first**.`},
     { id: 'k5', next: true, title: 'Her pressure is too high', text: () => `Her BP is **${lBP()}**. The clot drug’s limit is **185/110**.\nAbove that, the brain can bleed. Add **blood pressure control**. The nurse waits until it’s down.`},
-    { id: 'k6', title: 'Stroke orders', text: `Tap **her room**. Then **CT head**, **BMP**, **Blood pressure control**, **Thrombolytic**, **Sign**.\nThe BMP checks sugar. Low sugar can look just like a stroke.`, ...ordStep('pt', [['t', 'ct'], ['t', 'lab'], ['r', 'bp'], ['r', 'tnk']]) },
+    { id: 'k6', title: 'Stroke orders', text: `Tap **her room**. Then **CT head**, **BMP**, **Labetalol** (Medications, Heart and blood pressure), **Tenecteplase** (Clots), **Sign**.\nThe BMP checks sugar. Low sugar can look just like a stroke.`, ...ordStep('pt', [['t', 'ct'], ['t', 'lab'], ['r', 'bp'], ['r', 'tnk']]) },
     { id: 'k7', wait: true, title: 'Two clocks', text: `**Door to CT: 25 minutes.**\n**Door to needle: 60 minutes.**\nThe drug goes in once CT shows no bleed, neurology agrees, and BP is under 185/110.`,
       done: () => { const p = LP(); return !!(p.treat.tnk && p.treat.tnk.st === 'done') || p.loc === 'gone'; } },
     { id: 'k8', wait: true, title: 'After the drug', text: `Neurology admits her to the **ICU** to watch for bleeding.`, done: lLeft },
     { id: 'k9', final: true, title: 'Stroke: the short version', text: `**Looks like**: sudden face droop, weak arm or leg, slurred speech.\n**Order**: CT, labs, thrombolytic. BP control if over 185/110.\n**Clock**: CT in 25, drug in 60.\n**Charge nurse**: room her now, keep CT free.` },
   ] },
-  heart: { name: 'Heart attack', blurb: 'The ECG. A STEMI alert. Door to balloon.', steps: [
+  heart: { name: 'Heart attack', sys: 'cardio', blurb: 'The ECG. A STEMI alert. Door to balloon.', steps: [
     { id: 'h0', next: true, title: 'Heart attack', text: `A **heart attack** is a blocked heart artery. The muscle behind it starts to die.\nIt feels like **chest pressure**, often with sweating or arm or jaw pain.\nFirst test: an **ECG**, a quick heart tracing.`},
     { id: 'h1', wait: true, title: 'STEMI alert', text: `The paramedics’ ECG shows a **STEMI**: an artery fully blocked.\nThey’re bringing [[Frank]], 58.\nThe alert calls **cardiology** and opens the **cath lab**, where a thin tube reopens the artery.`,
       setup: () => ({ pt: E.trainPatient('stemi', 'alert', { name: 'Frank D.', age: 58, sex: 'M', unit: 'Medic 9', eta: 4 }) }), done: lRoomed },
     { id: 'h2', title: 'See him now', text: () => `He’s **ESI 1**, the sickest.\nTap **${lRoom()}**, then **See this patient**.`, ...seeStep('pt') },
     { id: 'h3', wait: true, title: 'In the room', text: `He’s gray and sweating. The pressure runs down his left arm.\nGoal: **ECG within 10 minutes** of arrival. Done.`, done: lExamined },
-    { id: 'h4', title: 'Heart attack orders', text: `The ECG already made the call.\n**Troponin** (heart damage) gets ordered, but don’t wait on it.\n**Medications** here means aspirin and a blood thinner.\nTap **his room**, **Troponin**, **Medications**, then **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'meds']]) },
+    { id: 'h4', title: 'Heart attack orders', text: `The ECG already made the call.\n**Troponin** (heart damage) gets ordered, but don’t wait on it.\nHe needs **aspirin** now.\nTap **his room**, **Troponin**, then **Aspirin** (Medications, Heart and blood pressure), and **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'meds']]) },
     { id: 'h5', wait: true, title: 'Door to balloon', text: `Cardiology takes him to the cath lab.\nGoal: **door to balloon in 90 minutes**, arrival to artery open.`, done: lLeft },
     { id: 'h6', next: true, title: 'Most chest pain isn’t this', text: `Most chest pain is **not** a STEMI. It still gets an ECG, labs, a **chest X-ray**, and medicine.\nThen the **HEART score** (0–10):\n**0–3**: home. **4–6**: **observation**. **7+**: admit.`},
     { id: 'h7', final: true, title: 'Heart attack: the short version', text: `**Looks like**: chest pressure, sweating, arm or jaw pain.\n**Order**: ECG, labs, **aspirin**. Not a STEMI: add a **chest X-ray**.\n**Clock**: ECG in 10, artery open in 90.\n**Charge nurse**: ECG at the door, room now.` },
   ] },
-  sepsis: { name: 'Sepsis', blurb: 'Infection and a low pressure. Antibiotics within the hour.', steps: [
+  sepsis: { name: 'Sepsis', sys: 'infect', blurb: 'Infection and a low pressure. Antibiotics within the hour.', steps: [
     { id: 'p0', next: true, title: 'Sepsis', text: `**Sepsis** is the body overreacting to an infection. Pressure drops and organs starve.\nLook for **fever**, a **fast heart**, **fast breathing**, **confusion**.\nAdd very low pressure: **septic shock**.`},
     { id: 'p1', wait: true, title: 'Sepsis alert', text: `An ambulance is bringing [[Rosa]], 71. Fever, confused, BP **74/40**.\nThe **sepsis alert** starts a clock: **antibiotics within the hour**.`,
       setup: () => ({ pt: E.trainPatient('shock', 'alert', { name: 'Rosa M.', age: 71, sex: 'F', unit: 'Medic 3', eta: 4 }) }), done: lRoomed },
     { id: 'p2', title: 'See her now', text: () => `She’s **ESI 1**.\nTap **${lRoom()}**, then **See this patient**.`, ...seeStep('pt') },
     { id: 'p3', wait: true, title: 'In the room', text: `She’s **hot and blotchy**, **breathing fast**, and doesn’t know the day.`, done: lExamined },
     { id: 'p4', next: true, title: 'What she needs', text: `She needs:\n**IV fluids** to lift the pressure.\n**Antibiotics** for the infection.\n**Vasopressor**, a drug that squeezes vessels, if fluids aren’t enough.\n**Oxygen**: hers is low.\n**Labs** to find the germ.` },
-    { id: 'p5', title: 'Sepsis orders', text: `Tap **her room**. Then **Lactate**, **Blood cultures**, **CBC**, **BMP**, **Oxygen**, **IV fluids**, **Antibiotics**, **Vasopressor**, **Sign**.\nCultures go before antibiotics, so the germ still grows.`, ...ordStep('pt', [['t', 'lab'], ['r', 'o2'], ['r', 'fluids'], ['r', 'abx'], ['r', 'pressor']]) },
+    { id: 'p5', title: 'Sepsis orders', text: `Tap **her room**. **Lactate**, **Blood cultures**, **CBC**, **BMP**, **Oxygen**, **Normal saline**, **Piperacillin-tazobactam** (Antibiotics by vein), **Norepinephrine** (Resuscitation drugs), **Sign**.\nCultures go before antibiotics, so the germ still grows.`, ...ordStep('pt', [['t', 'lab'], ['r', 'o2'], ['r', 'fluids'], ['r', 'abx'], ['r', 'pressor']]) },
     { id: 'p6', wait: true, title: 'Watch the pressure', text: `Her **pressure climbs** and her oxygen comes up. The **pharmacist** checks the drugs first.`, done: lResulted },
     { id: 'p7', title: 'Admit her', text: `A vasopressor drip needs the **ICU**.\nTap **her room**, **Admit: call a consult**, then **Critical Care**.`, ...callStep('pt', 'consult', 'icu') },
     { id: 'p8', final: true, title: 'Sepsis: the short version', text: `**Looks like**: infection plus fast heart, fast breathing, confusion, or low pressure.\n**Order**: labs, fluids, antibiotics. Oxygen if low. Vasopressor if pressure stays low.\n**Clock**: antibiotics in 60.\n**Charge nurse**: Resus room and a second nurse.` },
   ] },
-  bleed: { name: 'Bleeding trauma', blurb: 'Shock. Blood before he arrives. To the OR.', steps: [
+  bleed: { name: 'Bleeding trauma', sys: 'trauma', blurb: 'Shock. Blood before he arrives. To the OR.', steps: [
     { id: 't0', next: true, title: 'Bleeding inside', text: `After a crash or fall, the hidden danger is **bleeding inside** the belly or chest.\nLook for a **fast heart**, **falling pressure**, **pale, cold skin**. That’s **shock**.`},
     { id: 't1', wait: true, title: 'Trauma alert', text: `A **trauma alert**: [[Devon]], 27, rolled his car. BP **78/40**.\nThe alert calls the **trauma surgeon**.`,
       setup: () => ({ pt: E.trainPatient('mvc', 'alert', { name: 'Devon B.', age: 27, sex: 'M', unit: 'Medic 21', eta: 6 }) }), done: () => !!LP().pren || LP().loc !== 'enroute' },
@@ -6901,44 +7242,44 @@ const LESSONS = {
     { id: 't7', wait: true, title: 'To the OR', text: `The blood goes in and his pressure comes up.\nUltrasound shows **blood in his belly**. Straight to the **OR**.`, done: lLeft },
     { id: 't8', final: true, title: 'Bleeding trauma: the short version', text: `**Looks like**: injury plus fast heart, falling pressure, pale skin.\n**Order**: MTP first. Then X-ray and labs. **No CT** while pressure is low.\n**Clock**: surgeon at bedside in 15.\n**Charge nurse**: Resus room, second nurse.` },
   ] },
-  breath: { name: 'Trouble breathing', blurb: 'Wheezing, wet lungs, or infection. Each needs something different.', steps: [
+  breath: { name: 'Trouble breathing', sys: 'resp', blurb: 'Wheezing, wet lungs, or infection. Each needs something different.', steps: [
     { id: 'b0', next: true, title: 'Trouble breathing', text: `Three common causes, three different fixes:\n**Wheezing**: tight airways. Asthma or **COPD** (smoker’s lungs).\n**Wet lungs, can’t lie flat**: **heart failure**.\n**Fever and cough**: **pneumonia**.`},
     { id: 'b1', title: 'Short of breath', text: `**Room 5**: [[Earl]], 68, has COPD. Short of breath since last night.\nTap **his room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('copd', 'room', { room: '5', name: 'Earl J.', age: 68, sex: 'M' }) }), ...seeStep('pt') },
     { id: 'b2', wait: true, title: 'In the room', text: `He’s **wheezing**, leaning forward, talking a few words at a time.`, done: lExamined },
     { id: 'b3', title: 'Read his numbers', text: `Tap **his room** to open his card.`, ...lCard },
     { id: 'b4', next: true, keep: true, title: 'Two numbers', text: () => { const v = E.vitalsOf(LP()); return `**SpO2** (oxygen): **${v.spo2}%**. Normal is 95+.\n**RR** (breaths a minute): **${v.rr}**. Normal is 12–20.\nHe’s **tiring**. That’s what worries me.`; }, spot: () => ['#sheet .ph-cc'] },
-    { id: 'b5', keep: true, title: 'Breathing orders', text: `**Nebulizer**: medicine mist to open airways.\n**BiPAP**: a tight mask that helps each breath.\n**Chest X-ray** and **Blood gas** check for pneumonia and CO2.\nTap **Chest X-ray**, **Blood gas**, **Nebulizer**, **BiPAP**, **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'nebs'], ['r', 'bipap']]) },
+    { id: 'b5', keep: true, title: 'Breathing orders', text: `**A nebulizer**: medicine mist to open airways.\n**BiPAP**: a tight mask that helps each breath.\n**Chest X-ray** and **Blood gas** check for pneumonia and CO2.\nTap **Chest X-ray**, **Blood gas**, **Ipratropium-albuterol neb** (Medications, Breathing), **BiPAP** (Airway and breathing), **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'nebs'], ['r', 'bipap']]) },
     { id: 'b6', wait: true, title: 'Watch him settle', text: `**RT** fits the mask. His oxygen rises and his breathing slows.`, done: lResulted },
     { id: 'b7', title: 'Admit him', text: `He needs the mask for hours, so he stays. The **hospitalist** cares for admitted patients.\nTap **his room**, **Admit: call a consult**, then **Hospitalist**.`, ...callStep('pt', 'consult', 'hosp') },
     { id: 'b8', final: true, title: 'Trouble breathing: the short version', text: `**Wheezing**: nebulizer. BiPAP if tiring.\n**Wet lungs**: BiPAP and medications.\n**Fever and cough**: X-ray, labs, oxygen, **Antibiotics** (not Medications).\n**Charge nurse**: ESI 2. Room now.` },
   ] },
-  od: { name: 'Overdose', blurb: 'Slow breathing, pinpoint pupils. Naloxone wears off first.', steps: [
+  od: { name: 'Overdose', sys: 'tox', blurb: 'Slow breathing, pinpoint pupils. Naloxone wears off first.', steps: [
     { id: 'o0', next: true, title: 'Opioid overdose', text: `**Opioids** (heroin, fentanyl, oxycodone) can **stop breathing**.\nLook for **hard to wake**, **slow breaths**, **pinpoint pupils**.\n**Naloxone** (Narcan) reverses it in minutes.`},
     { id: 'o1', title: 'Found unresponsive', text: `**Room 9**: [[Kevin]], 31, found unresponsive. Paramedics gave **naloxone** and he woke.\nTap **his room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('od', 'room', { room: '9', name: 'Kevin S.', age: 31, sex: 'M' }) }), ...seeStep('pt') },
     { id: 'o2', wait: true, title: 'In the room', text: () => `He’s drowsy again, breathing **${E.vitalsOf(LP()).rr} times a minute** (normal 12–20).\nThe catch: naloxone **wears off before the opioid does**.`, done: lExamined },
-    { id: 'o3', title: 'Overdose orders', text: `More **naloxone**, and a **tox screen** for other drugs.\nTap **his room**, **Tox screen**, **Naloxone**, **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'nalox']]) },
+    { id: 'o3', title: 'Overdose orders', text: `More **naloxone**, and a **tox screen** for other drugs.\nTap **his room**, **Tox screen**, **Naloxone** (Medications, Antidotes), **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['r', 'nalox']]) },
     { id: 'o4', wait: true, title: 'Watch him', text: `His breathing picks up. Now we **watch** him until he stays awake on his own.`, done: lResulted },
     { id: 'o5', title: 'Your call', text: `He’s awake, walking, breathing fine.\nTap **his room**, then **Discharge home**.`, ...callStep('pt', 'home') },
     { id: 'o6', final: true, title: 'Overdose: the short version', text: `**Looks like**: hard to wake, slow breathing, pinpoint pupils.\n**Order**: naloxone, labs. Oxygen if low.\n**Watch**: naloxone wears off first.\n**Charge nurse**: ESI 2, a room his nurse can see.` },
   ] },
-  belly: { name: 'Belly pain', blurb: 'Where it hurts picks the test: ultrasound, CT, or neither.', steps: [
+  belly: { name: 'Belly pain', sys: 'gi', blurb: 'Where it hurts picks the test: ultrasound, CT, or neither.', steps: [
     { id: 'y0', next: true, title: 'Belly pain', text: `Where it hurts points to the organ. The organ picks the test.\n**Upper right, after meals**: **gallbladder**. **Ultrasound**.\n**Lower right**: **appendix**. **CT**.\n**Flank, can’t sit still**: **kidney stone**. **CT**.\n**Soft belly, vomiting**: stomach bug. **Labs**, no scan.` },
     { id: 'y1', title: 'Pain after meals', text: `**Room 5**: [[Maria]], 44. Pain under her right ribs since dinner.\nTap **her room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('chole', 'room', { room: '5', name: 'Maria G.', age: 44, sex: 'F' }) }), ...seeStep('pt') },
     { id: 'y2', wait: true, title: 'In the room', text: `Tender **under the right ribs**. Her breath catches when you press. That’s the **gallbladder**.`, done: lExamined },
-    { id: 'y3', title: 'Gallbladder orders', text: `**Ultrasound** first for the gallbladder, **not CT**. Add **CBC**, **liver tests**, **lipase**.\nTap **her room**, those three, the **ultrasound**, **Medications** for pain, **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
+    { id: 'y3', title: 'Gallbladder orders', text: `**Ultrasound** first for the gallbladder, **not CT**. Add **CBC**, **liver tests**, **lipase**.\nTap **her room**, those three, the **ultrasound**, **Morphine** for pain (Medications, Pain), **Sign**.`, ...ordStep('pt', [['t', 'lab'], ['t', 'us'], ['r', 'meds']]) },
     { id: 'y4', wait: true, title: 'Results', text: `Ultrasound: **gallstones, thick wall**. White count up.\nAn inflamed gallbladder: **cholecystitis**.`, done: lResulted },
     { id: 'y5', title: 'Call surgery', text: `It has to come out.\nTap **her room**, **Admit: call a consult**, then **General Surgery**.`, ...callStep('pt', 'consult', 'surg') },
     { id: 'y6', final: true, title: 'Belly pain: the short version', text: `**Upper right**: labs, **ultrasound**, Surgery.\n**Lower right**: labs, **CT**, Surgery.\n**Flank**: labs, **CT**, usually home.\n**Soft belly, vomiting**: labs, fluids. **No CT.**\n**Charge nurse**: mostly ESI 3. A rigid belly doesn’t wait.` },
   ] },
-  falls: { name: 'Falls', blurb: 'The hip, the head, and the blood thinner.', steps: [
+  falls: { name: 'Falls', sys: 'trauma', blurb: 'The hip, the head, and the blood thinner.', steps: [
     { id: 'f0', next: true, title: 'Falls', text: `A fall in an older adult hides three things:\n**The hip**: a **short, turned-out leg** is broken until proven otherwise. **X-ray**.\n**The head**: on a **blood thinner**, a small bump can bleed. **CT**.\n**The reason**: a faint needs an **ECG**.` },
     { id: 'f1', title: 'Fell, hip pain', text: `**Room 9**: [[Dorothy]], 81. Fell in her kitchen, couldn’t get up.\nTap **her room**, then **See this patient**.`,
       setup: () => ({ pt: E.trainPatient('hipfx', 'room', { room: '9', name: 'Dorothy K.', age: 81, sex: 'F' }) }), ...seeStep('pt') },
     { id: 'f2', wait: true, title: 'In the room', text: `Her leg is **short and turned out**. She can’t lift it. She tripped on a rug and didn’t hit her head.`, done: lExamined },
-    { id: 'f3', title: 'Hip orders', text: `**Hip X-ray** for the break. **CBC**, **BMP**, **type and screen** for surgery. **Medications** for pain.\nTap **her room**, **Hip X-ray**, those three, **Medications**, **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'meds']]) },
+    { id: 'f3', title: 'Hip orders', text: `**Hip X-ray** for the break. **CBC**, **BMP**, **type and screen** for surgery. **Fentanyl** for pain.\nTap **her room**, **Hip X-ray**, those three, **Fentanyl** (Medications, Pain), **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'meds']]) },
     { id: 'f4', wait: true, title: 'Results', text: `X-ray: a **femoral neck fracture**, the top of the thigh bone. A **broken hip**.`, done: lResulted },
     { id: 'f5', title: 'Call Orthopedics', text: `**Orthopedics** fixes it in the OR.\nTap **her room**, **Admit: call a consult**, then **Orthopedics**.`, ...callStep('pt', 'consult', 'ortho') },
     { id: 'f6', final: true, title: 'Falls: the short version', text: `**Short, turned-out leg**: X-ray, labs, pain control. **Orthopedics**.\n**Head bump on a thinner**: **CT**, labs. **Trauma**.\n**Twisted ankle**: X-ray. No break: home.\n**Charge nurse**: hip is ESI 3. Head on a thinner **doesn’t wait**.` },
@@ -7014,7 +7355,7 @@ function copyText(t) { try { if (navigator.clipboard && navigator.clipboard.writ
 function lessonsHTML() {
   const n = LESSON_KEYS.filter(lessonDone).length;
   return head('Lessons', `One condition, one patient, about two minutes. What it looks like, what to order and why, and the clock. You play the doctor.${n ? ` ${n} of ${LESSON_KEYS.length} done.` : ''}`)
-    + `<div class="cgrid lsn">${LESSON_KEYS.map(k => `<button type="button" class="cbtn" data-act="lesson" data-arg="${k}"><b>${esc(LESSONS[k].name)}${lessonDone(k) ? ' <i class="lsn-ok">✓</i>' : ''}</b><small>${esc(LESSONS[k].blurb)}</small></button>`).join('')}</div>`;
+    + LESSON_SYS.filter(([sy]) => LESSON_KEYS.some(k => LESSONS[k].sys === sy)).map(([sy, nm]) => `<div class="o-sec lsn-sys">${esc(nm)}</div><div class="cgrid lsn">${LESSON_KEYS.filter(k => LESSONS[k].sys === sy).map(k => `<button type="button" class="cbtn" data-act="lesson" data-arg="${k}"><b>${esc(LESSONS[k].name)}${lessonDone(k) ? ' <i class="lsn-ok">✓</i>' : ''}</b><small>${esc(LESSONS[k].blurb)}</small></button>`).join('')}</div>`).join('');
 }
 const STEPS_NOW = () => { const k = lessonKey(); return k ? LESSONS[k].steps : (g() && g().mode === 'md' ? STEPS_MD : STEPS); };
 function coachSafe(fn) { try { return !!fn(); } catch (e) { return false; } }
@@ -7142,15 +7483,15 @@ function coachDodge(el, x) {
 function renderModal(G) {
   const wrap = $('#modalWrap'), el = $('#modal');
   let h = '';
-  if (U.scene === 'game' && G.card && G.mode !== 'md') {
+  if (U.scene === 'game' && G.card && (G.mode !== 'md' || G.card.mine)) {
     const c = G.card;
     h = `<div class="mc-who">${esc(c.who)}</div><h3>${esc(c.title)}</h3><p>${fmt(c.text)}</p><div class="mc-ch">${c.choices.map(x => `<button type="button" data-act="card" data-arg="${x.k}" ${x.dis ? 'disabled' : ''}><b>${esc(x.label)}</b>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('')}</div>`;
   } else if (U.modal && U.modal.type === 'scen') {
     const m = U.modal;
-    h = `<div class="mc-who">The Box · ${esc(m.unit)} · ${esc(m.doc)} on the line${m.pack === 'miemss' ? ' · Maryland protocols' : ''}</div><h3>Medical direction</h3><p class="scen">${esc(m.sc.q)}</p>${PLAIN() && m.sc.plain ? `<p class="scen-p"><b>In plain words:</b> ${esc(m.sc.plain)}</p>` : ''}<div class="mc-ch two"><button type="button"${m.sc.btn ? '' : ' class="go"'} data-act="scen" data-arg="1"><b>${esc((m.sc.btn || ['Approve'])[0])}</b></button><button type="button"${m.sc.btn ? '' : ' class="no"'} data-act="scen" data-arg="0"><b>${esc((m.sc.btn || [0, 'Deny'])[1])}</b></button></div>`;   // named choices are not green and red: neither is the "yes" answer
+    h = `<div class="mc-who">The Box · ${esc(m.unit)} · ${esc(m.doc)} on the line${m.pack === 'miemss' ? ' · Maryland protocols' : ''}</div><h3>Medical direction</h3><p class="scen">${esc(m.sc.q)}</p>${PLAIN() && m.sc.plain ? `<p class="scen-p"><b>In plain words:</b> ${esc(m.sc.plain)}</p>` : ''}${m.sc.opts ? `<div class="mc-ch">${(m.opt || m.sc.opts.map((x, i) => i)).map(i => `<button type="button" data-act="scen" data-arg="o${i}"><b>${esc(m.sc.opts[i])}</b></button>`).join('')}</div>` : `<div class="mc-ch two"><button type="button"${m.sc.btn ? '' : ' class="go"'} data-act="scen" data-arg="1"><b>${esc((m.sc.btn || ['Approve'])[0])}</b></button><button type="button"${m.sc.btn ? '' : ' class="no"'} data-act="scen" data-arg="0"><b>${esc((m.sc.btn || [0, 'Deny'])[1])}</b></button></div>`}`;   // named choices are not green and red: neither is the "yes" answer
   } else if (U.modal && U.modal.type === 'result') {
     const r = U.modal.r;
-    h = `<div class="mc-res ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Correct' : 'Incorrect'}</div><h3>${r.sc.btn ? `You said: ${esc(r.sc.btn[r.approve ? 0 : 1])}` : `You ${r.approve ? 'approved' : 'denied'} it`}</h3>${PLAIN() && r.sc.pwhy ? `<p><b>${esc(r.sc.pwhy)}</b></p><p class="scen-c">${esc(r.sc.why)}</p>` : `<p>${esc(r.sc.why)}</p>`}<div class="mc-ch"><button type="button" data-act="modalOk"><b>Back to the shift</b></button></div>`;
+    h = `<div class="mc-res ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Correct' : 'Incorrect'}</div><h3>${r.sc.opts ? `You ordered: ${esc(r.sc.opts[r.approve])}` : r.sc.btn ? `You said: ${esc(r.sc.btn[r.approve ? 0 : 1])}` : `You ${r.approve ? 'approved' : 'denied'} it`}</h3>${r.sc.opts && !r.ok ? `<p><b>The order:</b> ${esc(r.sc.opts[r.sc.r])}</p>` : ''}${PLAIN() && r.sc.pwhy ? `<p><b>${esc(r.sc.pwhy)}</b></p><p class="scen-c">${esc(r.sc.why)}</p>` : `<p>${esc(r.sc.why)}</p>`}<div class="mc-ch"><button type="button" data-act="modalOk"><b>Back to the shift</b></button></div>`;
   } else if (U.modal && U.modal.type === 'first') {
     const md = MD(), lines = md
       ? [U.view === 'map' && floor3d() ? 'A **stethoscope** means waiting for a doctor. Tap the room, then **See this patient**.' : U.view === 'map' ? 'A **blue room** is waiting for a doctor. Tap it, then **See this patient**.' : '**Needs a provider** means waiting for a doctor. Tap it, then **See this patient**.', '**Write orders**, then **make the call** when results are back.', 'Lost? Tap **Next**.']
@@ -7163,7 +7504,7 @@ function renderModal(G) {
   wrap.hidden = !h; morph(el, h);
 }
 const ROT = window.matchMedia('(orientation: portrait) and (max-width: 700px)');   // the same test the "Turn your phone sideways" card uses
-function isPaused() { const G = g(); return U.paused || !!U.modal || (G && !!G.card && G.mode !== 'md') || U.scene !== 'game' || (U.view === 'map' && ROT.matches); }   // the computer charge nurse answers cards for the attending
+function isPaused() { const G = g(); return U.paused || !!U.modal || (G && !!G.card && (G.mode !== 'md' || G.card.mine)) || U.scene !== 'game' || (U.view === 'map' && ROT.matches); }   // the computer charge nurse answers cards for the attending
 
 /* ---------- live timers ---------- */
 function live(G) {
@@ -7345,6 +7686,8 @@ const ACT = {
   },
   sign: pid => { const o = U.ord && U.ord.pid === pid ? U.ord : { tests: [], treats: [] }; const r = E.signOrders(pid, o.tests, o.treats); if (r.ok) { U.ord = null; U.ordOpen = null; } res(r, r.ok); },
   ordOpen: pid => { U.ordOpen = pid; U.ord = null; },
+  dxPick: a => { const i = a.indexOf('|'), r = E.dxPick(a.slice(0, i), a.slice(i + 1)); if (r.ok) { toast(r.msg, r.right ? 'good' : 'bad'); sfx(r.right ? 'good' : 'bad'); } else res(r); },
+  ordMenu: id => { const S = OM_OPEN(); if (S.has(id)) { S.delete(id); for (const k of [...S]) if (k.startsWith(id + ':')) S.delete(k); } else { if (!id.includes(':')) for (const k of [...S]) if (!k.includes(':')) S.delete(k); S.add(id); } },
   mdd: a => { const [pid, k] = a.split('|'); if (k === 'consult') { U.sheet = { type: 'consult', pid }; return; } res(E.mdDecide(pid, k), true); },
   aboutDone: () => { store('oc-seen-about', '1'); ACT.tmenu('main'); },
   tmenu: a => { U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; } },
@@ -7455,11 +7798,11 @@ const ACT = {
     const c = g().box.cur; if (!c) return;
     if (c.kind === 'notify') { if (MD()) return; const r = E.boxNotify(); if (r.ok) { toast(r.msg, 'good'); sfx('good'); } }
     else if (c.taken) return;
-    else if (MD()) { const r = E.boxTake(g().me); if (!r.ok) { toast(r.why, 'bad'); return; } U.sheet = null; U.modal = { type: 'scen', sc: r.sc, unit: r.unit, doc: 'You', pack: r.pack }; }
+    else if (MD()) { const r = E.boxTake(g().me); if (!r.ok) { toast(r.why, 'bad'); return; } U.sheet = null; U.modal = { type: 'scen', sc: r.sc, unit: r.unit, doc: 'You', pack: r.pack, opt: r.sc.opts ? r.sc.opts.map((x, i) => i).sort(() => Math.random() - 0.5) : null }; }
     else U.sheet = { type: 'boxdoc' };
   },
   boxDoc: sid => { const r = E.boxTake(sid); if (!r.ok) { toast(r.why, 'bad'); return; } U.sheet = null; toast(`${E.staff(sid).name} is on the line with ${r.unit} and will give the orders`, 'good'); sfx('good'); },
-  scen: a => { const r = E.boxDecide(a === '1'); U.modal = r ? { type: 'result', r } : null; if (r) sfx(r.ok ? 'good' : 'bad'); },
+  scen: a => { const r = E.boxDecide(a[0] === 'o' ? Number(a.slice(1)) : a === '1'); U.modal = r ? { type: 'result', r } : null; if (r) sfx(r.ok ? 'good' : 'bad'); },
   modalOk: () => { U.modal = null; },
   firstHelp: () => { U.modal = null; U.paused = true; U.sheet = { type: 'help' }; },
   firstTrain: () => { U.modal = null; start('train'); },
@@ -7624,7 +7967,7 @@ function reportHTML(R, ledger, at) {
   const LED = { md: 'Patients you saw', orders: 'Orders', harm: 'Harm and untreated patients', dispo: 'Disposition calls', flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration <small>goals executives set, and requests you refused</small>', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood', transfer: 'Transfers', gray: 'Gray-zone calls', chair: 'Admitted patients in chairs', experience: 'Complaints' };
   const rows = Object.entries(led).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LED[k] || k}</td><td class="${v < 0 ? 'neg' : 'pos'}">${v > 0 ? '+' : ''}${Math.round(v)}</td></tr>`).join('');
   const t = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
-  return `<div class="card rep"><h2>${R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2>${scoreCardsHTML(R, led, LED)}<p class="verdict">${R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
+  return `<div class="card rep"><h2>${R.fail === 'fired' ? 'Your group let you go' : R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2>${scoreCardsHTML(R, led, LED)}${litHTML(R)}<p class="verdict">${R.fail === 'fired' ? 'Legal risk reached 75%. Too many missed diagnoses and harmed patients, and the group ended your contract mid-shift. Review the misses below.' : R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
 <p class="rep-meta">${R.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${esc(L.name)}${R.scen && R.scen !== 'none' ? ' · ' + esc(E.SCENS[R.scen].name) : ''} · ${new Date(at || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · Name: <span class="rep-name">&nbsp;</span></p>${R.code || R.realSec ? `<p class="rep-meta rep-class">${R.code ? `Class code <b>${esc(R.code)}</b>` : ''}${R.code && R.realSec ? ' · ' : ''}${R.realSec ? esc(realTxt(R).replace(/^played/, 'Played')) : ''}${R.bedFirst ? ` · ${R.bedFirst} bedded before registration` : ''}</p>` : ''}
 
 ${mmHTML(R)}${mdReportHTML(R, t)}
@@ -7645,6 +7988,13 @@ function mdDeptHTML(R, t) {
 }
 /* v0.25: how the shift went in each of the four scores, with what moved each one most. */
 const SC_TAGS = { clinical: ['md', 'orders', 'harm', 'dispo', 'gray', 'blood', 'safety', 'returns', 'box', 'boxn', 'consult', 'sitter', 'goals', 'ratio', 'uncovered', 'waiting'], admin: ['admin', 'divert', 'wall', 'flow', 'staffing', 'lwbs', 'ama', 'hall', 'chair', 'transfer', 'experience'] };
+/* v0.28: the attending's accuracy, legal risk, and the diagnoses missed. */
+function litHTML(R) {
+  if (R.mode !== 'md' || R.acc == null) return '';
+  const L = R.lit || 0, stage = L >= 75 ? 'Fired' : L >= 50 ? 'Performance improvement plan' : L >= 40 ? 'Peer review' : L >= 25 ? 'Call from administration' : 'No action';
+  const miss = (R.dxLog || []).map(d => `<li><b>${esc(d.name)}</b>: you called ${esc(d.said)}. It was <b>${esc(d.dx)}</b>${d.must ? ' (must not miss)' : ''}.</li>`).join('');
+  return `<div class="litbox"><div class="lit-row"><div><b>${R.acc}%</b><small>Clinical accuracy</small></div><div><b>${R.dxRight} of ${R.dxRight + R.dxWrong}</b><small>Diagnoses right</small></div><div class="${L >= 50 ? 'bad' : L >= 25 ? 'warn' : ''}"><b>${L}%</b><small>Legal risk · ${stage}</small></div></div>${miss ? `<h4>Diagnoses to review</h4><ul class="dxmiss">${miss}</ul>` : ''}${(R.litLog || []).length ? `<details><summary>What raised your legal risk</summary><ul>${R.litLog.map(x => `<li>+${x.n}: ${esc(x.why)}</li>`).join('')}</ul></details>` : ''}${R.lawCalls ? `<p class="hint">Lawyers called ${R.lawCalls} time${R.lawCalls > 1 ? 's' : ''}.</p>` : ''}</div>`;
+}
 function scoreCardsHTML(R, led, LED) {
   if (!R.sc) return '';
   const st = v => '★'.repeat(E.scoreStars(v)) + '☆'.repeat(3 - E.scoreStars(v));
@@ -8772,7 +9122,7 @@ function mapRender(G) {
 
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-window.OCUI = { U, render, start, showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
+window.OCUI = { U, render, start, omOf: k => omOf(k), showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
 })();
 
 </script>
