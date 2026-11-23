@@ -88,7 +88,7 @@ def run():
         # since v0.19 tests are named (CBC, chest X-ray); only the ECG is still ordered by kind
         right = J(f"(() => {{ const p = OC.pt('{pid}'); return {{ wk: [...OC.needOf(p).n.filter(d => !(p.det || []).includes(d)), ...(p.right.wk.includes('ecg') && !p.wk.includes('ecg') ? ['ecg'] : [])], tr: p.right.tr.filter(k => !p.tr.includes(k)), dx: p.dx }}; }})()")
         # v0.28: orders live in menus, and treatments are picked as drugs
-        right['tr'] = J(f"(() => {{ const p = OC.pt('{pid}'); return {right['tr']}.map(k => OC.drugFor(p, k) || (k === 'pace' ? 'tcp' : k)); }})()".replace("True", "true"))
+        right['tr'] = J(f"(() => {{ const p = OC.pt('{pid}'); return {right['tr']}.flatMap(k => OC.drugsFor(p, k).length ? OC.drugsFor(p, k) : [k === 'pace' ? 'tcp' : k]); }})()".replace("True", "true"))
         def otap(kind, k):
             sel = f'#sheet [data-act="ordT"][data-arg="{pid}|{kind}|{k}"]'
             for m in J(f"OCUI.omOf('{k}')"):   # open only menus that are closed: tapping an open one closes it
@@ -110,7 +110,7 @@ def run():
         if J(f"!!OC.pt('{pid}').dxq"):
             open_pt(pid)
             ok('what’s the diagnosis?' in page.inner_text('#sheet').lower() and page.locator('#sheet [data-act="dxPick"]').count() == 4, 'results back: you pick the diagnosis from four')
-            dx = J(f"OC.pt('{pid}').dx")
+            dx = J(f"OC.dxName(OC.pt('{pid}').ck)")
             tap(f'#sheet [data-act="dxPick"][data-arg="{pid}|{dx}"]')
             ok(J(f"OC.pt('{pid}').dxK") and J('OC.G.stats.md.dxRight') == 1, 'the right diagnosis counts')
             ok('Accuracy' in page.inner_text('body') and 'Legal risk' in page.inner_text('body'), 'accuracy and legal risk show on the floor')

@@ -20,7 +20,7 @@ let credits = {}; try { credits = JSON.parse(fs.readFileSync(path.join(__dirname
 const credit = {}; for (const [k, c] of Object.entries(credits)) credit[k] = typeof c === 'string' ? { t: c } : { t: `${c.author}, ${c.license}, ${c.source || 'Wikimedia Commons'}`, u: c.url || '', f: c.file || '' };
 const html = src('index.template.html')
   .replace('/*FONTS*/', () => fonts).replace('/*STYLE*/', () => src('style.css'))
-  .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js').replace('/*MAP*/', () => src('map.js')).replace('/*IMGCREDIT*/{}', () => JSON.stringify(credit)));
+  .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js').replace('/*MAP*/', () => src('map.js')).replace('/*IMGCREDIT*/{}', () => JSON.stringify(credit)).replace("'/*GAMEV*/'", () => JSON.stringify(require('./package.json').version)));
 fs.writeFileSync(path.join(__dirname, 'index.html'), html);
 // The service worker: the game plays offline once it has loaded once. The cache name changes with every build.
 const stamp = require('./package.json').version + '-' + require('crypto').createHash('sha1').update(html).digest('hex').slice(0, 10);

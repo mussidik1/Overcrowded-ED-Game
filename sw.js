@@ -1,5 +1,5 @@
 /* Emergency Department: Code Black: plays offline once it has loaded once. Written by build.js; do not edit. */
-const CACHE = 'overcrowded-0.28.1-b4a38a2d32';
+const CACHE = 'overcrowded-0.29.0-361b5c5fd4';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 // Other pages on this site (other games, other tools) keep their own caches: only this game's old copies are cleared.

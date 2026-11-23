@@ -93,7 +93,7 @@ hb.treat = { pace: { st: 'done', tDone: G.t + 60 } };
 const h70 = OC.vitalsOf(hb, G.t + 70);
 assert(h0.hr < 45 && h0.flags.hr && h60.hr <= h0.hr && h70.hr >= 60 && h70.sbp > h0.sbp, `complete heart block: slow until it is paced (${h0.hr} -> ${h60.hr} untreated, ${h70.hr} paced)`);
 const hbc = OC.CASES.find(c => c.k === 'chb');
-assert(hbc.con === 'cards' && hbc.dispo === 'icu' && /heart block/.test(hbc.find.ecg), 'and it gets cardiology and a monitored bed, with the rhythm named');
+assert(hbc.con === 'cards' && hbc.dispo === 'icu' && /unrelated to the QRS/.test(hbc.find.ecg), 'and it gets cardiology and a monitored bed, with the rhythm described as a finding');
 const tf = OC.CASES.find(c => c.k === 'tfall');
 assert(tf.tr.includes('reverse') && OC.TREAT.reverse.rx, 'a head bleed on a blood thinner gets a reversal agent, checked by pharmacy');
 
@@ -155,9 +155,9 @@ assert(tags.filter(x => x === 'red').length === 1 && tags.filter(x => x === 'yel
 assert(yel.esi === 2 && yel.loc === 'wall' && grn.every(p => p.esi >= 3 && p.dispo === 'home'), 'the yellow needs a bed soon; the greens are walking wounded');
 OC.newGame('med', 40, { scen: 'mci' }); G = OC.G; card = null;
 for (let i = 0; i < 700 && !card; i++) { OC.step(0.1); if (G.card && G.card.eid === 'mci') card = G.card; else clearCard(); }
-c0 = G.care; OC.chooseCard('green'); run(16);
+c0 = G.ledger.divert || 0; OC.chooseCard('green'); run(16);
 const tg2 = G.order.map(OC.pt).filter(p => p.tag).map(p => p.tag);
-assert(tg2.length === 4 && tg2.every(x => x === 'green') && G.care < c0, `"Greens only" sends the red and the yellow elsewhere, and costs points (${tg2})`);
+assert(tg2.length === 4 && tg2.every(x => x === 'green') && (G.ledger.divert || 0) < c0, `"Greens only" sends the red and the yellow elsewhere, and costs points (${tg2})`);
 
 // 9. Smaller corrections
 const copd = OC.CASES.find(c => c.k === 'copd');
@@ -198,7 +198,8 @@ assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[
   const finds = new Set(); OC.CASES.forEach(c => Object.values(c.find || {}).forEach(v => finds.add(v)));
   const bare = [...finds].filter(v => !OC.FIND_PLAIN[v]);
   assert(bare.every(v => /^(Normal|Clear lungs|Mild dehydration|Kidney function normal|Blood in urine, no infection)$/.test(v)), 'every result that is not already plain has plain words: ' + bare.join('; '));
-  assert(Object.keys(OC.FIND_PLAIN).every(v => finds.has(v) || ['Normal sinus rhythm', 'No acute findings'].includes(v)), 'no plain line is left over for a result that no longer exists');
+  const resTxt = new Set(); Object.values(OC.RES).forEach(r => Object.values(r).forEach(x => resTxt.add(Array.isArray(x) ? x[0] : x)));
+  assert(Object.keys(OC.FIND_PLAIN).every(v => finds.has(v) || resTxt.has(v) || ['Normal sinus rhythm', 'No acute findings'].includes(v)), 'no plain line is left over for a result that no longer exists');
   for (const k of ['national', 'miemss']) assert(OC.SCEN[k].every(s => s.plain && s.pwhy && s.plain.split(' ').length <= 24 && s.pwhy.split(' ').length <= 18), `every ${k} radio call has a short plain line and a short plain reason`);
   OC.newGame('train', 77, { mode: 'md' });
   const x = OC.trainPatient('chole', 'room', { room: '5' }), p = typeof x === 'string' ? OC.pt(x) : x;

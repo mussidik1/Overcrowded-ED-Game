@@ -136,7 +136,7 @@ const ap = seen(room('appy', '3'));
 let a0 = G.care;
 r = OC.signOrders(ap.id, ['cbc', 'bmp', 'ctap', 'lip'], ['meds']);
 assert(r.ok && G.care - a0 === 1 + 1 + 2 + 3 + 10 && G.stats.md.clean === 1, `appendicitis: CBC, BMP, CT abdomen and pelvis (+1 +1 +2), lipase is reasonable (0), meds +3, clean +10 (${G.care - a0})`);
-assert(ap.wk.includes('lab') && ap.wk.includes('ct') && ap.dres.ctap[0] === 'Inflamed appendix' && ap.dres.ctap[1] === 'ct_appy', 'the CT result names the finding and its picture');
+assert(ap.wk.includes('lab') && ap.wk.includes('ct') && ap.dres.ctap[0] === 'Appendix 11 mm across, fat stranding around it' && ap.dres.ctap[1] === 'ct_appy', 'the CT result names the finding and its picture');
 const ap2 = seen(room('appy', '4')); a0 = G.care;
 OC.signOrders(ap2.id, ['cbc', 'bmp', 'cthead'], ['meds']);
 assert(ap2.ord === 'signed' && OC.missNow(ap2, true).includes('CT abdomen and pelvis') && G.care - a0 === 1 + 1 - 6 + 3, `the wrong CT costs 6 and the right one is still missing (${G.care - a0}; missing: ${OC.missNow(ap2, true)})`);

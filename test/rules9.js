@@ -31,7 +31,7 @@ const q = mine('stemi'); q.dxq = [q.dx, 'Pericarditis', 'Aortic dissection', 'Pu
 const lit0 = G.lit || 0;
 r = OC.dxPick(q.id, 'Pericarditis');
 assert(!r.right && q.dxK && G.stats.md.dxWrong === 1, 'a wrong call still shows the real diagnosis, and is counted');
-assert(G.lit - lit0 === 6 && OC.MUST.has('stemi'), 'missing a must-not-miss diagnosis adds 6% legal risk');
+assert(G.lit - lit0 === 5 && OC.MUST.has('stemi'), 'missing a must-not-miss diagnosis adds 5% legal risk');
 assert(OC.accuracy() < 100, 'clinical accuracy drops with a miss');
 assert(Object.keys(OC.DDX).filter(k => OC.CASES.find(c => c.k === k)).every(k => !OC.DDX[k].includes(OC.CASES.find(c => c.k === k).dx)), 'no case lists its own diagnosis as a wrong choice');
 // 3. Legal risk steps
@@ -71,7 +71,7 @@ assert(r.ok && t.drugs.includes('tcp'), 'pacing pads can be added after atropine
 t = mine('nstemi'); t.wk = []; for (const k of Object.keys(t.work || {})) delete t.work[k];
 OC.signOrders(t.id, t.right.det.concat(['ecg']), []);
 for (let i = 0; i < 4000 && !t.dxq; i++) OC.step(0.1);
-assert(t.dxq && t.dxq.length === 4 && t.dxq.includes(t.dx), 'results back: the attending gets four choices, one right');
+assert(t.dxq && t.dxq.length === 4 && t.dxq.includes(OC.dxName(t.ck)), 'results back: the attending gets four choices, one right');
 const u0 = H.stats.md.untreated; for (let i = 0; i < 400; i++) { if (H.card) H.card = null; OC.step(0.1); }
 assert(H.stats.md.untreated > u0, 'leaving the diagnosis unanswered does not hide an untreated patient');
 // a step behind another card shows later; the lawyer names a patient; firing keeps the last case
@@ -96,3 +96,31 @@ const g = mine('gib'); const h0 = K.stats.md.harm, l0b = K.lit;
 OC.signOrders(g.id, [], ['heparin']);
 assert(K.stats.md.harm === h0 + 1 && K.lit > l0b, 'heparin in a GI bleed is harm and adds legal risk');
 assert(!OC.MUST.has('cpmod') && !OC.MUST.has('pna'), 'moderate-risk chest pain and pneumonia are not must-not-miss calls');
+// 7. v0.29: the high-yield conditions and the cleaner diagnosis call
+const NEW = Object.keys(OC.LESSON_CASE);
+assert(NEW.length >= 20, `${NEW.length} high-yield conditions added, each with a lesson`);
+for (const k of NEW) {
+  const c = OC.CASES.find(x => x.k === k), N = OC.NEED[k] || { n: [] };
+  const ok = c && OC.EXAM[k] && OC.ORD_WHY[k] && OC.DX_PLAIN[c.dx] && (OC.DDX[k] || []).length === 3 && !OC.DDX[k].includes(OC.dxName(k)) && N.n.every(t => OC.LABS[t] || OC.IMGS[t])
+    && Object.values(OC.RXOK[k] || {}).every(l => l.every(d => OC.DRUGS[d])) && OC.contraOf({ ck: k }).every(d => OC.DRUGS[d]) && (!c.con || OC.SPECS[c.con]) && c.tr.every(t => OC.TREAT[t]);
+  assert(ok, `${k}: case, exam, reason, plain words, three wrong choices, tests, drugs, specialist`);
+}
+OC.newGame('easy', 906, { mode: 'md' }); const Q = OC.G;
+const hk = mine('hyperk');
+OC.signOrders(hk.id, ['bmp', 'ecg'], ['calc', 'insreg']);
+assert(hk.tr.includes('insulin') && !hk.tr.includes('meds') && OC.missNow(hk).join().includes('dextrose'), 'hyperkalemia: insulin without dextrose leaves dextrose still needed');
+OC.signOrders(hk.id, [], ['d50', 'albut']);
+assert(hk.tr.includes('meds') && OC.G.stats.md.ordExtra === 0, 'calcium, insulin and dextrose complete it; albuterol is a fine add-on');
+const st = mine('status'); OC.signOrders(st.id, ['gluc', 'bmp'], ['levet']);
+assert(!st.tr.includes('meds') && OC.missNow(st).join().includes('lorazepam'), 'status epilepticus: levetiracetam alone is not enough; the benzodiazepine is still needed');
+const nf = mine('necfasc'); OC.signOrders(nf.id, nf.right.det, ['vanc']);
+assert(!nf.tr.includes('abx'), 'necrotizing fasciitis: vancomycin alone is not enough');
+const ds = mine('dissect'); OC.signOrders(ds.id, ds.right.det.concat(['ecg']), ['nicard', 'fent']);
+assert(!ds.tr.includes('bp') && OC.G.stats.md.ordExtra === 0, 'dissection: nicardipine alone leaves rate control still needed (not an extra)');
+const aq = mine('aaa'); const xq = OC.G.stats.md.harm; OC.signOrders(aq.id, [], ['enox']);
+assert(OC.G.stats.md.harm === xq + 1, 'a ruptured AAA given enoxaparin is harm: blood thinners are one class');
+const hg = mine('hypogly'); const hh = Q.stats.md.harm;
+OC.signOrders(hg.id, ['gluc'], ['insreg']);
+assert(Q.stats.md.harm === hh + 1, 'insulin in hypoglycemia is harm');
+assert(!OC.CASES.filter(c => c.gray).some(c => { const p = mine(c.k); OC.signOrders(p.id, p.right.det.concat(p.right.wk.includes('ecg') ? ['ecg'] : []), p.right.tr.flatMap(t => OC.drugsFor(p, t).length ? OC.drugsFor(p, t) : [t])); for (let i = 0; i < 3000 && !p.dxq && p.dsp !== 'decide' && !p.dxK; i++) { if (Q.card) Q.card = null; OC.step(0.1); } return !!p.dxq; }), 'gray-zone patients with results back get the risk-score call, not the diagnosis quiz');
+assert(OC.dxName('nstemi') === 'NSTEMI' && OC.dxName('pe') === 'Pulmonary embolism', 'quiz labels are plain diagnoses');
