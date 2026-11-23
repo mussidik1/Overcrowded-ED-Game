@@ -1,5 +1,5 @@
-commit 241d6667e926f3024a81ca7abdefa086a99038ec
-date   2026-11-23 17:00 UTC
+commit c54d9c1e74e37e9bab375db14589be6571813809
+date   2026-11-23 18:40 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,8 +13,8 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1804, "wait": 24, "sat": 53, "stars": 2, "seen": 133, "dc": 65, "adm": 34, "lwbs": 0, "ama": 0, "returns": 2, "mtp": 2, "interp": 10, "pitSeen": 0}
-51:No errors.
+1:report {"care": 1502, "wait": 11, "sat": 56, "stars": 2, "seen": 113, "dc": 34, "adm": 33, "lwbs": 0, "ama": 0, "returns": 1, "mtp": 4, "interp": 18, "pitSeen": 0}
+52:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -22,7 +22,7 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 2018, 'stars': 3, 'wait': 20, 'left': 19} {'seen': 43, 'fast': 21, 'ordRight': 130, 'ordExtra': 16, 'ordMiss': 10, 'clean': 28, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 34, 'dispoWrong': 2, 'dxRight': 25, 'log': [{'name': 'Priya E.', 'dx': 'Migraine', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'No tests. A usual migraine with a normal nerve exam gets fluids and medication.'}, {'name': 'Fatima M.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Maria T.', 'dx': 'Dental abscess', 'miss': [], 'extra': ['Nitrofurantoin (wrong drug)', 'Chest X-ray'], 'fine': [], 'why': 'No tests. An antibiotic and pain control, then a dentist.'}, {'name': 'Dmitri T.', 'dx': 'Cellulitis', 'miss': [], 'extra': ['Acyclovir (wrong drug)'], 'fine': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Dorothy G.', 'dx': 'Septic shock', 'miss': [], 'extra': ['Epinephrine'], 'fine': [], 'why': 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.'}, {'name': 'Helen P.', 'dx': 'Anaphylaxis', 'miss': [], 'extra': ['Triamcinolone cream (wrong drug)'], 'fine': [], 'why': 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.'}, {'name': 'Nora K.', 'dx': 'RSV, tiring out', 'miss': [], 'extra': [], 'fine': [], 'why': "A blood gas shows the baby is tiring. High-flow oxygen. Transfer to a children's hospital."}, {'name': 'Kwame C.', 'dx': 'Pneumonia', 'miss': [], 'extra': ['Vancomycin (wrong drug)', 'CT head'], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Linda T.', 'dx': 'Sepsis (urinary source)', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs with a lactate. Fluids and antibiotics inside the hour.'}, {'name': 'Noah S.', 'dx': 'Asthma attack', 'miss': [], 'extra': ['Famotidine (wrong drug)'], 'fine': [], 'why': 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.'}, {'name': 'Walt N.', 'dx': 'Subdural hematoma', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'why': 'Head CT finds the bleed. Labs with an INR show the blood thinner. Reverse it. Trauma.'}, {'name': 'Andre B.', 'dx': 'Anaphylaxis', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': ['Diphenhydramine'], 'why': 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.'}, {'name': 'Kwame D.', 'dx': 'Complete heart block', 'miss': [], 'extra': ['Vasopressor'], 'fine': [], 'why': 'ECG shows the block. Labs check the potassium. Pace now. Cardiology.'}, {'name': 'Lucia R.', 'dx': 'Gastroenteritis, worse', 'miss': ['Medications (ondansetron)'], 'extra': ['Meclizine (wrong drug)'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}], 'dxWrong': 6, 'dxLog': [{'name': 'Priya E.', 'said': 'Subarachnoid hemorrhage', 'dx': 'Migraine', 'must': False}, {'name': 'Fatima M.', 'said': 'Biliary colic', 'dx': 'Cholecystitis', 'must': False}, {'name': 'Helen P.', 'said': 'Panic attack', 'dx': 'Anaphylaxis', 'must': True}, {'name': 'Maria G.', 'said': 'Bowel obstruction', 'dx': 'Gastroenteritis', 'must': False}, {'name': 'Wei K.', 'said': 'Heart failure flare', 'dx': 'COPD flare', 'must': False}, {'name': 'Kwame D.', 'said': 'Beta blocker overdose', 'dx': 'Complete heart block', 'must': True}], 'wrongDrug': 6}
+1:report {'care': 1793, 'stars': 3, 'wait': 22, 'left': 13} {'seen': 40, 'fast': 12, 'ordRight': 146, 'ordExtra': 17, 'ordMiss': 12, 'clean': 25, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 34, 'dispoWrong': 2, 'dxRight': 21, 'log': [{'name': 'Kwame C.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Meclizine (wrong drug)'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Jen V.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Jim F.', 'dx': 'Septic shock', 'miss': [], 'extra': ['Cefepime (wrong drug)', 'CT head'], 'fine': [], 'why': 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.'}, {'name': 'Ana H.', 'dx': 'Ankle sprain', 'miss': [], 'extra': [], 'fine': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}, {'name': 'Shanice C.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.'}, {'name': 'Yara G.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Meclizine (wrong drug)'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Brenda F.', 'dx': 'Kidney stone', 'miss': [], 'extra': ['Lidocaine (wrong drug)'], 'fine': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Yara E.', 'dx': 'Minor injuries', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'why': 'No tests. Clean and close the cuts.'}, {'name': 'Walt T.', 'dx': 'Pneumonia', 'miss': [], 'extra': [], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Kevin D.', 'dx': 'Septic shock', 'miss': [], 'extra': ['Cefazolin (wrong drug)', 'Epinephrine'], 'fine': [], 'why': 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.'}, {'name': 'Omar A.', 'dx': 'Pneumonia', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Jean A.', 'dx': 'A-fib with rapid rate', 'miss': [], 'extra': ['Aspirin (wrong drug)'], 'fine': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}, {'name': 'Tom F.', 'dx': 'Pneumonia, low risk', 'miss': [], 'extra': ['Meds'], 'fine': [], 'why': 'Chest X-ray finds it. The BUN from the labs feeds the CURB-65 score. Antibiotics; most go home on pills.'}, {'name': 'Carmen H.', 'dx': 'Influenza', 'miss': ['Medications (symptom treatment)'], 'extra': ['Azithromycin (wrong drug)', 'Chest X-ray'], 'fine': [], 'why': 'A respiratory swab confirms flu. Fever medicine and fluids at home. Mask and an isolation room while they are here.'}, {'name': 'Nadia K.', 'dx': 'Appendicitis', 'miss': ['Medications (pain control)'], 'extra': ['Ibuprofen (wrong drug)'], 'fine': [], 'why': 'Labs and a CT find the appendix. Pain control, then General Surgery. Antibiotics are reasonable.'}], 'wrongDrug': 8, 'dxWrong': 4, 'dxLog': [{'name': 'Thi H.', 'said': 'Lung cancer', 'dx': 'Pneumonia', 'must': False}, {'name': 'Brenda F.', 'said': 'Appendicitis', 'dx': 'Kidney stone', 'must': False}, {'name': 'Olga R.', 'said': 'Appendicitis', 'dx': 'Ruptured ectopic pregnancy', 'must': True}, {'name': 'Jean A.', 'said': 'SVT', 'dx': 'A-fib with rapid rate', 'must': False}]}
 36:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
@@ -39,10 +39,10 @@ No errors.
 
 === MODE=md python test/train_test.py ===
 PASS
-43:No errors.
-38/39 k1
-39/39 end
-taps: 56, game clock: 09:45, care 238, cards read 41, words 992, longest 49
+44:No errors.
+39/40 kdx
+40/40 end
+taps: 56, game clock: 09:45, care 238, cards read 42, words 1036, longest 49
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 74:No errors.
 68/69 k3
 69/69 end
-taps: 79, game clock: 10:34, care 147, cards read 72, words 1764, longest 48
+taps: 79, game clock: 10:26, care 147, cards read 72, words 1764, longest 48
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 9, game clock: 07:41, care 75, cards read 8, words 213, longest 36
+taps: 11, game clock: 07:40, care 131, cards read 8, words 213, longest 36
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -70,13 +70,13 @@ No errors.
 === MODE=md python test/finger_test.py ===
 PASS
 2:No errors.
-md map 844x390, finger slides up to 12px: 39 steps, 82 taps, floor ignored 0, buttons ignored 6
+md map 844x390, finger slides up to 12px: 40 steps, 83 taps, floor ignored 0, buttons ignored 6
 No errors.
 
 === python test/offline_test.py ===
 PASS
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.28.1-b4a38a2d32']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.29.0-361b5c5fd4']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
 9:No errors.
 ok   it keeps a copy of the game (6 files)
 ok   with the network off, the game still loads
@@ -88,7 +88,7 @@ FAIL
 ok   3D detail moves from battery saver to balanced in the menu
 ok   and comes round to battery saver, and is saved
 ok   turning the 3D floor off shows the flat map
-CHECK FAILED: a new ambulance drives in from down the road and its last move is in reverse ({'legs': 3, 'rev': [False, False, True], 'y': -4.711999999999998})
+CHECK FAILED: a new ambulance drives in from down the road and its last move is in reverse ({'legs': 3, 'rev': [False, False, True], 'y': -4.702999999999997})
 
 === python test/imaging_test.py ===
 PASS
@@ -118,7 +118,7 @@ No errors.
 PASS
 16:No errors.
 ok   the bell opens Events, and the arrivals are listed there
-ok   an icon that needs you shakes every couple of seconds (2 now)
+ok   an icon that needs you shakes every couple of seconds (6 now)
 ok   and the others keep still
 No errors.
 
@@ -127,7 +127,7 @@ PASS
 19:No errors.
 ok   Run it back replays the same class shift
 ok   the top-right menu offers Restart this shift and Main menu
-ok   Class results lists what was sent for the code, best first ([{'p_code': '6HA-G0Q'}])
+ok   Class results lists what was sent for the code, best first ([{'p_code': '8R9-00C'}])
 No errors.
 
 SOME FAILED
