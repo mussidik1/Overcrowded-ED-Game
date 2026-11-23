@@ -1107,4 +1107,3 @@ button.ob { border: 0; font: inherit; color: inherit; cursor: pointer; }
 
 /* v0.28.1: the evidence beside the diagnosis question; Sign stays in reach */
 .dxev { margin: 4px 0 6px; padding-left: 18px; font-size: 13px; line-height: 1.3; }
-.prim > [data-act="sign"] { position: sticky; bottom: 0; z-index: 2; box-shadow: 0 -6px 10px rgba(255,255,255,.9); }

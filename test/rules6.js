@@ -198,7 +198,8 @@ assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[
   const finds = new Set(); OC.CASES.forEach(c => Object.values(c.find || {}).forEach(v => finds.add(v)));
   const bare = [...finds].filter(v => !OC.FIND_PLAIN[v]);
   assert(bare.every(v => /^(Normal|Clear lungs|Mild dehydration|Kidney function normal|Blood in urine, no infection)$/.test(v)), 'every result that is not already plain has plain words: ' + bare.join('; '));
-  assert(Object.keys(OC.FIND_PLAIN).every(v => finds.has(v) || ['Normal sinus rhythm', 'No acute findings'].includes(v)), 'no plain line is left over for a result that no longer exists');
+  const resTxt = new Set(); Object.values(OC.RES).forEach(r => Object.values(r).forEach(x => resTxt.add(Array.isArray(x) ? x[0] : x)));
+  assert(Object.keys(OC.FIND_PLAIN).every(v => finds.has(v) || resTxt.has(v) || ['Normal sinus rhythm', 'No acute findings'].includes(v)), 'no plain line is left over for a result that no longer exists');
   for (const k of ['national', 'miemss']) assert(OC.SCEN[k].every(s => s.plain && s.pwhy && s.plain.split(' ').length <= 24 && s.pwhy.split(' ').length <= 18), `every ${k} radio call has a short plain line and a short plain reason`);
   OC.newGame('train', 77, { mode: 'md' });
   const x = OC.trainPatient('chole', 'room', { room: '5' }), p = typeof x === 'string' ? OC.pt(x) : x;

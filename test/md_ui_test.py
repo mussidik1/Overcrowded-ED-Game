@@ -88,7 +88,7 @@ def run():
         # since v0.19 tests are named (CBC, chest X-ray); only the ECG is still ordered by kind
         right = J(f"(() => {{ const p = OC.pt('{pid}'); return {{ wk: [...OC.needOf(p).n.filter(d => !(p.det || []).includes(d)), ...(p.right.wk.includes('ecg') && !p.wk.includes('ecg') ? ['ecg'] : [])], tr: p.right.tr.filter(k => !p.tr.includes(k)), dx: p.dx }}; }})()")
         # v0.28: orders live in menus, and treatments are picked as drugs
-        right['tr'] = J(f"(() => {{ const p = OC.pt('{pid}'); return {right['tr']}.map(k => OC.drugFor(p, k) || (k === 'pace' ? 'tcp' : k)); }})()".replace("True", "true"))
+        right['tr'] = J(f"(() => {{ const p = OC.pt('{pid}'); return {right['tr']}.flatMap(k => OC.drugsFor(p, k).length ? OC.drugsFor(p, k) : [k === 'pace' ? 'tcp' : k]); }})()".replace("True", "true"))
         def otap(kind, k):
             sel = f'#sheet [data-act="ordT"][data-arg="{pid}|{kind}|{k}"]'
             for m in J(f"OCUI.omOf('{k}')"):   # open only menus that are closed: tapping an open one closes it

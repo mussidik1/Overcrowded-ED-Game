@@ -18,7 +18,7 @@ let r = OC.txInstead(p.id);
 assert(r.ok && p.dsp === 'readytx' && OC.txNeedOf(p) === 'icu' && p.needCC, 'no ICU bed: they can be transferred to a hospital with one');
 const q = P(OC.trainPatient('pna', 'room', { room: roomFree() })); q.dispo = 'admit'; q.dsp = 'none'; OC.setDispo(q);
 assert(!OC.txInstead(q.id).ok, 'a med-surg patient waits for a med-surg bed: those turn over fast');
-G.beds.med.used = OC.UNITS.med.cap - OC.active().filter(x => x.dsp === 'board' && x.bedU === 'med' && !x.bedGot).length; run(1.2);
+G.beds.med.used = OC.UNITS.med.cap - 1; run(1.2);
 assert(q.bedGot && q.due < 1e8, 'when a bed is free, the next ED patient for that unit gets it');
 
 // 2. Transfers: call a hospital that can't do it, then one that can; pick the transport; give report

@@ -735,7 +735,7 @@ function pathRows(p, G) {
       const doneK = w && w.st === 'done';
       for (const d of mineK) {
         if (!doneK) { const v = !w ? 'Ordered after the provider sees them' : w.st === 'todo' ? (k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT to draw it' : 'Drawn once roomed') : k === 'mri' ? 'Waiting for the MRI scanner' : 'In line for the scanner') : w.st === 'doing' ? (k === 'lab' ? 'Drawing now' : 'Scanning now') : `Resulting in <span data-cd="${w.due}"></span>`; rows.push(row(E.DET_NAME(d), v, 'idle')); continue; }
-        const [t, img] = (p.dres && p.dres[d]) || E.detResult(p, d), pl = PLAIN() && !p.dxq && E.FIND_PLAIN[t];   // v0.29: plain words wait until the diagnosis is named
+        const [t, img] = (p.dres && p.dres[d]) || E.detResult(p, d), pl = PLAIN() && !dxPending(p) && E.FIND_PLAIN[t];   // v0.29: plain words wait until the diagnosis is named
         rows.push(row(E.DET_NAME(d), `${img && IMG_CREDIT[img] ? `<button type="button" class="rimg" data-act="img" data-arg="${p.id}|${d}" aria-label="Look at the ${esc(E.DET_NAME(d))}"><img src="img/${img}.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"><span>View</span></button>` : ''}<b>${esc(t)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`, 'ok'));
       }
       continue;
@@ -745,7 +745,7 @@ function pathRows(p, G) {
     else if (w.st === 'todo') v = k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT (the nurse draws it if techs are tied up)' : 'Drawn once roomed') : k === 'ecg' ? 'Waiting for a PCT or nurse' : 'In line for the scanner';
     else if (w.st === 'doing') v = k === 'lab' ? 'Drawing now' : k === 'ecg' ? 'Doing it now' : 'Scanning now';
     else if (w.st === 'run') v = `Resulting in <span data-cd="${w.due}"></span>`;
-    else { const f = p.find[k] || 'Resulted', pl = PLAIN() && !p.dxq && (E.FIND_PLAIN[f] || (/^Normal sinus rhythm/.test(f) ? 'a normal heartbeat' : /^Sinus tachycardia, rate/.test(f) ? 'a fast, regular heartbeat' : /^Sinus bradycardia/.test(f) ? 'a slow, regular heartbeat' : '')); v = `<b>${esc(f)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`; st = 'ok'; }
+    else { const f = p.find[k] || 'Resulted', pl = PLAIN() && !dxPending(p) && (E.FIND_PLAIN[f] || (/^Normal sinus rhythm/.test(f) ? 'a normal heartbeat' : /^Sinus tachycardia, rate/.test(f) ? 'a fast, regular heartbeat' : /^Sinus bradycardia/.test(f) ? 'a slow, regular heartbeat' : '')); v = `<b>${esc(f)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`; st = 'ok'; }
     rows.push(row(nm, v, st));
   }
   for (const k of p.tr) { if (unwritten && !p.treat[k]) continue; const [v, st] = treatText(p, k); rows.push(row(E.TREAT[k].label, v, st)); }
@@ -1083,9 +1083,11 @@ function ordersBlock(p, G, add) {
   const lbl = n ? `Sign ${n} order${n > 1 ? 's' : ''}` : need ? 'Sign with no orders' : 'Pick orders to add';
   return `<div class="prim"><div class="prim-l">${title}</div><div class="om">${orderMenus(chip, o)}</div><button type="button" class="big act" data-act="sign" data-arg="${p.id}" ${n || need ? '' : 'disabled'}>${lbl}</button><p class="hint" style="margin:0">Order what they need and nothing extra. Extra tests cost time, and some treatments hurt people who don't need them.</p></div>`;
 }
+// The attending's own patient whose diagnosis isn't named yet: plain-word glosses wait (they'd give it away).
+const dxPending = p => MD() && mine(p) && !p.dxK && !(E.G && E.G.train) && !p.gray && !E.NODX.has(p.ck);
 /* v0.28: the attending names the diagnosis from the exam and the results. */
 function dxBlock(p) {
-  const ev = [E.examOf(p)].concat((p.det || []).map(d => { const r = (p.dres && p.dres[d]) || E.detResult(p, d); return r && r[0] ? `${(E.LABS[d] || E.IMGS[d] || {}).n || d}: ${r[0]}` : null; })).filter(Boolean);
+  const ev = [E.examOf(p)].concat(p.wk.includes('ecg') && p.work.ecg && p.work.ecg.st === 'done' && p.find.ecg ? [`ECG: ${p.find.ecg}`] : [], (p.det || []).map(d => { const r = (p.dres && p.dres[d]) || E.detResult(p, d); return r && r[0] ? `${(E.LABS[d] || E.IMGS[d] || {}).n || d}: ${r[0]}` : null; })).filter(Boolean);
   return `<div class="prim"><div class="prim-l">What’s the diagnosis?</div>${ev.length ? `<ul class="dxev">${ev.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<p class="hint" style="margin:0">A miss costs accuracy and raises your legal risk.</p><div class="cgrid">${p.dxq.map(d => `<button type="button" class="cbtn" data-act="dxPick" data-arg="${p.id}|${esc(d)}"><b>${esc(d)}</b></button>`).join('')}</div></div>`;
 }
 function mdDecideBlock(p) {
@@ -1716,7 +1718,7 @@ const seeStep = (key) => ({
 });
 /* list: [['t', 'lab'], ['r', 'meds']]. A kind of test (lab, xr, ct, us) means the named tests this patient's case needs of
    that kind (a CBC and a BMP, the CT abdomen and pelvis), so the preceptor lights each one in turn. */
-const ordList = (p, list) => list.flatMap(([k, v]) => (k === 't' && v !== 'ecg' && E.WORK[v] ? E.needOf(p).n.filter(d => E.DET_KIND(d) === v).map(d => ['t', d]) : k === 'r' && E.drugFor(p, v) ? [['r', E.drugFor(p, v)]] : k === 'r' && v === 'pace' ? [['r', 'tcp']] : [[k, v]]));
+const ordList = (p, list) => list.flatMap(([k, v]) => (k === 't' && v !== 'ecg' && E.WORK[v] ? E.needOf(p).n.filter(d => E.DET_KIND(d) === v).map(d => ['t', d]) : k === 'r' && E.drugsFor(p, v).length ? E.drugsFor(p, v).map(d => ['r', d]) : k === 'r' && v === 'pace' ? [['r', 'tcp']] : [[k, v]]));
 const ordHas = (p, k, v) => (k === 't' ? (v === 'ecg' ? p.wk.includes('ecg') : (p.det || []).includes(v)) : (p.drugs || []).includes(v) || p.tr.includes(v));
 // The ring goes on the closed menu first, then on the order inside it.
 const omSpot = key => { const S = OM_OPEN(), m = omOf(key).find(x => !S.has(x)); return m ? `#sheet [data-act="ordMenu"][data-arg="${m}"]` : null; };
@@ -1925,16 +1927,17 @@ const LESSONS = {
   const and = a => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
   for (const [k, L] of Object.entries(E.LESSON_CASE)) {
     const c = E.CASES.find(x => x.k === k), N = E.NEED[k] || { n: [] }, RX = E.RXOK[k] || {};
-    const drugs = Object.values(RX).map(l => E.DRUGS[l[0]] ? E.DRUGS[l[0]].n : l[0]);
-    const other = c.tr.filter(t => !RX[t] && !['meds', 'abx'].includes(t)).map(t => (E.PROC[t] ? E.PROC[t].n : E.TREAT[t].label).toLowerCase());
-    const give = and(drugs.concat(other).map(x => `**${x}**`));
-    const contra = (E.CONTRA[k] || []).slice(0, 3).map(d => E.DRUGS[d].n.toLowerCase());
+    const REQ = E.RXREQ[k] || {};
+    const drugs = c.tr.flatMap(t => REQ[t] ? REQ[t].map(g => and(g.map(d => E.DRUGS[d].n)).replace(/ and /g, ' or ')) : RX[t] ? [E.DRUGS[RX[t][0]].n] : []);
+    const acts = c.tr.filter(t => !RX[t] && !REQ[t]).map(t => (E.PROC[t] ? E.PROC[t].n : E.TREAT[t].label));
+    const give = and(drugs.map(x => `**${x}**`));
+    const contra = [...new Set(E.contraOf({ ck: k }))].slice(0, 5).map(d => E.DRUGS[d].n);
     const where = c.dispo === 'transfer' ? `transfer to ${c.txTo}` : E.DISPO_NAME[c.dispo];
-    LESSONS['c_' + k] = { name: L.name, sys: L.sys, blurb: c.cc + '.', card: true, steps: [
+    LESSONS['c_' + k] = { name: L.name, sys: L.sys, blurb: c.cc + '.', steps: [
       { id: k + '1', next: true, title: 'Who comes in', text: `The story: **${c.cc.toLowerCase()}**.\nThe exam: ${E.EXAM[k]}${c.vit ? `\nVitals: ${c.vit}.` : ''}` },
       { id: k + '2', next: true, title: 'Think of it', text: L.pearl },
-      { id: k + '3', next: true, title: 'The workup', text: `Order **${and(names(N.n))}**.\n${E.ORD_WHY[k]}` },
-      { id: k + '4', next: true, title: 'Treat and decide', text: `${give ? `Give ${give}.` : 'No drug fixes this: the fix is the procedure.'}${c.con ? ` Call **${E.SPECS[c.con].name}**.` : ''} Then **${where}**.${contra.length ? `\nDon’t give ${and(contra)}: it can hurt them.` : ''}` },
+      { id: k + '3', next: true, title: 'The workup', text: `Order ${and((c.wk.includes('ecg') ? ['an ECG'] : []).concat(names(N.n)).map(x => `**${x}**`)) || 'nothing first: the exam decides'}.\n${E.ORD_WHY[k]}` },
+      { id: k + '4', next: true, title: 'Treat and decide', text: `${give ? `Give ${give}.` : ''}${acts.length ? ` Start: ${and(acts.map(x => `**${x}**`))}.` : ''}${c.con ? ` Call **${E.SPECS[c.con].name}**.` : ''} Then **${where}**.${contra.length ? `\nDon’t give: ${contra.join(', ')}.` : ''}` },
       { id: k + '5', final: true, title: `${L.name}: the short version`, text: `${L.pitfall}\nOn a shift, you’ll name it from the **exam and results**.` },
     ] };
   }
@@ -1954,12 +1957,13 @@ function chaptersHTML() {
 }
 const lessonKey = () => { const t = g() && g().tr; return t && t.lesson && LESSONS[t.lesson] ? t.lesson : null; };
 const lessonDone = k => !!store('oc-lesson-' + k);
+const GAME_V = '/*GAMEV*/';   // the build puts the version here: a code gives the same shift only on the same version
 /* Class codes: an instructor makes one, students enter it, and everyone plays the same shift (same arrivals and events). */
 const codeDesc = c => `${c.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${E.LEVELS[c.level].name}${c.scen !== 'none' ? ' · ' + E.SCENS[c.scen].name + ' scenario' : ''}${c.mode === 'md' ? ' · ' + E.PACKS[c.pack].name + ' radio calls' : ''}`;
 function classHTML() {
   const typed = E.readCode(U.codeIn || ''), made = U.codeMade ? E.readCode(U.codeMade) : null;
   const lv = ['rush', 'easy', 'med', 'hard'].map(k => `<button type="button" class="cbtn" data-act="codeMake" data-arg="${k}"><b>${esc(E.LEVELS[k].name)}</b></button>`).join('');
-  return head('Class code', 'Everyone who enters the same code plays the same shift: the same patients and events, at the same times. What each player does with them is theirs.')
+  return head('Class code', `Everyone who enters the same code plays the same shift: the same patients and events, at the same times, on the same game version (this is v${GAME_V}). What each player does with them is theirs.`)
     + `<div class="cc-box"><label for="ccIn"><b>Play a code</b></label><div class="cc-row"><input id="ccIn" class="cc-in" data-pick="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="9" placeholder="ABC-DEF" value="${esc(U.codeIn || '')}" aria-describedby="ccWhat"><button type="button" class="big act" data-act="codePlay" ${typed ? '' : 'disabled'}>Start</button></div><small id="ccWhat" class="cc-what">${esc(codeHint(U.codeIn || ''))}</small></div>`
     + `<div class="cc-box"><b>Make one (instructors)</b><small>It uses the role${U.mode === 'md' ? ', radio calls' : ''} and scenario set on the menu (now: ${esc(codeDesc({ mode: U.mode, level: 'med', scen: U.scen, pack: U.pack }).replace(/ · Manic Monday/, ''))}). Pick the shift:</small><div class="cgrid cc-lv">${lv}</div>`
     + cbListHTML()
@@ -2004,11 +2008,11 @@ function cbListHTML() {
   return h + '</div>';
 }
 const codeHint = v => { const c = E.readCode(v); return c ? codeDesc(c) : v.replace(/[^0-9a-z]/gi, '').length >= 6 ? 'That code doesn’t look right. Check each letter.' : 'Six letters and numbers, from your instructor.'; };
-const codeText = c => `Code Black class code ${c.code}: ${codeDesc(c)}. Play at ${location.origin}${location.pathname}, then Play a shift, then Class code.`;
+const codeText = c => `Code Black class code ${c.code} (v${GAME_V}): ${codeDesc(c)}. Play at ${location.origin}${location.pathname}, then Play a shift, then Class code.`;
 function copyText(t) { try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t); return true; } } catch (e) { /* no clipboard */ } return false; }
 function lessonsHTML() {
   const n = LESSON_KEYS.filter(lessonDone).length;
-  return head('Lessons', `One condition, one patient, about two minutes. What it looks like, what to order and why, and the clock. You play the doctor.${n ? ` ${n} of ${LESSON_KEYS.length} done.` : ''}`)
+  return head('Lessons', `The first lessons put you on a patient as the doctor, about two minutes each. The case cards (five short cards) teach one must-not-miss condition: how it looks, what to order, what to give and what not to.${n ? ` ${n} of ${LESSON_KEYS.length} done.` : ''}`)
     + LESSON_SYS.filter(([sy]) => LESSON_KEYS.some(k => LESSONS[k].sys === sy)).map(([sy, nm]) => `<div class="o-sec lsn-sys">${esc(nm)}</div><div class="cgrid lsn">${LESSON_KEYS.filter(k => LESSONS[k].sys === sy).map(k => `<button type="button" class="cbtn" data-act="lesson" data-arg="${k}"><b>${esc(LESSONS[k].name)}${lessonDone(k) ? ' <i class="lsn-ok">✓</i>' : ''}</b><small>${esc(LESSONS[k].blurb)}</small></button>`).join('')}</div>`).join('');
 }
 const STEPS_NOW = () => { const k = lessonKey(); return k ? LESSONS[k].steps : (g() && g().mode === 'md' ? STEPS_MD : STEPS); };
