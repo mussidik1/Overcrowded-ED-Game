@@ -30,7 +30,8 @@ with sync_playwright() as pw:
     def otap(kind, k):   # v0.28: orders sit in menus
         sel = f'#sheet [data-act="ordT"][data-arg="{pid}|{kind}|{k}"]'
         for m in J(f"OCUI.omOf('{k}')"):
-            if not page.locator(sel).is_visible(): page.locator(f'#sheet [data-act="ordMenu"][data-arg="{m}"]').tap(); page.wait_for_timeout(150)
+            h = page.locator(f'#sheet [data-act="ordMenu"][data-arg="{m}"]')
+            if not page.locator(sel).is_visible() and h.get_attribute('aria-expanded') != 'true': h.tap(); page.wait_for_timeout(150)
         page.locator(sel).tap(); page.wait_for_timeout(150)
     for k in ['cbc', 'bmp', 'ctap']: otap('t', k)
     otap('r', 'morph')

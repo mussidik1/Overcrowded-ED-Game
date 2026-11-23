@@ -497,6 +497,7 @@ function nextStep(p, r, G) {
     if (p.ev === 'doing') { const n = myLeft(p); return { t: 'You’re in the room' + (n ? ` · ${n} min left` : ''), c: 'n-wait', i: 'steth' }; }
     if (p.ord === 'need') return { t: 'Write orders', c: 'n-act fl', i: 'orders' };
     if (p.ord === 'more') return { t: 'Add to the workup', c: 'n-act fl', i: 'orders' };
+    if (p.dxq) return { t: 'Name the diagnosis', c: 'n-act fl', i: 'decide' };   // v0.28.1: on the map and in Next
     if (p.dsp === 'mddecide' || p.dsp === 'decide') return { t: 'Your call', c: 'n-act fl', i: 'decide' };
     if (p.txGap && p.txGap.length && !LEAVING.includes(p.dsp)) return { t: E.vitalsOf(p).trend === 'better' ? 'Missing an order' : 'Not improving', c: 'n-bad fl', i: 'alert' };
   }
@@ -977,6 +978,7 @@ const IMG_KINDS = [['xr', 'X-ray'], ['ct', 'CT'], ['mri', 'MRI'], ['us', 'Ultras
 function testsBlock(chip) { return orderMenus(chip, null); }
 /* v0.28: the order sheet is parent menus. Tap one to open it; Medications opens into drug classes.
    Closed menus keep their chips in the page (hidden), so a lit target can name the menu it lives in. */
+const shuf = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };   // a fair shuffle
 const OM_OPEN = () => (U.ordM = U.ordM || new Set());
 function omHead(id, label, n, sub) {
   const open = OM_OPEN().has(id);
@@ -1083,7 +1085,8 @@ function ordersBlock(p, G, add) {
 }
 /* v0.28: the attending names the diagnosis from the exam and the results. */
 function dxBlock(p) {
-  return `<div class="prim"><div class="prim-l">What’s the diagnosis?</div><p class="hint" style="margin:0">Read the exam and the results on the card, then make the call. A missed diagnosis costs accuracy and raises your legal risk.</p><div class="cgrid">${p.dxq.map(d => `<button type="button" class="cbtn" data-act="dxPick" data-arg="${p.id}|${esc(d)}"><b>${esc(d)}</b></button>`).join('')}</div></div>`;
+  const ev = [E.examOf(p)].concat((p.det || []).map(d => { const r = (p.dres && p.dres[d]) || E.detResult(p, d); return r && r[0] ? `${(E.LABS[d] || E.IMGS[d] || {}).n || d}: ${r[0]}` : null; })).filter(Boolean);
+  return `<div class="prim"><div class="prim-l">What’s the diagnosis?</div>${ev.length ? `<ul class="dxev">${ev.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<p class="hint" style="margin:0">A miss costs accuracy and raises your legal risk.</p><div class="cgrid">${p.dxq.map(d => `<button type="button" class="cbtn" data-act="dxPick" data-arg="${p.id}|${esc(d)}"><b>${esc(d)}</b></button>`).join('')}</div></div>`;
 }
 function mdDecideBlock(p) {
   const b = (k, l, sub) => `<button type="button" class="cbtn" data-act="mdd" data-arg="${p.id}|${k}"><b>${l}</b><small>${sub}</small></button>`;
@@ -2428,7 +2431,7 @@ const ACT = {
     const c = g().box.cur; if (!c) return;
     if (c.kind === 'notify') { if (MD()) return; const r = E.boxNotify(); if (r.ok) { toast(r.msg, 'good'); sfx('good'); } }
     else if (c.taken) return;
-    else if (MD()) { const r = E.boxTake(g().me); if (!r.ok) { toast(r.why, 'bad'); return; } U.sheet = null; U.modal = { type: 'scen', sc: r.sc, unit: r.unit, doc: 'You', pack: r.pack, opt: r.sc.opts ? r.sc.opts.map((x, i) => i).sort(() => Math.random() - 0.5) : null }; }
+    else if (MD()) { const r = E.boxTake(g().me); if (!r.ok) { toast(r.why, 'bad'); return; } U.sheet = null; U.modal = { type: 'scen', sc: r.sc, unit: r.unit, doc: 'You', pack: r.pack, opt: r.sc.opts ? shuf(r.sc.opts.map((x, i) => i)) : null }; }
     else U.sheet = { type: 'boxdoc' };
   },
   boxDoc: sid => { const r = E.boxTake(sid); if (!r.ok) { toast(r.why, 'bad'); return; } U.sheet = null; toast(`${E.staff(sid).name} is on the line with ${r.unit} and will give the orders`, 'good'); sfx('good'); },
@@ -2647,7 +2650,7 @@ function ordLogHTML(m) {
 /* Radio calls the attending got wrong or let ring out, with the plain reason. */
 function radioLogHTML(R) {
   const L = (R.radioLog || []); if (!L.length) return '';
-  return `<h4>Radio calls to review</h4><ul class="ordlog">${L.slice(0, 8).map(x => `<li>${esc(x.q)}<span class="ol-m">${x.miss ? 'Rang out. ' : 'You got it wrong. '}Right answer: ${esc(x.btn ? x.btn[x.a ? 0 : 1] : x.a ? 'Approve' : 'Deny')}</span><span class="ol-w">${esc(x.why)}</span></li>`).join('')}</ul>`;
+  return `<h4>Radio calls to review</h4><ul class="ordlog">${L.slice(0, 8).map(x => `<li>${esc(x.q)}<span class="ol-m">${x.miss ? 'Rang out. ' : 'You got it wrong. '}Right answer: ${esc(x.right || (x.btn ? x.btn[x.a ? 0 : 1] : x.a ? 'Approve' : 'Deny'))}${x.said ? ` (you ordered ${esc(x.said)})` : ''}</span><span class="ol-w">${esc(x.why)}</span></li>`).join('')}</ul>`;
 }
 /* Every patient who came back within 72 hours, and what would have prevented it. */
 function returnsHTML(R) {

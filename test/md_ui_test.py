@@ -91,8 +91,8 @@ def run():
         right['tr'] = J(f"(() => {{ const p = OC.pt('{pid}'); return {right['tr']}.map(k => OC.drugFor(p, k) || (k === 'pace' ? 'tcp' : k)); }})()".replace("True", "true"))
         def otap(kind, k):
             sel = f'#sheet [data-act="ordT"][data-arg="{pid}|{kind}|{k}"]'
-            for m in J(f"OCUI.omOf('{k}')"):
-                if not page.is_visible(sel): tap(f'#sheet [data-act="ordMenu"][data-arg="{m}"]')
+            for m in J(f"OCUI.omOf('{k}')"):   # open only menus that are closed: tapping an open one closes it
+                if not page.is_visible(sel) and page.get_attribute(f'#sheet [data-act="ordMenu"][data-arg="{m}"]', 'aria-expanded') != 'true': tap(f'#sheet [data-act="ordMenu"][data-arg="{m}"]')
             tap(sel)
         ok(page.locator('#sheet [data-act="ordMenu"][data-arg="med"]').count() == 1 and page.locator('#sheet [data-act="ordMenu"][data-arg="resus"]').count() == 1, 'orders sit in menus, with a separate resuscitation set')
         for k in right['wk']: otap('t', k)
@@ -106,6 +106,7 @@ def run():
 
         # ---------- name the diagnosis (v0.28) ----------
         sim(240, f"(() => {{ const p = OC.pt('{pid}'); return !!p.dxq || p.dsp === 'mddecide' || p.dsp === 'decide' || !!p.mdPick || p.loc === 'gone'; }})()")
+        ok(J(f"!!OC.pt('{pid}').dxq || OC.pt('{pid}').loc === 'gone' || !!OC.pt('{pid}').arrest"), 'results back: the diagnosis question is open')
         if J(f"!!OC.pt('{pid}').dxq"):
             open_pt(pid)
             ok('what’s the diagnosis?' in page.inner_text('#sheet').lower() and page.locator('#sheet [data-act="dxPick"]').count() == 4, 'results back: you pick the diagnosis from four')
