@@ -103,3 +103,12 @@ npm test                           # Node rule checks (about 1 minute)
 - **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
 - Rules are the same as round 1, except reports go to `docs/audit/round6/` and scratch to `scratchpad/round6/rN/`.
 
+
+## Round 7 (Nov 24, 2026): the round-6 fixes, at v0.31.0, with a second migration not yet live
+- Branch `claude/sleepy-rubin-jot35n` at the commit this section was added in (`git log -1 -- docs/audit/BRIEF.md`). Still unreleased (`main` is v0.30.0).
+- The first migration (`20261124120000_codeblack_private_results`) is live and frozen (`supabase/migrations/applied.sha256`). **The second, `20261125120000_codeblack_round6.sql`, is not applied yet**: the owner approves it after this round. Review it before it goes live.
+- Read `docs/audit/round6/STATUS.md` first (fixed, partly fixed with reasons, owner decisions).
+- What changed since round 6: `git diff 6328cdf..HEAD -- src supabase test tools .github build.js CLAUDE.md README.md docs/SMOKE.md` (the round-6 reports are docs only). In short: the deploy workflow (pages: read, main only, database and class tests before publishing, version-then-404), db_live.js diagnoses and the skipped-migration check, the second migration (UTC limits and salt, daily limits, cb_health fields, the whole-address public check, the name rule's invisible characters and middle dots, created dates, arrival order, new stats keys, fast capped), the frozen-migration check in run.sh, tools/name_ranges.py, the recursive `morph()`, the code shown only after `ok`, the ask before replacing a code on screen, Set up results in its row, ended classes, the masked key box and the reset on reopen, in-flight answers dropped after Forget or Close, paste of Copy key's line, the results list and export wording and columns, the Send box, About's Privacy as a list, three engine counters (contraindicated drugs, unneeded risky treatments and the attending's own deaths; no random draws).
+- `npm run db:test` runs about 190 database checks; `python3 test/class_test.py` about 86 checks with the server stubbed, typing key by key.
+- **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
+- Rules are the same as round 1, except reports go to `docs/audit/round7/` and scratch to `scratchpad/round7/rN/`.
