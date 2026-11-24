@@ -93,3 +93,13 @@ npm test                           # Node rule checks (about 1 minute)
 - `npm run db:test` runs the database checks (about 150) on a throwaway local Postgres 16 here; CI uses 17. `python3 test/class_test.py` runs the class flow with the server stubbed (60 checks).
 - **Do not contact supabase.co or edcodeblack.com**, and do not apply anything to the live database.
 - Rules are the same as round 1, except reports go to `docs/audit/round5/` and scratch to `scratchpad/round5/rN/`.
+
+## Round 6 (Nov 24, 2026): the round-5 fixes, at v0.31.0, with the migration live
+- Branch `claude/sleepy-rubin-jot35n` at the commit this section was added in (`git log -1 -- docs/audit/BRIEF.md`). Still unreleased (`main` is v0.30.0).
+- **The migration is now applied to the live project** (Nov 24, the owner approved it) and was verified there. The live v0.30.0 site's Send and Class results now fail until v0.31.0 ships; that is the documented "database first" window.
+- Read `docs/audit/round5/STATUS.md` first. Owner decisions since round 5: six reviewers, not nine; the privacy contact is on hold; another review round (this one).
+- What changed since round 5: `git diff 7cb5613..HEAD -- src supabase test .github build.js` (the round-5 reports are docs only). In short: device keys kept 30 days, unconfirmed registrations, the deploy gate (live may be ahead, probe bucket, skip_db_check), the migration (version answers unknown, smaller backstops, 14-day unused codes, names with marks and no Unicode numbers, attending stats, cb_hits cleared, newer-migration guard), the contract (answers and names), the typing fix in `morph()`, the results list (unranked, inline confirms, Forget, Close results, exports with caveats), the Send box, toasts, CI permissions and limits.
+- `npm run db:test` runs about 160 database checks locally; `python3 test/class_test.py` runs 67 checks with the server stubbed.
+- **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
+- Rules are the same as round 1, except reports go to `docs/audit/round6/` and scratch to `scratchpad/round6/rN/`.
+

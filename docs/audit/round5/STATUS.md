@@ -1,7 +1,9 @@
 # Round 5: what was fixed (Nov 24, 2026)
 
-Round 5 reviewed the round-4 fixes to Phase 2 at `7cb5613` (the six auditors; the owner was asked whether the three
-"I HATE this project" reviewers should run again, and they didn't this round). The fixes are the commits after the
+Round 5 reviewed the round-4 fixes to Phase 2 at `7cb5613` (the six auditors). The owner then decided on six reviewers,
+not nine (CLAUDE.md), held the privacy contact for later, asked for another review round, and approved the migration:
+`20261124120000_codeblack_private_results` was applied to the live project on Nov 24, 2026 and verified there (a
+register, send, read and delete in a rolled-back transaction). The fixes are the commits after the
 reports ("typing in a sheet box keeps focus" and "Phase 2, round-5 review fixes").
 
 ## Fixed
@@ -65,6 +67,6 @@ reports ("typing in a sheet box keeps focus" and "Phase 2, round-5 review fixes"
 - **Drift by hand edits (R1.5-04, part):** `cb_health` names the newest recorded migration; a hand edit in the SQL editor
   that records nothing would not show. Comparing function bodies against the repo is a later improvement.
 - **The attending's scoring (R6.5-01's root, R6.4-09):** an owner decision for Phase 6. The list no longer ranks by it.
-- **A privacy contact (R2.4-01):** waits for the owner (`src/backend.json`, `contact`).
+- **A privacy contact (R2.4-01):** the owner is holding it for later (`src/backend.json`, `contact`).
 - **Unsent results after a second tap (R5.4-10):** leaving twice is a choice; the summary keeps one report.
 - **Stored-format versions (R1.5-09)** and the UI's ad-hoc state (R1.4-18): Phase 5.
