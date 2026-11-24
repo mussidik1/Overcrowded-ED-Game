@@ -112,3 +112,12 @@ npm test                           # Node rule checks (about 1 minute)
 - `npm run db:test` runs about 190 database checks; `python3 test/class_test.py` about 86 checks with the server stubbed, typing key by key.
 - **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
 - Rules are the same as round 1, except reports go to `docs/audit/round7/` and scratch to `scratchpad/round7/rN/`.
+
+## Round 8 (Nov 24, 2026): the round-7 fixes, at v0.31.0, second migration still not live
+- Branch `claude/sleepy-rubin-jot35n` at the commit this section was added in (`git log -1 -- docs/audit/BRIEF.md`). Still unreleased (`main` is v0.30.0).
+- The first migration is live and frozen. **The second, `20261125120000_codeblack_round6.sql`, is still not applied** and was changed again in round 7 (it isn't frozen until applied). Review it as the version the owner will paste.
+- Read `docs/audit/round7/STATUS.md` first (fixed, partly fixed with reasons, owner decisions).
+- What changed since round 7: `git diff 18a71f9..HEAD -- src supabase test tools .github build.js package.json CLAUDE.md README.md docs/SMOKE.md .gitattributes` (the round-7 reports are docs only). In short: the key box width; the migration (escapes only, /48 limits, global-unicast public check, script-limited joiners, tsheg and chillus, ended classes' codes held 30 days for their own key, the clean-up job rescheduled and turned on, lock timeout, scen dropped, coarse fill); the engine (own dead counted at the end of the shift, unneeded orders counted when ordered; test/rules13.js); the UI ("Use it without results" for any failure, lost codes struck through, Forget clears a copied key, red errors, row delete errors, per-row Set up results, the redraw by identity and button focus, the Send box near the top, wording); the deploy (contract job, emergency skip with a reason, pinned Playwright, branch guard, cache-name check, 404 retries, cron failure, applied.sha256 vs live, alternating-zone probe; db-watch.yml); run.sh (strict freeze, odd files, predecessor refusal, re-run over data).
+- `npm test` now includes `test/rules13.js`; `npm run db:test` runs about 207 checks; `python3 test/class_test.py` about 91.
+- **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
+- Rules are the same as round 1, except reports go to `docs/audit/round8/` and scratch to `scratchpad/round8/rN/`.
