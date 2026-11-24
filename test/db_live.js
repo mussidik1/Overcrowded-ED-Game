@@ -10,6 +10,10 @@ const fs = require('fs'), path = require('path');
 const { url: URL, key: KEY } = require('../src/backend.json');
 const MIGS = fs.readdirSync(path.join(__dirname, '..', 'supabase', 'migrations')).filter(f => /^\d{14}_.*\.sql$/.test(f)).sort().map(f => f.replace(/\.sql$/, ''));
 const LATEST = MIGS[MIGS.length - 1];
+// The migrations the repo says are live (supabase/migrations/applied.sha256): the deploy checks this list against the live project, so a
+// migration applied but not frozen in the repo, or frozen but not applied, stops the release (audit R1.7-03).
+const APPLIED = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', 'applied.sha256'), 'utf8').split('\n').filter(l => l.trim()).map(l => (/^[0-9a-f]{64} {2}(\d{14}_[a-z0-9_]+)\.sql$/.exec(l) || [])[1] || '?' + l);
+const WATCH = process.env.DB_WATCH === '1';   // the daily watch (.github/workflows/db-watch.yml): storage past half full fails, so someone hears
 let fails = 0;
 const ok = (c, msg) => { console.log((c ? 'ok   ' : 'FAIL ') + msg); if (!c) fails++; };
 const call = async (p, opt = {}) => {   // never throws: status 0 means no answer (network, timeout, or a body that stalled)
@@ -26,7 +30,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
   if (process.env.SKIP_DB_CHECK === '1') {   // only for an emergency deploy, such as a rollback while Supabase is down: say so loudly
-    const why = (process.env.SKIP_REASON || '').trim();
+    const why = (process.env.SKIP_REASON || '').replace(/[\r\n]+/g, ' ').replace(/::/g, ': ').trim();   // one line, no workflow command inside it
     if (!why) { console.log('FAIL: skip_db_check needs a reason (the skip_reason box on the Deploy run). Nothing was published.'); process.exit(1); }
     console.log(`::warning::The live database check was SKIPPED for this deploy: ${why.slice(0, 200)}. Run npm run db:live as soon as you can.`);
     console.log('SKIPPED: the live database was not checked.'); process.exit(0);
@@ -43,19 +47,27 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(hj.db >= LATEST, hj.db === LATEST ? `the live database has this release's migration ${LATEST}`
     : hj.db > LATEST ? `the live database has a newer migration than this release (live ${hj.db}, release ${LATEST}): fine for a rollback`
     : `the live database is behind this release (live ${hj.db}, release ${LATEST}). Apply the migration in the Supabase SQL editor first (supabase/README.md, "Releasing"), then re-run the deploy.`);
+  const round6 = hj.db >= '20261125120000';   // from this migration on, health also says these: they can't quietly go missing (R2.7-09g)
+  if (round6) ok(Array.isArray(hj.migs) && typeof hj.classes === 'number' && typeof hj.results === 'number', 'the health check lists the migrations and how full the backstops are');
   if (Array.isArray(hj.migs)) {   // since 20261125120000: every migration up to the live one must be there, none skipped (audit R1.6-04)
     const skipped = MIGS.filter(m => m <= hj.db && !hj.migs.includes(m));
     ok(!skipped.length, skipped.length ? `the live database skipped ${skipped.join(', ')}: apply it (supabase/README.md), then re-run` : `no migration was skipped (${hj.migs.length} recorded)`);
+    const notFrozen = hj.migs.filter(m => MIGS.includes(m) && !APPLIED.includes(m)), notLive = APPLIED.filter(m => !hj.migs.includes(m));
+    ok(!notFrozen.length && !notLive.length, notFrozen.length ? `applied live but not in supabase/migrations/applied.sha256: ${notFrozen.join(', ')}. Add its line (sha256sum, in migrations/) and commit.`
+      : notLive.length ? `listed in applied.sha256 but not live: ${notLive.join(', ')}` : 'applied.sha256 lists exactly the migrations that are live');
   }
-  // Retention and storage: warnings, not failures. Reads and sends already treat an expired class as gone, and every new code also
-  // deletes expired ones, so a lagging clean-up job doesn't expose anything; it shouldn't block a clinical fix.
-  const warn = (c, msg) => { if (c) console.log('ok   ' + msg); else console.log('::warning::' + msg); };
-  warn(hj.overdue === 0, `no class is more than two hours past its deletion time (${hj.overdue}). If not: check that pg_cron is on and the codeblack-tidy job is active (select * from cron.job).`);
-  warn(hj.cron === true, 'the hourly clean-up job is scheduled. If not: enable pg_cron (Database > Extensions) and re-run the migration.');
-  if (hj.classes != null) {   // since 20261125120000: how full the backstops are (0 to 1)
-    warn(hj.classes < 0.5 && hj.results < 0.5, `the storage backstops are under half full (classes ${hj.classes}, results ${hj.results}). If not: someone may be filling them; see supabase/README.md, "Backstops".`);
+  // The clean-up job keeps the privacy promises (the network counters and daily salts go only through it): its absence fails the
+  // deploy (audit R2.7-05). A class overdue for deletion, or the backstops past half full, warn (and fail the daily watch).
+  const warn = (c, good, bad) => { if (c) console.log('ok   ' + good); else console.log('::warning::' + bad); };
+  ok(hj.cron === true, hj.cron === true ? 'the hourly clean-up job is scheduled and active'
+    : 'the hourly clean-up job is NOT scheduled or NOT active, so network counters and daily salts are never deleted. Fix: enable pg_cron (Database > Extensions), then re-run the newest migration in the SQL editor (it schedules and turns the job on), and re-run the deploy.');
+  (WATCH ? (c, g, b) => ok(c, c ? g : b) : warn)(hj.overdue === 0, 'no deletion is more than two hours late',
+    `${hj.overdue} class(es) are more than two hours past a deletion that should have happened: is the clean-up job running? (select * from cron.job_run_details order by start_time desc limit 5)`);
+  if (typeof hj.classes === 'number') {   // since 20261125120000: how full the backstops are (0 to 1)
+    (WATCH ? (c, g, b) => ok(c, c ? g : b) : warn)(hj.classes < 0.5 && hj.results < 0.5, `the storage backstops are under half full (classes ${hj.classes}, results ${hj.results})`,
+      `the storage backstops are MORE than half full (classes ${hj.classes}, results ${hj.results}): someone may be filling them. See supabase/README.md, "Backstops".`);
   }
-  ok(hj.addr === true && hj.public === true, `the database reads each caller's public address (addr ${hj.addr}, public ${hj.public}); otherwise everyone would share one rate limit. If not: Supabase's gateway changed its headers (codeblack.client_ip).`);
+  ok(hj.addr === true && hj.public === true, `the database reads each caller's public address (addr ${hj.addr}, public ${hj.public}); otherwise everyone would share one rate limit. If not: Supabase's gateway changed its headers (codeblack.client_addr).`);
   const oldGet = await call('/rest/v1/cb_results?select=*&limit=1');
   ok(oldGet.status === 404, `the old results table is gone from the API (HTTP ${oldGet.status})`);
   // An invalid row (role "x"): refused by the old table's checks if it were still there (400), so this never writes.
@@ -65,7 +77,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(oldRead.status === 404, `reading results by class code alone is gone (HTTP ${oldRead.status})`);
   for (const t of ['results', 'classes', 'salt', 'rate', 'migrations']) {
     const r = await call(`/rest/v1/${t}?select=*&limit=1`, { headers: { 'Accept-Profile': 'codeblack' } });
-    ok(r.status >= 400 && r.status < 500, `the private ${t} table isn't reachable through the API (HTTP ${r.status})`);
+    ok([400, 404, 406].includes(r.status), `the private ${t} table isn't reachable through the API (HTTP ${r.status}; 401 or 429 would only mean the check itself was refused)`);
   }
   const read = await rpc('cb_class_read', { p_code: 'ZZZ-ZZZ', p_key: BAD });
   ok(read.status === 200 && (json(read.body) || {}).error === 'key', `a made-up key reads nothing (${read.status} ${read.body})`);
@@ -81,7 +93,8 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   let last = null, busy = 0, lost = 0;
   for (let i = 0; i < 31; i++) {
     const ip = `203.0.113.${i + 1}`;
-    last = await rpc('cb_health', { p_probe: true }, { 'X-Forwarded-For': ip, 'X-Real-IP': ip, 'CF-Connecting-IP': ip, 'True-Client-IP': ip, Prefer: 'timezone=Asia/Kathmandu' });
+    // half the calls ask for a time zone at a quarter past the hour: a database that followed it would count them in a second bucket (audit R3.7-07)
+    last = await rpc('cb_health', { p_probe: true }, Object.assign({ 'X-Forwarded-For': ip, 'X-Real-IP': ip, 'CF-Connecting-IP': ip, 'True-Client-IP': ip }, i % 2 ? { Prefer: 'timezone=Asia/Kathmandu' } : {}));
     if (last.status !== 200) lost++;
     if ((json(last.body) || {}).error === 'busy') busy++;
   }

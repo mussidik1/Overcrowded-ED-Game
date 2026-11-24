@@ -14,6 +14,9 @@ create function cron.schedule(p_name text, p_schedule text, p_command text) retu
   insert into cron.job (jobname, schedule, command) values (p_name, p_schedule, p_command)
   on conflict (jobname) do update set schedule = excluded.schedule, command = excluded.command returning jobid;
 $$;
+create function cron.alter_job(job_id bigint, schedule text default null, command text default null, database text default null, username text default null, active boolean default null) returns void language sql as $$
+  update cron.job j set schedule = coalesce(alter_job.schedule, j.schedule), command = coalesce(alter_job.command, j.command), active = coalesce(alter_job.active, j.active) where j.jobid = job_id;
+$$;
 -- Supabase lets the API roles use the public schema, and grants them everything new in it by default
 -- (row-level security is what holds tables back). The migrations must cope with that.
 grant usage on schema public to anon, authenticated, service_role;

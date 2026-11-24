@@ -1,0 +1,28 @@
+# Once a day, the live database check (test/db_live.js) in watch mode: the storage backstops past half full, the clean-up job
+# missing, or classes overdue for deletion fail the run, so GitHub emails the repo's owner (audit R3.7-02). It reads no class
+# data and stores no result. It runs on the default branch (main) only, as scheduled workflows do.
+name: Database watch
+
+on:
+  schedule:
+    - cron: '23 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    name: Live database check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node test/db_live.js
+        env:
+          DB_WATCH: '1'

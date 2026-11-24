@@ -1906,7 +1906,9 @@ function signOrders(pid, tests, treats) {
     else if (treatOkNow(p, k)) { fl.push(trName(p, k)); }   // v0.29.1: tenecteplase for a PE whose pressure has fallen
     else if (k === 'cardiovert' && cardiovertOk(p)) { fl.push(TREAT[k].label); }   // stable A-fib under 48 hours: rhythm control is a fair choice
     else if (OKL.includes(k)) { fl.push(trName(p, k)); }
-    else { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); (p.extraTr = p.extraTr || []).push(k); if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
+    else { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); (p.extraTr = p.extraTr || []).push(k);
+      if (HARM[k] && !p.arrest && !(k === 'cardiovert' && p.ck === 'afib' && cardiovertOk(p))) S.unneeded = (S.unneeded || 0) + 1;   // the unsafe order, counted when ordered, whatever happens next (R6.7-03)
+      if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
   }
   let held = '';
   if (newR.includes('tnk') && R.tr.includes('tnk') && !p.tr.includes('bp') && !bpOkForLytic(p)) {   // the nurse will not push it over the limit
@@ -1954,7 +1956,6 @@ function harmCheck(p, k) {
   if (!mdMine(p) || !p.extraTr || !p.extraTr.includes(k) || G.pre || p.arrest) return;   // audit R6-03: epinephrine in cardiac arrest is the treatment, never harm
   let h = HARM[k]; if (!h) return;
   if (k === 'cardiovert' && p.ck === 'afib') { if (cardiovertOk(p)) return; h = [0.15, 25, 'had a stroke after cardioversion: A-fib of unknown or long duration needs three weeks of a blood thinner, or a TEE to rule out a clot, before a shock']; }
-  G.stats.md.unneeded = (G.stats.md.unneeded || 0) + 1;   // the unsafe order, whatever the dice do next (R6.6-02)
   if (!chance(h[0])) return;
   G.stats.md.harm++; care(-h[1], 'harm', p); litAdd(10, `harmed by ${TREAT[k].label.toLowerCase()} without an indication`, p);
   mm(55, `${p.name} ${h[2]}`, `${TREAT[k].label} was ordered without an indication`, true);
@@ -4418,7 +4419,8 @@ function endShift(reason) {
     mm: S.mm.slice().sort((a, b) => b.sev - a.sev || a.t - b.t).filter((x, i, arr) => arr.findIndex(y => y.what === x.what) === i).slice(0, 3).map(x => Object.assign({}, x, { t: Math.round(x.t) })),
     gray: Object.assign({}, S.gray), obs: S.obs, fcp: S.fcp, chairMoves: S.chairMoves, hallMins: S.hallMins,
     underTriage: S.underTriage, underCaught: S.underCaught, cosign: S.cosign, missedDx: S.missedDx, intub: S.intub, intubNoRT: S.intubNoRT,
-    suspended: S.suspended, quickReg: S.quickReg, mode: G.mode, md: Object.assign({}, S.md, { log: orderLogOf(S.md) }),
+    suspended: S.suspended, quickReg: S.quickReg, mode: G.mode, md: Object.assign({}, S.md, { log: orderLogOf(S.md),
+      died: (S.md.died || 0) + (G.mode === 'md' ? list.filter(p => p.mine && p.loc !== 'gone' && ['family', 'morgue', 'morguing'].includes(p.dsp)).length : 0) }),   // the attending's own dead who haven't left yet count too (as R5-02 for the department)
   };
 }
 

@@ -55,7 +55,13 @@ def newest_clean_name():
     return files[-1]
 
 
+UNICODE = '15.1.0'   # the version the lists in the migrations were made from: Python 3.12 and 3.13 ship it
+
+
 if __name__ == '__main__':
+    if unicodedata.unidata_version != UNICODE:
+        sys.exit(f'This Python has Unicode {unicodedata.unidata_version}; the lists are Unicode {UNICODE}. Use Python 3.12 or 3.13, '
+                 'or, to move the server to a newer Unicode, change UNICODE here and write a new migration with the new lists.')
     L = lists()
     if '--check' not in sys.argv:
         print('-- Unicode', unicodedata.unidata_version)

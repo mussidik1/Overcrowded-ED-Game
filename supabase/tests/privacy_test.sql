@@ -33,8 +33,8 @@ select t_ok(count(*) = 5 and bool_and(p.prosecdef) and bool_and('search_path=pg_
                                  'public.cb_class_read(text,text)'::regprocedure, 'public.cb_class_delete(text,text,uuid,boolean)'::regprocedure, 'public.cb_health(boolean)'::regprocedure);
 select t_ok(bool_and('search_path=pg_catalog, pg_temp' = any(p.proconfig)) and not bool_or(p.prosecdef), 'the codeblack helpers have the same search path and are not security definers')
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'codeblack';
-select t_ok(count(*) = 4 and bool_and(exists (select 1 from unnest(p.proconfig) c where lower(c) = 'timezone=utc')), 'the helpers that read the clock (who, allow, allow_day, tidy) run in UTC')
-  from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'codeblack' and p.proname in ('who', 'allow', 'allow_day', 'tidy');
+select t_ok(count(*) = 5 and bool_and(exists (select 1 from unnest(p.proconfig) c where lower(c) = 'timezone=utc')), 'the helpers that read the clock (who, allow, allow_day, allow48, tidy) run in UTC')
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'codeblack' and p.proname in ('who', 'allow', 'allow_day', 'allow48', 'tidy');
 select t_ok(to_regprocedure('public.cb_health()') is null, 'no zero-argument cb_health is left (an early draft''s)');
 select t_ok(not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
                         where n.nspname = 'codeblack' and a.privilege_type = 'EXECUTE' and a.grantee <> p.proowner), 'nobody but the owner may run a codeblack helper');
@@ -143,7 +143,7 @@ do $$ declare s jsonb; f text; begin
   perform t_ok(cb_submit('ZZZ-999', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, '{}', '0.31.0') = '{"error": "unknown"}', 'a code nobody registered is refused');
 end $$;
 reset role;
-select t_ok(codeblack.clean_stats('{"evil":1,"wait":"12","lwbs":-1,"seen":1.5,"ama":1e3,"expired":[1],"bedFirst":{"a":1},"scen":"<b>","fired":1}') = '{"ama": 1000, "fired": 1}', 'stats keep only known keys with whole numbers and a scenario key; the rest is dropped');
+select t_ok(codeblack.clean_stats('{"evil":1,"wait":"12","lwbs":-1,"seen":1.5,"ama":1e3,"expired":[1],"bedFirst":{"a":1},"scen":"none","fired":1}') = '{"ama": 1000, "fired": 1}', 'stats keep only known keys with whole numbers; the rest (and the scenario, which the code names) is dropped');
 select t_ok(codeblack.clean_stats(('{"wait":' || '0e-16383' || ',"lwbs":0e-16383}')::jsonb) = '{}', 'a number with a huge scale (0e-16383) is dropped, not stored');
 set role anon;
 select t_ok(cb_submit('KTA-80P', '00000000-0000-4000-8000-000000000099', 'Max', 'rn', 'med', 40, 1, 60, '{"wait":0e-16383,"unknown":5,"seen":7}', :'V') = '{"ok": true}', 'a result with an unknown stat and a bad number is still accepted');
@@ -251,17 +251,24 @@ set role anon;
 select t_net('203.0.113.77');
 select t_ok(cb_class_read('KTC-80P', :'K2') = '{"error": "key"}', 'an expired class can''t be read, even with its key');
 select t_ok(cb_submit('KTC-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, '{}', :'V') ->> 'error' = 'unknown', 'or sent to');
-select t_ok(cb_class_new('KTC-80P', :'K1', :'V') ->> 'ok' = 'true', 'its code can be registered again, by a new instructor');
-select t_ok(cb_class_read('KTC-80P', :'K2') = '{"error": "key"}', 'the old key doesn''t open the new class');
+select t_ok(cb_class_new('KTC-80P', :'K1', :'V') = '{"error": "taken"}', 'its code is held: another key gets "taken", so a student who knows the code can''t take it over');
 reset role;
-select t_ok(not exists (select 1 from codeblack.results where code = 'KTC-80P'), 'the expired class''s results went with it');
-select t_ok(not exists (select 1 from codeblack.classes where code = 'KMN-000'), 'and a new code clears every other expired class too, without the hourly job');
+select t_ok(not exists (select 1 from codeblack.results where code in ('KTC-80P', 'KMN-000')), 'the ended classes'' results are gone at once, without the hourly job');
+select t_ok((select key_hash from codeblack.classes where code = 'KTC-80P') = codeblack.key_hash(:'K2'), 'the held code keeps only its key''s hash, no student data');
+set role anon;
+select t_net('203.0.113.78');
+select cb_class_new('KTC-80P', :'K2', :'V')::text as back \gset
+select t_ok(:'back'::jsonb ->> 'ok' = 'true' and (:'back'::jsonb ->> 'expires')::timestamptz > now() + interval '13 days' and cb_class_read('KTC-80P', :'K2') -> 'rows' = '[]', 'its own key turns it back on, as a new, empty class');
+reset role;
 insert into codeblack.classes (code, key_hash, ver, expires_at) values ('PQR-001', repeat('a', 64), '0.31.0', now() - interval '3 hours');
-select t_ok((cb_health() ->> 'overdue')::int = 1, 'the health call sees a class that should have been deleted hours ago');
+insert into codeblack.results (code, cid, name, role, level, score, stars, real_sec, stats, ver) values ('PQR-001', gen_random_uuid(), 'Old', 'rn', 'med', 1, 1, 1, '{}', '0.31.0');
+insert into codeblack.classes (code, key_hash, ver, expires_at) values ('PQR-002', repeat('b', 64), '0.31.0', now() - interval '31 days');
+select t_ok((cb_health() ->> 'overdue')::int = 2, 'the health call sees results that should have gone hours ago, and a code held past its 30 days');
 insert into codeblack.rate (who, kind, hour, n) values (repeat('a', 64), 'read', now() - interval '3 hours', 1);
 insert into codeblack.salt (day, salt) values (current_date - 3, extensions.gen_random_bytes(32));
 select codeblack.tidy();
-select t_ok(not exists (select 1 from codeblack.classes where code = 'PQR-001') and (cb_health() ->> 'overdue')::int = 0, 'the clean-up deletes expired classes and their results');
+select t_ok(not exists (select 1 from codeblack.results where code = 'PQR-001') and exists (select 1 from codeblack.classes where code = 'PQR-001')
+        and not exists (select 1 from codeblack.classes where code = 'PQR-002') and (cb_health() ->> 'overdue')::int = 0, 'the clean-up deletes ended classes'' results, and codes held past their 30 days');
 select t_ok(not exists (select 1 from codeblack.rate where hour < now() - interval '2 hours' and kind not like '%\_day') and not exists (select 1 from codeblack.salt where day < (now() at time zone 'UTC')::date - 1), 'and old counters and salts');
 select t_ok(exists (select 1 from codeblack.classes where code = 'KTA-80P'), 'and leaves live classes alone');
 
@@ -287,6 +294,19 @@ select t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60
 select t_net('198.51.100.42');
 select t_ok(cb_class_new('DAY-001', :'K1', :'V') ->> 'ok' = 'true', 'another network is not held back');
 reset role;
+select set_config('request.headers', '{"x-forwarded-for":"2001:db8:aa:100::1"}', false); select codeblack.who();
+insert into codeblack.rate (who, kind, hour, n) values
+  (encode(extensions.hmac(convert_to('/48 ' || network(set_masklen('2001:db8:aa::1'::inet, 48))::text, 'UTF8'), (select salt from codeblack.salt where day = (now() at time zone 'UTC')::date), 'sha256'), 'hex'), 'submit_day48', date_trunc('day', now(), 'UTC'), 10000),
+  (encode(extensions.hmac(convert_to('/48 ' || network(set_masklen('2001:db8:aa::1'::inet, 48))::text, 'UTF8'), (select salt from codeblack.salt where day = (now() at time zone 'UTC')::date), 'sha256'), 'hex'), 'class_day48', date_trunc('day', now(), 'UTC'), 1000);
+set role anon;
+select t_net('2001:db8:aa:7700::1');
+select t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, '{}', :'V') = '{"error": "busy"}' and cb_class_new('DAY-048', :'K1', :'V') = '{"error": "busy"}',
+  'an IPv6 /48 that sent 10,000 results or made 1,000 codes today is refused, from any of its /56 networks');
+select t_net('2001:db8:bb:100::1');
+select t_ok(cb_class_new('DAY-048', :'K1', :'V') ->> 'ok' = 'true', 'another /48 is not held back');
+select t_net('198.51.100.43');
+select t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, '{}', :'V') ->> 'ok' = 'true', 'and IPv4 callers have no /48 limit');
+reset role;
 insert into codeblack.rate (who, kind, hour, n) values (repeat('b', 64), 'class_day', date_trunc('day', now(), 'UTC') - interval '2 days', 5);
 select codeblack.tidy();
 select t_ok(exists (select 1 from codeblack.rate where kind = 'class_day' and who = :'w41') and not exists (select 1 from codeblack.rate where who = repeat('b', 64)), 'the clean-up keeps today''s daily counters and deletes older ones');
@@ -294,17 +314,18 @@ update codeblack.classes set expires_at = now() - interval '1 minute' where code
 set role anon;
 select t_net('198.51.100.43');
 select cb_class_new('DAY-001', :'K1', :'V')::text as re \gset
-select t_ok(:'re'::jsonb ->> 'ok' = 'true' and (:'re'::jsonb ->> 'expires')::timestamptz > now() + interval '13 days', 'an ended class not yet deleted, registered again, starts afresh (not with an expiry in the past)');
+select t_ok(:'re'::jsonb ->> 'ok' = 'true' and (:'re'::jsonb ->> 'expires')::timestamptz > now() + interval '13 days', 'an ended class, registered again with its key, starts afresh (not with an expiry in the past)');
 select t_ok(cb_class_read('DAY-001', :'K1') ? 'created', 'the read says when the class was made');
 reset role;
 select t_ok(codeblack.clean_stats('{"fast":101,"mdDied":1,"contra":2,"unneeded":1,"endMin":300}') = '{"mdDied": 1, "contra": 2, "unneeded": 1, "endMin": 300}', 'the new stats keys are kept; a sped-up share over 100% is dropped');
 set role anon;
 select t_ok(cb_submit('DAY-001', gen_random_uuid(), 'Max', 'md', 'hard', 50, 1, 60,
-  '{"wait":999999,"lwbs":999999,"seen":999999,"ama":999999,"expired":999999,"bedFirst":999999,"fired":1,"walkout":1,"fast":100,"dxRight":999999,"dxWrong":999999,"mdSeen":999999,"harm":999999,"radioRight":999999,"radioWrong":999999,"radioMiss":999999,"mdDied":999999,"contra":999999,"unneeded":999999,"endMin":999999,"scen":"abcdefghijklmnop"}', :'V') = '{"ok": true}',
+  '{"wait":999999,"lwbs":999999,"seen":999999,"ama":999999,"expired":999999,"bedFirst":999999,"fired":1,"walkout":1,"fast":100,"dxRight":999999,"dxWrong":999999,"mdSeen":999999,"harm":999999,"radioRight":999999,"radioWrong":999999,"radioMiss":999999,"mdDied":999999,"contra":999999,"unneeded":999999,"endMin":999999}', :'V') = '{"ok": true}',
   'a result with every stats key at its largest is stored (no raw check-constraint error)');
 reset role;
 do $$ declare v text; begin
-  foreach v in array array['::1', '0.0.0.0', '255.255.255.255', '224.0.0.1', '192.0.2.10', '198.18.0.1', '2001:db8::1', '64:ff9b::a00:1', '::10.0.0.1', '100.64.1.1', 'fe80::1'] loop
+  foreach v in array array['::1', '0.0.0.0', '255.255.255.255', '224.0.0.1', '192.0.2.10', '198.18.0.1', '2001:db8::1', '64:ff9b::a00:1', '::10.0.0.1', '100.64.1.1', 'fe80::1',
+                           '3fff::1', '5f00::1', 'fec0::1', '::ffff:0:a00:1', '1::1', '4000::1', 'e000::1', 'ff02::1'] loop
     perform t_ok(not codeblack.is_public(v::inet), format('%s is not a public address', v));
   end loop;
   foreach v in array array['8.8.8.8', '2606:4700::1111'] loop

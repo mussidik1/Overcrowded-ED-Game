@@ -2,6 +2,8 @@
 const fs = require('fs'), path = require('path');
 // The class-results database's address, public key and privacy contact (src/backend.json), for the game and the CSP.
 const BACKEND = (b => { if (!/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(b.url) || !/^sb_publishable_[\w-]+$/.test(b.key)) { console.error('build stopped: src/backend.json needs a Supabase url and a publishable key'); process.exit(1); } return { url: b.url, key: b.key, contact: String(b.contact || '') }; })(require('./src/backend.json'));
+// The version goes into class codes and every class result, and the database takes only x.y.z (audit R1.7): stop here, not in class.
+if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(require('./package.json').version)) { console.error('build stopped: package.json version must be x.y.z (the class-results database takes no other form)'); process.exit(1); }
 const src = p => fs.readFileSync(path.join(__dirname, 'src', p), 'utf8');
 const font = (fam, file, weight, style = 'normal') => {
   const b64 = fs.readFileSync(path.join(__dirname, 'node_modules/@fontsource', file)).toString('base64');
@@ -24,7 +26,7 @@ let credits = {}; try { credits = JSON.parse(fs.readFileSync(path.join(__dirname
 const credit = {}; for (const [k, c] of Object.entries(credits)) credit[k] = typeof c === 'string' ? { t: c } : { t: `${c.author}, ${c.license}, ${c.source || 'Wikimedia Commons'}`, u: c.url || '', f: c.file || '' };
 let html = src('index.template.html')
   .replace('/*FONTS*/', () => fonts).replace('/*STYLE*/', () => src('style.css'))
-  .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js').replace('/*MAP*/', () => src('map.js')).replace('/*IMGCREDIT*/{}', () => JSON.stringify(credit)).replace("'/*BACKEND*/'", () => JSON.stringify(BACKEND)).replace("'/*GAMEV*/'", () => JSON.stringify(require('./package.json').version)));
+  .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js').replace('/*MAP*/', () => src('map.js')).replace('/*IMGCREDIT*/{}', () => JSON.stringify(credit)).replace("'/*BACKEND*/'", () => JSON.stringify(BACKEND).replace(/</g, '\\u003c')).replace("'/*GAMEV*/'", () => JSON.stringify(require('./package.json').version)));
 // v0.29.1: a Content Security Policy. Only the page's own two inline scripts run (allowed by their sha256), plus scripts
 // from this site (the 3D floor). 'wasm-unsafe-eval' is for the 3D models' meshopt decoder. The only outside address is the
 // class results database. tools/pack3d.js takes this out of the private Claude copy, whose host adds its own scripts.

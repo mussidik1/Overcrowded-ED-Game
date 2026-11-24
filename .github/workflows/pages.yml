@@ -25,15 +25,65 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # A manual run from another branch publishes nothing: say so in red, not as a green run of skipped jobs (R2.7-09l)
+  branch:
+    name: Deploys only from main
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - run: 'echo "FAIL: the Deploy workflow publishes only from main (this run is on ${{ github.ref_name }}). Nothing was published."; exit 1'
+
+  # The database rules on a throwaway PostgreSQL 17 (as live) and the game's side of the contract (supabase/tests/client_call.json):
+  # the same checks as the Tests workflow, in their own job, so nothing they install (apt, PyPI, Playwright's browser) runs where the
+  # site is packaged (audit R3.7-08). An emergency deploy (skip_db_check, with a reason) skips them too: they need those package servers.
+  contract:
+    name: Database rules and class-results test
+    if: github.ref == 'refs/heads/main' && !inputs.skip_db_check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: PostgreSQL 17 with pgcrypto
+        timeout-minutes: 8
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          apt-cache policy postgresql-17 | grep -q 'Candidate: [0-9]' || { echo "FAIL: apt.postgresql.org is unreachable (no PostgreSQL 17). For an emergency deploy, tick skip_db_check and give a reason."; exit 1; }
+          sudo apt-get install -y -q postgresql-17 >/dev/null
+          sudo locale-gen en_US.UTF-8 >/dev/null
+      - name: The database rules on a local Postgres
+        run: bash supabase/tests/run.sh
+        env:
+          PG_BIN: /usr/lib/postgresql/17/bin
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: The class-results UI test (the committed index.html)
+        timeout-minutes: 15
+        run: |
+          pip install -q playwright==1.65.2
+          python -m playwright install --with-deps chromium >/dev/null
+          timeout 600 python test/class_test.py
+
   build:
     name: Check and package
-    if: github.ref == 'refs/heads/main'   # a manual run from another branch publishes nothing
+    needs: contract
+    # from main only (a manual run from another branch publishes nothing); the contract job must pass, unless this is an emergency deploy
+    if: always() && github.ref == 'refs/heads/main' && (needs.contract.result == 'success' || (needs.contract.result == 'skipped' && inputs.skip_db_check))
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 30
     permissions:
       contents: read
       pages: read   # actions/configure-pages reads the Pages settings
     steps:
+      - name: An emergency deploy says why
+        if: inputs.skip_db_check
+        env:
+          SKIP_REASON: ${{ inputs.skip_reason }}
+        run: '[ -n "$(echo "$SKIP_REASON" | tr -d "[:space:]")" ] || { echo "FAIL: skip_db_check needs a reason (the skip_reason box). Nothing was published."; exit 1; }'
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -46,25 +96,6 @@ jobs:
         run: git diff --exit-code --stat index.html sw.js 3d/map3d.js || { echo "Rebuild with npm run build and commit index.html, sw.js and 3d/map3d.js"; exit 1; }
       - run: npm test
       - run: npm run stress
-      # The database rules on a throwaway PostgreSQL 17 (as live), and the game's side of the contract (supabase/tests/client_call.json):
-      # the same checks as the Tests workflow, so a release never waits on a run that wasn't green.
-      - name: PostgreSQL 17 with pgcrypto
-        run: |
-          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
-          sudo apt-get install -y -q postgresql-17 >/dev/null
-          sudo locale-gen en_US.UTF-8 >/dev/null
-      - name: The database rules on a local Postgres
-        run: bash supabase/tests/run.sh
-        env:
-          PG_BIN: /usr/lib/postgresql/17/bin
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: The class-results UI test (game side of the contract)
-        run: |
-          pip install -q playwright
-          python -m playwright install --with-deps chromium >/dev/null
-          timeout 600 python test/class_test.py
       # Before anything is published: the live database must have this release's migration (or a newer one) and its rules
       # (supabase/README.md, "Releasing"). The output says what failed and what to do. skip_db_check is for emergencies only.
       - name: Check the database rules
@@ -87,13 +118,13 @@ jobs:
   deploy:
     name: Deploy
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: always() && github.ref == 'refs/heads/main' && needs.build.result == 'success'
     timeout-minutes: 30
     permissions:
       contents: read
       pages: write
       id-token: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -106,17 +137,29 @@ jobs:
           sparse-checkout: |
             package.json
             CNAME
+            sw.js
       # After the deploy (audit R2.2-06, R2.3-03, R2.6-07): first the live page is this release (its version is in index.html), so the
       # checks after it test this deployment, not the last one; then the source, tests, docs and CLAUDE.md are not published. Checked
       # at the Pages address and at the custom domain (CNAME). The site can take a few minutes to update, so the version check retries
-      # for up to 5 minutes per address. If this fails, roll back: see "Rolling back" in CLAUDE.md.
+      # for up to about 15 minutes per address (30 tries of up to 20 s, 10 s apart). If this fails, roll back: see "Rolling back" in CLAUDE.md.
       - name: Check the live site
         env:
           SITE: ${{ steps.deployment.outputs.page_url }}
         run: |
           ver=$(node -p "require('./package.json').version")
           [ -n "$ver" ] || { echo "FAIL: no version in package.json"; exit 1; }
+          cache=$(grep -o "overcrowded-[0-9.]*-[0-9a-f]*" sw.js | head -1)   # the version and the build's hash: names this exact deployment (R2.7-09o)
+          [ -n "$cache" ] || { echo "FAIL: no cache name in sw.js"; exit 1; }
           sites="${SITE%/}"; dom=$(tr -d ' \n\r' < CNAME 2>/dev/null || true); [ -n "$dom" ] && [ "${sites#https://}" != "$dom" ] && sites="$sites https://$dom"   # the Pages address is the custom domain once one is set: check it once
+          gone() {   # gone <url>: a source file must answer 404. 200 fails at once; anything else (5xx, no answer) is retried, then reported as unchecked (R2.7-09n)
+            for i in 1 2 3 4 5 6; do
+              got=$(curl -s --max-time 20 -o /dev/null -w '%{http_code}' "$1?nocache=$RANDOM$i")
+              if [ "$got" = 404 ]; then echo "ok   $1 -> 404"; return 0; fi
+              if [ "$got" = 200 ]; then echo "FAIL $1 -> 200: a source file is published. Roll back (CLAUDE.md)."; return 1; fi
+              sleep 10
+            done
+            echo "FAIL $1 -> $got: couldn't confirm it isn't published (the site or network failed); re-run the check"; return 1
+          }
           want() {   # want <tries> <status> <url> [text the page must contain]
             n=$1; shift
             for i in $(seq 1 "$n"); do
@@ -129,8 +172,8 @@ jobs:
           fail=0
           for site in $sites; do
             want 30 200 "$site/index.html" "\"$ver\"" || { fail=1; continue; }   # this deployment is the one being served
-            for f in CLAUDE.md README.md src/engine.js src/ui.js src/backend.json test/golden.js docs/PRO_AUDIT.md docs/audit/BRIEF.md package.json build.js supabase/README.md supabase/migrations; do want 2 404 "$site/$f" || fail=1; done
-            want 6 200 "$site/sw.js" "$ver" || fail=1
+            for f in CLAUDE.md README.md src/engine.js src/ui.js src/backend.json test/golden.js docs/PRO_AUDIT.md docs/audit/BRIEF.md package.json build.js supabase/README.md supabase/migrations/applied.sha256; do gone "$site/$f" || fail=1; done
+            want 6 200 "$site/sw.js" "$cache" || fail=1
             want 6 200 "$site/3d/map3d.js" || fail=1
           done
           exit $fail
