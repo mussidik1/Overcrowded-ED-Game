@@ -171,8 +171,10 @@ const causeRight = (k, o) => { const p = mine(k, o || {}, 6600 + k.length); OC.t
 assert(/calcium/i.test(OC.CODE_CAUSE.k.c.find(c => c[2])[0]), 'potassium 7.9 in arrest: the right call starts with calcium, not an insulin drip');
 assert(!Object.values(OC.CODE_Q).flat().some(q => /cardioversion/i.test(q.c.find(c => c[2])[0])), 'no code card ever makes cardioversion the right answer in a pulseless patient');
 { const B = OC.CODE_BASE; assert(B.ed.vf > B.ed.pea && B.ed.pea > B.ed.asys && ['vf', 'pea', 'asys', 'trauma', 'limb'].every(r => B.field[r] < B.ed[r]), 'pulse-back odds: VF best, asystole worst; better in the ED than arriving in arrest'); }
-{ const p = mine('afib', {}, 7700); OC.crashNow(p.id); run(5);
-  assert(!p.tr.includes('meds') && !p.treat.meds && p.tr.includes('cardiovert'), 'an A-fib crash cancels the rate-control order, even a pending one (R1.2-05)'); }
+{ const p = mine('afib', {}, 7700); OC.signOrders(p.id, ['ecg', 'lab'], ['dilt']);
+  assert(p.tr.includes('meds') && p.treat.meds && p.treat.meds.st !== 'done', 'a diltiazem order is pending');
+  OC.crashNow(p.id); run(0.2);
+  assert(!p.tr.includes('meds') && !p.treat.meds && p.tr.includes('cardiovert'), 'an A-fib crash cancels the pending rate-control order (R1.2-05, R1.3-02)'); }
 { let longId = null; for (let s = 0; s < 60 && longId == null; s++) { const p = mine('afib', {}, 7800 + s); if (OC.afOnset(p) == null) longId = s; }
   const p = mine('afib', {}, 7800 + longId); p.extraTr = ['cardiovert'];
   let harm = 0; for (let i = 0; i < 60; i++) { const h = md().harm || 0; OC.harmCheck(p, 'cardiovert'); harm += (md().harm || 0) - h; }
@@ -260,3 +262,28 @@ assert(OC.codeCause({ id: 'a1', ck: 'asthma', age: 30 }) === 'trap' && /trapped/
   assert(pea < vfAll && field < vfAll, 'PEA is worse than VF; arriving in arrest is worse than arresting in the ED');
   assert(odds(P('vf', 2, 3, 0)) < vfAll && odds(P('vf', 1, 3, 0)) < odds(P('vf', 2, 3, 0)), 'each wrong rhythm check lowers the odds');
   assert(OC.CODE_GAP >= 2, `rhythm checks are at least 2 game minutes apart (${OC.CODE_GAP})`); }
+
+// ---- round 3, architecture (R1.3)
+{ OC.newGame('easy', 9100, { mode: 'md' }); OC.G.card = null;
+  const p = OC.pt(OC.trainPatient('arrest', 'room', { room: roomFree() })); p.prov = null; const t0 = p.tArrest;
+  run(5); const g = JSON.parse(JSON.stringify(OC.G)); OC.load(g); const q = OC.pt(p.id);
+  assert(q.tArrest === t0, 'reloading a current save doesn\'t restart an arrival-in-arrest\'s clock (R1.3-01)'); }
+{ const p = mine('stroke', { lkw: 60, over: false }, 9200); const r = sign(p, ['ct', 'lab'], ['asa', 'tnk']);
+  assert(r.harm === 1, 'aspirin before tenecteplase on one sheet is harm too: the order of the taps doesn\'t matter (R1.3-03)'); }
+{ const p = mine('salod', {}, 9300); toasts = []; sign(p, [], ['asa']); const t = toasts.find(x => /can hurt/.test(x)) || '';
+  assert(/already took/.test(t) && !/bleeding/.test(t), `aspirin in an aspirin overdose says why, not "bleeding risk": "${t}" (R1.3-04)`); }
+{ const p = mine('stroke', { lkw: 60 }, 9301); p.lkwT = null; assert(/known well/.test(OC.contraWhy(p, 'tnk')) && !/more than 4\.5/.test(OC.contraWhy(p, 'tnk')), 'an unknown onset is told the onset is unknown (R1.3-04)'); }
+{ const words = ['sepsis', 'septic', 'obstruction', 'stemi', 'nstemi', 'fibrillation', 'a-fib', 'overdose of', 'diabetic', 'ketoacidosis', 'pulmonary embolism', 'anaphyla'];
+  const bad = []; for (const [ck, M] of Object.entries(OC.CONTRA_WHY)) for (const [d, t] of Object.entries(M)) { const dx = ((OC.CASES.find(c => c.k === ck) || {}).dx || '').toLowerCase();
+    if ((dx && t.toLowerCase().includes(dx)) || words.some(w => t.toLowerCase().includes(w))) bad.push(`${ck}/${d}`); }
+  assert(!bad.length, `no harm reason names a diagnosis (R1.3-04)${bad.length ? ': ' + bad.join(', ') : ''}`); }
+{ OC.newGame('med', 9400, { mode: 'rn' }); OC.G.card = null;
+  for (let i = 0; i < 400 && !OC.inRooms().some(x => x.prov && !x.arrest && OC.staff(x.prov) && OC.present(OC.staff(x.prov))); i++) { OC.step(0.1); OC.botStep({ budget: 2 }); }
+  const p = OC.inRooms().find(x => x.prov && !x.arrest), s = OC.staff(p.prov); OC.toArrest(p, 'x'); run(6);
+  const w0 = p.code && p.code.wait; OC.staffGone(s, 'off'); run(2);
+  const other = OC.G.staff.find(x => OC.isProv(x) && OC.present(x) && x.id !== s.id && !x.pit); OC.assign(other.id, p.id); run(1);
+  assert(p.code && p.code.wait <= w0 + 3, `a code taken over counts only the minutes nobody ran it (${w0} then ${p.code && p.code.wait}) (R1.3-06)`); }
+{ const p = mine('afib', {}, 9500); OC.signOrders(p.id, ['ecg', 'lab'], ['dilt']); for (let i = 0; i < 300 && !(p.treat.meds && p.treat.meds.st === 'done'); i++) { if (OC.G.card && !OC.G.card.mine) OC.botStep({ budget: 0 }); OC.step(0.1); }
+  OC.crashNow(p.id); run(0.2); assert(/diltiazem/i.test(OC.rxName(p)), 'after a crash, the chart still names the diltiazem that was given (R1.3-07)'); }
+{ let threw = false; const keep = OC.CODE_Q.kidpea; delete OC.CODE_Q.kidpea; try { OC.lintCode(); } catch (e) { threw = true; } OC.CODE_Q.kidpea = keep;
+  assert(threw, 'a missing card set fails the load-time check (R1.3-08)'); }

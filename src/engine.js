@@ -471,19 +471,25 @@ const CONTRA_WHY_DRUG = { asa: 'it adds to the bleeding risk', heparin: 'a blood
   ketor: 'NSAIDs can make bleeding and heart attacks worse', ibu: 'NSAIDs can make bleeding and heart attacks worse', tnk: 'a clot buster can cause major bleeding' };
 const CONTRA_WHY = {
   stroke: { tnk: 'it is more than 4.5 hours since they were last known well (later needs perfusion imaging, which this game doesn\'t model)', heparin: 'no blood thinner drip in an acute stroke', enox: 'no blood thinner in an acute stroke', asa: 'no aspirin in the 24 hours after a clot buster' },
-  cpmod: { ntg: 'the pressure is under 90', morph: 'opioids drop a pressure under 90 further', fent: 'opioids drop a pressure under 90 further', hydro: 'opioids drop a pressure under 90 further', metop: 'with a low or borderline pressure, a fast rate or age over 70, a beta-blocker can push the heart into shock', ibu: 'NSAIDs are harmful in a possible heart attack', ketor: 'NSAIDs are harmful in a possible heart attack' },
+  cpmod: { ntg: 'the pressure is under 90', morph: 'opioids drop a pressure under 90 further', fent: 'opioids drop a pressure under 90 further', hydro: 'opioids drop a pressure under 90 further', metop: 'with a low or borderline pressure, a fast rate or age over 70, a beta-blocker can push the heart into shock', ibu: 'NSAIDs are harmful when chest pain could be the heart', ketor: 'NSAIDs are harmful when chest pain could be the heart' },
   cwp: { ibu: 'a heart attack isn\'t ruled out until the troponin is back', ketor: 'a heart attack isn\'t ruled out until the troponin is back', ntg: 'the pressure is under 90' },
   afib: { dilt: 'it slows a heart that is already holding no pressure', metop: 'it slows a heart that is already holding no pressure' },
   sbo: { reglan: 'it pushes the gut against a blockage' }, anaph: { epiarr: '1 mg IV is the cardiac arrest dose: with a pulse it can cause a heart attack' },
   asthma: { metop: 'beta-blockers tighten the airways' }, copd: { metop: 'beta-blockers tighten the airways' }, dka: { d50: 'the sugar is already high' },
   chb: { metop: 'it slows a heart that is already too slow', dilt: 'it slows a heart that is already too slow' }, od: { loraz: 'a sedative on top of an overdose can stop the breathing' },
   shock: { labet: 'the pressure is already too low', nicard: 'the pressure is already too low', metop: 'the pressure is already too low', furo: 'it drains volume from a patient in shock' },
-  sepsisw: { furo: 'it drains volume from a septic patient', labet: 'it lowers a pressure sepsis is already dropping' },
+  sepsisw: { furo: 'it drains fluid from a patient whose pressure is falling', labet: 'it lowers a pressure that is already falling' },
+  salod: { asa: 'more aspirin, on top of what they already took' }, apapod: { apap: 'more acetaminophen, on top of what they already took' },
   pe: { tnk: 'a stable clot doesn\'t need a clot buster: the bleeding risk is higher than the benefit' },
 };
 for (const k of ['strokew', 'lvo']) CONTRA_WHY[k] = CONTRA_WHY.stroke;
 for (const k of ['nstemi', 'stemi']) CONTRA_WHY[k] = CONTRA_WHY.cpmod;
-function contraWhy(p, k) { return (CONTRA_WHY[p.ck] || {})[k] || CONTRA_WHY_DRUG[k] || (p.dxK ? p.dx.toLowerCase() : 'it isn\'t safe for this patient (the case\'s lesson says why)'); }
+function contraWhy(p, k) {
+  if (STROKE_CASES.includes(p.ck) && k === 'tnk' && p.lkwT == null) return 'nobody knows when they were last known well, so the 4.5-hour window can\'t be confirmed';   // R1.3-04
+  const own = (CONTRA_WHY[p.ck] || {})[k]; if (own) return own;
+  if ((CONTRA[p.ck] || []).includes('@bleed') && BLEED_RISK.includes(k)) return CONTRA_WHY_DRUG[k] || 'it makes bleeding worse';   // the bleeding-risk class, only where bleeding is the reason
+  return 'it isn\'t safe for this patient (the case\'s lesson says why)';
+}
 // Drugs that make bleeding worse, as one class for the harm lists.
 const BLEED_RISK = ['heparin', 'enox', 'apixa', 'tnk', 'asa', 'ketor', 'ibu'];
 // v0.29.1: REQ_AGE adds a required drug by age: ampicillin (Listeria) in meningitis over 50.
@@ -1796,7 +1802,8 @@ const RX = { refill: 'a dose of the usual pill', tia: 'aspirin', copd: 'a steroi
   gastro: 'ondansetron', appy: 'pain control', chole: 'pain control', hipfx: 'pain control', chf: 'nitroglycerin and a diuretic', stone: 'ketorolac', dvt: 'an anticoagulant', migraine: 'prochlorperazine and diphenhydramine',
   cwp: 'aspirin', cpmod: 'aspirin', nstemi: 'aspirin and heparin', afib: 'diltiazem', asthma: 'a steroid', anaph: 'an antihistamine and a steroid', stemi: 'aspirin and heparin', burn: 'pain control', mcimin: 'pain control', mciyel: 'pain control', mciwr: 'a splint and pain control', vip: 'meclizine' };
 const rxName = p => {   // round 2 (R6.2-04): never name a drug that is contraindicated for this patient right now
-  const L = (RXOK[p.ck] || {}).meds, bad = p.id ? contraOf(p) : [], got = (p.drugs || []).find(d => !bad.includes(d) && (L ? L.includes(d) : DRUGS[d] && DRUGS[d].tx.includes('meds')));
+  const L = (RXOK[p.ck] || {}).meds, given = (p.tr || []).includes('meds') && p.treat && p.treat.meds, bad = p.id && !given ? contraOf(p) : [];   // R1.3-07: what was given keeps its name
+  const got = (p.drugs || []).find(d => !bad.includes(d) && (L ? L.includes(d) : DRUGS[d] && DRUGS[d].tx.includes('meds')));
   if (got) return DRUGS[got].n.toLowerCase();
   const first = (L || []).find(d => !bad.includes(d));
   return first ? DRUGS[first].n.toLowerCase() : RX[p.ck] && !bad.some(d => RX[p.ck].includes(DRUGS[d].n.toLowerCase())) ? RX[p.ck] : 'symptom treatment';
@@ -2188,7 +2195,8 @@ function codeSteps(p) {
 const codeWhy = (p, k) => codeFill(p, CODE_WHY[k] || '');
 function codeStart(p, quiet) {
   const ref = p.tArrest != null ? p.tArrest : p.tArrive;   // minutes of CPR before this team took over: from the arrest, or from the door
-  p.code = { r: codeRhythm(p), step: 0, right: 0, n: 0, shocked: false, t0: G.t, wait: Math.max(0, Math.round(G.t - ref)),
+  const prev = p.code, wait = prev && prev.tLeft != null ? prev.wait + Math.max(0, Math.round(G.t - prev.tLeft)) : Math.max(0, Math.round(G.t - ref));   // R1.3-06: a takeover counts only the minutes nobody ran it
+  p.code = { r: codeRhythm(p), step: 0, right: 0, n: 0, shocked: false, t0: G.t, wait,
     me: !quiet && G.mode === 'md' && p.prov === G.me && !G.pre && !G.train };
   if (p.code.me) codeCard(p);
 }
@@ -4827,13 +4835,18 @@ function lintCode() {
   for (const [k, x] of Object.entries(CODE_CAUSE)) q(`CODE_CAUSE.${k}`, x);
   for (const k of [...Object.keys(CAUSE_OF), ...TRAUMA_CASES, ...LIMB_CASES, ...Object.keys(BLEED_SRC)]) if (!cases.has(k)) bad.push(`code lists: no case ${k}`);
   for (const c of new Set(Object.values(CAUSE_OF))) if (!CODE_CAUSE[c]) bad.push(`CAUSE_OF: no card for ${c}`);
+  for (const k of ['vf', 'pea', 'asys', 'trauma', 'limb', 'kidvf', 'kidpea', 'kidasys']) if (!CODE_Q[k] || !CODE_Q[k].length) bad.push(`CODE_Q.${k}: missing`);   // R1.3-08: every set codeSteps can ask for
+  for (const c of ['bleed', 'look', 'air']) if (!CODE_CAUSE[c]) bad.push(`CODE_CAUSE.${c}: missing`);
+  for (const r of ['vf', 'pea', 'asys', 'trauma', 'limb']) if (!CODE_NAME[r]) bad.push(`CODE_NAME.${r}: missing`);
+  const texts = [...Object.values(CODE_Q).flat(), ...Object.values(CODE_CAUSE)].flatMap(x => [x.t, ...x.c.map(c => c[0])]).concat(Object.values(CODE_WHY));
+  for (const t of texts) for (const m of String(t).match(/\{[a-z0-9]+\}/g) || []) if (!['{kg}', '{epi}', '{amio}', '{j2}', '{j4}', '{src}'].includes(m)) bad.push(`unknown placeholder ${m} in "${t.slice(0, 40)}"`);
   for (const r of ['vf', 'pea', 'asys', 'trauma', 'limb']) for (const w of ['ed', 'field']) if (!(CODE_BASE[w][r] > 0 && CODE_BASE[w][r] < 1)) bad.push(`CODE_BASE.${w}.${r}`);
   if (bad.length) throw new Error('Code card problems:\n' + bad.join('\n'));
 }
 lintCode();
 const OC = {
   hooks, get G() { return G; }, load(g) { G = g; if (G && G.spec) for (const k in SPECS) if (!G.spec[k]) G.spec[k] = { mood: 0, at: 0 };
-    if (G && G.pts) for (const p of Object.values(G.pts)) if (p.arrest && p.tArrest == null) p.tArrest = G.t; /* a save from before v0.30: an arrest in progress gets its 20 minutes from the resume */ },
+    if (G && G.pts) for (const p of Object.values(G.pts)) if (p.arrest && p.tArrest == null && p.ck !== 'arrest') p.tArrest = G.t; /* a save from before v0.30: an in-ED arrest gets its 20 minutes from the resume (R1.3-01: arrivals in arrest count from the door, as before) */ },
   newGame, step, botStep,
   LEVELS, STARS, STARS_MD, ZONES, ZONE_NAME, ROOMS, SPECS, WORK, TREAT, ALERTS, GOALS, SCEN, PACKS, CASES, LANGS,
   LABS, IMGS, NEED, RES, IMG_NORMAL, detResult, DET_KIND, DET_NAME, needOf,
