@@ -15,6 +15,13 @@ const FILE = path.join(__dirname, 'golden.json');
 const UPDATE = process.argv.includes('--update');
 const VERSION = require('../package.json').version;
 
+// The state fingerprint ignores wording: strings longer than 24 characters (log lines, messages, notes) are blanked, so a copy edit
+// doesn't fail a shift, while ids, keys, numbers and outcomes still count (R1.2-01).
+const stateHash = () => {   // R2.2-01: a fingerprint of what happened (each patient's path and the shift's numbers), not of the state's shape
+  const pts = OC.G.order.map(id => OC.G.pts[id]).map(p => [p.ck, Math.round(p.tArrive * 10), p.loc, p.outcome || '', p.dsp, p.esi, Math.round((p.tDone || 0) * 10), p.room || '', p.prov || '', p.arrest ? 1 : 0, (p.tr || []).join('+')].join(':'));
+  const num = o => Object.keys(o || {}).sort().filter(k => typeof o[k] === 'number').map(k => k + '=' + Math.round(o[k] * 10));
+  return fnv(pts.join('|') + '#' + num(OC.G.stats).join(',') + '#' + num(OC.G.stats.md).join(',') + '#' + Math.round(OC.G.care));
+};
 function fnv(s) { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193); return (h >>> 0).toString(16).padStart(8, '0'); }
 const arrivals = () => OC.G.order.map(id => OC.G.pts[id]).filter(p => p.tArrive >= 0).map(p => `${p.ck}@${Math.round(p.tArrive * 10)}${p.src === 'ems' ? 'e' : ''}`);
 // new walk-ins (not return visits, which come from that player's own discharges): these must match all shift long on one code
@@ -33,7 +40,7 @@ function play(mode, level, scen, seed, style) {
   return OC.G.report;
 }
 
-const out = { version: VERSION, shifts: {}, streams: {}, codes: [], save: {}, answers: {} };
+const out = { version: VERSION, shifts: {}, streams: {}, codes: [], save: {}, answers: {}, codeKey: {}, radioKey: {} };
 
 // ---- shifts
 const RUNS = [];
@@ -47,7 +54,7 @@ for (const [mode, level, scen] of RUNS) {
     arrivals: a.length, arrivalsHash: fnv(a.join(',')),
     seen: R.seen, dc: R.dc, adm: R.adm, proc: R.proc, tx: R.tx, lwbs: R.lwbs, ama: R.ama, expired: R.expired, left: R.left,
     care: R.care, wait: R.wait, stars: R.stars, fail: R.fail || null, lit: R.lit, acc: R.acc,
-    stateHash: fnv(JSON.stringify(OC.G)),
+    stateHash: stateHash(),
   };
 }
 
@@ -62,15 +69,17 @@ for (const [mode, level] of [['rn', 'med'], ['rn', 'hard'], ['md', 'med']]) {
   out.streams[`${mode}/${level}`] = { sameEarlyArrivals: early(a) === early(b), sameWalkIns: wa === wb, hash: fnv(early(a)), walkHash: fnv(wa) };
 }
 
-// ---- codes
-OC.setCodeVersion(VERSION, []);
+// ---- codes: the bit layout, checked without the version salt so the fixtures don't change every release (R3.2-06);
+// every code must also round-trip under this version's salt.
+OC.setCodeVersion('', []);
 const levels = ['rush', 'easy', 'med', 'hard'], scens = Object.keys(OC.SCENS), packs = Object.keys(OC.PACKS);
 for (let i = 0; i < 20; i++) {
   const o = { mode: i % 2 ? 'md' : 'rn', level: levels[i % 4], scen: scens[i % scens.length], pack: packs[i % packs.length], seed: (i * 7919 + 13) % 131072 };
   const code = OC.classCode(o), back = OC.readCode(code);
-  out.codes.push({ in: o, code, roundTrip: !!back && back.mode === o.mode && back.level === o.level && back.scen === o.scen && back.pack === o.pack && back.seed === o.seed });
+  OC.setCodeVersion(VERSION, []); const cur = OC.readCode(OC.classCode(o)); OC.setCodeVersion('', []);
+  const same = b => !!b && !b.stale && b.mode === o.mode && b.level === o.level && b.scen === o.scen && b.pack === o.pack && b.seed === o.seed;
+  out.codes.push({ in: o, code, roundTrip: same(back) && same(cur) });
 }
-OC.setCodeVersion('', []);
 
 // ---- save round trip
 {
@@ -80,7 +89,22 @@ OC.setCodeVersion('', []);
   const saved = JSON.stringify(OC.G);
   go(t0 + 360); const unbroken = fnv(JSON.stringify(OC.G));
   OC.load(JSON.parse(saved)); go(t0 + 360); const resumed = fnv(JSON.stringify(OC.G));
-  out.save = { identical: unbroken === resumed, bytesAt3h: saved.length > 0 };
+  out.save = { identical: unbroken === resumed };
+  // the attending too, on four seeds: orders, results and the review list survive a reload (R1.2-02)
+  let mdSame = 0;
+  const mdPlayTo = to => { let n = 0; while (OC.G.t < to && !OC.G.over && n++ < 20000) { if (OC.G.card) { const c = OC.G.card; if (c.eid === 'code') { const q = OC.codeSteps(OC.pt(c.ctx.pid))[c.ctx.step]; OC.chooseCard(String(q.c.findIndex(x => x[2]))); } else OC.chooseCard(c.choices.find(x => !x.dis).k); } OC.step(0.1); if (n % 15 === 0) OC.mdPlay({ budget: 1, acc: 0.7, line: 1 }); } };
+  for (let s = 1; s <= 4; s++) { OC.newGame('med', 5000 + s, { mode: 'md' }); mdPlayTo(180); const m = JSON.stringify(OC.G); mdPlayTo(400); const a = fnv(JSON.stringify(OC.G)); OC.load(JSON.parse(m)); mdPlayTo(400); if (fnv(JSON.stringify(OC.G)) === a) mdSame++; }
+  out.save.attending = mdSame;
+  // the attending, saved mid-code with a rhythm-check card open (R3.2-03): the same card is waiting after the reload, and the shift plays on the same
+  const mdgo = to => { let n = 0; while (OC.G.t < to && !OC.G.over && n++ < 20000) { if (OC.G.card) { const c = OC.G.card; if (c.eid === 'code') { const q = OC.codeSteps(OC.pt(c.ctx.pid))[c.ctx.step]; OC.chooseCard(String(q.c.findIndex(x => x[2]))); } else OC.chooseCard(c.choices.find(x => !x.dis).k); } OC.step(0.1); } };
+  OC.newGame('easy', 9191, { mode: 'md' }); OC.G.card = null;
+  const free = OC.G.rooms.find(r => !r.pid && /^[0-9]+$/.test(r.id) && r.st === 'clean' && !r.closed && !r.iso);
+  const cp = OC.pt(OC.trainPatient('nstemi', 'room', { room: free.id })); cp.prov = OC.G.me; cp.mine = true; cp.ev = 'done'; OC.awaitOrders(cp); OC.toArrest(cp, 'golden');
+  OC.assign(OC.G.me, cp.id); let n = 0; while (!(OC.G.card && OC.G.card.eid === 'code') && n++ < 200) OC.step(0.1);
+  const mid = JSON.stringify(OC.G), cardThen = OC.G.card && OC.G.card.eid;
+  mdgo(OC.G.t + 60); const a1 = fnv(JSON.stringify(OC.G));
+  OC.load(JSON.parse(mid)); const cardAfter = OC.G.card && OC.G.card.eid; mdgo(OC.G.t + 60); const a2 = fnv(JSON.stringify(OC.G));
+  out.save.midCode = { card: cardThen === 'code' && cardAfter === 'code', identical: a1 === a2 };
 }
 
 // ---- answers: the textbook orders for each case
@@ -97,6 +121,12 @@ OC.setCodeVersion('', []);
   }
 }
 
+// ---- the ACLS/PALS code cards and the radio calls: the right answer to each question
+for (const [k, L] of Object.entries(OC.CODE_Q)) out.codeKey[k] = L.map(q => q.c.find(c => c[2])[0]);
+for (const [k, q] of Object.entries(OC.CODE_CAUSE)) out.codeKey['cause:' + k] = q.c.find(c => c[2])[0];
+for (const [k, L] of Object.entries(OC.SCEN)) out.radioKey[k] = L.map(q => (q.opts ? q.opts[q.r] : q.a ? 'yes' : 'no'));
+out.codeKey.hcg = [...OC.HCG_CASES].sort().join(' ');   // the cases where a woman of 12 to 55 needs a pregnancy test
+
 // ---- compare
 if (!UPDATE && !fs.existsSync(FILE)) { console.error('FAIL: test/golden.json is missing. Restore it from git, or run npm run golden:update on purpose.'); process.exitCode = 1; }
 else if (UPDATE) {
@@ -110,6 +140,7 @@ else if (UPDATE) {
   for (const sec of ['shifts', 'streams', 'save']) for (const k of new Set([...Object.keys(out[sec]), ...Object.keys(old[sec] || {})])) cmp(sec, k, out[sec][k], (old[sec] || {})[k]);
   out.codes.forEach((c, i) => cmp('codes', i, c, old.codes[i]));
   for (const k of new Set([...Object.keys(out.answers), ...Object.keys(old.answers || {})])) cmp('answers', k, out.answers[k], (old.answers || {})[k]);
+  for (const sec of ['codeKey', 'radioKey']) for (const k of new Set([...Object.keys(out[sec]), ...Object.keys(old[sec] || {})])) cmp(sec, k, out[sec][k], (old[sec] || {})[k]);
   if (!fails) console.log(`ok - golden: ${Object.keys(out.shifts).length} shifts, ${Object.keys(out.streams).length} stream checks, ${out.codes.length} codes, save round trip, ${Object.keys(out.answers).length} answer keys unchanged`);
   else { console.error(`FAIL: ${fails} golden difference(s). If they are intended, run: node test/golden.js --update, and say why in the commit.`); process.exitCode = 1; }
 }
@@ -117,5 +148,7 @@ else if (UPDATE) {
 const inv = (c, m) => { if (!c) { console.error('FAIL:', m); process.exitCode = 1; } else console.log('ok -', m); };
 inv(out.codes.every(c => c.roundTrip), 'every class code decodes to what made it');
 inv(out.save.identical, 'a saved and reloaded shift plays on exactly like an unbroken one');
+inv(out.save.attending === 4, `an attending shift saved and reloaded plays on exactly the same (${out.save.attending} of 4 seeds)`);
+inv(out.save.midCode.card && out.save.midCode.identical, 'an attending saved mid-code finds the same rhythm-check card after the reload, and plays on the same');
 inv(Object.values(out.streams).every(s => s.sameEarlyArrivals), 'two players on one shift get the same arrivals for the first two hours, however they play');
 inv(Object.values(out.streams).every(s => s.sameWalkIns), 'and the same new walk-ins all shift long');

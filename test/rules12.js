@@ -1,0 +1,181 @@
+// Audit round 2: fixes to the Phase 1 work, from the six reviewers' second pass. Every check drives the real game path (a real case,
+// a real crash or bleed, the real code cards), not a hand-built object (R6.2-14).
+// Clinical: R6.2-01 medical bleeds aren't trauma · R6.2-02 no beta-blocker or opioid in shock · R6.2-03 children get PALS doses ·
+// R6.2-04 feedback never names a harmful drug · R6.2-05 the cause and rhythm follow the case · R6.2-06 ACS scoring · R6.2-08 harm
+// says why · R6.2-09 traumatic arrest all at once · R6.2-10 VF needs a shock · R6.2-13 A-fib onset · R6.2-17 aspirin after a lytic.
+// Tech: R3.2-01 a code whose doctor leaves · R3.2-02 old saves · R3.2-04 rhythm checks two minutes apart · R3.2-08 blame.
+const OC = require('../src/engine.js');
+const assert = (c, m) => { if (!c) { console.error('FAIL:', m); process.exitCode = 1; } else console.log('ok -', m); };
+let toasts = []; OC.hooks.toast = (m, k) => toasts.push(m); OC.hooks.sound = () => {};
+const roomFree = () => (OC.G.rooms.find(r => !r.pid && /^[0-9]+$/.test(r.id) && r.st === 'clean' && !r.closed && !r.iso) || {}).id;
+const untilArrest = (p, mins) => { for (let i = 0; i < mins * 10 && !p.arrest; i++) { if (OC.G.card && !OC.G.card.mine) OC.botStep({ budget: 0 }); OC.step(0.1); } };
+const run = mins => { for (let i = 0; i < mins * 10 && !OC.G.over; i++) { if (OC.G.card && !OC.G.card.mine) OC.botStep({ budget: 0 }); OC.step(0.1); } };
+function mine(k, o, seed) {
+  OC.newGame('easy', seed || 1000 + k.length, { mode: 'md' }); OC.G.train = null; OC.G.card = null;
+  const p = OC.pt(OC.trainPatient(k, 'room', Object.assign({ room: roomFree() }, o || {}))); p.prov = OC.G.me; p.mine = true; p.ev = 'done'; OC.awaitOrders(p); return p;
+}
+const md = () => OC.G.stats.md;
+function sign(p, tests, treats) {
+  const h = md().harm || 0, x = md().ordExtra || 0, w = md().wrongDrug || 0;
+  const r = OC.signOrders(p.id, tests, treats);
+  return { ok: r.ok, harm: (md().harm || 0) - h, extra: (md().ordExtra || 0) - x, wrong: (md().wrongDrug || 0) - w };
+}
+// run my own code to the end, answering every card right (or wrong), and return the cards seen
+function runCode(p, right) {
+  const seen = []; OC.assign(OC.G.me, p.id);
+  for (let i = 0; i < 400 && p.arrest; i++) {
+    if (OC.G.card && OC.G.card.eid === 'code') {
+      const c = OC.G.card, q = OC.codeSteps(p)[c.ctx.step], ri = q.c.findIndex(x => x[2]);
+      seen.push({ t: OC.G.t, who: c.who, title: c.title, text: c.text, right: q.c[ri][0] });
+      OC.chooseCard(String(right ? ri : (ri + 1) % q.c.length));
+    } else if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(x => !x.dis).k);
+    OC.step(0.1);
+  }
+  return seen;
+}
+
+// ---- R6.2-01: a ruptured aneurysm or ectopic that arrests from bleeding is a medical bleed, not trauma
+for (const k of ['aaa', 'ectopic']) {
+  const p = mine(k, {}, 6100 + k.length); p.bb = null; p.bleed = 'mtp';
+  untilArrest(p, 40);
+  assert(p.arrest && !p.traumatic && OC.codeRhythm(p) === 'pea' && OC.codeCause(p) === 'bleed', `${k}: no massive transfusion, they arrest: hemorrhagic PEA, not a traumatic arrest`);
+  const cards = runCode(p, true);
+  assert(cards.length >= 3 && !cards.some(c => /decompress/i.test(c.right)) && cards.some(c => /transfusion/i.test(c.right)), `${k}: the right calls are blood and the surgeon, never chest decompression`);
+}
+{ const p = mine('mvc', {}, 6200); p.bb = null; p.bleed = 'mtp'; untilArrest(p, 40);
+  assert(p.arrest && OC.codeRhythm(p) === 'trauma', 'a crash victim who bleeds out is a traumatic arrest');
+  const cards = runCode(p, true);
+  assert(/all at once/i.test(cards[0].right) && /decompress/i.test(cards[0].right) && /drain/i.test(cards[1].right), 'traumatic arrest: everything at once first (R6.2-09), then the tamponade'); }
+
+// ---- R6.2-02: no beta-blocker or opioid in cardiogenic shock
+{ const p = mine('nstemi', {}, 6300); OC.crashNow(p.id); run(30);
+  const v = OC.vitalsOf(p);
+  assert(v.sbp < 90 && ['metop', 'morph', 'fent', 'ntg'].every(d => OC.contraOf(p).includes(d)), `NSTEMI in cardiogenic shock (${Math.round(v.sbp)}/${Math.round(v.dbp)}): metoprolol, opioids and nitroglycerin are all harm`);
+  const r = sign(p, [], ['metop']); assert(r.harm === 1, 'and ordering metoprolol there is scored as harm'); }
+{ const p = mine('stemi', {}, 6301); const r = sign(p, ['ecg', 'trop'], ['asa', 'heparin', 'fent']);
+  assert(!r.harm && !r.wrong && !r.extra, 'a stable STEMI: fentanyl is neutral, like morphine (R6.2-06)'); }
+
+// ---- R6.2-06: NSAIDs are harm in any ACS; aspirin is what fills chest pain; nitroglycerin is fine in chest pain
+for (const k of ['stemi', 'nstemi', 'cpmod']) { const p = mine(k, {}, 6400 + k.length); const r = sign(p, ['ecg', 'trop'], ['ketor']); assert(r.harm === 1, `${k}: ketorolac is harm, not just a wrong drug`); }
+{ const p = mine('cwp', {}, 6410); sign(p, ['ecg', 'trop'], ['apap']);
+  assert(OC.missNow(p).some(x => /aspirin/i.test(x)), 'low-risk chest pain: acetaminophen alone doesn\'t replace aspirin'); }
+{ const p = mine('cwp', {}, 6411); const r = sign(p, ['ecg', 'trop'], ['asa', 'ntg']); assert(!r.harm && !r.wrong && !r.extra, 'chest pain: aspirin and nitroglycerin are right'); }
+
+// ---- R6.2-04: feedback never names the drug that was just harm
+{ const p = mine('cwp', {}, 6420); sign(p, ['ecg', 'trop'], ['ketor']);
+  const miss = OC.missNow(p).join(' ');
+  assert(!/ketorolac/i.test(miss) && /aspirin/i.test(miss), `after ketorolac was harm, the hint asks for aspirin, not ketorolac (${miss})`); }
+{ const p = mine('afib', {}, 6430); OC.crashNow(p.id); run(10);
+  sign(p, [], ['synccv']);
+  assert(p.ordLog && /cardioversion/i.test(p.ordLog.why) && !/Diltiazem slows/.test(p.ordLog.why), 'unstable A-fib: the order summary says cardioversion, not diltiazem'); }
+
+// ---- R6.2-08: harm says why, and never gives away the diagnosis
+{ const p = mine('sbo', {}, 6440); toasts = []; sign(p, [], ['reglan']);
+  const t = toasts.find(x => /can hurt/.test(x)) || '';
+  assert(/blockage/.test(t) && !/obstruction/i.test(t), `metoclopramide harm says why without naming the diagnosis: "${t}"`); }
+{ const p = mine('stroke', { lkw: 300 }, 6441); toasts = []; sign(p, ['ct', 'lab'], ['tnk']);
+  assert(toasts.some(x => /4\.5 hours/.test(x)), 'a late lytic says it is past 4.5 hours'); }
+
+// ---- R6.2-03: children get PALS, by weight
+{ const p = mine('rsv', { age: 0 }, 6500); OC.toArrest(p, 'Arrested in the room');
+  const cards = runCode(p, true), kg = OC.kgOf(p);
+  assert(kg >= 4 && kg <= 11 && new RegExp(`${kg} kg`).test(cards[0].who) && /\d+ mo/.test(cards[0].who), `an infant (${OC.ageSex(p)}) is dosed for about ${kg} kg, the same months the card shows`);
+  assert(cards.length >= 2 && /kg/.test(cards[0].who) && /child/.test(cards[0].title), 'the card shows the child\'s age and weight');
+  assert(!cards.some(c => /(^|[^.\d])1 mg|300 mg/.test(c.right)) && cards.some(c => /\b0\.\d+ mg/.test(c.right)), `the right doses are per kilogram, never the adult 1 mg (${cards.map(c => c.right).join(' | ')})`); }
+{ let vf = 0; for (let i = 1; i <= 200; i++) if (OC.codeRhythm({ id: 'kid' + i, ck: 'rsv', age: 2 }) === 'vf') vf++;
+  assert(vf < 30, `children are mostly not shockable (${vf} of 200 VF)`); }
+{ const q = { id: 'k7', ck: 'asthma', age: 8 }; q.code = { r: 'vf' }; const steps = OC.codeSteps(q);
+  assert(/2 J\/kg/.test(steps[0].c.find(c => c[2])[0]) && /5 mg\/kg/.test(steps[2].c.find(c => c[2])[0]), 'VF in a child: 2 J/kg, then amiodarone 5 mg/kg'); }
+
+// ---- R6.2-05: the cause card and the rhythm follow the case
+const causeRight = (k, o) => { const p = mine(k, o || {}, 6600 + k.length); OC.toArrest(p, 'Arrested in the room'); return { p, cards: runCode(p, true) }; };
+{ const { p, cards } = causeRight('pe'); assert(OC.codeCause(p) === 'clot' && (OC.codeRhythm(p) !== 'vf') && (cards.length < 3 || /tenecteplase/i.test(cards[2].right)), 'PE arrest: the cause is the clot, and the call is a clot buster'); }
+{ const { p, cards } = causeRight('ptx'); assert(OC.codeCause(p) === 'tension' && (cards.length < 3 || /decompress/i.test(cards[2].right)), 'pneumothorax arrest: decompress'); }
+{ const { p } = causeRight('hypogly'); assert(OC.codeCause(p) === 'gluc', 'low sugar arrest: dextrose'); }
+{ const { p } = causeRight('od'); assert(OC.codeCause(p) === 'opioid', 'overdose arrest: breathing and naloxone'); }
+{ let vf = 0; for (const k of ['asthma', 'copd', 'od', 'ptx', 'pe']) for (let i = 1; i <= 60; i++) if (OC.codeRhythm({ id: k + i, ck: k, age: 50 }) === 'vf') vf++;
+  assert(vf === 0, 'breathing, clot and tension arrests are never VF'); }
+{ let hgb = 0; for (let i = 1; i <= 100; i++) { const q = { id: 'nb' + i, ck: 'cell', age: 50 }; q.code = { r: 'pea' }; if (OC.codeSteps(q).some(s => /Hemoglobin/.test(s.t))) hgb++; }
+  assert(hgb === 0, 'nobody without a bleed is told their hemoglobin is 5'); }
+
+// ---- R6.2-10: VF that is never shocked almost never comes back
+{ let rosc = 0; for (let s = 0; s < 80; s++) { const p = mine('nstemi', {}, 6700 + s); OC.toArrest(p, 'x'); p.code = null;
+    OC.assign(OC.G.me, p.id);
+    for (let i = 0; i < 400 && p.arrest; i++) {
+      if (OC.G.card && OC.G.card.eid === 'code') { const c = OC.G.card, q = OC.codeSteps(p)[c.ctx.step], ri = q.c.findIndex(x => x[2]); const wrong = q.c.findIndex((x, j) => j !== ri && !/^shock/i.test(x[0])); OC.chooseCard(String(wrong)); }
+      else if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(x => !x.dis).k);
+      OC.step(0.1);
+    }
+    if (p.code && p.code.r === 'vf' && p.dx === 'ROSC after cardiac arrest') rosc++; }
+  assert(rosc <= 4, `VF with no shock: ${rosc} of the VF arrests got a pulse back`); }
+
+// ---- R3.2-04: rhythm checks are about two minutes of CPR apart, not all at once
+{ const p = mine('nstemi', {}, 6800); OC.toArrest(p, 'x'); const cards = runCode(p, true);
+  assert(cards.length >= 2 && cards.every((c, i) => i === 0 || c.t - cards[i - 1].t >= OC.CODE_GAP - 0.2), `rhythm checks come ${OC.CODE_GAP} game minutes apart (${cards.map(c => Math.round(c.t)).join(', ')})`); }
+
+// ---- R3.2-01: the doctor running a code leaves: the code stops, the clock restarts, and someone can take it over
+{ OC.newGame('med', 6900, { mode: 'rn' }); OC.G.card = null;
+  for (let i = 0; i < 400 && !OC.inRooms().some(x => x.prov && !x.arrest && OC.staff(x.prov) && OC.present(OC.staff(x.prov))); i++) { OC.step(0.1); OC.botStep({ budget: 2 }); }
+  const p = OC.inRooms().find(x => x.prov && !x.arrest);
+  const s = OC.staff(p.prov); OC.toArrest(p, 'x'); run(2);
+  assert(p.ev === 'doing', 'their provider is running the code');
+  OC.staffGone(s, 'off'); run(1);
+  assert(p.arrest && p.ev === 'none' && !p.prov, 'the provider goes home mid-code: the patient is back on the board, still in arrest');
+  run(21);
+  assert(!p.arrest && /no code team/.test(p.dx), 'nobody takes it over for 20 minutes: they die, and it counts (no endless CPR)'); }
+
+// ---- R3.2-02: a save from before v0.30 with an arrest in progress doesn't kill the patient on resume
+{ const p = mine('nstemi', {}, 7000); OC.toArrest(p, 'x'); p.tArrest = undefined; p.tArrive = OC.G.t - 90;
+  const g = JSON.parse(JSON.stringify(OC.G)); OC.load(g); const q = OC.pt(p.id); run(2);
+  assert(q.arrest && q.tArrest != null, 'an arrest loaded from an old save gets its 20 minutes from the resume'); }
+
+// ---- R3.2-08: an arrest that never got a room isn't the attending's fault
+{ OC.newGame('med', 7100, { mode: 'md' }); OC.G.card = null;
+  const p = OC.pt(OC.trainPatient('nstemi', 'waiting', {})); OC.toArrest(p, 'Arrested in the waiting room'); p.tArrest = OC.G.t - 21;
+  const L0 = JSON.stringify(OC.G.ledger), mm0 = OC.G.stats.mm.length; OC.step(0.1);
+  assert(!p.arrest && p.loc === 'gone' && JSON.stringify(OC.G.ledger) === L0 && !OC.G.stats.mm.slice(mm0).some(x => /no code team/.test(x.what)) && OC.G.stats.noTeam === 1,
+    'an arrest that never got a room is counted, but isn\'t charged to the attending'); }
+
+// ---- R6.2-13: A-fib onset decides whether cardioversion of a stable patient is fair
+{ let shortId = null, longId = null;
+  for (let s = 0; s < 60 && (!shortId || !longId); s++) { const p = mine('afib', {}, 7200 + s); if (OC.afOnset(p) != null) shortId = shortId || s; else longId = longId || s; }
+  let p = mine('afib', {}, 7200 + shortId); let r = sign(p, ['ecg', 'lab'], ['dilt', 'synccv']);
+  assert(!r.extra && !r.harm, `stable A-fib that started ${OC.afOnset(p)} hours ago: cardioversion is a fair choice`);
+  p = mine('afib', {}, 7200 + longId); r = sign(p, ['ecg', 'lab'], ['dilt', 'synccv']);
+  assert(r.extra === 1, 'not sure when it started: cardioversion without a blood thinner is an extra (and a stroke risk)'); }
+
+// ---- R6.2-17: no aspirin on top of a clot buster in stroke
+{ const p = mine('stroke', { lkw: 60, over: false }, 7300); sign(p, ['ct', 'lab'], ['tnk']); const r = sign(p, [], ['asa']);
+  assert(r.harm === 1, 'aspirin after tenecteplase in a stroke is harm'); }
+
+// ---- R4.2-01: the code card's answers are really shuffled (the right one isn't always on top)
+{ const pos = [0, 0, 0, 0]; let n = 0;
+  for (let s = 0; s < 120; s++) { const p = mine('nstemi', {}, 7400 + s); OC.toArrest(p, 'x'); OC.assign(OC.G.me, p.id);
+    for (let i = 0; i < 400 && p.arrest; i++) {
+      if (OC.G.card && OC.G.card.eid === 'code') { const c = OC.G.card, q = OC.codeSteps(p)[c.ctx.step], ri = String(q.c.findIndex(x => x[2])); pos[c.choices.findIndex(x => x.k === ri)]++; n++; OC.chooseCard(ri); }
+      else if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(x => !x.dis).k);
+      OC.step(0.1);
+    } }
+  assert(pos.every(x => x > n * 0.15), `the right answer lands in every position (${pos.join(' / ')} of ${n})`); }
+// ---- R4.2-02: every answer gets a result card: right or wrong, the right call, and why
+{ const p = mine('nstemi', {}, 7600); OC.toArrest(p, 'x'); OC.assign(OC.G.me, p.id);
+  let res = null; for (let i = 0; i < 200 && !res; i++) {
+    if (OC.G.card && OC.G.card.eid === 'code') { const q = OC.codeSteps(p)[OC.G.card.ctx.step], ri = q.c.findIndex(x => x[2]); OC.chooseCard(String((ri + 1) % 4)); res = OC.G.card; }
+    else if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(x => !x.dis).k); else OC.step(0.1); }
+  assert(res && res.eid === 'coderes' && /Not this one/.test(res.title) && /The call:/.test(res.text), 'a wrong answer shows a result card with the right call'); }
+
+// ---- R1.2-01: content checks that a snapshot can't make (each one catches a plausible wrong edit)
+assert(/calcium/i.test(OC.CODE_CAUSE.k.c.find(c => c[2])[0]), 'potassium 7.9 in arrest: the right call starts with calcium, not an insulin drip');
+assert(!Object.values(OC.CODE_Q).flat().some(q => /cardioversion/i.test(q.c.find(c => c[2])[0])), 'no code card ever makes cardioversion the right answer in a pulseless patient');
+{ const B = OC.CODE_BASE; assert(B.ed.vf > B.ed.pea && B.ed.pea > B.ed.asys && ['vf', 'pea', 'asys', 'trauma', 'limb'].every(r => B.field[r] < B.ed[r]), 'pulse-back odds: VF best, asystole worst; better in the ED than arriving in arrest'); }
+{ const p = mine('afib', {}, 7700); OC.crashNow(p.id); run(5);
+  assert(!p.tr.includes('meds') && !p.treat.meds && p.tr.includes('cardiovert'), 'an A-fib crash cancels the rate-control order, even a pending one (R1.2-05)'); }
+{ let longId = null; for (let s = 0; s < 60 && longId == null; s++) { const p = mine('afib', {}, 7800 + s); if (OC.afOnset(p) == null) longId = s; }
+  const p = mine('afib', {}, 7800 + longId); p.extraTr = ['cardiovert'];
+  let harm = 0; for (let i = 0; i < 60; i++) { const h = md().harm || 0; OC.harmCheck(p, 'cardiovert'); harm += (md().harm || 0) - h; }
+  assert(harm > 0 && harm < 30, `cardioversion of A-fib of unknown onset sometimes causes a stroke (${harm} of 60)`); }
+{ const p = mine('stroke', { lkw: 60 }, 7900); p.lkwT = null; assert(!OC.lyticWindowOk(p) && OC.contraOf(p).includes('tnk'), 'unknown stroke onset is outside the window, in every rule that asks (R1.2-06)'); }
+{ let threw = false; const keep = OC.CODE_Q.vf[0].c[0][2]; OC.CODE_Q.vf[0].c[0][2] = 0; try { OC.lintCode(); } catch (e) { threw = true; } OC.CODE_Q.vf[0].c[0][2] = keep;
+  assert(threw, 'a code card with no right answer fails the load-time check (R1.2-07)'); }
+assert(OC.CODE_AI_Q < 0.67, 'a code handed to the computer doctor scores below a player who gets every rhythm check right (and no better than 2 of 3)');
+{ const L = OC.HCG_CASES; assert(['appy', 'dissect', 'pe', 'mpe', 'od', 'sbo'].every(k => L.has(k)), 'the pregnancy-test list still holds the cases that need it'); }

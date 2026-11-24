@@ -19,7 +19,7 @@ Run this by hand on a real phone before each merge into `main`, after `npm test`
 ## Attending (Manic Monday)
 - [ ] Open your patient; sign orders from at least two menus.
 - [ ] Results come back; pick a diagnosis; make the disposition call.
-- [ ] A patient of yours in cardiac arrest shows **Run the code**, and the code resolves.
+- [ ] A patient of yours in cardiac arrest shows **Run the code** with a countdown; each rhythm check is a card with a result card after it, and the code resolves.
 - [ ] Answer a radio call; the result card explains the answer.
 
 ## End and resume
@@ -27,7 +27,7 @@ Run this by hand on a real phone before each merge into `main`, after `npm test`
 - [ ] Finish a Five-Minute Rush; the end-of-shift report shows scores, stars and the M&M lines.
 
 ## Class code
-- [ ] Make a code; it shows on screen without sideways scrolling.
+- [ ] Make a code; it shows on screen without sideways scrolling. (Known open at v0.30.0: audit R4-02 and R4-03, the sheet scrolls sideways on phones. Note it, don't block on it.)
 - [ ] Enter the code on a second device; both get the same first patients.
 - [ ] A mistyped code is refused before Start.
 

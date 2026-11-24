@@ -906,6 +906,7 @@ function ptSheet(G, p) {
   if (p.ev === 'done' && E.examOf(p) && p.loc !== 'gone') kv.push(['Exam', esc(E.examOf(p))]);
   if (p.tag) kv.push(['Field tag', `${cap(p.tag)}: ${{ red: 'immediate', yellow: 'can wait a little', green: 'walking wounded' }[p.tag]}`]);
   if (p.lkwT != null && p.alertOn) kv.push(['Onset', `Last known well <b>${E.clock(p.lkwT)}</b> · the thrombolytic has to be in by ${E.clock(p.lkwT + E.LYTIC_WINDOW)}`]);
+  if (p.ck === 'afib' && p.ev === 'done') { const h = E.afOnset(p); kv.push(['Onset', h != null ? `Started about <b>${h} hours</b> ago` : 'Not sure when it started: <b>at least a few days</b>']); }
   if (p.iso && p.screen !== 'pending') kv.push(['Isolation', p.iso === 'air' ? 'Airborne. Room 8 or 16.' : 'Droplet. Mask, and a room with a door.']);
   if (p.sitter) kv.push(['Safety', 'Needs a safe room (19 or 20) or a 1:1 sitter']);
   if (p.bleed === 'mtp') kv.push(['Bleeding', p.bb ? 'Massive transfusion activated' : '<b>Hemorrhage. Activate MTP.</b>']);
@@ -923,7 +924,8 @@ function ptSheet(G, p) {
   if (Object.keys(p.treat).some(k => p.treat[k].st === 'verify')) b.push(`<button type="button" data-act="override" data-arg="${p.id}">Pull meds on override</button>`);
   if (p.bleed === 'prbc' && (!p.bb || p.bb.st === 'xm')) b.push(`<button type="button" data-act="oneg" data-arg="${p.id}">Emergency-release O-neg (${G.blood.oneg} left)</button>`);
   if (p.alert === 'trauma' && !p.bb && p.bleed !== 'mtp') b.push(`<button type="button" data-act="mtp" data-arg="${p.id}">Activate MTP</button>`);
-  if (p.loc === 'room' || p.loc === 'waiting') { const recent = p.lastUpdate != null && G.t - p.lastUpdate < 30; b.push(`<button type="button" data-act="upd" data-arg="${p.id}" ${recent ? 'disabled' : ''}>${recent ? 'Updated recently' : 'Update them on the plan'}</button>`); }
+  const dead = ['family', 'morgue', 'morguing'].includes(p.dsp);
+  if ((p.loc === 'room' || p.loc === 'waiting') && !dead) { const recent = p.lastUpdate != null && G.t - p.lastUpdate < 30; b.push(`<button type="button" data-act="upd" data-arg="${p.id}" ${recent ? 'disabled' : ''}>${recent ? 'Updated recently' : 'Update them on the plan'}</button>`); }
   if (p.loc === 'room' && E.isBoarder(p)) b.push(`<button type="button" data-act="zone" data-arg="hold">${hasHold() ? 'Change the hold nurse…' : 'Assign a hold nurse…'}</button>`);
   if (p.loc === 'room') {
     b.push(`<button type="button" data-act="stat" data-arg="${p.id}">${p.stat ? 'Clear STAT' : PLAIN() ? 'Mark STAT: first in line' : 'Mark STAT'}</button>`);
@@ -947,7 +949,7 @@ function mdPrimary0(p, G) {
   if (p.loc !== 'room') return `<p class="hint">The charge nurse is working on a room for ${esc(p.name.split(' ')[0])}.</p>`;
   if (!p.prov && E.needsProv(p)) return `<div class="prim">${mtpBtn}<button type="button" class="big ${p.arrest ? 'bad' : 'act'}" data-act="see" data-arg="${p.id}">${p.arrest ? 'Run the code' : 'See this patient'}</button><p class="hint" style="margin:0">${p.arrest ? 'Every minute without a doctor lowers the odds. Another doctor takes it in a minute if you don\'t.' : 'Leave them too long and another provider picks them up.'}</p></div>`;
   if (p.arrest && mine(p)) return p.ev === 'none'   // audit R5-01: your own patient in arrest
-    ? `<div class="prim"><button type="button" class="big bad" data-act="see" data-arg="${p.id}">Run the code</button><p class="hint" style="margin:0">Your patient has <b>no pulse</b>. Every minute without a doctor lowers the odds. After ${E.ARREST_NO_TEAM} minutes they are gone.</p></div>`
+    ? `<div class="prim"><button type="button" class="big bad" data-act="see" data-arg="${p.id}">Run the code</button><p class="hint" style="margin:0">Your patient has <b>no pulse</b>. Every minute without a doctor lowers the odds. <b><span data-cd="${(p.tArrest != null ? p.tArrest : p.tArrive) + E.ARREST_NO_TEAM}"></span></b> before they are gone.</p></div>`
     : `<p class="hint">You're running the code. CPR is going.</p>`;
   if (!mine(p)) {
     const s = E.staff(p.prov), take = p.ev === 'q' && !p.arrest;
@@ -1005,7 +1007,8 @@ function orderMenus(chip, o) {
   let med = '';
   for (const [c, nm] of E.DRUG_CLASS) { const ids = byC(c); med += omHead('med:' + c, nm, cnt(ids)) + omBody('med:' + c, `<div class="ogrid o3">${ids.map(dchip).join('')}</div>`); }
   h += M('med', 'Medications', 'By drug class', medIds, `<div class="om-sub">${med}</div>`);
-  h += M('resus', 'Resuscitation drugs', 'Arrest, unstable rhythms, shock', byC('resus'), `<div class="ogrid o3">${byC('resus').map(dchip).join('')}</div>`);
+  const resusProc = ['synccv', 'tcp'].filter(k => E.PROC[k]);   // R4.2-05: the shocks and pacing live with the drugs for unstable rhythms too
+  h += M('resus', 'Resuscitation', 'Arrest, unstable rhythms, shock', byC('resus').concat(resusProc), `<div class="ogrid o3">${byC('resus').map(dchip).join('')}${resusProc.map(k => chip('r', k, E.PROC[k].n, pl ? E.PROC[k].p : '')).join('')}</div>`);
   for (const [id, nm, keys] of E.ORDER_MENUS) {
     const chips = keys.map(k => E.DRUGS[k] ? dchip(k) : E.PROC[k] ? chip('r', k, E.PROC[k].n, pl ? E.PROC[k].p : '') : chip('r', k, (ORDER_TX.find(x => x[0] === k) || [k, k])[1], pl ? (ORDER_TX.find(x => x[0] === k) || [])[2] || '' : ''));
     h += M(id, nm, '', keys, `<div class="ogrid o3">${chips.join('')}</div>`);
@@ -1293,6 +1296,20 @@ const GLOSS = [
     ['Temp', 'Temperature, in Fahrenheit. 100.4 or more is a fever.'],
     ['Alert', 'A warning an ambulance calls in for a patient who can’t wait (trauma, stroke, heart attack, sepsis), so the right team is standing in the room.'],
     ['Code', 'A cardiac arrest: the heart has stopped. The team does CPR.'],
+    ['CPR', 'Cardiopulmonary resuscitation: hard, fast chest compressions and breaths that keep blood moving while the heart is stopped.'],
+    ['VF', 'Ventricular fibrillation: the heart quivers instead of pumping. Shockable: defibrillate right away.'],
+    ['Pulseless VT', 'Ventricular tachycardia with no pulse: a fast rhythm that pumps nothing. Shockable, like VF.'],
+    ['PEA', 'Pulseless electrical activity: a rhythm on the monitor, but no pulse. Not shockable: CPR, epinephrine, and find the cause.'],
+    ['Asystole', 'A flat line on the monitor: no electrical activity. Not shockable.'],
+    ['Defibrillation', 'A strong shock that resets a quivering heart (VF or pulseless VT).'],
+    ['ROSC', 'Return of spontaneous circulation: the pulse comes back after a cardiac arrest.'],
+    ['H’s and T’s', 'The reversible causes of a cardiac arrest. H: hypovolemia (low volume), hypoxia (low oxygen), hydrogen ions (acid), hypo- or hyperkalemia (potassium), hypothermia (cold). T: tension pneumothorax, tamponade, toxins, thrombosis (a clot in the heart or lungs).'],
+    ['Tension pneumothorax', 'Air trapped outside a lung, pressing on the heart. Fixed by decompressing the chest with a needle or a cut.'],
+    ['Tamponade', 'Fluid around the heart squeezing it so it can’t fill. Fixed by draining it.'],
+    ['A-fib', 'Atrial fibrillation: a fast, irregular rhythm from the top of the heart.'],
+    ['Synchronized cardioversion', 'A shock timed to the heartbeat, for a fast rhythm that has a pulse but is crashing the blood pressure.'],
+    ['PALS', 'Pediatric Advanced Life Support: the children’s version of ACLS. Doses go by weight.'],
+    ['ACLS', 'Advanced Cardiovascular Life Support: the adult algorithms for cardiac arrest and dangerous rhythms.'],
     ['Shock', 'Too little blood reaching the organs. Fast heart rate, low blood pressure.'],
     ['Recheck', 'Repeating the vital signs of someone in the waiting room, to catch people who are sicker than their triage level.'],
     ['Complaint', 'What the patient came in for, in a few words.'],
@@ -1302,7 +1319,7 @@ const GLOSS = [
     ['Under-triaged', 'Given an ESI number too low for how sick the patient really is. A recheck catches it.'],
     ['STAT', 'Right now. Marking a patient STAT moves their tests and treatments to the front of the line.'],
     ['GCS', 'Glasgow Coma Scale. How awake someone is, from 3, no response, to 15, fully awake.'],
-    ['Last known well', 'The last time anyone saw the patient acting normally. The clot-dissolving drug for a stroke can only be given within four and a half hours of it.'],
+    ['Last known well', 'The last time anyone saw the patient acting normally. The clot-dissolving drug for a stroke is given within four and a half hours of it. Later needs advanced brain imaging, which this ED doesn’t have.'],
     ['Red, yellow, green tag', 'At a scene with many patients, crews tag each one. Red: treat now. Yellow: can wait a little. Green: walking wounded.'],
   ]],
   ['Tests', [
@@ -1350,7 +1367,7 @@ const GLOSS = [
     ['Naloxone', 'The drug that reverses an opioid overdose.'],
     ['Aspirin', 'Keeps a clot in a heart artery from growing. Given for chest pain that may be the heart. It’s inside the Medications order.'],
     ['Analgesia', 'Pain control.'],
-    ['Epinephrine', 'Adrenaline. The treatment for a severe allergic reaction.'],
+    ['Epinephrine', 'Adrenaline. A shot in the thigh for a severe allergic reaction; 1 mg by vein every 3 to 5 minutes in a cardiac arrest (0.01 mg/kg in a child).'],
     ['Insulin drip', 'Insulin given steadily into a vein, for dangerously high blood sugar.'],
     ['Nebulizer', 'A mist of medicine to breathe in, for asthma and COPD.'],
     ['BiPAP', 'A tight mask that pushes air in, to help a tired patient breathe.'],
@@ -1836,7 +1853,7 @@ const LESSONS = {
     { id: 'k1', wait: true, title: 'Stroke alert', text: `An ambulance is bringing [[Helen]], 68. She can’t move her right side.\nThe **stroke alert** calls **neurology** and saves the **CT** scanner for her.`,
       setup: () => ({ pt: E.trainPatient('stroke', 'alert', { name: 'Helen V.', age: 68, sex: 'F', unit: 'Medic 14', eta: 4, lkw: 50, bpOver: true }) }), done: lRoomed },
     { id: 'k2', title: 'Time is brain', text: () => `Every minute blocked, brain dies.\nTap **${lRoom()}**, then **See this patient**.`, ...seeStep('pt') },
-    { id: 'k3', wait: true, title: 'In the room', text: () => `Right side weak, speech slurred.\n**Last known well: ${E.clock(LP().lkwT)}**. The clot drug must go in within **4½ hours** of that.`, done: lExamined },
+    { id: 'k3', wait: true, title: 'In the room', text: () => `Right side weak, speech slurred.\n**Last known well: ${E.clock(LP().lkwT)}**. The clot drug must go in within **4½ hours** of that (later needs advanced imaging we don’t have).`, done: lExamined },
     { id: 'k4', next: true, title: 'Clot or bleed', text: `A **CT** shows if it’s a **clot** or a **bleed**.\nA **thrombolytic** dissolves clots, but it makes a bleed worse. So **CT first**.`},
     { id: 'k5', next: true, title: 'Her pressure is too high', text: () => `Her BP is **${lBP()}**. The clot drug’s limit is **185/110**.\nAbove that, the brain can bleed. Add **blood pressure control**. The nurse waits until it’s down.`},
     { id: 'k6', title: 'Stroke orders', text: `Tap **her room**. Then **CT head**, **BMP**, **Labetalol** (Medications, Heart and blood pressure), **Tenecteplase** (Clots), **Sign**.\nThe BMP checks sugar. Low sugar can look just like a stroke.`, ...ordStep('pt', [['t', 'ct'], ['t', 'lab'], ['r', 'bp'], ['r', 'tnk']]) },
@@ -1844,6 +1861,20 @@ const LESSONS = {
       done: () => { const p = LP(); return !!(p.treat.tnk && p.treat.tnk.st === 'done') || p.loc === 'gone'; } },
     { id: 'k8', wait: true, title: 'After the drug', text: `Neurology admits her to the **ICU** to watch for bleeding.`, done: lLeft },
     { id: 'k9', final: true, title: 'Stroke: the short version', text: `**Looks like**: sudden face droop, weak arm or leg, slurred speech.\n**Order**: CT, labs, thrombolytic. BP control if over 185/110.\n**Clock**: CT in 25, drug in 60.\n**Charge nurse**: room her now, keep CT free.` },
+  ] },
+  arrest: { name: 'Cardiac arrest', sys: 'cardio', blurb: 'Shockable or not. Epinephrine, amiodarone, the H’s and T’s. Children and injuries.', steps: [
+    { id: 'ca0', next: true, title: 'No pulse', text: `**Cardiac arrest**: the heart has stopped pumping. No pulse, not breathing.\nThe team starts **CPR** (hard, fast chest compressions and breaths) at once, and the attending **runs the code**.` },
+    { id: 'ca1', next: true, title: 'Read the monitor', text: `The **rhythm** picks the path.\n**Shockable:** **VF** (a quivering heart) or **pulseless VT**. **Not shockable:** **PEA** (a rhythm with no pulse) or **asystole** (a flat line).` },
+    { id: 'ca2', next: true, title: 'Shockable', text: `**VF:** shock (**defibrillate**) right away, then **2 minutes of CPR**.\nStill VF? Shock again, then **epinephrine 1 mg IV** every 3 to 5 minutes. After the third shock: **amiodarone 300 mg**.` },
+    { id: 'ca3', next: true, title: 'Not shockable', text: `**PEA or asystole:** no shock. CPR, and **epinephrine 1 mg IV** as soon as you can.\nThen find the cause, the **H’s and T’s**: low **volume**, low **oxygen**, **acid**, **potassium**, **cold**; **tension** pneumothorax, **tamponade**, **toxins**, a **clot**.` },
+    { id: 'ca4', next: true, title: 'Children and injuries', text: `**Children** get doses **by weight**: epinephrine **0.01 mg/kg**, shocks **2, then 4 J/kg**. Most child arrests start with **breathing**.\n**Injury:** fix the causes **all at once**: stop the bleeding, give **blood**, secure the airway, **decompress the chest**.` },
+    { id: 'ca5', final: true, title: 'Cardiac arrest: the short version', text: `Your patient loses their pulse? Tap **Run the code**. Each **rhythm check** is a card, about two minutes apart.\nRight calls and a fast start raise the odds of **ROSC** (a pulse coming back). Nobody runs it for 20 minutes, and they die.` },
+  ] },
+  tachy: { name: 'A fast heart that’s crashing', sys: 'cardio', blurb: 'A-fib: stable or unstable. Slow it, or shock it in time.', steps: [
+    { id: 'ta0', next: true, title: 'A fast heart', text: `**A-fib** (atrial fibrillation) is a fast, irregular rhythm. Most patients are **stable**: the pressure holds.\nStable: **slow the rate** with **diltiazem** or **metoprolol**, and think about a **blood thinner**.` },
+    { id: 'ta1', next: true, title: 'Unstable', text: `**Unstable** means the rhythm is hurting them: **low pressure**, **chest pain**, **confusion**, **short of breath**.\nNow the drugs that slow the heart can drop the pressure further: **don’t give them**.` },
+    { id: 'ta2', next: true, title: 'Shock it', text: `Unstable: **synchronized cardioversion**, a shock **timed to the heartbeat**, with sedation if there’s time.\nIt’s on the order sheet, under **Procedures**.` },
+    { id: 'ta3', final: true, title: 'A fast heart: the short version', text: `Stable A-fib that started **under 48 hours** ago can be shocked back too.\nLonger, or **not sure** when it started? A clot may be waiting in the heart: a **blood thinner** or a heart **ultrasound** first.` },
   ] },
   heart: { name: 'Heart attack', sys: 'cardio', blurb: 'The ECG. A STEMI alert. Door to balloon.', steps: [
     { id: 'h0', next: true, title: 'Heart attack', text: `A **heart attack** is a blocked heart artery. The muscle behind it starts to die.\nIt feels like **chest pressure**, often with sweating or arm or jaw pain.\nFirst test: an **ECG**, a quick heart tracing.`},
@@ -2542,6 +2573,16 @@ function save(force) {
 }
 // v0.29.1: saves carry the version. A class shift saved on another version is not resumed: it would no longer be the class's shift.
 function readSave() { try { const s = localStorage.getItem('oc-save'); if (!s) return null; const d = JSON.parse(s); return d && d.G && d.G.v === 5 && !d.G.over && !(d.G.code && d.ver !== GAME_V) ? d : null; } catch (e) { return null; } }
+function staleClassNote() {   // round 2 (R3-08): a class shift saved on another version can't resume; tell the player once
+  try {
+    const d = JSON.parse(localStorage.getItem('oc-save') || 'null');
+    if (!d || !d.G || d.G.over || !d.G.code || d.ver === GAME_V) return;
+    const key = d.G.code + '|' + (d.ver || '');
+    if (store('oc-save-noted') === key) return;
+    store('oc-save-noted', key);
+    toast(`Your class shift (code ${d.G.code}) was saved on ${d.ver ? 'v' + d.ver : 'an older version'} and can’t continue on v${GAME_V}: the shift would change. Start it again with the code, or ask your instructor for a new one.`, 'info', true);
+  } catch (e) { /* no save */ }
+}
 function resumeSave() {
   const d = readSave(); if (!d) { toast('No saved shift on this device', 'bad'); return; }
   E.load(d.G); U.lvl = d.lvl; U.mode = d.G.mode || 'rn'; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = true; U.speed = 1; U.msgs = []; U.msgNew = 0;
@@ -2643,14 +2684,14 @@ function reportHTML(R, ledger, at) {
   const LED = { md: 'Patients you saw', orders: 'Orders', harm: 'Harm and untreated patients', dispo: 'Disposition calls', flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration <small>goals executives set, and requests you refused</small>', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood', transfer: 'Transfers', gray: 'Gray-zone calls', chair: 'Admitted patients in chairs', experience: 'Complaints' };
   const rows = Object.entries(led).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LED[k] || k}</td><td class="${v < 0 ? 'neg' : 'pos'}">${v > 0 ? '+' : ''}${Math.round(v)}</td></tr>`).join('');
   const t = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
-  return `<div class="card rep"><h2>${R.fail === 'fired' ? 'Your group let you go' : R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2>${scoreCardsHTML(R, led, LED)}${litHTML(R)}<p class="verdict">${R.fail === 'fired' ? 'Legal risk reached 75%. Too many missed diagnoses and harmed patients, and the group ended your contract mid-shift. Review the misses below.' : R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
+  return `<div class="card rep"><h2>${R.fail === 'fired' ? 'Your group let you go' : R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2>${scoreCardsHTML(R, led, LED)}${litHTML(R)}<p class="verdict">${R.fail === 'fired' ? 'Legal risk reached 75%. Too many missed diagnoses and harmed patients, and the group ended your contract mid-shift. Review the misses below.' : R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars]}${R.expired ? ` ${R.expired} patient${R.expired === 1 ? '' : 's'} died in the department.` : ''} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
 <p class="rep-meta">${R.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${esc(L.name)}${R.scen && R.scen !== 'none' ? ' · ' + esc(E.SCENS[R.scen].name) : ''} · ${new Date(at || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · Name: <span class="rep-name">&nbsp;</span></p>${R.code || R.realSec ? `<p class="rep-meta rep-class">${R.code ? `Class code <b>${esc(R.code)}</b>` : ''}${R.code && R.realSec ? ' · ' : ''}${R.realSec ? esc(realTxt(R).replace(/^played/, 'Played')) : ''}${R.bedFirst ? ` · ${R.bedFirst} bedded before registration` : ''}</p>` : ''}
 
 ${mmHTML(R)}${mdReportHTML(R, t)}
 <h4>Where your points came from</h4><table class="ledger">${rows || t('Nothing yet', '0')}</table>
 <details class="rep-more"><summary>All the numbers</summary>
 ${metricsHTML(R, t)}
-${R.mode === 'md' ? mdDeptHTML(R, t) : `<h4>Patients</h4><table>${t('Arrived this shift', R.seen)}${t('Discharged home', R.dc)}${t('Sent home from triage', R.pitDc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('Left against medical advice', R.ama)}${t('72-hour returns', R.returns)}${t(`Still in the ED at ${E.clock(E.LEVELS[R.level] ? E.LEVELS[R.level].shift : 720)}`, R.left)}</table>
+${R.mode === 'md' ? mdDeptHTML(R, t) : `<h4>Patients</h4><table>${t('Arrived this shift', R.seen)}${t('Died in the department', R.expired || 0)}${t('Discharged home', R.dc)}${t('Sent home from triage', R.pitDc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('Left against medical advice', R.ama)}${t('72-hour returns', R.returns)}${t(`Still in the ED at ${E.clock(E.LEVELS[R.level] ? E.LEVELS[R.level].shift : 720)}`, R.left)}</table>
 <h4>EMS and the Box</h4><table>${t('Average EMS wall time (arrival to hand-off)', R.wallAvg + 'm')}${t('EMS handed off to the waiting room', R.offloads)}${t('Units on the wall over 30 min', R.wallOver)}${t('Medical direction calls sent to a doctor', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Alert reports taken', `${R.boxN.ans} of ${R.boxN.ans + R.boxN.miss}`)}${t('Alert time goals met', `${R.goalsMet} of ${R.goalsMet + R.goalsMiss}`)}${t('Ambulances diverted', `${R.diverted} (${R.yellowMins}m yellow, ${R.redMins}m red)`)}</table>
 <h4>Outages and diversion</h4><table>${R.outages.length ? R.outages.map(o => t(`${esc(E.OUTAGES[o.k].name)} at ${E.clock(o.t0)}`, o.divertAt == null ? `No ${esc(E.DIVERTS[E.OUTAGES[o.k].fix].name)}${o.misses ? ` · ${o.misses} came anyway` : ''}` : `${esc(E.DIVERTS[E.OUTAGES[o.k].fix].short)} divert in ${Math.round(o.divertAt - o.t0)}m${o.misses ? ` · ${o.misses} came first` : ''}${o.after ? ` · ${o.after}m too long` : ''}`)).join('') : t('Nothing broke this shift', '')}${R.divertExtra ? t('Minutes on a specific divert with nothing broken', R.divertExtra) : ''}</table>
 <h4>Services</h4><table>${t('Interpreters requested', `${R.interp} for ${R.lep} patient${R.lep === 1 ? '' : 's'} who needed one`)}${t('Massive transfusions', `${R.mtp}${R.mtpWaste ? ` (${R.mtpWaste} not needed)` : ''}`)}${t('Patients who went into shock', R.shock)}${t('O-negative units used', R.oneg)}${t('Meds pulled on override', `${R.overrides} (${R.medErrors} errors)`)}${t('Seen by a provider in triage', R.pitSeen)}${t('Registered / triaged', `${R.registered} / ${R.triaged}`)}${t('Sent upstairs by transporter / tech', `${R.transports.tp} / ${R.transports.pct}`)}${t('Interfacility ambulances', `${R.ift.als} ALS · ${R.ift.cct} CCT · ${R.ift.air} air${R.iftRefused ? ` (${R.iftRefused} wrong level)` : ''}`)}</table>
@@ -2660,7 +2701,7 @@ ${cbSendHTML(R, at)}<div class="rep-btns"><button type="button" class="big act" 
 }
 /* Morbidity and mortality: the three worst moments of the shift, and the decision behind each. */
 function mdDeptHTML(R, t) {
-  return `<h4>The department</h4><table>${t('Arrived this shift', R.seen)}${t('Discharged home', R.dc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('72-hour returns', R.returns)}${t(`Still in the ED at ${E.clock(E.LEVELS[R.level] ? E.LEVELS[R.level].shift : 720)}`, R.left)}${t('Alert time goals met', `${R.goalsMet} of ${R.goalsMet + R.goalsMiss}`)}</table>`;
+  return `<h4>The department</h4><table>${t('Arrived this shift', R.seen)}${t('Died in the department', R.expired || 0)}${t('Discharged home', R.dc)}${t('Admitted upstairs', R.adm)}${t('To the OR or cath lab', R.proc)}${t('Transferred out', R.tx)}${t('Left without being seen', R.lwbs)}${t('72-hour returns', R.returns)}${t(`Still in the ED at ${E.clock(E.LEVELS[R.level] ? E.LEVELS[R.level].shift : 720)}`, R.left)}${t('Alert time goals met', `${R.goalsMet} of ${R.goalsMet + R.goalsMiss}`)}</table>`;
 }
 /* v0.25: how the shift went in each of the four scores, with what moved each one most. */
 const SC_TAGS = { clinical: ['md', 'orders', 'harm', 'dispo', 'gray', 'blood', 'safety', 'returns', 'box', 'boxn', 'consult', 'sitter', 'goals', 'ratio', 'uncovered', 'waiting'], admin: ['admin', 'divert', 'wall', 'flow', 'staffing', 'lwbs', 'ama', 'hall', 'chair', 'transfer', 'experience'] };
@@ -2843,7 +2884,7 @@ function boot2(data) {
     E.load(data.G); U.scene = 'game'; U.mode = data.G.mode || 'rn'; U.lvl = data.lvl || data.G.level; U.speed = data.speed || 1; U.paused = true;
     $('#title').hidden = true;
     render();
-  } else showTitle();
+  } else { showTitle(); staleClassNote(); }
   try { if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => (U.scene === 'game' && g() && !g().over ? { G: g(), lvl: U.lvl, speed: U.speed, sound: U.sound } : { sound: U.sound })); } catch (e) { /* ignore */ }
   requestAnimationFrame(frame);
 }

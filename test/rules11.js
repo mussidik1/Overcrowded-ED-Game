@@ -101,7 +101,7 @@ for (let i = 0; i < 400 && p.arrest; i++) {
     const q = OC.codeSteps(p)[OC.G.card.ctx.step], right = String(q.c.findIndex(x => x[2]));
     assert(OC.G.card.choices.length === 4 && OC.G.card.choices.some(c => c.k === right), `rhythm check ${cards}: four choices, one right`);
     OC.chooseCard(right); sawRight++;
-  }
+  } else if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(x => !x.dis).k);
   OC.step(0.1);
 }
 assert(cards === OC.codeSteps(p).length && cards >= 2, `the code asks ${cards} rhythm-check questions (${p.code && p.code.r})`);
@@ -110,8 +110,7 @@ assert(!p.arrest && (p.dx === 'ROSC after cardiac arrest' || p.dx === 'Resuscita
 assert(OC.CODE_Q.vf[0].c.find(x => x[2])[0].startsWith('Shock'), 'VF: shock first');
 assert(OC.CODE_Q.pea[0].c.find(x => x[2])[0].includes('epinephrine'), 'PEA: CPR and epinephrine first, no shock');
 assert(OC.codeRhythm({ id: 1, ck: 'arrest' }) === 'vf' && OC.codeRhythm({ id: 1, ck: 'mvc', bleed: 'mtp' }) === 'trauma', 'the arrest case is VF; an injury that bled is a traumatic arrest');
-for (const k of ['ectopic', 'aaa', 'gib']) { const q = { id: 7, ck: k, bleed: 'mtp' }; q.code = { r: OC.codeRhythm(q) };
-  assert(q.code.r === 'pea' && OC.codeSteps(q).some(s => /blood/.test(s.t)) && !OC.codeSteps(q).some(s => s.c.some(c => c[2] && /chest/.test(c[0]))), `${k} that arrests: hemorrhagic PEA, the cause is volume, no chest decompression`); }
+// (round 2 replaced the hand-built check here with real bleeds in test/rules12.js: R6.2-14)
 { const q = { id: 7, ck: 'hyperk' }; q.code = { r: 'pea' }; assert(OC.codeSteps(q).some(s => /potassium/.test(s.t)), 'hyperkalemia that arrests: the cause card is the potassium'); }
 
 // they arrest while you are mid-exam: the exam ends, and the code is still yours to run (hostile review)
@@ -125,6 +124,7 @@ function codeRate(rightAnswers) {
     const q = mine('nstemi', {}, 7000 + s); OC.toArrest(q, 'Arrested in the room'); OC.assign(OC.G.me, q.id);
     for (let i = 0; i < 400 && q.arrest; i++) {
       if (OC.G.card && OC.G.card.eid === 'code') { const c = OC.codeSteps(q)[OC.G.card.ctx.step].c, ri = c.findIndex(x => x[2]); OC.chooseCard(String(rightAnswers ? ri : (ri + 1) % 4)); }
+      else if (OC.G.card) OC.chooseCard(OC.G.card.choices.find(x => !x.dis).k);
       OC.step(0.1);
     }
     if (q.dx === 'ROSC after cardiac arrest') rosc++;
@@ -154,4 +154,4 @@ assert(OC.G.report && OC.G.report.expired >= 1 && OC.G.report.noTeam >= 1, `the 
 
 // a random stream without its own slot fails loudly instead of sharing another stream's sequence (class-code sync)
 { let threw = false; try { OC.newGame('easy', 1, { mode: 'rn' }); OC.inStream && OC.inStream('rngZ', () => 0); } catch (e) { threw = /unknown stream/.test(e.message); }
-  assert(!OC.inStream || threw, 'an unknown random stream is refused'); }
+  assert(typeof OC.inStream === 'function' && threw, 'an unknown random stream is refused'); }
