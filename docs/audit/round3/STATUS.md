@@ -14,7 +14,7 @@ Round 3 re-reviewed the round-2 fixes. The six reports are in this folder; the f
 
 Not fixed in round 3:
 - **R2.3-04:** three commits still record the accidental `node_modules` symlink (`eb88030`, `46033b8`, `d1da54a`). The current tree is clean, and `.gitignore` now stops a repeat. Removing it from history needs a force-push, which the session's permission check refused. The owner decides.
-- **R6.3-08:** the README says three clinicians reviewed v0.15. The owner is asked whether those were real people. If not, the line gets reworded.
+- **R6.3-08:** fixed after release. The README said three clinicians reviewed v0.15. The owner confirmed they were not real people (Nov 24, 2026); the v0.16 paragraph now says they were AI reviewers role-playing those parts.
 - **R6.3-11:** some contraindication reasons are generic. The worst ones were fixed under R1.3-04.
 - **Lows and nitpicks:** the remaining ones in the six reports go to the phases in `docs/PRO_AUDIT.md`.
 
