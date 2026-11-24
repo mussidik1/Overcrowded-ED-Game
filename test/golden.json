@@ -1,0 +1,2787 @@
+{
+ "version": "0.30.0",
+ "shifts": {
+  "rn/rush/none": {
+   "arrivals": 27,
+   "arrivalsHash": "f432188f",
+   "seen": 26,
+   "dc": 6,
+   "adm": 6,
+   "proc": 2,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 23,
+   "care": 427,
+   "wait": 21,
+   "stars": 3,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "77b91bbe"
+  },
+  "rn/easy/none": {
+   "arrivals": 91,
+   "arrivalsHash": "6ef04f3f",
+   "seen": 91,
+   "dc": 46,
+   "adm": 30,
+   "proc": 8,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 8,
+   "care": 1978,
+   "wait": 15,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "c1513aea"
+  },
+  "rn/med/none": {
+   "arrivals": 111,
+   "arrivalsHash": "a515de27",
+   "seen": 111,
+   "dc": 50,
+   "adm": 37,
+   "proc": 9,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 12,
+   "care": 1872,
+   "wait": 19,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "cec7d540"
+  },
+  "rn/hard/none": {
+   "arrivals": 134,
+   "arrivalsHash": "3394310a",
+   "seen": 134,
+   "dc": 56,
+   "adm": 37,
+   "proc": 10,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 1,
+   "left": 35,
+   "care": 591,
+   "wait": 40,
+   "stars": 1,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "ffa8d1f8"
+  },
+  "md/rush/none": {
+   "arrivals": 23,
+   "arrivalsHash": "d3ac2a53",
+   "seen": 23,
+   "dc": 9,
+   "adm": 7,
+   "proc": 0,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 19,
+   "care": 213,
+   "wait": 22,
+   "stars": 3,
+   "fail": null,
+   "lit": 25,
+   "acc": 77,
+   "stateHash": "eb3d3cb2"
+  },
+  "md/easy/none": {
+   "arrivals": 90,
+   "arrivalsHash": "e8662ead",
+   "seen": 90,
+   "dc": 53,
+   "adm": 27,
+   "proc": 5,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 8,
+   "care": 1725,
+   "wait": 19,
+   "stars": 3,
+   "fail": null,
+   "lit": 62,
+   "acc": 72,
+   "stateHash": "9a756542"
+  },
+  "md/med/none": {
+   "arrivals": 110,
+   "arrivalsHash": "28fc4473",
+   "seen": 110,
+   "dc": 53,
+   "adm": 36,
+   "proc": 8,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 14,
+   "care": 1882,
+   "wait": 21,
+   "stars": 3,
+   "fail": null,
+   "lit": 53,
+   "acc": 73,
+   "stateHash": "0da13789"
+  },
+  "md/hard/none": {
+   "arrivals": 126,
+   "arrivalsHash": "97243afc",
+   "seen": 125,
+   "dc": 63,
+   "adm": 29,
+   "proc": 12,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 24,
+   "care": 1868,
+   "wait": 24,
+   "stars": 3,
+   "fail": null,
+   "lit": 70,
+   "acc": 74,
+   "stateHash": "3d6881c5"
+  },
+  "rn/med/ct": {
+   "arrivals": 108,
+   "arrivalsHash": "59142af6",
+   "seen": 108,
+   "dc": 49,
+   "adm": 37,
+   "proc": 9,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 1,
+   "expired": 0,
+   "left": 11,
+   "care": 2016,
+   "wait": 20,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "a2bd4b86"
+  },
+  "rn/med/mci": {
+   "arrivals": 113,
+   "arrivalsHash": "93d30375",
+   "seen": 113,
+   "dc": 52,
+   "adm": 40,
+   "proc": 9,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 10,
+   "care": 1810,
+   "wait": 21,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "c9bea414"
+  },
+  "rn/med/board": {
+   "arrivals": 120,
+   "arrivalsHash": "1b1d5a9f",
+   "seen": 120,
+   "dc": 57,
+   "adm": 30,
+   "proc": 6,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 1,
+   "left": 31,
+   "care": 938,
+   "wait": 27,
+   "stars": 1,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "8a62baaf"
+  },
+  "rn/med/short": {
+   "arrivals": 111,
+   "arrivalsHash": "659ddf48",
+   "seen": 111,
+   "dc": 49,
+   "adm": 37,
+   "proc": 8,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 15,
+   "care": 1535,
+   "wait": 18,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "22b5b51a"
+  },
+  "md/med/board": {
+   "arrivals": 103,
+   "arrivalsHash": "afd61acb",
+   "seen": 103,
+   "dc": 54,
+   "adm": 28,
+   "proc": 7,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 1,
+   "expired": 1,
+   "left": 19,
+   "care": 1873,
+   "wait": 20,
+   "stars": 3,
+   "fail": null,
+   "lit": 51,
+   "acc": 70,
+   "stateHash": "7aed12b1"
+  }
+ },
+ "streams": {
+  "rn/med": {
+   "sameEarlyArrivals": true,
+   "sameWalkIns": true,
+   "sameFacts": true,
+   "hash": "f7221b69",
+   "walkHash": "874745ee"
+  },
+  "rn/hard": {
+   "sameEarlyArrivals": true,
+   "sameWalkIns": true,
+   "sameFacts": true,
+   "hash": "31a2aabd",
+   "walkHash": "28110a98"
+  },
+  "md/med": {
+   "sameEarlyArrivals": true,
+   "sameWalkIns": true,
+   "sameFacts": true,
+   "hash": "f7221b69",
+   "walkHash": "874745ee"
+  }
+ },
+ "codes": [
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "none",
+    "pack": "national",
+    "seed": 13
+   },
+   "code": "003-81M",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "ct",
+    "pack": "miemss",
+    "seed": 7932
+   },
+   "code": "1XZ-4PX",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "mci",
+    "pack": "national",
+    "seed": 15851
+   },
+   "code": "3VT-S9V",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "board",
+    "pack": "miemss",
+    "seed": 23770
+   },
+   "code": "5SP-NYE",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "short",
+    "pack": "national",
+    "seed": 31689
+   },
+   "code": "7QJ-A0G",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "none",
+    "pack": "miemss",
+    "seed": 39608
+   },
+   "code": "9NE-464",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "ct",
+    "pack": "national",
+    "seed": 47527
+   },
+   "code": "BK9-RSA",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "mci",
+    "pack": "miemss",
+    "seed": 55446
+   },
+   "code": "DH5-NFG",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "board",
+    "pack": "national",
+    "seed": 63365
+   },
+   "code": "FF1-9GP",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "short",
+    "pack": "miemss",
+    "seed": 71284
+   },
+   "code": "HCX-67P",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "none",
+    "pack": "national",
+    "seed": 79203
+   },
+   "code": "KAR-R8K",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "ct",
+    "pack": "miemss",
+    "seed": 87122
+   },
+   "code": "N8M-MZT",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "mci",
+    "pack": "national",
+    "seed": 95041
+   },
+   "code": "Q6G-90J",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "board",
+    "pack": "miemss",
+    "seed": 102960
+   },
+   "code": "S4C-5Q5",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "short",
+    "pack": "national",
+    "seed": 110879
+   },
+   "code": "V27-T8V",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "none",
+    "pack": "miemss",
+    "seed": 118798
+   },
+   "code": "X03-MFV",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "ct",
+    "pack": "national",
+    "seed": 126717
+   },
+   "code": "YXZ-8H6",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "mci",
+    "pack": "miemss",
+    "seed": 3564
+   },
+   "code": "0VV-56G",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "board",
+    "pack": "national",
+    "seed": 11483
+   },
+   "code": "2SP-SS0",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "short",
+    "pack": "miemss",
+    "seed": 19402
+   },
+   "code": "4QJ-PEV",
+   "roundTrip": true
+  }
+ ],
+ "save": {
+  "identical": true,
+  "attending": 4,
+  "midCode": {
+   "card": true,
+   "identical": true
+  }
+ },
+ "answers": {
+  "rash": {
+   "tests": [],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Contact dermatitis",
+   "ok": {
+    "meds": [
+     "diphen",
+     "tricream",
+     "pred",
+     "methylpred"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "refill": {
+   "tests": [],
+   "treats": [],
+   "dx": "Medication refill",
+   "ok": {
+    "meds": [
+     "homemed"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "otitis": {
+   "tests": [],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Ear infection",
+   "ok": {
+    "meds": [
+     "amox",
+     "amoxclav"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "dental": {
+   "tests": [],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Dental abscess",
+   "ok": {
+    "meds": [
+     "amoxclav",
+     "amox",
+     "penvk",
+     "ibu",
+     "apap"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "strep": {
+   "tests": [
+    "strep"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Strep throat",
+   "ok": {
+    "meds": [
+     "penvk",
+     "amox",
+     "bicillin"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "ankle": {
+   "tests": [
+    "extxr"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Ankle sprain",
+   "ok": {
+    "meds": [
+     "ibu",
+     "apap",
+     "ketor"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "lac": {
+   "tests": [],
+   "treats": [
+    "repair"
+   ],
+   "dx": "Simple laceration",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "uti": {
+   "tests": [
+    "ua"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Urinary tract infection",
+   "ok": {
+    "meds": [
+     "nitrof",
+     "cephalex"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "gastro": {
+   "tests": [
+    "bmp",
+    "hcg"
+   ],
+   "treats": [
+    "fluids",
+    "meds"
+   ],
+   "dx": "Gastroenteritis",
+   "ok": {
+    "meds": [
+     "ondan",
+     "reglan",
+     "prochlor"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "appy": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "ctap",
+    "hcg"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Appendicitis",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "apap",
+     "ketor",
+     "ondan"
+    ],
+    "abx": [
+     "piptazo",
+     "ctx",
+     "metro"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "chole": {
+   "tests": [
+    "cbc",
+    "lft",
+    "lip",
+    "ruq"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Cholecystitis",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "ketor",
+     "ondan",
+     "apap"
+    ],
+    "abx": [
+     "piptazo",
+     "ctx",
+     "metro"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "hipfx": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "hipxr",
+    "ts"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Hip fracture",
+   "ok": {
+    "meds": [
+     "fent",
+     "morph",
+     "hydro",
+     "apap"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "flu": {
+   "tests": [
+    "resp"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Influenza",
+   "ok": {
+    "meds": [
+     "osel",
+     "apap",
+     "ibu"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "pnalow": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "cxr"
+   ],
+   "treats": [
+    "abx"
+   ],
+   "dx": "Pneumonia, low risk",
+   "ok": {
+    "abx": [
+     "amox",
+     "doxy",
+     "azith",
+     "amoxclav"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "pna": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "cxr"
+   ],
+   "treats": [
+    "o2",
+    "abx"
+   ],
+   "dx": "Pneumonia",
+   "ok": {
+    "abx": [
+     "ctx",
+     "azith"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "copd": {
+   "tests": [
+    "cxr",
+    "vbg"
+   ],
+   "treats": [
+    "nebs",
+    "bipap"
+   ],
+   "dx": "COPD flare",
+   "ok": {
+    "meds": [
+     "methylpred",
+     "pred"
+    ],
+    "nebs": [
+     "duoneb",
+     "albut"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "metop"
+   ]
+  },
+  "chf": {
+   "tests": [
+    "bmp",
+    "bnp",
+    "cxr"
+   ],
+   "treats": [
+    "bipap",
+    "meds"
+   ],
+   "dx": "Heart failure flare",
+   "ok": {
+    "meds": [
+     "ntg",
+     "furo"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "stone": {
+   "tests": [
+    "bmp",
+    "ctap",
+    "ua"
+   ],
+   "treats": [
+    "meds",
+    "fluids"
+   ],
+   "dx": "Kidney stone",
+   "ok": {
+    "meds": [
+     "ketor",
+     "ibu",
+     "morph",
+     "fent",
+     "hydro"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "dvt": {
+   "tests": [
+    "bmp",
+    "duplex"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Deep vein thrombosis",
+   "ok": {
+    "meds": [
+     "apixa",
+     "enox",
+     "heparin"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "migraine": {
+   "tests": [],
+   "treats": [
+    "fluids",
+    "meds"
+   ],
+   "dx": "Migraine",
+   "ok": {
+    "meds": [
+     "prochlor",
+     "reglan",
+     "ketor",
+     "diphen"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "tb": {
+   "tests": [
+    "cbc",
+    "cxr"
+   ],
+   "treats": [],
+   "dx": "Suspected tuberculosis",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "bh": {
+   "tests": [
+    "tox"
+   ],
+   "treats": [],
+   "dx": "Behavioral health emergency",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "etoh": {
+   "tests": [
+    "bmp",
+    "tox"
+   ],
+   "treats": [
+    "fluids"
+   ],
+   "dx": "Alcohol intoxication",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "od": {
+   "tests": [
+    "tox"
+   ],
+   "treats": [
+    "nalox"
+   ],
+   "dx": "Opioid overdose",
+   "ok": null,
+   "also": null,
+   "contra": [
+    "loraz"
+   ]
+  },
+  "cell": {
+   "tests": [
+    "cbc"
+   ],
+   "treats": [
+    "abx"
+   ],
+   "dx": "Cellulitis",
+   "ok": {
+    "abx": [
+     "cefaz",
+     "vanc",
+     "ctx",
+     "cephalex"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "syncope": {
+   "tests": [
+    "bmp",
+    "cbc"
+   ],
+   "treats": [],
+   "dx": "Syncope, low risk",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "synchigh": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "trop"
+   ],
+   "treats": [],
+   "dx": "Syncope, high risk",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "tia": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "cthead"
+   ],
+   "treats": [],
+   "dx": "Transient ischemic attack",
+   "ok": {
+    "meds": [
+     "asa"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "dehyd": {
+   "tests": [
+    "bmp"
+   ],
+   "treats": [
+    "fluids"
+   ],
+   "dx": "Dehydration",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "cpmod": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "cxr",
+    "trop"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Chest pain, moderate risk",
+   "ok": {
+    "meds": [
+     "asa"
+    ]
+   },
+   "also": [
+    "ntg",
+    "morph",
+    "fent",
+    "hydro",
+    "metop"
+   ],
+   "contra": [
+    "ibu",
+    "ketor",
+    "metop"
+   ]
+  },
+  "cwp": {
+   "tests": [
+    "cxr",
+    "trop"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Chest pain, low risk",
+   "ok": {
+    "meds": [
+     "asa",
+     "ibu",
+     "ketor"
+    ]
+   },
+   "also": [
+    "ntg"
+   ],
+   "contra": [
+    "ibu",
+    "ketor"
+   ]
+  },
+  "nstemi": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "trop"
+   ],
+   "treats": [
+    "meds=asa+heparin/enox"
+   ],
+   "dx": "NSTEMI (heart attack)",
+   "ok": {
+    "meds": [
+     "asa",
+     "heparin",
+     "enox"
+    ]
+   },
+   "also": [
+    "ntg",
+    "morph",
+    "fent",
+    "hydro",
+    "metop"
+   ],
+   "contra": [
+    "ibu",
+    "ketor",
+    "metop"
+   ]
+  },
+  "afib": {
+   "tests": [
+    "bmp",
+    "trop"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "A-fib with rapid rate",
+   "ok": {
+    "meds": [
+     "dilt",
+     "metop"
+    ]
+   },
+   "also": [
+    "heparin",
+    "enox",
+    "apixa",
+    "midaz",
+    "ketamine",
+    "fent",
+    "propofol",
+    "etomidate"
+   ],
+   "contra": []
+  },
+  "chb": {
+   "tests": [
+    "bmp",
+    "trop"
+   ],
+   "treats": [
+    "pace"
+   ],
+   "dx": "Complete heart block",
+   "ok": {
+    "pace": [
+     "atropine"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "dilt",
+    "metop"
+   ]
+  },
+  "gib": {
+   "tests": [
+    "cbc",
+    "coag",
+    "ts"
+   ],
+   "treats": [
+    "fluids",
+    "blood"
+   ],
+   "dx": "Upper GI bleed",
+   "ok": null,
+   "also": null,
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "dka": {
+   "tests": [
+    "bmp",
+    "vbg"
+   ],
+   "treats": [
+    "fluids",
+    "insulin"
+   ],
+   "dx": "Diabetic ketoacidosis",
+   "ok": {
+    "insulin": [
+     "insdrip"
+    ]
+   },
+   "also": [
+    "kcl"
+   ],
+   "contra": [
+    "d50"
+   ]
+  },
+  "asthma": {
+   "tests": [],
+   "treats": [
+    "nebs",
+    "meds"
+   ],
+   "dx": "Asthma attack",
+   "ok": {
+    "meds": [
+     "dexa",
+     "pred",
+     "methylpred",
+     "mag"
+    ],
+    "nebs": [
+     "albut",
+     "duoneb"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "metop"
+   ]
+  },
+  "anaph": {
+   "tests": [],
+   "treats": [
+    "epi",
+    "meds"
+   ],
+   "dx": "Anaphylaxis",
+   "ok": {
+    "meds": [
+     "diphen",
+     "methylpred",
+     "famot"
+    ],
+    "epi": [
+     "epiim"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "epiarr"
+   ]
+  },
+  "sepsisw": {
+   "tests": [
+    "bcx",
+    "cbc",
+    "lact",
+    "ua"
+   ],
+   "treats": [
+    "fluids",
+    "abx"
+   ],
+   "dx": "Sepsis (urinary source)",
+   "ok": {
+    "abx": [
+     "ctx",
+     "piptazo"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "furo",
+    "labet"
+   ]
+  },
+  "strokew": {
+   "tests": [
+    "bmp",
+    "cthead"
+   ],
+   "treats": [
+    "tnk"
+   ],
+   "dx": "Acute ischemic stroke",
+   "ok": null,
+   "also": null,
+   "contra": [
+    "enox",
+    "heparin"
+   ]
+  },
+  "stemi": {
+   "tests": [
+    "trop"
+   ],
+   "treats": [
+    "meds=asa+heparin/enox"
+   ],
+   "dx": "Anterior STEMI",
+   "ok": {
+    "meds": [
+     "asa",
+     "heparin"
+    ]
+   },
+   "also": [
+    "ntg",
+    "morph",
+    "fent",
+    "hydro",
+    "metop"
+   ],
+   "contra": [
+    "ibu",
+    "ketor",
+    "metop"
+   ]
+  },
+  "stroke": {
+   "tests": [
+    "bmp",
+    "cthead"
+   ],
+   "treats": [
+    "tnk"
+   ],
+   "dx": "Acute ischemic stroke",
+   "ok": null,
+   "also": null,
+   "contra": [
+    "enox",
+    "heparin"
+   ]
+  },
+  "lvo": {
+   "tests": [
+    "bmp",
+    "cta",
+    "cthead"
+   ],
+   "treats": [
+    "tnk"
+   ],
+   "dx": "Large vessel occlusion stroke",
+   "ok": null,
+   "also": null,
+   "contra": [
+    "enox",
+    "heparin"
+   ]
+  },
+  "mvc": {
+   "tests": [
+    "cbc",
+    "cxr",
+    "fast",
+    "ts"
+   ],
+   "treats": [
+    "mtp"
+   ],
+   "dx": "Splenic laceration, hemorrhagic shock",
+   "ok": null,
+   "also": null,
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "tfall": {
+   "tests": [
+    "cbc",
+    "coag",
+    "cthead"
+   ],
+   "treats": [
+    "reverse=pcc+vitk"
+   ],
+   "dx": "Subdural hematoma",
+   "ok": {
+    "reverse": [
+     "pcc",
+     "vitk"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "moto": {
+   "tests": [
+    "cbc",
+    "extxr",
+    "ts"
+   ],
+   "treats": [
+    "abx",
+    "blood"
+   ],
+   "dx": "Open femur fracture",
+   "ok": {
+    "meds": [
+     "fent",
+     "morph",
+     "hydro",
+     "ketamine"
+    ],
+    "abx": [
+     "cefaz",
+     "ctx"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "arrest": {
+   "tests": [],
+   "treats": [],
+   "dx": "Cardiac arrest",
+   "ok": null,
+   "also": [
+    "epiarr",
+    "amio",
+    "calc",
+    "bicarb",
+    "ns",
+    "lr"
+   ],
+   "contra": []
+  },
+  "shock": {
+   "tests": [
+    "bcx",
+    "bmp",
+    "cbc",
+    "lact"
+   ],
+   "treats": [
+    "o2",
+    "fluids",
+    "abx",
+    "pressor"
+   ],
+   "dx": "Septic shock",
+   "ok": {
+    "abx": [
+     "piptazo",
+     "vanc",
+     "ctx"
+    ],
+    "pressor": [
+     "norepi",
+     "pushepi"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "furo",
+    "labet",
+    "metop",
+    "nicard"
+   ]
+  },
+  "rsv": {
+   "tests": [
+    "vbg"
+   ],
+   "treats": [
+    "hfnc"
+   ],
+   "dx": "RSV, tiring out",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "burn": {
+   "tests": [
+    "vbg"
+   ],
+   "treats": [
+    "intub",
+    "fluids",
+    "meds"
+   ],
+   "dx": "Partial-thickness burns, 25%, airway injury",
+   "ok": {
+    "meds": [
+     "fent",
+     "morph",
+     "ketamine"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "pe": {
+   "tests": [
+    "bmp",
+    "ctpe",
+    "trop"
+   ],
+   "treats": [
+    "o2",
+    "meds"
+   ],
+   "dx": "Pulmonary embolism",
+   "ok": {
+    "meds": [
+     "heparin",
+     "enox"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "tnk"
+   ]
+  },
+  "mpe": {
+   "tests": [
+    "bmp",
+    "echo",
+    "trop"
+   ],
+   "treats": [
+    "o2",
+    "tnk"
+   ],
+   "dx": "Massive pulmonary embolism",
+   "ok": {
+    "tnk": [
+     "tnk"
+    ]
+   },
+   "also": [
+    "heparin",
+    "enox",
+    "norepi",
+    "pushepi",
+    "ns",
+    "lr"
+   ],
+   "contra": []
+  },
+  "dissect": {
+   "tests": [
+    "ctaorta",
+    "trop",
+    "ts"
+   ],
+   "treats": [
+    "bp=esmolol/labet",
+    "meds"
+   ],
+   "dx": "Aortic dissection",
+   "ok": {
+    "meds": [
+     "fent",
+     "morph",
+     "hydro"
+    ]
+   },
+   "also": [
+    "nicard"
+   ],
+   "contra": [
+    "apixa",
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "aaa": {
+   "tests": [
+    "aous",
+    "cbc",
+    "ts"
+   ],
+   "treats": [
+    "mtp"
+   ],
+   "dx": "Ruptured abdominal aortic aneurysm",
+   "ok": null,
+   "also": null,
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "hyperk": {
+   "tests": [
+    "bmp"
+   ],
+   "treats": [
+    "meds=calc/calcgluc+d50",
+    "insulin=insreg"
+   ],
+   "dx": "Hyperkalemia",
+   "ok": null,
+   "also": [
+    "albut",
+    "bicarb",
+    "furo"
+   ],
+   "contra": [
+    "kcl",
+    "succ"
+   ]
+  },
+  "sah": {
+   "tests": [
+    "bmp",
+    "coag",
+    "cthead"
+   ],
+   "treats": [
+    "bp",
+    "meds"
+   ],
+   "dx": "Subarachnoid hemorrhage",
+   "ok": {
+    "bp": [
+     "nicard",
+     "labet"
+    ],
+    "meds": [
+     "ondan",
+     "fent",
+     "apap"
+    ]
+   },
+   "also": null,
+   "contra": [
+    "apixa",
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "mening": {
+   "tests": [
+    "bcx",
+    "cbc",
+    "lp"
+   ],
+   "treats": [
+    "abx=ctx/cefepime+vanc+ampi",
+    "meds=dexa"
+   ],
+   "dx": "Bacterial meningitis",
+   "ok": null,
+   "also": [
+    "acyclo",
+    "ampi"
+   ],
+   "contra": []
+  },
+  "status": {
+   "tests": [
+    "bmp",
+    "gluc"
+   ],
+   "treats": [
+    "meds=loraz/midaz+levet/fosphen"
+   ],
+   "dx": "Status epilepticus",
+   "ok": null,
+   "also": [
+    "d50",
+    "thiamine"
+   ],
+   "contra": []
+  },
+  "cauda": {
+   "tests": [
+    "bscan",
+    "mris"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Cauda equina syndrome",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "ketor",
+     "apap"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "ectopic": {
+   "tests": [
+    "cbc",
+    "fast",
+    "hcg",
+    "ts"
+   ],
+   "treats": [
+    "mtp"
+   ],
+   "dx": "Ruptured ectopic pregnancy",
+   "ok": null,
+   "also": [
+    "rhogam"
+   ],
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "ttorsion": {
+   "tests": [],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Testicular torsion",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "ondan",
+     "ketor"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "ovtorsion": {
+   "tests": [
+    "hcg",
+    "pelus"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Ovarian torsion",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "ondan",
+     "ketor"
+    ]
+   },
+   "also": null,
+   "contra": []
+  },
+  "sbo": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "ctap"
+   ],
+   "treats": [
+    "fluids",
+    "meds"
+   ],
+   "dx": "Small bowel obstruction",
+   "ok": {
+    "meds": [
+     "ondan",
+     "prochlor"
+    ]
+   },
+   "also": [
+    "morph",
+    "fent",
+    "hydro",
+    "kcl"
+   ],
+   "contra": [
+    "reglan"
+   ]
+  },
+  "mesisch": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "ctaabd",
+    "lact"
+   ],
+   "treats": [
+    "fluids",
+    "meds=heparin"
+   ],
+   "dx": "Mesenteric ischemia",
+   "ok": null,
+   "also": [
+    "morph",
+    "fent",
+    "hydro"
+   ],
+   "contra": []
+  },
+  "apapod": {
+   "tests": [
+    "apaplev",
+    "bmp",
+    "coag",
+    "hcg",
+    "lft",
+    "sal"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Acetaminophen overdose",
+   "ok": {
+    "meds": [
+     "nac"
+    ]
+   },
+   "also": [
+    "ondan",
+    "charcoal"
+   ],
+   "contra": [
+    "apap"
+   ]
+  },
+  "salod": {
+   "tests": [
+    "bmp",
+    "sal",
+    "vbg"
+   ],
+   "treats": [
+    "fluids",
+    "meds=bicarb"
+   ],
+   "dx": "Salicylate overdose",
+   "ok": null,
+   "also": [
+    "charcoal",
+    "kcl",
+    "d50"
+   ],
+   "contra": [
+    "asa"
+   ]
+  },
+  "tcaod": {
+   "tests": [
+    "bmp",
+    "tox"
+   ],
+   "treats": [
+    "meds=bicarb"
+   ],
+   "dx": "Tricyclic antidepressant overdose",
+   "ok": null,
+   "also": [
+    "loraz",
+    "midaz"
+   ],
+   "contra": [
+    "amio",
+    "ondan",
+    "procain"
+   ]
+  },
+  "hypogly": {
+   "tests": [
+    "gluc"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Hypoglycemia",
+   "ok": {
+    "meds": [
+     "d50",
+     "glucagon"
+    ]
+   },
+   "also": [
+    "octreo",
+    "thiamine"
+   ],
+   "contra": [
+    "insdrip",
+    "insreg"
+   ]
+  },
+  "ptx": {
+   "tests": [
+    "cxr"
+   ],
+   "treats": [
+    "o2",
+    "ctube"
+   ],
+   "dx": "Spontaneous pneumothorax",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "necfasc": {
+   "tests": [
+    "bcx",
+    "bmp",
+    "cbc",
+    "lact"
+   ],
+   "treats": [
+    "fluids",
+    "abx=vanc+piptazo/cefepime+clinda"
+   ],
+   "dx": "Necrotizing fasciitis",
+   "ok": null,
+   "also": null,
+   "contra": []
+  },
+  "sea": {
+   "tests": [
+    "bcx",
+    "cbc",
+    "crp",
+    "mris"
+   ],
+   "treats": [
+    "abx=vanc+ctx/cefepime"
+   ],
+   "dx": "Spinal epidural abscess",
+   "ok": null,
+   "also": null,
+   "contra": []
+  }
+ },
+ "codeKey": {
+  "vf": [
+   "Shock now (defibrillate), then straight back to CPR",
+   "Shock again, then epinephrine 1 mg IV every 3 to 5 minutes",
+   "Shock, then amiodarone 300 mg IV"
+  ],
+  "pea": [
+   "Keep CPR going; epinephrine 1 mg IV now",
+   "The reversible causes: the H's and T's"
+  ],
+  "asys": [
+   "Keep CPR going; epinephrine 1 mg IV now",
+   "The reversible causes: the H's and T's"
+  ],
+  "trauma": [
+   "Blood, bleeding control, airway, and both sides of the chest decompressed, all at once",
+   "Drain it now (pericardiocentesis), or the surgeon opens the chest"
+  ],
+  "limb": [
+   "Tourniquet or pressure on the bleed, blood fast, secure the airway",
+   "Keep the blood coming: massive transfusion"
+  ],
+  "kidvf": [
+   "Shock at {j2} J (2 J/kg), then straight back to CPR",
+   "Shock at {j4} J (4 J/kg), then epinephrine {epi} mg (0.01 mg/kg)",
+   "Shock at {j4} J, then amiodarone {amio} mg (5 mg/kg)"
+  ],
+  "kidpea": [
+   "CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg)",
+   "Oxygen and ventilation, then the rest of the H's and T's"
+  ],
+  "kidasys": [
+   "CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg)",
+   "Oxygen and ventilation, then the rest of the H's and T's"
+  ],
+  "cause:k": "Calcium chloride and sodium bicarbonate; keep CPR going",
+  "cause:trap": "Pause the bag, press the chest to let air out, slow the breaths",
+  "cause:air": "Reposition, two-person bag-mask, then a tube, without stopping CPR",
+  "cause:bleed": "Massive transfusion, and a surgeon or IR to stop the bleeding",
+  "cause:vol": "Fluids wide open, while CPR and epinephrine go on",
+  "cause:opioid": "Oxygen and ventilation; naloxone is reasonable; CPR goes on",
+  "cause:tension": "Decompress that side now, with a needle or a finger",
+  "cause:clot": "Tenecteplase (a clot buster) during CPR, and keep going",
+  "cause:coronary": "Run the code; with a pulse back, a 12-lead ECG and cardiology",
+  "cause:gluc": "Dextrose IV now, while CPR goes on",
+  "cause:look": "A quick ultrasound in the pulse check, and a blood gas, with CPR on",
+  "hcg": "apapod appy chole dissect dka gastro mesisch mpe od pe salod sbo stone syncope tcaod uti"
+ },
+ "radioKey": {
+  "national": [
+   "no",
+   "no",
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "yes",
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "yes",
+   "10 mg IM",
+   "4 mg intranasal",
+   "Repeat epinephrine 0.5 mg IM (1 mg/mL)",
+   "6 mg rapid IV push with a flush",
+   "1 mg IV, repeat every 3 to 5 minutes up to 3 mg",
+   "Synchronized cardioversion",
+   "Dextrose 25 g IV",
+   "0.4 to 2 mg IV or IN, titrated to breathing",
+   "1 mcg/kg IV: about 80 mcg",
+   "Needle decompression of the right chest"
+  ],
+  "miemss": [
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "yes",
+   "yes",
+   "no",
+   "no",
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "yes"
+  ]
+ },
+ "codeCards": {
+  "vf[0]": [
+   "The monitor shows **ventricular fibrillation (VF)**: a shockable rhythm. What first?",
+   "[RIGHT] Shock now (defibrillate), then straight back to CPR -> VF or pulseless VT is shockable: shock as soon as the pads are on, then straight back to 2 minutes of CPR.",
+   "Epinephrine 1 mg IV first, then shock at the next rhythm check -> In VF the shock comes first. Epinephrine goes in after the second shock.",
+   "Stop CPR and feel for a pulse for a full minute first -> A pulse check takes under 10 seconds. Every pause stops blood flow to the brain.",
+   "Synchronized cardioversion at 100 J, then CPR -> Synchronized cardioversion needs a QRS to time the shock to. VF has none: defibrillate (an unsynchronized shock)."
+  ],
+  "vf[1]": [
+   "Two minutes of CPR. Rhythm check: **still VF**.",
+   "[RIGHT] Shock again, then epinephrine 1 mg IV every 3 to 5 minutes -> Still shockable: shock every time, then epinephrine every 3 to 5 minutes.",
+   "Amiodarone 300 mg instead of a second shock, then recheck -> Shock every time the rhythm is shockable. Drugs support the shocks; they don't replace them.",
+   "Hold CPR, intubate first, then shock once the tube is secure -> Keep compressions going. A bag-mask works; a tube can go in without stopping CPR.",
+   "Sodium bicarbonate 50 mEq, as in every arrest, then shock -> Bicarbonate is for specific causes (high potassium, some overdoses), not every arrest."
+  ],
+  "vf[2]": [
+   "Two more minutes. **Still VF** after two shocks and epinephrine.",
+   "[RIGHT] Shock, then amiodarone 300 mg IV -> VF that won't stop after shocks: amiodarone (lidocaine is the other choice). Keep shocking every 2 minutes.",
+   "Adenosine 6 mg rapid push, then recheck -> Adenosine is for SVT in a patient with a pulse.",
+   "Call the code: it has been 4 minutes already -> Far too early to stop. VF is the rhythm most likely to come back.",
+   "Atropine 1 mg IV, then shock at the next check -> Atropine is for a slow heart with a pulse. It was taken out of the cardiac arrest algorithm in 2010."
+  ],
+  "pea[0]": [
+   "The monitor shows **a rhythm but no pulse (PEA)**: not shockable. What first?",
+   "[RIGHT] Keep CPR going; epinephrine 1 mg IV now -> Not shockable: CPR, and epinephrine as soon as possible, then every 3 to 5 minutes.",
+   "Shock it at 200 J, then resume CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Atropine 1 mg IV, repeated every 3 minutes -> Atropine is for a slow heart with a pulse. It was taken out of the cardiac arrest algorithm in 2010.",
+   "Wait for respiratory therapy before compressions -> Compressions start now, with whoever is in the room."
+  ],
+  "pea[1]": [
+   "Two minutes later, **still no pulse**. What are you hunting for?",
+   "[RIGHT] The reversible causes: the H's and T's -> Not shockable: the way back is the cause. Hunt the H's and T's: low volume, low oxygen, acid, potassium, cold, tension pneumothorax, tamponade, toxins, clot.",
+   "Nothing new: keep repeating epinephrine on time -> Repeating epinephrine without looking for the cause rarely ends well.",
+   "A shock every 2 minutes in case it turns to VF -> Only shock a shockable rhythm. Check it every 2 minutes.",
+   "Amiodarone 300 mg, then recheck -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "asys[0]": [
+   "The monitor shows **a flat line (asystole)**: not shockable. What first?",
+   "[RIGHT] Keep CPR going; epinephrine 1 mg IV now -> Not shockable: CPR, and epinephrine as soon as possible, then every 3 to 5 minutes.",
+   "Shock it at 200 J, then resume CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Atropine 1 mg IV, repeated every 3 minutes -> Atropine is for a slow heart with a pulse. It was taken out of the cardiac arrest algorithm in 2010.",
+   "Wait for respiratory therapy before compressions -> Compressions start now, with whoever is in the room."
+  ],
+  "asys[1]": [
+   "Two minutes later, **still asystole**. What are you hunting for?",
+   "[RIGHT] The reversible causes: the H's and T's -> Not shockable: the way back is the cause. Hunt the H's and T's: low volume, low oxygen, acid, potassium, cold, tension pneumothorax, tamponade, toxins, clot.",
+   "Nothing new: keep repeating epinephrine on time -> Repeating epinephrine without looking for the cause rarely ends well.",
+   "A shock every 2 minutes in case it turns to VF -> Only shock a shockable rhythm. Check it every 2 minutes.",
+   "Amiodarone 300 mg, then recheck -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "trauma[0]": [
+   "A traumatic arrest: **no pulse, PEA** on the monitor. What first?",
+   "[RIGHT] Blood, bleeding control, airway, and both sides of the chest decompressed, all at once -> A traumatic arrest is fixed by its causes, all at once: stop the bleeding, give blood, secure the airway, decompress both sides of the chest. Epinephrine and CPR do little without volume.",
+   "Epinephrine 1 mg every 3 minutes and good CPR, nothing else yet -> In a traumatic arrest, drugs alone don't replace lost blood.",
+   "Shock it at 200 J, then 2 minutes of CPR and epinephrine -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Normal saline, six liters as fast as it will run, then reassess them -> Blood, not liters of saline: saline thins what is left."
+  ],
+  "trauma[1]": [
+   "Blood is going in and both sides of the chest are decompressed. The ultrasound shows **fluid around the heart**.",
+   "[RIGHT] Drain it now (pericardiocentesis), or the surgeon opens the chest -> Fluid around the heart squeezing it: drain it now (pericardiocentesis), or the surgeon opens the chest.",
+   "Amiodarone 300 mg IV, then shock if the rhythm changes -> Amiodarone is for VF and pulseless VT, not PEA or asystole.",
+   "Synchronized cardioversion at 100 J to restart the heart -> Synchronized cardioversion needs a QRS to time the shock to. VF has none: defibrillate (an unsynchronized shock).",
+   "Sodium bicarbonate and calcium, as in every arrest, then recheck -> Bicarbonate is for specific causes (high potassium, some overdoses), not every arrest."
+  ],
+  "limb[0]": [
+   "An arrest after bleeding from a broken limb: **no pulse, PEA** on the monitor. What first?",
+   "[RIGHT] Tourniquet or pressure on the bleed, blood fast, secure the airway -> A bleed from a limb: control it (pressure, splint, tourniquet), give blood fast, secure the airway.",
+   "Epinephrine 1 mg every 3 minutes and good CPR, nothing else yet -> In a traumatic arrest, drugs alone don't replace lost blood.",
+   "Shock it at 200 J, then 2 minutes of CPR and epinephrine -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Normal saline, six liters as fast as it will run, then reassess them -> Blood, not liters of saline: saline thins what is left."
+  ],
+  "limb[1]": [
+   "Two units in, **still no pulse**. The ultrasound shows a small, empty heart and no fluid around it.",
+   "[RIGHT] Keep the blood coming: massive transfusion -> Still empty: keep the blood coming (massive transfusion).",
+   "Tenecteplase, in case a clot caused this -> A clot buster in a bleeding patient makes it worse.",
+   "Synchronized cardioversion at 100 J -> Synchronized cardioversion needs a QRS to time the shock to. VF has none: defibrillate (an unsynchronized shock).",
+   "Amiodarone 300 mg IV, then a shock at the next check -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "kidvf[0]": [
+   "The monitor shows **VF**: a shockable rhythm. What first?",
+   "[RIGHT] Shock at {j2} J (2 J/kg), then straight back to CPR -> VF or pulseless VT is shockable: shock as soon as the pads are on, then straight back to 2 minutes of CPR.",
+   "Shock at 200 J, the adult setting, then back to CPR -> Children are shocked by weight: 2 J/kg first, then 4 J/kg.",
+   "Epinephrine 0.01 mg/kg first, then shock at the next check -> In VF the shock comes first. Epinephrine goes in after the second shock.",
+   "Synchronized cardioversion at 1 J/kg, then CPR -> Synchronized cardioversion needs a QRS to time the shock to. VF has none: defibrillate (an unsynchronized shock)."
+  ],
+  "kidvf[1]": [
+   "Two minutes of CPR. **Still VF**.",
+   "[RIGHT] Shock at {j4} J (4 J/kg), then epinephrine {epi} mg (0.01 mg/kg) -> Still shockable: shock at 4 J/kg, then epinephrine 0.01 mg/kg every 3 to 5 minutes.",
+   "Shock at {j4} J (4 J/kg), then epinephrine 1 mg IV or IO -> One milligram is the adult dose. A child gets 0.01 mg/kg: {epi} mg for about {kg} kg.",
+   "Amiodarone 5 mg/kg instead of a second shock, then recheck -> Shock every time the rhythm is shockable. Drugs support the shocks; they don't replace them.",
+   "Hold CPR, intubate first, then shock again once the tube is secure -> Keep compressions going. A bag-mask works; a tube can go in without stopping CPR."
+  ],
+  "kidvf[2]": [
+   "Two more minutes. **Still VF**.",
+   "[RIGHT] Shock at {j4} J, then amiodarone {amio} mg (5 mg/kg) -> VF that won't stop in a child: amiodarone 5 mg/kg (or lidocaine 1 mg/kg), and keep shocking at 4 J/kg or more.",
+   "Shock at {j4} J, then amiodarone 300 mg IV or IO -> 300 mg is the adult dose. A child gets 5 mg/kg: {amio} mg for about {kg} kg.",
+   "Adenosine 0.1 mg/kg rapid push, then recheck the rhythm -> Adenosine is for SVT in a patient with a pulse.",
+   "Atropine 0.02 mg/kg IV, then shock if it is still VF -> Atropine is for a slow heart with a pulse. It was taken out of the cardiac arrest algorithm in 2010."
+  ],
+  "kidpea[0]": [
+   "The monitor shows **a rhythm but no pulse (PEA)**: not shockable. What first?",
+   "[RIGHT] CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg) -> Not shockable: CPR, and epinephrine 0.01 mg/kg as soon as possible, then every 3 to 5 minutes.",
+   "CPR, and epinephrine 1 mg IV or IO now, then repeat -> One milligram is the adult dose. A child gets 0.01 mg/kg: {epi} mg for about {kg} kg.",
+   "Shock it at 2 J/kg, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Wait for respiratory therapy to arrive before starting compressions -> Compressions start now, with whoever is in the room."
+  ],
+  "kidpea[1]": [
+   "Two minutes later, **still no pulse**. What comes first in the hunt?",
+   "[RIGHT] Oxygen and ventilation, then the rest of the H's and T's -> In children most arrests start with breathing, so low oxygen is the first H to fix. Then the rest of the H's and T's.",
+   "Nothing new: keep repeating epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well.",
+   "A shock every 2 minutes in case it turns to VF -> Only shock a shockable rhythm. Check it every 2 minutes.",
+   "Amiodarone 5 mg/kg, then recheck the rhythm -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "kidasys[0]": [
+   "The monitor shows **a flat line (asystole)**: not shockable. What first?",
+   "[RIGHT] CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg) -> Not shockable: CPR, and epinephrine 0.01 mg/kg as soon as possible, then every 3 to 5 minutes.",
+   "CPR, and epinephrine 1 mg IV or IO now, then repeat -> One milligram is the adult dose. A child gets 0.01 mg/kg: {epi} mg for about {kg} kg.",
+   "Shock it at 2 J/kg, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Wait for respiratory therapy to arrive before starting compressions -> Compressions start now, with whoever is in the room."
+  ],
+  "kidasys[1]": [
+   "Two minutes later, **still asystole**. What comes first in the hunt?",
+   "[RIGHT] Oxygen and ventilation, then the rest of the H's and T's -> In children most arrests start with breathing, so low oxygen is the first H to fix. Then the rest of the H's and T's.",
+   "Nothing new: keep repeating epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well.",
+   "A shock every 2 minutes in case it turns to VF -> Only shock a shockable rhythm. Check it every 2 minutes.",
+   "Amiodarone 5 mg/kg, then recheck the rhythm -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "cause:k": [
+   "The blood gas is back: **potassium 7.9**.",
+   "[RIGHT] Calcium chloride and sodium bicarbonate; keep CPR going -> High potassium in arrest: calcium to protect the heart and sodium bicarbonate are the usual first moves (the evidence is thin), with insulin and dextrose as a bolus, and dialysis.",
+   "Start an insulin drip and recheck the potassium in an hour -> A drip and an hour is too slow. In arrest: calcium first, insulin with dextrose as a bolus, and call for dialysis.",
+   "Shock it at 200 J, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "cause:trap": [
+   "Severe asthma: the chest is **stiff and over-full**, and each breath gets harder.",
+   "[RIGHT] Pause the bag, press the chest to let air out, slow the breaths -> In an asthma arrest, air gets trapped: breathe slowly, let it out (disconnect, press on the chest), and think of a tension pneumothorax on either side.",
+   "Bag faster and harder to push more oxygen past the tight airways -> Faster, harder breaths trap more air and drop the pressure further.",
+   "A double dose of epinephrine, then keep bagging hard -> A bigger dose of epinephrine doesn't help. Fix the airway.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)"
+  ],
+  "cause:air": [
+   "The bag-mask **isn't moving the chest** well.",
+   "[RIGHT] Reposition, two-person bag-mask, then a tube, without stopping CPR -> Fix the airway: reposition, a two-person bag-mask, then an advanced airway, all without stopping compressions.",
+   "Stop CPR until the breathing tube is in, then restart compressions -> Stopping compressions to place a tube costs more than it gains.",
+   "A double dose of epinephrine to open up the airways -> A bigger dose of epinephrine doesn't help. Fix the airway.",
+   "More sodium bicarbonate to correct the acid from poor breathing -> Bicarbonate is for specific causes (high potassium, some overdoses), not every arrest."
+  ],
+  "cause:bleed": [
+   "**Hemoglobin 5** on the gas. The bleeding is inside: {src}.",
+   "[RIGHT] Massive transfusion, and a surgeon or IR to stop the bleeding -> A bleed inside the body: blood (massive transfusion) and a surgeon or interventional radiology to stop it. CPR can't fill an empty heart.",
+   "Tenecteplase, in case a clot is behind this arrest -> A clot buster in a bleeding patient makes it worse.",
+   "Shock it at 200 J, then 2 minutes of CPR and epinephrine -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes and wait for labs -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "cause:vol": [
+   "They were very sick and dry before this. The ultrasound shows **a small, empty heart**.",
+   "[RIGHT] Fluids wide open, while CPR and epinephrine go on -> An empty heart: fluids wide open, while CPR and epinephrine go on.",
+   "Tenecteplase, in case a clot is behind this arrest -> A clot buster in a bleeding patient makes it worse.",
+   "Shock it at 200 J, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "cause:opioid": [
+   "They were found **not breathing**, pupils pinpoint.",
+   "[RIGHT] Oxygen and ventilation; naloxone is reasonable; CPR goes on -> An opioid arrest is a breathing arrest: oxygen and good ventilation first. Naloxone is reasonable, but it never replaces CPR.",
+   "Give naloxone and stop CPR until it starts working -> Never stop CPR to wait for naloxone.",
+   "Flumazenil, to reverse whatever they took, then recheck -> Flumazenil reverses benzodiazepines, not opioids, and can cause seizures.",
+   "Shock it at 200 J, then 2 minutes of CPR and more epinephrine -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)"
+  ],
+  "cause:tension": [
+   "No breath sounds on one side, and the **trachea is pushed to the other side**.",
+   "[RIGHT] Decompress that side now, with a needle or a finger -> No breath sounds and a shifted trachea: a tension pneumothorax. Decompress now; don't wait for an X-ray.",
+   "A portable chest X-ray first, to be sure which side it is -> A tension pneumothorax is a clinical call. There is no time for an X-ray in arrest.",
+   "A double dose of epinephrine, then keep bagging -> A bigger dose of epinephrine doesn't help. Fix the airway.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)"
+  ],
+  "cause:clot": [
+   "The ultrasound shows **a huge right heart** and a clot in the leg.",
+   "[RIGHT] Tenecteplase (a clot buster) during CPR, and keep going -> A big clot in the lungs causing the arrest: a clot buster (tenecteplase) during CPR is reasonable, and CPR goes on longer after it.",
+   "Stop now: an arrest from a clot this size can't come back -> A PE arrest can come back, especially with a clot buster.",
+   "Heparin drip, and recheck the rhythm and pulse in an hour -> Heparin stops new clot; it won't break this one in time.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)"
+  ],
+  "cause:coronary": [
+   "They had **chest pain** before the arrest: **a heart attack** is the likely cause.",
+   "[RIGHT] Run the code; with a pulse back, a 12-lead ECG and cardiology -> A heart attack behind the arrest: run the code, and if the pulse comes back, a 12-lead ECG right away; cardiology decides on the cath lab.",
+   "Stop: an arrest from a heart attack can't come back, so call it -> Arrests from a heart attack often come back, and the cath lab can fix the cause.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Amiodarone 300 mg IV, then a shock at the next rhythm check -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "cause:gluc": [
+   "The fingerstick glucose: **18**.",
+   "[RIGHT] Dextrose IV now, while CPR goes on -> A sugar that low can stop the heart. Dextrose now, while CPR goes on.",
+   "Insulin, to move the sugar into the cells -> Insulin lowers the sugar further.",
+   "Shock it at 200 J, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "cause:look": [
+   "No clear cause yet. How do you look for one?",
+   "[RIGHT] A quick ultrasound in the pulse check, and a blood gas, with CPR on -> No clear cause yet: a quick ultrasound (tamponade, pneumothorax, clot, an empty heart) and a blood gas (potassium, acid), without stopping CPR.",
+   "Stop CPR for a full, careful ultrasound of the heart, lungs and belly -> Ultrasound fits in the pulse check, under 10 seconds. Never stop CPR for a full exam.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes and wait -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "lists": {
+   "CAUSE_OF": {
+    "hyperk": "k",
+    "dka": "vol",
+    "asthma": "trap",
+    "copd": "air",
+    "anaph": "air",
+    "chf": "air",
+    "pna": "air",
+    "rsv": "air",
+    "od": "opioid",
+    "ptx": "tension",
+    "pe": "clot",
+    "mpe": "clot",
+    "stemi": "coronary",
+    "nstemi": "coronary",
+    "cpmod": "coronary",
+    "hypogly": "gluc",
+    "sepsisw": "vol",
+    "shock": "vol",
+    "dehyd": "vol"
+   },
+   "base": {
+    "ed": {
+     "vf": 0.65,
+     "pea": 0.45,
+     "asys": 0.25,
+     "trauma": 0.15,
+     "limb": 0.25
+    },
+    "field": {
+     "vf": 0.45,
+     "pea": 0.2,
+     "asys": 0.08,
+     "trauma": 0.08,
+     "limb": 0.15
+    }
+   },
+   "aiSkill": 0.6,
+   "gap": 2
+  }
+ },
+ "drugRules": {
+  "ALSO": {
+   "afib": [
+    "apixa",
+    "enox",
+    "etomidate",
+    "fent",
+    "heparin",
+    "ketamine",
+    "midaz",
+    "propofol"
+   ],
+   "apapod": [
+    "charcoal",
+    "ondan"
+   ],
+   "arrest": [
+    "amio",
+    "bicarb",
+    "calc",
+    "epiarr",
+    "lr",
+    "ns"
+   ],
+   "cpmod": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "cwp": [
+    "ntg"
+   ],
+   "dissect": [
+    "nicard"
+   ],
+   "dka": [
+    "kcl"
+   ],
+   "ectopic": [
+    "rhogam"
+   ],
+   "hyperk": [
+    "albut",
+    "bicarb",
+    "furo"
+   ],
+   "hypogly": [
+    "octreo",
+    "thiamine"
+   ],
+   "mening": [
+    "acyclo",
+    "ampi"
+   ],
+   "mesisch": [
+    "fent",
+    "hydro",
+    "morph"
+   ],
+   "mpe": [
+    "enox",
+    "heparin",
+    "lr",
+    "norepi",
+    "ns",
+    "pushepi"
+   ],
+   "nstemi": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "salod": [
+    "charcoal",
+    "d50",
+    "kcl"
+   ],
+   "sbo": [
+    "fent",
+    "hydro",
+    "kcl",
+    "morph"
+   ],
+   "status": [
+    "d50",
+    "thiamine"
+   ],
+   "stemi": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "tcaod": [
+    "loraz",
+    "midaz"
+   ]
+  },
+  "CONTRA": {
+   "aaa": [
+    "@bleed"
+   ],
+   "afib": [
+    "dilt",
+    "metop"
+   ],
+   "anaph": [
+    "epiarr"
+   ],
+   "apapod": [
+    "apap"
+   ],
+   "asthma": [
+    "metop"
+   ],
+   "chb": [
+    "dilt",
+    "metop"
+   ],
+   "copd": [
+    "metop"
+   ],
+   "cpmod": [
+    "fent",
+    "hydro",
+    "ibu",
+    "ketor",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "cwp": [
+    "ibu",
+    "ketor",
+    "ntg"
+   ],
+   "dissect": [
+    "@bleed",
+    "apixa"
+   ],
+   "dka": [
+    "d50"
+   ],
+   "ectopic": [
+    "@bleed"
+   ],
+   "gib": [
+    "@bleed"
+   ],
+   "hyperk": [
+    "kcl",
+    "succ"
+   ],
+   "hypogly": [
+    "insdrip",
+    "insreg"
+   ],
+   "lvo": [
+    "asa",
+    "enox",
+    "heparin",
+    "tnk"
+   ],
+   "mcired": [
+    "@bleed"
+   ],
+   "moto": [
+    "@bleed"
+   ],
+   "mvc": [
+    "@bleed"
+   ],
+   "nstemi": [
+    "fent",
+    "hydro",
+    "ibu",
+    "ketor",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "od": [
+    "loraz"
+   ],
+   "pe": [
+    "tnk"
+   ],
+   "sah": [
+    "@bleed",
+    "apixa"
+   ],
+   "salod": [
+    "asa"
+   ],
+   "sbo": [
+    "reglan"
+   ],
+   "sepsisw": [
+    "furo",
+    "labet"
+   ],
+   "shock": [
+    "furo",
+    "labet",
+    "metop",
+    "nicard"
+   ],
+   "stemi": [
+    "fent",
+    "hydro",
+    "ibu",
+    "ketor",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "stroke": [
+    "asa",
+    "enox",
+    "heparin",
+    "tnk"
+   ],
+   "strokew": [
+    "asa",
+    "enox",
+    "heparin",
+    "tnk"
+   ],
+   "tcaod": [
+    "amio",
+    "ondan",
+    "procain"
+   ],
+   "tfall": [
+    "@bleed"
+   ]
+  },
+  "CONTRA_IF": {
+   "afib": [
+    "dilt",
+    "metop"
+   ],
+   "cpmod": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "cwp": [
+    "ibu",
+    "ketor",
+    "ntg"
+   ],
+   "lvo": [
+    "asa",
+    "tnk"
+   ],
+   "nstemi": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "pe": [
+    "tnk"
+   ],
+   "stemi": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "stroke": [
+    "asa",
+    "tnk"
+   ],
+   "strokew": [
+    "asa",
+    "tnk"
+   ]
+  },
+  "RXREQ": {
+   "stemi": {
+    "meds": [
+     [
+      "asa"
+     ],
+     [
+      "heparin",
+      "enox"
+     ]
+    ]
+   },
+   "nstemi": {
+    "meds": [
+     [
+      "asa"
+     ],
+     [
+      "heparin",
+      "enox"
+     ]
+    ]
+   },
+   "tfall": {
+    "reverse": [
+     [
+      "pcc"
+     ],
+     [
+      "vitk"
+     ]
+    ]
+   },
+   "dissect": {
+    "bp": [
+     [
+      "esmolol",
+      "labet"
+     ]
+    ]
+   },
+   "hyperk": {
+    "meds": [
+     [
+      "calc",
+      "calcgluc"
+     ],
+     [
+      "d50"
+     ]
+    ],
+    "insulin": [
+     [
+      "insreg"
+     ]
+    ]
+   },
+   "mening": {
+    "abx": [
+     [
+      "ctx",
+      "cefepime"
+     ],
+     [
+      "vanc"
+     ]
+    ],
+    "meds": [
+     [
+      "dexa"
+     ]
+    ]
+   },
+   "status": {
+    "meds": [
+     [
+      "loraz",
+      "midaz"
+     ],
+     [
+      "levet",
+      "fosphen"
+     ]
+    ]
+   },
+   "mesisch": {
+    "meds": [
+     [
+      "heparin"
+     ]
+    ]
+   },
+   "salod": {
+    "meds": [
+     [
+      "bicarb"
+     ]
+    ]
+   },
+   "tcaod": {
+    "meds": [
+     [
+      "bicarb"
+     ]
+    ]
+   },
+   "necfasc": {
+    "abx": [
+     [
+      "vanc"
+     ],
+     [
+      "piptazo",
+      "cefepime"
+     ],
+     [
+      "clinda"
+     ]
+    ]
+   },
+   "sea": {
+    "abx": [
+     [
+      "vanc"
+     ],
+     [
+      "ctx",
+      "cefepime"
+     ]
+    ]
+   }
+  },
+  "REQ_AGE": {
+   "mening": {
+    "abx": {
+     "over": 50,
+     "add": [
+      "ampi"
+     ]
+    }
+   }
+  },
+  "NEVER_WRONG": [
+   "apap",
+   "ondan"
+  ],
+  "SAME_CLASS_OK": [
+   [
+    "morph",
+    "fent",
+    "hydro"
+   ],
+   [
+    "ketor",
+    "ibu"
+   ],
+   [
+    "ondan",
+    "reglan",
+    "prochlor"
+   ],
+   [
+    "methylpred",
+    "pred",
+    "dexa"
+   ],
+   [
+    "loraz",
+    "midaz"
+   ],
+   [
+    "levet",
+    "fosphen"
+   ],
+   [
+    "albut",
+    "duoneb"
+   ],
+   [
+    "ns",
+    "lr"
+   ]
+  ]
+ },
+ "codeRuns": {
+  "allRight": 26,
+  "allWrong": 7
+ }
+}

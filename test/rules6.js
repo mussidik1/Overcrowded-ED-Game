@@ -207,7 +207,7 @@ assert(['ama', 'agitated', 'patExp'].filter(k => seenCards[k]).every(k => /^\[\[
   assert(p.ev === 'done' && OC.examOf(p) === OC.EXAM.chole, 'the exam finding belongs to the patient once examined');
   const r = OC.signOrders(p.id, ['lab', 'ct'], ['meds']);
   assert(r.ok && p.ordLog && p.ordLog.miss.join() === 'Gallbladder ultrasound' && p.ordLog.extra.join() === 'CT head' && p.ordLog.why === OC.ORD_WHY.chole, 'signing records what was missed and what was not needed: missed ' + p.ordLog.miss + ', extra ' + p.ordLog.extra);
-  assert(OC.G.stats.md.log.length === 1 && OC.G.stats.md.log[0] === p.ordLog, 'and the shift keeps it for the report');
+  assert(OC.G.stats.md.log.length === 1 && OC.G.stats.md.log[0] === p.id && !!p.ordLog, 'and the shift keeps it for the report (by patient, so a save can\'t split it)');
   n = 0; while (p.dsp !== 'mddecide' && n++ < 20000) { OC.step(0.1); if (p.ord === 'signed' && p.txGap && p.txGap.length) OC.signOrders(p.id, ['us'], []); if (p.wkGap || (p.gap && p.gap.length)) OC.signOrders(p.id, ['us'], []); }
   const w = OC.consult ? OC.consult(p.id, 'ortho') : null;
   if (w) assert(!w.ok && /Call General Surgery\./.test(w.why), 'the wrong consultant says who to call: ' + w.why);

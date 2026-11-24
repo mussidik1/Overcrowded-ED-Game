@@ -50,3 +50,21 @@ assert(a.walk.split(' ').length > 15 && a.walk === b.walk, `two players on the s
 const bAll = b.ems.concat(b.div).sort().join(' '), aAll = a.ems.concat(a.div).sort().join(' ');
 assert(a.ems.length > 8 && bAll === aAll, `and the same scheduled ambulances: the ones a player's divert sent elsewhere make up the difference (${a.ems.length} vs ${b.ems.length} + ${b.div.length} diverted)`);
 assert(arrivalsOf(4322, false).walk !== a.walk, 'a different code gives a different shift');
+
+// v0.29.1: codes carry the game version
+OC.setCodeVersion('0.29.1', ['', '0.29.0']);
+{
+  const o2 = { mode: 'md', level: 'hard', scen: 'ct', pack: 'national', seed: 4242 };
+  const now = OC.classCode(o2), back2 = OC.readCode(now);
+  assert(back2 && !back2.stale && back2.seed === 4242 && back2.level === 'hard', 'a code made on this version reads back as itself');
+  OC.setCodeVersion('', []); const legacy = OC.classCode(o2); OC.setCodeVersion('0.29.1', ['', '0.29.0']);
+  assert(legacy !== now, 'the same shift makes a different code on another version');
+  const old = OC.readCode(legacy);
+  assert(old && old.stale === 'an older version' && old.seed === 4242, 'a code from before codes carried a version is recognised as stale, not played');
+  OC.setCodeVersion('0.29.0', []); const v290 = OC.classCode(o2); OC.setCodeVersion('0.29.1', ['', '0.29.0']);
+  const r290 = OC.readCode(v290);
+  assert(r290 && r290.stale === '0.29.0', 'a listed past version is named');
+  OC.setCodeVersion('0.30.0', []);
+  assert(OC.readCode(now) === null, 'a code from an unlisted version is refused');
+  OC.setCodeVersion('', []);
+}

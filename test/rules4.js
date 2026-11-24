@@ -142,7 +142,7 @@ OC.signOrders(ap2.id, ['cbc', 'bmp', 'cthead'], ['meds']);
 assert(ap2.ord === 'signed' && OC.missNow(ap2, true).includes('CT abdomen and pelvis') && G.care - a0 === 1 + 1 - 6 + 3, `the wrong CT costs 6 and the right one is still missing (${G.care - a0}; missing: ${OC.missNow(ap2, true)})`);
 run(60, () => ap2.ord === 'more');
 assert(ap2.ord === 'more' && !ap2.dxK, 'with the right study missing, the diagnosis waits');
-r = OC.signOrders(ap2.id, ['ctap'], []);
+r = OC.signOrders(ap2.id, ['ctap'].concat(OC.hcgDue(ap2) ? ['hcg'] : []), []);   // v0.29.1: a woman 12 to 55 needs the pregnancy test too
 run(90, () => ap2.dxK);
 assert(ap2.dxK, 'ordering the CT abdomen and pelvis lets the diagnosis come');
 const st = seen(room('stone', '5')); a0 = G.care;

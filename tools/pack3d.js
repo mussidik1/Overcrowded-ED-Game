@@ -8,5 +8,8 @@ const flush = () => { if (!cur.length) return; const name = `pack-${packs.length
 for (const p of files) { const k = path.relative('3d', p).split(path.sep).join('/'), b = fs.readFileSync(p).toString('base64'); cur.push(`OC3DPACK[${JSON.stringify(k)}]="${b}";`); size += b.length; if (size > 4e6) flush(); }
 flush();
 fs.writeFileSync(path.join(out, 'pack-index.js'), `window.OC3DPACKS=${JSON.stringify(packs)};`);
-fs.copyFileSync('3d/map3d.js', path.join(out, 'map3d.js')); fs.copyFileSync('index.html', path.join(path.dirname(out), 'index.html'));
+fs.copyFileSync('3d/map3d.js', path.join(out, 'map3d.js')); // The Claude host injects its own scripts, which the page's CSP would block: the private copy goes without it.
+const page = fs.readFileSync('index.html', 'utf8'), noCsp = page.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>\n?/, '');
+if (noCsp === page) throw new Error('pack3d: no CSP found in index.html; rebuild first');
+fs.writeFileSync(path.join(path.dirname(out), 'index.html'), noCsp);
 console.log('packed', files.length, 'files into', packs.length, 'scripts in', out);

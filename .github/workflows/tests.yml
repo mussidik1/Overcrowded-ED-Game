@@ -1,4 +1,4 @@
-# Runs on every push to main and the 3d branch: the rule checks. The phone-size UI tests in WebKit (the engine behind Safari) run
+# Runs on every push to main and the 3d branch: the rule checks (and that the committed build matches the source), stress, and the UI tests in Chrome. The phone-size UI tests in WebKit (the engine behind Safari) run
 # only for main and by hand: since the repo went private (Nov 18), macOS minutes count ten times against the plan's monthly minutes.
 # The UI tests were written against Chrome; this is the only place they run in Safari's engine.
 # Each run's output is saved as webkit.txt on the ci-results branch, so it can be read without opening Actions.
@@ -27,7 +27,37 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run build
+      - name: The committed build matches the source
+        run: git diff --exit-code --stat index.html sw.js 3d/map3d.js || { echo "Rebuild with npm run build and commit index.html, sw.js and 3d/map3d.js"; exit 1; }
       - run: npm test
+      - run: npm run stress
+
+  chrome:
+    name: UI tests in Chrome
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run build
+      - run: pip install playwright
+      - run: python -m playwright install --with-deps chromium
+      - name: Run the UI tests
+        run: |
+          fail=0
+          for t in ui_test md_ui_test map_test class_test gate_test about_test events_test imaging_test offline_test; do
+            echo "=== $t ==="; timeout 600 python test/$t.py || fail=1
+          done
+          for m in rn md; do echo "=== train_test MODE=$m ==="; MODE=$m timeout 900 python test/train_test.py || fail=1; done
+          # the 3D floor, served over http by the test itself, under the page's CSP (any console error fails it)
+          echo "=== map3d_test ==="; timeout 1500 python test/map3d_test.py || fail=1
+          exit $fail
 
   webkit:
     name: UI tests in WebKit (Safari's engine)
@@ -48,7 +78,7 @@ jobs:
       - run: python -m playwright install webkit
       - name: Run the UI tests in WebKit
         id: ui
-        continue-on-error: true   # first runs: report, do not fail the push. Tighten once it is green.
+        continue-on-error: true   # report only until map3d_test passes in WebKit (an ambulance-reversing check fails there)
         env:
           BROWSER: webkit
         run: |
