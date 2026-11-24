@@ -3,6 +3,7 @@
 Branch `claude/sleepy-rubin-jot35n` at `7cb5613` (v0.31.0). Reviewed: the round-4 fixes, `git diff ce11887..46a0b03`. Nov 24, 2026.
 `origin/main` is still `815e279` (v0.30.0). `origin/3d` is still `0619766`. **None of these commits has been through CI**, so the new `database` job and the new pre-publish database check have never run.
 Scratch: `scratchpad/round5/r2/`. I did not contact supabase.co or edcodeblack.com.
+Line numbers are at `7cb5613`. HEAD moved to `a973c30` while I worked. `96b92a3` touches `src/ui.js` (focus and toasts) but none of the lines cited here, and I re-ran the R2.5-02 and R2.5-06 reproductions on the `a973c30` build: both still fail.
 
 ## 0. Round-4 status
 
@@ -67,7 +68,7 @@ What's wrong now is the operational design around the new gate, plus one functio
 ### R2.5-02 · High · The instructor's key drops off the device on day 7, while the class and its results live 30 days
 - **Location:** `src/ui.js`:
   - `:2068` and `:2071`: the key is saved with the registration expiry, which is 7 days.
-  - `:2056`: `cbKeys()` drops any entry whose `exp` has passed.
+  - `:2057`: `cbKeys()` drops any entry whose `exp` has passed.
   - `:2060`: `cbKeySave` rewrites storage from that filtered list, which deletes the key for good.
   - `:2573`: only a *typed* key with "Remember" ever updates `exp`. Opening a saved code (`cbShow(code)`) never does.
 - **What's wrong:** the server moves a class to 30 days from creation once a result arrives (`cb_submit`, migration `:283`). The device never learns this.
