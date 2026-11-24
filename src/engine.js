@@ -1884,7 +1884,7 @@ function signOrders(pid, tests, treats) {
   let pts = 0, extra = 0;
   const xl = [], fl = [], OKL = R.ok || [], OKD = R.detOk || [];   // fl: reasonable orders. Not required, not counted against you.
   for (const nm of drugX) { pts -= 3; extra++; S.ordExtra++; xl.push(nm); }
-  for (const k of contraX) { S.harm++; care(-20, 'harm', p); litAdd(10, `given ${DRUGS[k].n.toLowerCase()}, which can hurt them`, p); mm(55, `${p.name} was given ${DRUGS[k].n.toLowerCase()}`, `It can hurt them: ${contraWhy(p, k)}`, true); toast(`${DRUGS[k].n} can hurt ${p.name}: ${contraWhy(p, k)}.`, 'bad'); }
+  for (const k of contraX) { S.harm++; S.contra = (S.contra || 0) + 1; care(-20, 'harm', p); litAdd(10, `given ${DRUGS[k].n.toLowerCase()}, which can hurt them`, p); mm(55, `${p.name} was given ${DRUGS[k].n.toLowerCase()}`, `It can hurt them: ${contraWhy(p, k)}`, true); toast(`${DRUGS[k].n} can hurt ${p.name}: ${contraWhy(p, k)}.`, 'bad'); }
   fl.push(...drugOk);
   for (const k of newT) {
     const kind = DET_KIND(k), nm = DET_NAME(k);
@@ -1954,6 +1954,7 @@ function harmCheck(p, k) {
   if (!mdMine(p) || !p.extraTr || !p.extraTr.includes(k) || G.pre || p.arrest) return;   // audit R6-03: epinephrine in cardiac arrest is the treatment, never harm
   let h = HARM[k]; if (!h) return;
   if (k === 'cardiovert' && p.ck === 'afib') { if (cardiovertOk(p)) return; h = [0.15, 25, 'had a stroke after cardioversion: A-fib of unknown or long duration needs three weeks of a blood thinner, or a TEE to rule out a clot, before a shock']; }
+  G.stats.md.unneeded = (G.stats.md.unneeded || 0) + 1;   // the unsafe order, whatever the dice do next (R6.6-02)
   if (!chance(h[0])) return;
   G.stats.md.harm++; care(-h[1], 'harm', p); litAdd(10, `harmed by ${TREAT[k].label.toLowerCase()} without an indication`, p);
   mm(55, `${p.name} ${h[2]}`, `${TREAT[k].label} was ordered without an indication`, true);
@@ -3373,7 +3374,7 @@ function leave(p, outcome) {
   else if (outcome === 'tx') { S.tx++; care(12, 'flow', p); note(`${p.name} transferred to ${p.txTo}`); }
   else if (outcome === 'lwbs') { S.lwbs++; care(-25, 'lwbs'); }
   else if (outcome === 'ama') { S.ama++; care(-15, 'ama'); if (G.mode === 'md' && p.mine) care(-15, 'md'); }
-  else if (outcome === 'expired') S.expired++;
+  else if (outcome === 'expired') { S.expired++; if (G.mode === 'md' && p.mine && S.md) S.md.died = (S.md.died || 0) + 1; }   // the attending's own patients (R6.6-04)
   if (outcome !== 'expired' && p.tArrive >= 0) {
     if (outcome === 'lwbs') p.px = Math.min(p.px, 20);
     else if (outcome === 'ama') p.px = Math.min(p.px, 30);
@@ -4397,7 +4398,7 @@ function endShift(reason) {
   const walls = ems.map(p => p.tWall != null ? p.tWall : (p.loc === 'wall' ? G.t - p.tArrive : 0));
   const S = G.stats;
   G.report = {
-    level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
+    level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, endMin: Math.round(Math.min(G.t, G.shift || G.t)), realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
     stars: G.fail ? 0 : overallStars(), avg: avgScore(),
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama,
     expired: S.expired + list.filter(p => p.loc !== 'gone' && ['family', 'morgue', 'morguing'].includes(p.dsp)).length,   // audit R5-02: the dead who haven't left yet count too

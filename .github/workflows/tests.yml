@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read   # every job reads; only the WebKit job, which saves its results file, gets write
+  contents: read   # every job reads; only webkit-save, which pushes the WebKit results file and runs no project code, gets write
 
 concurrency:
   group: tests-${{ github.ref }}
@@ -80,12 +80,12 @@ jobs:
   webkit:
     name: UI tests in WebKit (Safari's engine)
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-    permissions:
-      contents: write   # to save the results file on the ci-results branch
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false   # npm ci and the tests run without a token that can push (audit R1.6-10)
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -136,14 +136,37 @@ jobs:
           if [ $fail = 0 ]; then echo "ALL PASS" >> results.txt; else echo "SOME FAILED" >> results.txt; fi
           cat results.txt
           exit $fail
-      - name: Save the results on the ci-results branch
+      - name: Keep the results file for the next job
         if: always()
+        run: '[ -f results.txt ] || echo "no results: the tests did not start ($GITHUB_SHA)" > results.txt'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webkit-results
+          path: results.txt
+          retention-days: 7
+
+  webkit-save:
+    name: Save the WebKit results on the ci-results branch
+    needs: webkit
+    if: always() && needs.webkit.result != 'skipped'
+    permissions:
+      contents: write   # this job alone can push, and it runs no project code
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: webkit-results
+          path: ${{ runner.temp }}/webkit
+      - name: Push webkit.txt
         run: |
-          [ -f results.txt ] || echo "no results: the tests did not start ($GITHUB_SHA)" > results.txt
-          cp results.txt "$RUNNER_TEMP/webkit.txt"
+          src="$RUNNER_TEMP/webkit/results.txt"
+          [ -f "$src" ] || echo "no results: the WebKit job ended before it saved any ($GITHUB_SHA)" > "$src"
+          cp "$src" "$RUNNER_TEMP/webkit.txt"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git stash -u -q || true
           # two runs (main and 3d) can finish together: start again from the latest copy and retry
           for try in 1 2 3 4 5; do
             if git fetch -q origin ci-results; then git checkout -q -f -B ci-results FETCH_HEAD; else git checkout -q --orphan ci-results; git rm -rf -q . || true; fi

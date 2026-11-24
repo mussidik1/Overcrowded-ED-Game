@@ -12,9 +12,13 @@ on:
         description: 'Skip the live database check (emergency only, such as a rollback while Supabase is down)'
         type: boolean
         default: false
+      skip_reason:
+        description: 'Why the database check is skipped (required with skip_db_check; shown in the run)'
+        type: string
+        default: ''
 
 permissions:
-  contents: read   # the deploy job alone gets pages and id-token
+  contents: read   # the build job also reads the Pages settings (configure-pages); the deploy job alone gets pages: write and id-token
 
 concurrency:
   group: pages
@@ -23,10 +27,16 @@ concurrency:
 jobs:
   build:
     name: Check and package
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    if: github.ref == 'refs/heads/main'   # a manual run from another branch publishes nothing
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      pages: read   # actions/configure-pages reads the Pages settings
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -36,12 +46,32 @@ jobs:
         run: git diff --exit-code --stat index.html sw.js 3d/map3d.js || { echo "Rebuild with npm run build and commit index.html, sw.js and 3d/map3d.js"; exit 1; }
       - run: npm test
       - run: npm run stress
+      # The database rules on a throwaway PostgreSQL 17 (as live), and the game's side of the contract (supabase/tests/client_call.json):
+      # the same checks as the Tests workflow, so a release never waits on a run that wasn't green.
+      - name: PostgreSQL 17 with pgcrypto
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          sudo apt-get install -y -q postgresql-17 >/dev/null
+          sudo locale-gen en_US.UTF-8 >/dev/null
+      - name: The database rules on a local Postgres
+        run: bash supabase/tests/run.sh
+        env:
+          PG_BIN: /usr/lib/postgresql/17/bin
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: The class-results UI test (game side of the contract)
+        run: |
+          pip install -q playwright
+          python -m playwright install --with-deps chromium >/dev/null
+          timeout 600 python test/class_test.py
       # Before anything is published: the live database must have this release's migration (or a newer one) and its rules
       # (supabase/README.md, "Releasing"). The output says what failed and what to do. skip_db_check is for emergencies only.
       - name: Check the database rules
         run: node test/db_live.js
         env:
           SKIP_DB_CHECK: ${{ inputs.skip_db_check && '1' || '' }}
+          SKIP_REASON: ${{ inputs.skip_reason }}
       - name: Package the game files only
         run: |
           mkdir _site
@@ -57,6 +87,7 @@ jobs:
   deploy:
     name: Deploy
     needs: build
+    if: github.ref == 'refs/heads/main'
     timeout-minutes: 30
     permissions:
       contents: read
@@ -71,12 +102,14 @@ jobs:
         uses: actions/deploy-pages@v4
       - uses: actions/checkout@v4
         with:
+          persist-credentials: false
           sparse-checkout: |
             package.json
             CNAME
-      # After the deploy (audit R2.2-06, R2.3-03): the live page is this release (its version is in index.html), and the source, tests,
-      # docs and CLAUDE.md are not published. Checked at the Pages address and at the custom domain (CNAME). The site can take a few
-      # minutes to update, so each check retries for up to 5 minutes. If this fails, roll back: see "Rolling back" in CLAUDE.md.
+      # After the deploy (audit R2.2-06, R2.3-03, R2.6-07): first the live page is this release (its version is in index.html), so the
+      # checks after it test this deployment, not the last one; then the source, tests, docs and CLAUDE.md are not published. Checked
+      # at the Pages address and at the custom domain (CNAME). The site can take a few minutes to update, so the version check retries
+      # for up to 5 minutes per address. If this fails, roll back: see "Rolling back" in CLAUDE.md.
       - name: Check the live site
         env:
           SITE: ${{ steps.deployment.outputs.page_url }}
@@ -84,19 +117,20 @@ jobs:
           ver=$(node -p "require('./package.json').version")
           [ -n "$ver" ] || { echo "FAIL: no version in package.json"; exit 1; }
           sites="${SITE%/}"; dom=$(tr -d ' \n\r' < CNAME 2>/dev/null || true); [ -n "$dom" ] && [ "${sites#https://}" != "$dom" ] && sites="$sites https://$dom"   # the Pages address is the custom domain once one is set: check it once
-          want() {   # want <status> <url> [text the page must contain]
-            for i in $(seq 1 30); do
+          want() {   # want <tries> <status> <url> [text the page must contain]
+            n=$1; shift
+            for i in $(seq 1 "$n"); do
               body=$(curl -s --max-time 20 -w '\n%{http_code}' "$2?nocache=$RANDOM$i"); got=${body##*$'\n'}
               if [ "$got" = "$1" ] && { [ -z "$3" ] || grep -qF -- "$3" <<< "$body"; }; then echo "ok   $2 -> $got${3:+ (has $3)}"; return 0; fi
-              sleep 10
+              [ "$i" = "$n" ] || sleep 10
             done
             echo "FAIL $2 -> $got (wanted $1${3:+ with $3})"; return 1
           }
           fail=0
-          for site in $sites; do   # the files that must not be public first: a slow propagation can't time out before them
-            for f in CLAUDE.md README.md src/engine.js src/ui.js src/backend.json test/golden.js docs/PRO_AUDIT.md docs/audit/BRIEF.md package.json build.js supabase/README.md; do want 404 "$site/$f" || fail=1; done
-            want 200 "$site/index.html" "\"$ver\"" || fail=1
-            want 200 "$site/sw.js" "$ver" || fail=1
-            want 200 "$site/3d/map3d.js" || fail=1
+          for site in $sites; do
+            want 30 200 "$site/index.html" "\"$ver\"" || { fail=1; continue; }   # this deployment is the one being served
+            for f in CLAUDE.md README.md src/engine.js src/ui.js src/backend.json test/golden.js docs/PRO_AUDIT.md docs/audit/BRIEF.md package.json build.js supabase/README.md supabase/migrations; do want 2 404 "$site/$f" || fail=1; done
+            want 6 200 "$site/sw.js" "$ver" || fail=1
+            want 6 200 "$site/3d/map3d.js" || fail=1
           done
           exit $fail

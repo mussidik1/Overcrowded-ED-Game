@@ -16,9 +16,9 @@ Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages
 ## Branches and releases
 
 - Work happens on `3d`. It is merged into `main` with `--no-ff`, and `main` deploys to Pages through the workflow (tests first). (A Claude session may be told to use a different branch; follow that.)
-- A release: bump `package.json` `version`, set `PAST_V` in `ui.js` to the version being replaced (one entry only: each entry makes typos more likely to read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. **If the release has a new file in `supabase/migrations/`, the owner applies it to the live project first**; the deploy checks the live database before it publishes and stops if the migration isn't there. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
+- A release: bump `package.json` `version`, set `PAST_V` in `ui.js` to the version being replaced (one entry only: each entry makes typos more likely to read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. **If the release has a new file in `supabase/migrations/`, the owner applies it to the live project first**, then its SHA-256 goes into `supabase/migrations/applied.sha256` (an applied migration is frozen: a change goes in a new file); the deploy checks the live database before it publishes and stops if the migration isn't there or one was skipped. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
 - WebKit CI results: `git fetch origin ci-results && git show FETCH_HEAD:webkit.txt`.
-- **Before a merge into `main`:** the Tests workflow is green on `3d` at the exact commit being merged, and `docs/SMOKE.md` has been run on a phone. The deploy (`pages.yml`) re-runs the build check, `npm test` and stress, then checks the live site: the new version is in `index.html` at the Pages address and at edcodeblack.com, and the source, docs and CLAUDE.md answer 404.
+- **Before a merge into `main`:** the Tests workflow is green on `3d` at the exact commit being merged, and `docs/SMOKE.md` has been run on a phone. The deploy (`pages.yml`, from `main` only) re-runs the build check, `npm test`, stress, the database rules on a local PostgreSQL 17 and `class_test.py`, then checks the live database (`test/db_live.js`; it stops the release if the migration isn't applied), publishes, and checks the live site: the new version is in `index.html` at the Pages address and at edcodeblack.com, and the source, docs and CLAUDE.md answer 404.
 - **Rolling back:** `git revert -m 1 <merge commit>` on `main` and push: the deploy republishes the previous version. The database stays as it is (a live database ahead of the game passes the deploy's check). If Supabase itself is down, run the Deploy workflow by hand with **skip_db_check** ticked. If the live-site check reports a published source file, roll back first, then check Settings > Pages (Source must be "GitHub Actions"; the custom domain edcodeblack.com).
 
 ## Working with the owner
@@ -68,8 +68,10 @@ The game is **one self-contained `index.html`**. `build.js` inlines the engine, 
 ## Layout
 
 ```
-src/engine.js            simulation, no DOM (~4,400 lines). Exposes window.OC, or module.exports under Node
-src/ui.js                phone-first UI (~2,800 lines). Reads OC.G, calls OC actions. Exposes window.OCUI
+src/engine.js            simulation, no DOM (~4,900 lines). Exposes window.OC, or module.exports under Node
+src/ui.js                phone-first UI (~3,200 lines). Reads OC.G, calls OC actions. Exposes window.OCUI
+src/backend.json         the Supabase address, publishable key and privacy contact (build.js puts them in the page and its CSP)
+supabase/                the Code Black database: baseline, migrations (applied.sha256 freezes the applied ones), tests
 src/map.js               SVG floor plan. Spliced into ui.js at /*MAP*/ at build time, not a separate file at runtime
 src/style.css            all styles
 src/index.template.html  page shell with /*FONTS*/ /*STYLE*/ /*ENGINE*/ /*UI*/ placeholders
@@ -83,7 +85,8 @@ test/*_test.py           Playwright UI tests against the built index.html (test/
 art/blender/             Blender scripts that made the 3D models in 3d/
 docs/em-model/           the plan and parsed item lists for adding conditions from the ABEM 2022 EM Model
 docs/screenshots/        README images
-tools/                   3D asset packing and optimisation scripts
+tools/                   3D asset packing and optimisation scripts; name_ranges.py makes the server name rule's Unicode lists
+test/db_live.js          the live database check the deploy runs before it publishes (not from a Claude container)
 ```
 
 ### Engine (`src/engine.js`)
@@ -129,15 +132,15 @@ When you add anything random that should be the same for every player on a code 
 
 Class results and the testing gate use **Supabase, the same project as Case Room**. The address, the publishable key (public by design) and an optional privacy contact are in `src/backend.json`; `build.js` puts them in the page (`CB` in `ui.js`) and the CSP. Since v0.31.0 the whole Code Black database is in `supabase/` (`supabase/README.md` explains it), and the results sit in a `codeblack` schema that the API doesn't expose. The functions are the only way in:
 
-- `rpc/cb_class_new`: making a class code registers it with an **instructor key** (16 characters) that the game makes and keeps on that device (`oc-ckeys`, `{ v: 1, c: { code: { k, exp, t } } }`). Repeating it is safe; a code another class has comes back `taken`, and the game makes another before showing it. The key stays hidden until the instructor taps Show key.
+- `rpc/cb_class_new`: making a class code registers it with an **instructor key** (16 characters) that the game makes and keeps on that device (`oc-ckeys`, `{ v: 1, c: { code: { k, t, p, s, e, x } } }`: the key, when the server made the class, unconfirmed, shown, when it ends, ended). Repeating it is safe; a code another class has comes back `taken`, and the game makes another before showing it. A code shows only once the server has registered it (if the server can't be reached, the instructor may use it without results). The key stays hidden until the instructor taps Show key, and is masked when typed.
 - `rpc/cb_submit`: a student sends their summary: first name or initials, score 0 to 100, stars, real time played, stats (`client_call.json` lists the keys), the version the shift was played on, and the result's own id (kept once however often it's retried). The name is never stored on the device.
 - `rpc/cb_class_read`, `rpc/cb_class_delete`: the instructor's Class results list, and deleting one result or all. Both need the key. Copy table and Download CSV export it.
 - `rpc/cb_health`: for the deploy's check (which migration is live, whether the clean-up runs, whether callers' addresses are read). No class data.
 - `rpc/cb_gate_on`, `rpc/cb_gate_check`: the password gate, active only on `edcodeblack.com/.net` and `*.github.io` (`GATED`). The password is checked by bcrypt hash in the database, and a device that passed the gate once can play offline.
 
-A code lasts 14 days until its first result, then 30 days from when it was made; then it and its results are deleted. The device keeps a key 30 days from when its code was made. Rate limits are per network, per hour, by a daily-salted hash of the address. Every call gives up after 8 seconds (`cbFetch`), and a failure says whether it was the network, a timeout or the server. Everything else runs offline in the browser.
+A code lasts 14 days until its first result, then 30 days from when it was made; then it and its results are deleted. The device keeps a key 30 days from when its code was made. Rate limits are per network, per UTC hour and day, by a daily-salted hash of the address. Every call gives up after 8 seconds (`cbFetch`), and a failure says whether it was the network, a timeout or the server. Everything else runs offline in the browser.
 
-- **Changing the database:** add a new file to `supabase/migrations/`, run `npm run db:test` (a throwaway local Postgres; also a CI job, on PostgreSQL 17 as live), and get the owner's approval before it goes to the live project (he pastes it into the SQL editor, or approves the tool call). **The database goes first, then the game:** the Pages deploy runs `test/db_live.js` before it publishes and stops if the live database doesn't have the release's migration (or a newer one). Each migration refuses to run over a newer one and records its own name in `codeblack.migrations`. This container's network can't reach supabase.co, so that check runs in CI. `supabase/tests/client_call.json` is the contract: the calls the game makes, the errors each function gives, and the names both sides accept and refuse. Change it, `ui.js` and the SQL together.
+- **Changing the database:** add a new file to `supabase/migrations/`, run `npm run db:test` (a throwaway local Postgres; also a CI job, on PostgreSQL 17 as live), and get the owner's approval before it goes to the live project (he pastes it into the SQL editor, or approves the tool call). **The database goes first, then the game:** the Pages deploy runs `test/db_live.js` before it publishes and stops if the live database doesn't have the release's migration (or a newer one). Each migration refuses to run over a newer one and records its own name in `codeblack.migrations`. Once applied, add its SHA-256 to `supabase/migrations/applied.sha256` (`run.sh` refuses an edited applied migration, or a new one that sorts before an applied one). A migration must keep the previous release's game and its `db_live.js` passing: add first, remove a release later. This container's network can't reach supabase.co, so that check runs in CI. `supabase/tests/client_call.json` is the contract: the calls the game makes, the errors each function gives, and the names both sides accept and refuse. Change it, `ui.js` and the SQL together.
 
 ## Running it
 
