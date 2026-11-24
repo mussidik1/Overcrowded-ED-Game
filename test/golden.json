@@ -1,5 +1,5 @@
 {
- "version": "0.29.1",
+ "version": "0.30.0",
  "shifts": {
   "rn/rush/none": {
    "arrivals": 27,
@@ -291,7 +291,7 @@
     "pack": "national",
     "seed": 13
    },
-   "code": "003-80J",
+   "code": "003-80R",
    "roundTrip": true
   },
   {
@@ -302,7 +302,7 @@
     "pack": "miemss",
     "seed": 7932
    },
-   "code": "1XZ-4QC",
+   "code": "1XZ-4QN",
    "roundTrip": true
   },
   {
@@ -313,7 +313,7 @@
     "pack": "national",
     "seed": 15851
    },
-   "code": "3VT-S87",
+   "code": "3VT-S85",
    "roundTrip": true
   },
   {
@@ -324,7 +324,7 @@
     "pack": "miemss",
     "seed": 23770
    },
-   "code": "5SP-NZ0",
+   "code": "5SP-NZB",
    "roundTrip": true
   },
   {
@@ -335,7 +335,7 @@
     "pack": "national",
     "seed": 31689
    },
-   "code": "7QJ-A0W",
+   "code": "7QJ-A1R",
    "roundTrip": true
   },
   {
@@ -346,7 +346,7 @@
     "pack": "miemss",
     "seed": 39608
    },
-   "code": "9NE-46X",
+   "code": "9NE-463",
    "roundTrip": true
   },
   {
@@ -357,7 +357,7 @@
     "pack": "national",
     "seed": 47527
    },
-   "code": "BK9-RS6",
+   "code": "BK9-RS0",
    "roundTrip": true
   },
   {
@@ -368,7 +368,7 @@
     "pack": "miemss",
     "seed": 55446
    },
-   "code": "DH5-NFE",
+   "code": "DH5-NEZ",
    "roundTrip": true
   },
   {
@@ -379,7 +379,7 @@
     "pack": "national",
     "seed": 63365
    },
-   "code": "FF1-9GE",
+   "code": "FF1-9HP",
    "roundTrip": true
   },
   {
@@ -390,7 +390,7 @@
     "pack": "miemss",
     "seed": 71284
    },
-   "code": "HCX-675",
+   "code": "HCX-67E",
    "roundTrip": true
   },
   {
@@ -401,7 +401,7 @@
     "pack": "national",
     "seed": 79203
    },
-   "code": "KAR-R81",
+   "code": "KAR-R8W",
    "roundTrip": true
   },
   {
@@ -412,7 +412,7 @@
     "pack": "miemss",
     "seed": 87122
    },
-   "code": "N8M-MZ9",
+   "code": "N8M-MZ2",
    "roundTrip": true
   },
   {
@@ -423,7 +423,7 @@
     "pack": "national",
     "seed": 95041
    },
-   "code": "Q6G-914",
+   "code": "Q6G-90T",
    "roundTrip": true
   },
   {
@@ -434,7 +434,7 @@
     "pack": "miemss",
     "seed": 102960
    },
-   "code": "S4C-5QE",
+   "code": "S4C-5PW",
    "roundTrip": true
   },
   {
@@ -445,7 +445,7 @@
     "pack": "national",
     "seed": 110879
    },
-   "code": "V27-T84",
+   "code": "V27-T9G",
    "roundTrip": true
   },
   {
@@ -456,7 +456,7 @@
     "pack": "miemss",
     "seed": 118798
    },
-   "code": "X03-MFG",
+   "code": "X03-MFM",
    "roundTrip": true
   },
   {
@@ -478,7 +478,7 @@
     "pack": "miemss",
     "seed": 3564
    },
-   "code": "0VV-56D",
+   "code": "0VV-57F",
    "roundTrip": true
   },
   {
@@ -489,7 +489,7 @@
     "pack": "national",
     "seed": 11483
    },
-   "code": "2SP-SSG",
+   "code": "2SP-SS5",
    "roundTrip": true
   },
   {
@@ -500,7 +500,7 @@
     "pack": "miemss",
     "seed": 19402
    },
-   "code": "4QJ-PEG",
+   "code": "4QJ-PEK",
    "roundTrip": true
   }
  ],

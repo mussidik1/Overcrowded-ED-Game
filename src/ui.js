@@ -1964,7 +1964,7 @@ const GAME_V = '/*GAMEV*/';   // the build puts the version here: a code gives t
 // v0.29.1: codes carry the version. PAST_V holds only the version just before this one ('' is v0.29.0 and earlier, before codes
 // carried one): each entry is another 1-in-64 chance that a mistyped code reads as stale, so each release replaces it, never appends.
 // The check is 6 bits, so about 1 code in 64 from another version still reads as current: refused almost always, not always.
-const PAST_V = [''];
+const PAST_V = [''];   // v0.30.0 replaces v0.29.0 on the live site (v0.29.1 was never released), and v0.29.0 codes carry no version
 E.setCodeVersion(GAME_V, PAST_V);
 const staleWhy = () => `That code looks mistyped, or it was made on another version of the game (this is v${GAME_V}). Check each letter. If it’s right, ask your instructor for a new code.`;
 /* Class codes: an instructor makes one, students enter it, and everyone plays the same shift (same arrivals and events). */
