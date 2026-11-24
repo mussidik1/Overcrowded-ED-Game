@@ -1,0 +1,1787 @@
+{
+ "version": "0.29.1",
+ "shifts": {
+  "rn/rush/none": {
+   "arrivals": 27,
+   "arrivalsHash": "f432188f",
+   "seen": 26,
+   "dc": 6,
+   "adm": 6,
+   "proc": 2,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 23,
+   "care": 427,
+   "wait": 21,
+   "stars": 3,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "f0356cbe"
+  },
+  "rn/easy/none": {
+   "arrivals": 93,
+   "arrivalsHash": "cb817bfd",
+   "seen": 93,
+   "dc": 46,
+   "adm": 31,
+   "proc": 8,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 10,
+   "care": 1952,
+   "wait": 15,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "a3959f82"
+  },
+  "rn/med/none": {
+   "arrivals": 110,
+   "arrivalsHash": "8097b879",
+   "seen": 110,
+   "dc": 50,
+   "adm": 39,
+   "proc": 9,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 10,
+   "care": 1816,
+   "wait": 16,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "093230b5"
+  },
+  "rn/hard/none": {
+   "arrivals": 130,
+   "arrivalsHash": "53abc880",
+   "seen": 130,
+   "dc": 57,
+   "adm": 34,
+   "proc": 10,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 1,
+   "expired": 0,
+   "left": 31,
+   "care": 597,
+   "wait": 36,
+   "stars": 1,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "4dfbb614"
+  },
+  "md/rush/none": {
+   "arrivals": 27,
+   "arrivalsHash": "f432188f",
+   "seen": 26,
+   "dc": 7,
+   "adm": 6,
+   "proc": 2,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 23,
+   "care": 167,
+   "wait": 21,
+   "stars": 3,
+   "fail": null,
+   "lit": 20,
+   "acc": 71,
+   "stateHash": "bd71ad64"
+  },
+  "md/easy/none": {
+   "arrivals": 88,
+   "arrivalsHash": "1506c083",
+   "seen": 88,
+   "dc": 51,
+   "adm": 27,
+   "proc": 5,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 10,
+   "care": 1421,
+   "wait": 19,
+   "stars": 3,
+   "fail": null,
+   "lit": 58,
+   "acc": 67,
+   "stateHash": "ef358bec"
+  },
+  "md/med/none": {
+   "arrivals": 112,
+   "arrivalsHash": "38a60d1a",
+   "seen": 112,
+   "dc": 58,
+   "adm": 36,
+   "proc": 9,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 10,
+   "care": 1826,
+   "wait": 21,
+   "stars": 3,
+   "fail": null,
+   "lit": 50,
+   "acc": 67,
+   "stateHash": "64d00e62"
+  },
+  "md/hard/none": {
+   "arrivals": 125,
+   "arrivalsHash": "d46c8c96",
+   "seen": 124,
+   "dc": 64,
+   "adm": 33,
+   "proc": 11,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 20,
+   "care": 1775,
+   "wait": 23,
+   "stars": 3,
+   "fail": null,
+   "lit": 72,
+   "acc": 67,
+   "stateHash": "02eccb1f"
+  },
+  "rn/med/ct": {
+   "arrivals": 109,
+   "arrivalsHash": "c81af170",
+   "seen": 109,
+   "dc": 48,
+   "adm": 41,
+   "proc": 8,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 8,
+   "care": 2028,
+   "wait": 18,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "8118bed1"
+  },
+  "rn/med/mci": {
+   "arrivals": 113,
+   "arrivalsHash": "ac63f685",
+   "seen": 113,
+   "dc": 50,
+   "adm": 40,
+   "proc": 8,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 14,
+   "care": 1734,
+   "wait": 20,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "1b2f4e80"
+  },
+  "rn/med/board": {
+   "arrivals": 118,
+   "arrivalsHash": "1ab528b8",
+   "seen": 118,
+   "dc": 54,
+   "adm": 29,
+   "proc": 7,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 32,
+   "care": 1190,
+   "wait": 27,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "4f7d182b"
+  },
+  "rn/med/short": {
+   "arrivals": 111,
+   "arrivalsHash": "afc8e836",
+   "seen": 111,
+   "dc": 50,
+   "adm": 40,
+   "proc": 9,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 14,
+   "care": 1710,
+   "wait": 18,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "e61c283b"
+  },
+  "md/med/board": {
+   "arrivals": 113,
+   "arrivalsHash": "649b7816",
+   "seen": 113,
+   "dc": 59,
+   "adm": 34,
+   "proc": 8,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 1,
+   "expired": 0,
+   "left": 19,
+   "care": 1656,
+   "wait": 21,
+   "stars": 3,
+   "fail": null,
+   "lit": 66,
+   "acc": 67,
+   "stateHash": "0c970de7"
+  }
+ },
+ "streams": {
+  "rn/med": {
+   "sameEarlyArrivals": true,
+   "hash": "f7221b69"
+  },
+  "rn/hard": {
+   "sameEarlyArrivals": true,
+   "hash": "2da4986c"
+  },
+  "md/med": {
+   "sameEarlyArrivals": true,
+   "hash": "6c6265c7"
+  }
+ },
+ "codes": [
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "none",
+    "pack": "national",
+    "seed": 13
+   },
+   "code": "003-80J",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "ct",
+    "pack": "miemss",
+    "seed": 7932
+   },
+   "code": "1XZ-4QC",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "mci",
+    "pack": "national",
+    "seed": 15851
+   },
+   "code": "3VT-S87",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "board",
+    "pack": "miemss",
+    "seed": 23770
+   },
+   "code": "5SP-NZ0",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "short",
+    "pack": "national",
+    "seed": 31689
+   },
+   "code": "7QJ-A0W",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "none",
+    "pack": "miemss",
+    "seed": 39608
+   },
+   "code": "9NE-46X",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "ct",
+    "pack": "national",
+    "seed": 47527
+   },
+   "code": "BK9-RS6",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "mci",
+    "pack": "miemss",
+    "seed": 55446
+   },
+   "code": "DH5-NFE",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "board",
+    "pack": "national",
+    "seed": 63365
+   },
+   "code": "FF1-9GE",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "short",
+    "pack": "miemss",
+    "seed": 71284
+   },
+   "code": "HCX-675",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "none",
+    "pack": "national",
+    "seed": 79203
+   },
+   "code": "KAR-R81",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "ct",
+    "pack": "miemss",
+    "seed": 87122
+   },
+   "code": "N8M-MZ9",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "mci",
+    "pack": "national",
+    "seed": 95041
+   },
+   "code": "Q6G-914",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "board",
+    "pack": "miemss",
+    "seed": 102960
+   },
+   "code": "S4C-5QE",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "short",
+    "pack": "national",
+    "seed": 110879
+   },
+   "code": "V27-T84",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "none",
+    "pack": "miemss",
+    "seed": 118798
+   },
+   "code": "X03-MFG",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "rush",
+    "scen": "ct",
+    "pack": "national",
+    "seed": 126717
+   },
+   "code": "YXZ-8HY",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "easy",
+    "scen": "mci",
+    "pack": "miemss",
+    "seed": 3564
+   },
+   "code": "0VV-56D",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "rn",
+    "level": "med",
+    "scen": "board",
+    "pack": "national",
+    "seed": 11483
+   },
+   "code": "2SP-SSG",
+   "roundTrip": true
+  },
+  {
+   "in": {
+    "mode": "md",
+    "level": "hard",
+    "scen": "short",
+    "pack": "miemss",
+    "seed": 19402
+   },
+   "code": "4QJ-PEG",
+   "roundTrip": true
+  }
+ ],
+ "save": {
+  "identical": true,
+  "bytesAt3h": true
+ },
+ "answers": {
+  "rash": {
+   "tests": [],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Contact dermatitis",
+   "ok": {
+    "meds": [
+     "diphen",
+     "tricream",
+     "pred",
+     "methylpred"
+    ]
+   },
+   "contra": []
+  },
+  "refill": {
+   "tests": [],
+   "treats": [],
+   "dx": "Medication refill",
+   "ok": {
+    "meds": [
+     "homemed"
+    ]
+   },
+   "contra": []
+  },
+  "otitis": {
+   "tests": [],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Ear infection",
+   "ok": {
+    "meds": [
+     "amox",
+     "amoxclav"
+    ]
+   },
+   "contra": []
+  },
+  "dental": {
+   "tests": [],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Dental abscess",
+   "ok": {
+    "meds": [
+     "amoxclav",
+     "amox",
+     "penvk",
+     "ibu",
+     "apap"
+    ]
+   },
+   "contra": []
+  },
+  "strep": {
+   "tests": [
+    "strep"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Strep throat",
+   "ok": {
+    "meds": [
+     "penvk",
+     "amox",
+     "bicillin"
+    ]
+   },
+   "contra": []
+  },
+  "ankle": {
+   "tests": [
+    "extxr"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Ankle sprain",
+   "ok": {
+    "meds": [
+     "ibu",
+     "apap",
+     "ketor"
+    ]
+   },
+   "contra": []
+  },
+  "lac": {
+   "tests": [],
+   "treats": [
+    "repair"
+   ],
+   "dx": "Simple laceration",
+   "ok": null,
+   "contra": []
+  },
+  "uti": {
+   "tests": [
+    "ua"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Urinary tract infection",
+   "ok": {
+    "meds": [
+     "nitrof",
+     "cephalex"
+    ]
+   },
+   "contra": []
+  },
+  "gastro": {
+   "tests": [
+    "bmp",
+    "hcg"
+   ],
+   "treats": [
+    "fluids",
+    "meds"
+   ],
+   "dx": "Gastroenteritis",
+   "ok": {
+    "meds": [
+     "ondan",
+     "reglan",
+     "prochlor"
+    ]
+   },
+   "contra": []
+  },
+  "appy": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "ctap",
+    "hcg"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Appendicitis",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "apap",
+     "ketor",
+     "ondan"
+    ],
+    "abx": [
+     "piptazo",
+     "ctx",
+     "metro"
+    ]
+   },
+   "contra": []
+  },
+  "chole": {
+   "tests": [
+    "cbc",
+    "lft",
+    "lip",
+    "ruq"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Cholecystitis",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "ketor",
+     "ondan",
+     "apap"
+    ],
+    "abx": [
+     "piptazo",
+     "ctx",
+     "metro"
+    ]
+   },
+   "contra": []
+  },
+  "hipfx": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "hipxr",
+    "ts"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Hip fracture",
+   "ok": {
+    "meds": [
+     "fent",
+     "morph",
+     "hydro",
+     "apap"
+    ]
+   },
+   "contra": []
+  },
+  "flu": {
+   "tests": [
+    "resp"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Influenza",
+   "ok": {
+    "meds": [
+     "osel",
+     "apap",
+     "ibu"
+    ]
+   },
+   "contra": []
+  },
+  "pnalow": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "cxr"
+   ],
+   "treats": [
+    "abx"
+   ],
+   "dx": "Pneumonia, low risk",
+   "ok": {
+    "abx": [
+     "amox",
+     "doxy",
+     "azith",
+     "amoxclav"
+    ]
+   },
+   "contra": []
+  },
+  "pna": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "cxr"
+   ],
+   "treats": [
+    "o2",
+    "abx"
+   ],
+   "dx": "Pneumonia",
+   "ok": {
+    "abx": [
+     "ctx",
+     "azith"
+    ]
+   },
+   "contra": []
+  },
+  "copd": {
+   "tests": [
+    "cxr",
+    "vbg"
+   ],
+   "treats": [
+    "nebs",
+    "bipap"
+   ],
+   "dx": "COPD flare",
+   "ok": {
+    "meds": [
+     "methylpred",
+     "pred"
+    ],
+    "nebs": [
+     "duoneb",
+     "albut"
+    ]
+   },
+   "contra": [
+    "metop"
+   ]
+  },
+  "chf": {
+   "tests": [
+    "bmp",
+    "bnp",
+    "cxr"
+   ],
+   "treats": [
+    "bipap",
+    "meds"
+   ],
+   "dx": "Heart failure flare",
+   "ok": {
+    "meds": [
+     "ntg",
+     "furo"
+    ]
+   },
+   "contra": []
+  },
+  "stone": {
+   "tests": [
+    "bmp",
+    "ctap",
+    "ua"
+   ],
+   "treats": [
+    "meds",
+    "fluids"
+   ],
+   "dx": "Kidney stone",
+   "ok": {
+    "meds": [
+     "ketor",
+     "ibu",
+     "morph",
+     "fent",
+     "hydro"
+    ]
+   },
+   "contra": []
+  },
+  "dvt": {
+   "tests": [
+    "bmp",
+    "duplex"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Deep vein thrombosis",
+   "ok": {
+    "meds": [
+     "apixa",
+     "enox",
+     "heparin"
+    ]
+   },
+   "contra": []
+  },
+  "migraine": {
+   "tests": [],
+   "treats": [
+    "fluids",
+    "meds"
+   ],
+   "dx": "Migraine",
+   "ok": {
+    "meds": [
+     "prochlor",
+     "reglan",
+     "ketor",
+     "diphen"
+    ]
+   },
+   "contra": []
+  },
+  "tb": {
+   "tests": [
+    "cbc",
+    "cxr"
+   ],
+   "treats": [],
+   "dx": "Suspected tuberculosis",
+   "ok": null,
+   "contra": []
+  },
+  "bh": {
+   "tests": [
+    "tox"
+   ],
+   "treats": [],
+   "dx": "Behavioral health emergency",
+   "ok": null,
+   "contra": []
+  },
+  "etoh": {
+   "tests": [
+    "bmp",
+    "tox"
+   ],
+   "treats": [
+    "fluids"
+   ],
+   "dx": "Alcohol intoxication",
+   "ok": null,
+   "contra": []
+  },
+  "od": {
+   "tests": [
+    "tox"
+   ],
+   "treats": [
+    "nalox"
+   ],
+   "dx": "Opioid overdose",
+   "ok": null,
+   "contra": [
+    "loraz"
+   ]
+  },
+  "cell": {
+   "tests": [
+    "cbc"
+   ],
+   "treats": [
+    "abx"
+   ],
+   "dx": "Cellulitis",
+   "ok": {
+    "abx": [
+     "cefaz",
+     "vanc",
+     "ctx",
+     "cephalex"
+    ]
+   },
+   "contra": []
+  },
+  "syncope": {
+   "tests": [
+    "bmp",
+    "cbc"
+   ],
+   "treats": [],
+   "dx": "Syncope, low risk",
+   "ok": null,
+   "contra": []
+  },
+  "synchigh": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "trop"
+   ],
+   "treats": [],
+   "dx": "Syncope, high risk",
+   "ok": null,
+   "contra": []
+  },
+  "tia": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "cthead"
+   ],
+   "treats": [],
+   "dx": "Transient ischemic attack",
+   "ok": {
+    "meds": [
+     "asa"
+    ]
+   },
+   "contra": []
+  },
+  "dehyd": {
+   "tests": [
+    "bmp"
+   ],
+   "treats": [
+    "fluids"
+   ],
+   "dx": "Dehydration",
+   "ok": null,
+   "contra": []
+  },
+  "cpmod": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "cxr",
+    "trop"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Chest pain, moderate risk",
+   "ok": {
+    "meds": [
+     "asa"
+    ]
+   },
+   "contra": []
+  },
+  "cwp": {
+   "tests": [
+    "cxr",
+    "trop"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Chest pain, low risk",
+   "ok": {
+    "meds": [
+     "ibu",
+     "apap",
+     "ketor"
+    ]
+   },
+   "contra": []
+  },
+  "nstemi": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "trop"
+   ],
+   "treats": [
+    "meds=asa+heparin/enox"
+   ],
+   "dx": "NSTEMI (heart attack)",
+   "ok": {
+    "meds": [
+     "asa",
+     "heparin",
+     "enox"
+    ]
+   },
+   "contra": []
+  },
+  "afib": {
+   "tests": [
+    "bmp",
+    "trop"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "A-fib with rapid rate",
+   "ok": {
+    "meds": [
+     "dilt",
+     "metop"
+    ]
+   },
+   "contra": []
+  },
+  "chb": {
+   "tests": [
+    "bmp",
+    "trop"
+   ],
+   "treats": [
+    "pace"
+   ],
+   "dx": "Complete heart block",
+   "ok": {
+    "pace": [
+     "atropine"
+    ]
+   },
+   "contra": [
+    "dilt",
+    "metop"
+   ]
+  },
+  "gib": {
+   "tests": [
+    "cbc",
+    "coag",
+    "ts"
+   ],
+   "treats": [
+    "fluids",
+    "blood"
+   ],
+   "dx": "Upper GI bleed",
+   "ok": null,
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "dka": {
+   "tests": [
+    "bmp",
+    "vbg"
+   ],
+   "treats": [
+    "fluids",
+    "insulin"
+   ],
+   "dx": "Diabetic ketoacidosis",
+   "ok": {
+    "insulin": [
+     "insdrip"
+    ]
+   },
+   "contra": [
+    "d50"
+   ]
+  },
+  "asthma": {
+   "tests": [],
+   "treats": [
+    "nebs",
+    "meds"
+   ],
+   "dx": "Asthma attack",
+   "ok": {
+    "meds": [
+     "dexa",
+     "pred",
+     "methylpred",
+     "mag"
+    ],
+    "nebs": [
+     "albut",
+     "duoneb"
+    ]
+   },
+   "contra": [
+    "metop"
+   ]
+  },
+  "anaph": {
+   "tests": [],
+   "treats": [
+    "epi",
+    "meds"
+   ],
+   "dx": "Anaphylaxis",
+   "ok": {
+    "meds": [
+     "diphen",
+     "methylpred",
+     "famot"
+    ],
+    "epi": [
+     "epiim"
+    ]
+   },
+   "contra": [
+    "epiarr"
+   ]
+  },
+  "sepsisw": {
+   "tests": [
+    "bcx",
+    "cbc",
+    "lact",
+    "ua"
+   ],
+   "treats": [
+    "fluids",
+    "abx"
+   ],
+   "dx": "Sepsis (urinary source)",
+   "ok": {
+    "abx": [
+     "ctx",
+     "piptazo"
+    ]
+   },
+   "contra": [
+    "furo",
+    "labet"
+   ]
+  },
+  "strokew": {
+   "tests": [
+    "bmp",
+    "cthead"
+   ],
+   "treats": [
+    "tnk"
+   ],
+   "dx": "Acute ischemic stroke",
+   "ok": null,
+   "contra": [
+    "enox",
+    "heparin"
+   ]
+  },
+  "stemi": {
+   "tests": [
+    "trop"
+   ],
+   "treats": [
+    "meds=asa+heparin/enox"
+   ],
+   "dx": "Anterior STEMI",
+   "ok": {
+    "meds": [
+     "asa",
+     "heparin"
+    ]
+   },
+   "contra": []
+  },
+  "stroke": {
+   "tests": [
+    "bmp",
+    "cthead"
+   ],
+   "treats": [
+    "tnk"
+   ],
+   "dx": "Acute ischemic stroke",
+   "ok": null,
+   "contra": [
+    "enox",
+    "heparin"
+   ]
+  },
+  "lvo": {
+   "tests": [
+    "bmp",
+    "cta",
+    "cthead"
+   ],
+   "treats": [
+    "tnk"
+   ],
+   "dx": "Large vessel occlusion stroke",
+   "ok": null,
+   "contra": [
+    "enox",
+    "heparin"
+   ]
+  },
+  "mvc": {
+   "tests": [
+    "cbc",
+    "cxr",
+    "fast",
+    "ts"
+   ],
+   "treats": [
+    "mtp"
+   ],
+   "dx": "Splenic laceration, hemorrhagic shock",
+   "ok": null,
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "tfall": {
+   "tests": [
+    "cbc",
+    "coag",
+    "cthead"
+   ],
+   "treats": [
+    "reverse=pcc+vitk"
+   ],
+   "dx": "Subdural hematoma",
+   "ok": {
+    "reverse": [
+     "pcc",
+     "vitk"
+    ]
+   },
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "moto": {
+   "tests": [
+    "cbc",
+    "extxr",
+    "ts"
+   ],
+   "treats": [
+    "abx",
+    "blood"
+   ],
+   "dx": "Open femur fracture",
+   "ok": {
+    "meds": [
+     "fent",
+     "morph",
+     "hydro",
+     "ketamine"
+    ],
+    "abx": [
+     "cefaz",
+     "ctx"
+    ]
+   },
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "arrest": {
+   "tests": [],
+   "treats": [],
+   "dx": "Cardiac arrest",
+   "ok": null,
+   "contra": []
+  },
+  "shock": {
+   "tests": [
+    "bcx",
+    "bmp",
+    "cbc",
+    "lact"
+   ],
+   "treats": [
+    "o2",
+    "fluids",
+    "abx",
+    "pressor"
+   ],
+   "dx": "Septic shock",
+   "ok": {
+    "abx": [
+     "piptazo",
+     "vanc",
+     "ctx"
+    ],
+    "pressor": [
+     "norepi",
+     "pushepi"
+    ]
+   },
+   "contra": [
+    "furo",
+    "labet",
+    "metop",
+    "nicard"
+   ]
+  },
+  "rsv": {
+   "tests": [
+    "vbg"
+   ],
+   "treats": [
+    "hfnc"
+   ],
+   "dx": "RSV, tiring out",
+   "ok": null,
+   "contra": []
+  },
+  "burn": {
+   "tests": [
+    "vbg"
+   ],
+   "treats": [
+    "intub",
+    "fluids",
+    "meds"
+   ],
+   "dx": "Partial-thickness burns, 25%, airway injury",
+   "ok": {
+    "meds": [
+     "fent",
+     "morph",
+     "ketamine"
+    ]
+   },
+   "contra": []
+  },
+  "pe": {
+   "tests": [
+    "bmp",
+    "ctpe",
+    "trop"
+   ],
+   "treats": [
+    "o2",
+    "meds"
+   ],
+   "dx": "Pulmonary embolism",
+   "ok": {
+    "meds": [
+     "heparin",
+     "enox"
+    ]
+   },
+   "contra": [
+    "tnk"
+   ]
+  },
+  "mpe": {
+   "tests": [
+    "bmp",
+    "echo",
+    "trop"
+   ],
+   "treats": [
+    "o2",
+    "tnk"
+   ],
+   "dx": "Massive pulmonary embolism",
+   "ok": {
+    "tnk": [
+     "tnk"
+    ]
+   },
+   "contra": []
+  },
+  "dissect": {
+   "tests": [
+    "ctaorta",
+    "trop",
+    "ts"
+   ],
+   "treats": [
+    "bp=esmolol/labet",
+    "meds"
+   ],
+   "dx": "Aortic dissection",
+   "ok": {
+    "meds": [
+     "fent",
+     "morph",
+     "hydro"
+    ]
+   },
+   "contra": [
+    "apixa",
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "aaa": {
+   "tests": [
+    "aous",
+    "cbc",
+    "ts"
+   ],
+   "treats": [
+    "mtp"
+   ],
+   "dx": "Ruptured abdominal aortic aneurysm",
+   "ok": null,
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "hyperk": {
+   "tests": [
+    "bmp"
+   ],
+   "treats": [
+    "meds=calc/calcgluc+d50",
+    "insulin=insreg"
+   ],
+   "dx": "Hyperkalemia",
+   "ok": null,
+   "contra": [
+    "kcl",
+    "succ"
+   ]
+  },
+  "sah": {
+   "tests": [
+    "bmp",
+    "coag",
+    "cthead"
+   ],
+   "treats": [
+    "bp",
+    "meds"
+   ],
+   "dx": "Subarachnoid hemorrhage",
+   "ok": {
+    "bp": [
+     "nicard",
+     "labet"
+    ],
+    "meds": [
+     "ondan",
+     "fent",
+     "apap"
+    ]
+   },
+   "contra": [
+    "apixa",
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "mening": {
+   "tests": [
+    "bcx",
+    "cbc",
+    "lp"
+   ],
+   "treats": [
+    "abx=ctx/cefepime+vanc+ampi",
+    "meds=dexa"
+   ],
+   "dx": "Bacterial meningitis",
+   "ok": null,
+   "contra": []
+  },
+  "status": {
+   "tests": [
+    "bmp",
+    "gluc"
+   ],
+   "treats": [
+    "meds=loraz/midaz+levet/fosphen"
+   ],
+   "dx": "Status epilepticus",
+   "ok": null,
+   "contra": []
+  },
+  "cauda": {
+   "tests": [
+    "bscan",
+    "mris"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Cauda equina syndrome",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "ketor",
+     "apap"
+    ]
+   },
+   "contra": []
+  },
+  "ectopic": {
+   "tests": [
+    "cbc",
+    "fast",
+    "hcg",
+    "ts"
+   ],
+   "treats": [
+    "mtp"
+   ],
+   "dx": "Ruptured ectopic pregnancy",
+   "ok": null,
+   "contra": [
+    "apixa",
+    "asa",
+    "enox",
+    "heparin",
+    "ibu",
+    "ketor",
+    "tnk"
+   ]
+  },
+  "ttorsion": {
+   "tests": [],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Testicular torsion",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "ondan",
+     "ketor"
+    ]
+   },
+   "contra": []
+  },
+  "ovtorsion": {
+   "tests": [
+    "hcg",
+    "pelus"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Ovarian torsion",
+   "ok": {
+    "meds": [
+     "morph",
+     "fent",
+     "hydro",
+     "ondan",
+     "ketor"
+    ]
+   },
+   "contra": []
+  },
+  "sbo": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "ctap"
+   ],
+   "treats": [
+    "fluids",
+    "meds"
+   ],
+   "dx": "Small bowel obstruction",
+   "ok": {
+    "meds": [
+     "ondan",
+     "reglan",
+     "prochlor"
+    ]
+   },
+   "contra": []
+  },
+  "mesisch": {
+   "tests": [
+    "bmp",
+    "cbc",
+    "ctaabd",
+    "lact"
+   ],
+   "treats": [
+    "fluids",
+    "meds=heparin"
+   ],
+   "dx": "Mesenteric ischemia",
+   "ok": null,
+   "contra": []
+  },
+  "apapod": {
+   "tests": [
+    "apaplev",
+    "bmp",
+    "coag",
+    "hcg",
+    "lft",
+    "sal"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Acetaminophen overdose",
+   "ok": {
+    "meds": [
+     "nac"
+    ]
+   },
+   "contra": [
+    "apap"
+   ]
+  },
+  "salod": {
+   "tests": [
+    "bmp",
+    "sal",
+    "vbg"
+   ],
+   "treats": [
+    "fluids",
+    "meds=bicarb"
+   ],
+   "dx": "Salicylate overdose",
+   "ok": null,
+   "contra": [
+    "asa"
+   ]
+  },
+  "tcaod": {
+   "tests": [
+    "bmp",
+    "tox"
+   ],
+   "treats": [
+    "meds=bicarb"
+   ],
+   "dx": "Tricyclic antidepressant overdose",
+   "ok": null,
+   "contra": [
+    "amio",
+    "ondan",
+    "procain"
+   ]
+  },
+  "hypogly": {
+   "tests": [
+    "gluc"
+   ],
+   "treats": [
+    "meds"
+   ],
+   "dx": "Hypoglycemia",
+   "ok": {
+    "meds": [
+     "d50",
+     "glucagon"
+    ]
+   },
+   "contra": [
+    "insdrip",
+    "insreg"
+   ]
+  },
+  "ptx": {
+   "tests": [
+    "cxr"
+   ],
+   "treats": [
+    "o2",
+    "ctube"
+   ],
+   "dx": "Spontaneous pneumothorax",
+   "ok": null,
+   "contra": []
+  },
+  "necfasc": {
+   "tests": [
+    "bcx",
+    "bmp",
+    "cbc",
+    "lact"
+   ],
+   "treats": [
+    "fluids",
+    "abx=vanc+piptazo/cefepime+clinda"
+   ],
+   "dx": "Necrotizing fasciitis",
+   "ok": null,
+   "contra": []
+  },
+  "sea": {
+   "tests": [
+    "bcx",
+    "cbc",
+    "crp",
+    "mris"
+   ],
+   "treats": [
+    "abx=vanc+ctx/cefepime"
+   ],
+   "dx": "Spinal epidural abscess",
+   "ok": null,
+   "contra": []
+  }
+ }
+}

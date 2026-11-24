@@ -144,6 +144,8 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 
 ```sh
 npm test          # rules.js through rules10.js: engine rule checks in Node (~520 "ok -" lines; any "FAIL:" sets exit 1)
+                  #   then golden.js: seeded-shift fingerprints, stream sync, class codes, save round trip, answer keys
+npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run sim       # simulated shifts at several player speeds
 npm run stress    # 188 shifts across every level and scenario: stuck states, out-of-range vitals
 ```
@@ -151,6 +153,7 @@ npm run stress    # 188 shifts across every level and scenario: stuck states, ou
 The UI tests are Python Playwright scripts against the **built** `index.html`, so build first. In this cloud container Chromium is preinstalled; use `python3 -m pip install playwright` if the module is missing, and don't run `playwright install`. Common ones: `test/ui_test.py`, `md_ui_test.py`, `map_test.py`, `train_test.py` (env `MODE=md`, `LESSON=stroke`, `CHAPTER=2`, `VIEW=list`), `finger_test.py`, `class_test.py`, `offline_test.py`, `map3d_test.py`, `imaging_test.py`, `gate_test.py`, `events_test.py`, `about_test.py`. `BROWSER=webkit|firefox` switches engines and `CHROME_PATH` points at a local Chrome (see `test/_browser.py`). Screenshots go to `test/shots/` (gitignored).
 
 Practical notes:
+- **`test/golden.js` is the safety net.** It records what the game does today. A change that moves a shift, a code, a save or an answer key fails it. If the change is intended, run `npm run golden:update` and name the reason in the commit. `docs/SMOKE.md` is the by-hand phone checklist before a merge into `main`.
 - **Seed-dependent tests break when arrival timing changes.** If an old rule test fails after an engine change, check whether it relied on one specific random shift before assuming a real bug.
 - `map3d_test.py` needs the folder served (`python3 -m http.server 8765`) and takes about 15 minutes with software GL.
 - A full lesson sweep is `LESSON=<key> python3 test/train_test.py` for every key. Case lessons are named `c_<case>`.
