@@ -20,6 +20,7 @@ def serve():
 def run(pw, url, size, wh):
     b = launch(pw)
     ctx = b.new_context(viewport={'width': wh[0], 'height': wh[1]}, has_touch=True, is_mobile=size.startswith('phone'), device_scale_factor=1)
+    ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', { get: () => false })")   # the game skips the first-visit About page for automated browsers; look like a person
     page = ctx.new_page(); page.set_default_timeout(20000)
     errs = []
     page.on('pageerror', lambda e: errs.append('pageerror: ' + str(e)))
@@ -62,12 +63,14 @@ def run(pw, url, size, wh):
     J("(() => { const i = document.querySelector('#cbCode'); if (i) i.value = document.querySelector('.cc-code') ? document.querySelector('.cc-code').textContent : 'ABC-DEF'; })()")
     page.route('**/rest/v1/rpc/cb_class', lambda r: r.fulfill(status=200, content_type='application/json', body='[]'))
     act('cbShow'); wait(500); shot('class-results-empty')
-    J("OCUI.U.sheet = null; OCUI.U.tm = 'learn'; OCUI.showTitle()"); wait(400); shot('menu-learn')
+    def menu(tab):   # back to the main menu, then open a tab with a real tap (showTitle() would reset the tab)
+        J("OCUI.U.sheet = null; OCUI.U.modal = null; OCUI.render()"); act('tmenu', 'main'); act('tmenu', tab); wait(300)
+    menu('learn'); shot('menu-learn')
     act('lessons'); shot('lessons-list')
-    J("OCUI.U.sheet = null; OCUI.render()"); act('help'); wait(300); shot('how-to-play')
-    J("OCUI.U.sheet = null; OCUI.render()"); act('words'); wait(300); shot('words-glossary')
-    J("OCUI.U.sheet = null; OCUI.U.tm = 'set'; OCUI.showTitle()"); wait(400); shot('menu-settings')
-    J("OCUI.U.sheet = null; OCUI.U.tm = 'main'; OCUI.showTitle()"); wait(300)
+    menu('learn'); act('help'); wait(300); shot('how-to-play')
+    menu('learn'); act('words'); wait(300); shot('words-glossary')
+    menu('set'); shot('menu-settings')
+    menu('main')
 
     # ---- charge nurse shift (Manic Monday)
     J("OCUI.start('med')"); wait(3500); portrait_list(); intro('rn-first-shift-intro'); shot('rn-shift-start')
