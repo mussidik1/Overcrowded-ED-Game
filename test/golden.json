@@ -139,7 +139,7 @@
    "fail": null,
    "lit": 50,
    "acc": 74,
-   "stateHash": "44504a51"
+   "stateHash": "38e1706a"
   },
   "md/hard/none": {
    "arrivals": 127,
@@ -159,7 +159,7 @@
    "fail": null,
    "lit": 64,
    "acc": 73,
-   "stateHash": "5959d819"
+   "stateHash": "a9d06f78"
   },
   "rn/med/ct": {
    "arrivals": 109,
@@ -259,21 +259,27 @@
    "fail": null,
    "lit": 67,
    "acc": 68,
-   "stateHash": "fdd0220b"
+   "stateHash": "2b9e662a"
   }
  },
  "streams": {
   "rn/med": {
    "sameEarlyArrivals": true,
-   "hash": "f7221b69"
+   "sameWalkIns": true,
+   "hash": "f7221b69",
+   "walkHash": "874745ee"
   },
   "rn/hard": {
    "sameEarlyArrivals": true,
-   "hash": "2da4986c"
+   "sameWalkIns": true,
+   "hash": "2da4986c",
+   "walkHash": "28110a98"
   },
   "md/med": {
    "sameEarlyArrivals": true,
-   "hash": "6c6265c7"
+   "sameWalkIns": true,
+   "hash": "6c6265c7",
+   "walkHash": "92d2d034"
   }
  },
  "codes": [

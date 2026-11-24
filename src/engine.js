@@ -54,7 +54,9 @@ function readCode(str) {
 }
 function seedOf(seed, k) { let h = (seed | 0) ^ Math.imul(k, 0x9E3779B1); h = Math.imul(h ^ (h >>> 16), 0x85EBCA6B); h = Math.imul(h ^ (h >>> 13), 0xC2B2AE35); return (h ^ (h >>> 16)) | 0 || k; }
 function inStream(k, fn) {
-  if (G[k] == null) G[k] = seedOf(G.seed, { rngA: 1, rngE: 2, rngM: 3, rngL: 4 }[k] || 5);   // made on first use, from the shift's seed
+  const slot = { rngA: 1, rngE: 2, rngM: 3, rngL: 4, rngS: 5 }[k];   // every stream has its own slot: a shared one would desync class shifts
+  if (!slot) throw new Error('inStream: unknown stream ' + k + ' (give it its own slot)');
+  if (G[k] == null) G[k] = seedOf(G.seed, slot);   // made on first use, from the shift's seed
   const main = G.rng; G.rng = G[k];
   try { return fn(); } finally { G[k] = G.rng; G.rng = main; }
 }
@@ -423,14 +425,16 @@ const CONTRA = { gib: ['@bleed'], tfall: ['@bleed'], mvc: ['@bleed'], mcired: ['
 // or more). A clot that drops the pressure is massive PE, and the clot buster is the treatment. Unknown vitals count as contraindicated.
 const CONTRA_IF = { pe: { tnk: p => { const v = p.id && G ? vRaw(p, G.t).v : null; return !(v && v.sbp < 90); } } };   // the underlying pressure, not the five-minute wobble; unknown counts as contraindicated
 // Audit phase 1 (R6-01): a thrombolytic for stroke only inside 4.5 hours of last known well (AHA/ASA 2019). After that it is harm.
-for (const k of ['stroke', 'strokew', 'lvo']) CONTRA_IF[k] = { tnk: p => !lyticWindowOk(p) };
+const STROKE_CASES = ['stroke', 'strokew', 'lvo'];
+const addContraIf = (k, rules) => { CONTRA_IF[k] = Object.assign(CONTRA_IF[k] || {}, rules); };   // merge: a second rule never erases the first
+for (const k of STROKE_CASES) addContraIf(k, { tnk: p => !p.id || p.lkwT == null || !lyticWindowOk(p) });   // an unknown onset time is outside the window
 // Audit phase 1 (R6-08): nitroglycerin is out when the pressure is under 90. NSAIDs (ibuprofen, ketorolac) are out in chest pain until the
-// troponin is back and normal (ACC/AHA: NSAIDs other than aspirin are harmful in ACS). Aspirin is the first drug for chest pain.
+// labs, with the troponin, are back (ACC/AHA: NSAIDs other than aspirin are harmful in ACS; this case's troponin is negative). Aspirin is the first drug for chest pain.
 const sbpUnder = (p, n) => { const v = p.id && G ? vRaw(p, G.t).v : null; return !!(v && v.sbp < n); };
-const tropBack = p => !!(p.work && p.work.lab && p.work.lab.st === 'done');
-for (const k of ['cpmod', 'nstemi', 'stemi']) CONTRA_IF[k] = { ntg: p => sbpUnder(p, 90) };
-CONTRA_IF.afib = { dilt: p => !!p.crash, metop: p => !!p.crash };   // audit R6-06: no negative inotropes once the pressure has fallen
-CONTRA_IF.cwp = { ibu: p => !tropBack(p), ketor: p => !tropBack(p) };
+const tropBack = p => !!((p.det || []).includes('trop') && p.work && p.work.lab && p.work.lab.st === 'done');   // a troponin was ordered and the labs are back (in this case it is negative)
+for (const k of ['cpmod', 'nstemi', 'stemi']) addContraIf(k, { ntg: p => sbpUnder(p, 90) });
+addContraIf('afib', { dilt: p => !!p.crash, metop: p => !!p.crash });   // audit R6-06: no negative inotropes once the pressure has fallen
+addContraIf('cwp', { ibu: p => !tropBack(p), ketor: p => !tropBack(p) });
 // When a listed contraindication doesn't apply (an unstable PE), the treatment is the right call, not an extra.
 const treatOkNow = (p, k) => Object.entries(CONTRA_IF[p.ck] || {}).some(([d, f]) => DRUGS[d] && DRUGS[d].tx.includes(k) && !f(p));
 const contraOf = p => (CONTRA[p.ck] || []).flatMap(d => (d === '@bleed' ? BLEED_RISK : [d])).filter(d => { const f = (CONTRA_IF[p.ck] || {})[d]; return !f || !p.id || f(p); });
@@ -1518,6 +1522,7 @@ function taskStart(s, k) {
 }
 function taskDone(s, k) {
   const p = k.pid ? pt(k.pid) : null;
+  if ((k.type === 'eval' || k.type === 'reassess') && p && (p.arrest || p.code)) return;   // audit: they arrested mid-exam; the code is what happens now
   if (k.type === 'eval') {
     p.ev = 'done';
     if (mdMine(p)) awaitOrders(p);
@@ -1630,7 +1635,7 @@ const ORD_WHY = {
   tia: 'CT rules out a bleed. ECG looks for A-fib. Labs check the sugar. Observe: stroke risk is highest in the first two days. Aspirin is reasonable.',
   dehyd: 'Labs show the kidneys are dry. Fluids fix it.',
   cpmod: 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.',
-  cwp: 'ECG, troponin, and a chest X-ray: all normal. Pain you can press on is the chest wall. Ibuprofen and home.',
+  cwp: 'ECG, troponin, and a chest X-ray: all normal. Aspirin until the troponin is back; then ibuprofen for the chest wall, and home.',
   nstemi: 'ECG and troponin make the diagnosis. Aspirin and heparin. Cardiology. A chest X-ray is reasonable.',
   afib: 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.',
   chb: 'ECG shows the block. Labs check the potassium. Pace now. Cardiology.',
@@ -1749,7 +1754,7 @@ const DISPO_NAME = { home: 'discharge home', admit: 'admission', icu: 'the ICU',
 // What the drug in "Medications" was, for each case that needs one.
 const RX = { refill: 'a dose of the usual pill', tia: 'aspirin', copd: 'a steroid', moto: 'pain control', rash: 'an antihistamine and steroid cream', otitis: 'amoxicillin', dental: 'an antibiotic and pain control', strep: 'penicillin', ankle: 'ibuprofen', uti: 'an antibiotic for the UTI',
   gastro: 'ondansetron', appy: 'pain control', chole: 'pain control', hipfx: 'pain control', chf: 'nitroglycerin and a diuretic', stone: 'ketorolac', dvt: 'an anticoagulant', migraine: 'prochlorperazine and diphenhydramine',
-  cwp: 'ibuprofen', cpmod: 'aspirin', nstemi: 'aspirin and heparin', afib: 'diltiazem', asthma: 'a steroid', anaph: 'an antihistamine and a steroid', stemi: 'aspirin and heparin', burn: 'pain control', mcimin: 'pain control', mciyel: 'pain control', mciwr: 'a splint and pain control', vip: 'meclizine' };
+  cwp: 'aspirin', cpmod: 'aspirin', nstemi: 'aspirin and heparin', afib: 'diltiazem', asthma: 'a steroid', anaph: 'an antihistamine and a steroid', stemi: 'aspirin and heparin', burn: 'pain control', mcimin: 'pain control', mciyel: 'pain control', mciwr: 'a splint and pain control', vip: 'meclizine' };
 const rxName = p => { const L = (RXOK[p.ck] || {}).meds, got = (p.drugs || []).find(d => L ? L.includes(d) : DRUGS[d] && DRUGS[d].tx.includes('meds')); return got ? DRUGS[got].n.toLowerCase() : RX[p.ck] || 'symptom treatment'; };
 // An order with no indication can hurt someone: [chance, points, what happened].
 const HARM = { cardiovert: [0.3, 15, 'was shocked without needing it'], tnk: [0.5, 50, 'bled after a thrombolytic they didn’t need'], insulin: [0.5, 25, 'dropped their blood sugar on an insulin drip they didn’t need'],
@@ -2028,19 +2033,30 @@ const CODE_Q = {
 const CODE_CAUSE = {   // the third rhythm check in PEA or asystole: the cause they find
   k: { t: 'The blood gas is back: **potassium 7.9**.', c: [['Calcium chloride and sodium bicarbonate; keep CPR going', 'hyperk', 1], ['Start an insulin drip and recheck in an hour', 'slowK'], ['Shock it', 'shockPea'], ['Nothing changes: epinephrine only', 'noHunt']] },
   air: { t: 'The bag-mask **isn\'t moving the chest** well.', c: [['Reposition, two-person bag-mask, then an advanced airway, without stopping CPR', 'hypox', 1], ['Stop CPR until the tube is in', 'stopForTube'], ['A double dose of epinephrine', 'noHunt'], ['More sodium bicarbonate', 'bicarbAll']] },
-  vol: { t: 'The family says **black stools for days**. Hemoglobin on the gas: 5.', c: [['Fluids and blood, wide open', 'hypovol', 1], ['Tenecteplase', 'tnkWrong'], ['Shock it', 'shockPea'], ['Nothing changes: epinephrine only', 'noHunt']] },
+  vol: { t: 'They lost **a lot of blood** before the arrest. Hemoglobin on the gas: 5.', c: [['Fluids and blood, wide open', 'hypovol', 1], ['Tenecteplase', 'tnkWrong'], ['Shock it', 'shockPea'], ['Nothing changes: epinephrine only', 'noHunt']] },
 };
 const CODE_BASE = { vf: 0.5, pea: 0.25, asys: 0.1, trauma: 0.15 };   // the best odds of a pulse coming back, everything done right and fast
 const CODE_NAME = { vf: 'VF', pea: 'PEA', asys: 'asystole', trauma: 'traumatic PEA' };
 function codeRhythm(p) {
-  if (p.alert === 'trauma' || p.traumatic || p.bleed) return 'trauma';
+  if (p.alert === 'trauma' || p.traumatic || TRAUMA_CASES.includes(p.ck)) return 'trauma';   // injury: fix the bleeding and the chest
+  if (p.bleed || BLEED_CASES.includes(p.ck)) return 'pea';   // a medical bleed (GI, aneurysm, ectopic): hemorrhagic PEA, the cause is volume
   if (p.ck === 'arrest') return 'vf';   // the case is written as VF on the monitor
   const h = vhash(p.id + 'rhythm');
   return h < 0.4 ? 'vf' : h < 0.78 ? 'pea' : 'asys';
 }
+const TRAUMA_CASES = ['mvc', 'moto', 'tfall', 'burn', 'mcired', 'mciyel', 'mcimin', 'mcigrn', 'mciwr'];
+const BLEED_CASES = ['gib', 'aaa', 'ectopic'];
+const K_CASES = ['hyperk', 'dka'];
+const AIR_CASES = ['asthma', 'copd', 'od', 'anaph', 'chf', 'pna', 'rsv', 'ptx'];
+function codeCause(p) {   // the cause they find: from the case where it says one, else from the patient's id
+  if (p.bleed || BLEED_CASES.includes(p.ck)) return 'vol';
+  if (K_CASES.includes(p.ck)) return 'k';
+  if (AIR_CASES.includes(p.ck)) return 'air';
+  return ['k', 'air', 'vol'][Math.floor(vhash(p.id + 'cause') * 3)];
+}
 function codeSteps(p) {
   const r = p.code.r, q = CODE_Q[r].slice();
-  if (r === 'pea' || r === 'asys') q.push(CODE_CAUSE[['k', 'air', 'vol'][Math.floor(vhash(p.id + 'cause') * 3)]]);
+  if (r === 'pea' || r === 'asys') q.push(CODE_CAUSE[codeCause(p)]);
   return q;
 }
 function codeStart(p) {
@@ -2072,7 +2088,7 @@ function codePick(k, ctx) {
 function codeOutcome(p) {
   if (!p.code) codeStart(p);
   const C = p.code, n = codeSteps(p).length;
-  const q = C.me ? C.right / n : 0.85;   // a doctor run by the game knows the algorithm, mostly
+  const q = C.me ? C.right / n : 0.6;   // a doctor run by the game gets it partly right: running the code well yourself beats handing it off
   const late = Math.min(0.7, Math.max(0, C.wait - 3) * 0.05);   // each minute without a team after the first three costs 5% of the odds
   let odds = CODE_BASE[C.r] * (0.35 + 0.65 * q) * (1 - late);
   if (p.rtCode) odds += 0.05;
@@ -2931,7 +2947,7 @@ function flowTick() {
       else { p.re = 'need'; p.prov = null; p.tNeed = G.t; }
     }
     if (p.lkwT != null && !lyticWindowOk(p) && (p.tr.includes('tnk') || (p.right && p.right.tr.includes('tnk'))) && !(p.treat.tnk && (p.treat.tnk.st === 'doing' || p.treat.tnk.st === 'done'))) lyticWindowClosed(p);
-    if (p.treat.tnk && p.treat.tnk.st === 'wait' && p.consult.st === 'here' && (w => w && w.st === 'done')(p.work[p.ck === 'mpe' ? 'us' : 'ct']) && bpOkForLytic(p) && lyticWindowOk(p)) openGate(p.treat.tnk, 'tnk');   // v0.29.1: massive PE goes on the bedside ultrasound
+    if (p.treat.tnk && p.treat.tnk.st === 'wait' && p.consult.st === 'here' && (w => w && w.st === 'done')(p.work[p.ck === 'mpe' ? 'us' : 'ct']) && bpOkForLytic(p) && lyticWindowOk(p) && !(STROKE_CASES.includes(p.ck) && p.lkwT == null)) openGate(p.treat.tnk, 'tnk');   // v0.29.1: massive PE goes on the bedside ultrasound
     if (p.treat.blood && p.treat.blood.st === 'wait' && p.bb && p.bb.st === 'ready') openGate(p.treat.blood, 'blood');
     if (p.treat.mtp && p.treat.mtp.st === 'wait' && p.bb && p.bb.st === 'here') openGate(p.treat.mtp, 'mtp');
     if (p.cosign === 'wait') needCosign(p);

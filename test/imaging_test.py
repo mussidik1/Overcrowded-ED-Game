@@ -22,7 +22,7 @@ with sync_playwright() as pw:
     page.goto(URL); page.wait_for_timeout(700)
     page.locator('[data-act="mode"][data-arg="md"]').tap(); page.locator('[data-act="tmenu"][data-arg="play"]').tap(); page.locator('button.lvl[data-arg="med"]').tap(); page.wait_for_timeout(700)
     J("(document.querySelector('#modal [data-act=\"modalOk\"]') || {click(){}}).click()")
-    pid = J("""(() => { const free = OC.G.rooms.find(r => !r.pid && /^[0-9]+$/.test(r.id) && r.st !== 'dirty'); const x = OC.trainPatient('appy', 'room', { room: free.id });
+    pid = J("""(() => { const free = OC.G.rooms.find(r => !r.pid && /^[0-9]+$/.test(r.id) && r.st !== 'dirty'); const x = OC.trainPatient('appy', 'room', { room: free.id, sex: 'M', age: 30 });
       const p = typeof x === 'string' ? OC.pt(x) : x; OC.assign(OC.G.me, p.id); for (let i = 0; i < 4000 && p.ord !== 'need'; i++) OC.step(0.1);
       OCUI.U.paused = true; OCUI.U.sheet = { type: 'pt', pid: p.id }; OCUI.render(); return p.id; })()""")
     page.wait_for_timeout(500)

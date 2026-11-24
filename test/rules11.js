@@ -37,6 +37,9 @@ sign(p, ['ct', 'lab'], ['tnk']);
 for (let i = 0; i < 300; i++) OC.step(0.1);
 assert(!(p.treat.tnk && p.treat.tnk.st === 'done') || p.treat.tnk.tDone - p.lkwT <= OC.LYTIC_WINDOW + 0.2, 'a thrombolytic ordered late is never given after the window closes');
 
+p = mine('stroke', { lkw: 60 }); p.lkwT = null;
+assert(OC.contraOf(p).includes('tnk'), 'a stroke with no onset time on record: tenecteplase is contraindicated (unknown is outside the window)');
+
 // ---- R6-05: no metoclopramide in a bowel obstruction
 p = mine('sbo');
 assert(OC.contraOf(p).includes('reglan'), 'bowel obstruction: metoclopramide is contraindicated');
@@ -56,7 +59,9 @@ p = mine('cwp'); r = sign(p, ['ecg', 'trop'], ['asa']);
 assert(!r.harm && !r.wrong && !r.extra, 'undifferentiated chest pain: aspirin is right, not "wrong drug"');
 p = mine('cwp'); r = sign(p, ['ecg', 'trop'], ['ketor']);
 assert(r.harm === 1, 'ketorolac before the troponin is back is harm');
-p = mine('cwp'); p.work.lab = { st: 'done' };
+p = mine('cwp'); p.work.lab = { st: 'done' }; p.det = ['bmp'];
+assert(OC.contraOf(p).includes('ketor'), 'labs back without a troponin: still no NSAID');
+p.det = ['bmp', 'trop'];
 assert(!OC.contraOf(p).includes('ketor'), 'after a normal troponin, an NSAID for chest wall pain is fine');
 for (const k of ['cpmod', 'nstemi', 'stemi']) {
   p = mine(k); r = sign(p, ['ecg', 'trop'], ['ntg']);
@@ -104,7 +109,15 @@ assert(!p.arrest && (p.dx === 'ROSC after cardiac arrest' || p.dx === 'Resuscita
 // the rhythm decides the path
 assert(OC.CODE_Q.vf[0].c.find(x => x[2])[0].startsWith('Shock'), 'VF: shock first');
 assert(OC.CODE_Q.pea[0].c.find(x => x[2])[0].includes('epinephrine'), 'PEA: CPR and epinephrine first, no shock');
-assert(OC.codeRhythm({ id: 1, ck: 'arrest' }) === 'vf' && OC.codeRhythm({ id: 1, ck: 'mvc', bleed: 'mtp' }) === 'trauma', 'the arrest case is VF; a bleed is a traumatic arrest');
+assert(OC.codeRhythm({ id: 1, ck: 'arrest' }) === 'vf' && OC.codeRhythm({ id: 1, ck: 'mvc', bleed: 'mtp' }) === 'trauma', 'the arrest case is VF; an injury that bled is a traumatic arrest');
+for (const k of ['ectopic', 'aaa', 'gib']) { const q = { id: 7, ck: k, bleed: 'mtp' }; q.code = { r: OC.codeRhythm(q) };
+  assert(q.code.r === 'pea' && OC.codeSteps(q).some(s => /blood/.test(s.t)) && !OC.codeSteps(q).some(s => s.c.some(c => c[2] && /chest/.test(c[0]))), `${k} that arrests: hemorrhagic PEA, the cause is volume, no chest decompression`); }
+{ const q = { id: 7, ck: 'hyperk' }; q.code = { r: 'pea' }; assert(OC.codeSteps(q).some(s => /potassium/.test(s.t)), 'hyperkalemia that arrests: the cause card is the potassium'); }
+
+// they arrest while you are mid-exam: the exam ends, and the code is still yours to run (hostile review)
+p = mine('nstemi', {}, 5101); p.ev = 'none'; p.ord = null; OC.assign(OC.G.me, p.id); run(2);
+OC.toArrest(p, 'Arrested in the room'); run(12);
+assert(p.arrest && p.ev === 'none' && OC.needsProv(p) && OC.assign(OC.G.me, p.id).ok, 'an exam under way when they arrest does not take away "Run the code"');
 // right answers raise the odds
 function codeRate(rightAnswers) {
   let rosc = 0;
@@ -118,7 +131,7 @@ function codeRate(rightAnswers) {
   }
   return rosc;
 }
-{ const good = codeRate(true), bad = codeRate(false); assert(good > bad * 1.6, `the algorithm matters: ${good} of 120 get a pulse back with the right calls, ${bad} with the wrong ones`); }
+{ const good = codeRate(true), bad = codeRate(false); assert(good > bad * 1.6,  `the algorithm matters: ${good} of 120 get a pulse back with the right calls, ${bad} with the wrong ones`); }
 
 // another provider's patient: they run it at once
 OC.newGame('med', 4244, { mode: 'rn' }); OC.G.card = null;
@@ -138,3 +151,7 @@ run(22);
 assert(!p.arrest && /no code team/.test(p.dx) && OC.G.stats.noTeam === 1, 'an arrest nobody runs for 20 minutes ends in death, and it is counted');
 run(800);
 assert(OC.G.report && OC.G.report.expired >= 1 && OC.G.report.noTeam >= 1, `the end-of-shift report counts the death (${OC.G.report.expired})`);
+
+// a random stream without its own slot fails loudly instead of sharing another stream's sequence (class-code sync)
+{ let threw = false; try { OC.newGame('easy', 1, { mode: 'rn' }); OC.inStream && OC.inStream('rngZ', () => 0); } catch (e) { threw = /unknown stream/.test(e.message); }
+  assert(!OC.inStream || threw, 'an unknown random stream is refused'); }

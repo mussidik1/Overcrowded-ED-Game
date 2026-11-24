@@ -17,6 +17,9 @@ const VERSION = require('../package.json').version;
 
 function fnv(s) { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193); return (h >>> 0).toString(16).padStart(8, '0'); }
 const arrivals = () => OC.G.order.map(id => OC.G.pts[id]).filter(p => p.tArrive >= 0).map(p => `${p.ck}@${Math.round(p.tArrive * 10)}${p.src === 'ems' ? 'e' : ''}`);
+// new walk-ins (not return visits, which come from that player's own discharges): these must match all shift long on one code
+// (patients made by events, such as a VIP or a bus crash, are left out: events can be held back by what the player is doing)
+const walkIns = () => OC.G.order.map(id => OC.G.pts[id]).filter(p => p.tArrive >= 0 && p.src !== 'ems' && !p.ret && p.ck !== 'vip' && !/^mci/.test(p.ck)).map(p => [p.ck, p.tArrive]);
 
 function play(mode, level, scen, seed, style) {
   OC.newGame(level, seed, { mode, scen });
@@ -50,11 +53,13 @@ for (const [mode, level, scen] of RUNS) {
 
 // ---- streams: two players on one code get the same patients at the same times
 for (const [mode, level] of [['rn', 'med'], ['rn', 'hard'], ['md', 'med']]) {
-  play(mode, level, 'none', 777, 'normal'); const a = arrivals();
-  play(mode, level, 'none', 777, 'careless'); const b = arrivals();
+  play(mode, level, 'none', 777, 'normal'); const a = arrivals(), w1 = walkIns(), end1 = OC.G.t;
+  play(mode, level, 'none', 777, 'careless'); const b = arrivals(), w2 = walkIns(), end2 = OC.G.t;
+  const upTo = (w, t) => w.filter(x => x[1] <= t).map(x => `${x[0]}@${Math.round(x[1] * 10)}`).join(',');   // a fired or walked-out shift ends early
+  const wa = upTo(w1, Math.min(end1, end2)), wb = upTo(w2, Math.min(end1, end2));
   // compare the first 2 hours: later arrivals can legitimately differ once diversion status differs between players
   const early = list => list.filter(x => +x.split('@')[1].replace('e', '') <= 1200).join(',');
-  out.streams[`${mode}/${level}`] = { sameEarlyArrivals: early(a) === early(b), hash: fnv(early(a)) };
+  out.streams[`${mode}/${level}`] = { sameEarlyArrivals: early(a) === early(b), sameWalkIns: wa === wb, hash: fnv(early(a)), walkHash: fnv(wa) };
 }
 
 // ---- codes
@@ -93,7 +98,8 @@ OC.setCodeVersion('', []);
 }
 
 // ---- compare
-if (UPDATE || !fs.existsSync(FILE)) {
+if (!UPDATE && !fs.existsSync(FILE)) { console.error('FAIL: test/golden.json is missing. Restore it from git, or run npm run golden:update on purpose.'); process.exitCode = 1; }
+else if (UPDATE) {
   fs.writeFileSync(FILE, JSON.stringify(out, null, 1) + '\n');
   console.log('ok - wrote test/golden.json');
 } else {
@@ -111,4 +117,5 @@ if (UPDATE || !fs.existsSync(FILE)) {
 const inv = (c, m) => { if (!c) { console.error('FAIL:', m); process.exitCode = 1; } else console.log('ok -', m); };
 inv(out.codes.every(c => c.roundTrip), 'every class code decodes to what made it');
 inv(out.save.identical, 'a saved and reloaded shift plays on exactly like an unbroken one');
-inv(Object.values(out.streams).every(s => s.sameEarlyArrivals), 'two players on one shift get the same early arrivals, however they play');
+inv(Object.values(out.streams).every(s => s.sameEarlyArrivals), 'two players on one shift get the same arrivals for the first two hours, however they play');
+inv(Object.values(out.streams).every(s => s.sameWalkIns), 'and the same new walk-ins all shift long');
