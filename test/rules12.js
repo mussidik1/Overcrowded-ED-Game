@@ -236,3 +236,27 @@ assert(OC.codeCause({ id: 'a1', ck: 'asthma', age: 30 }) === 'trap' && /trapped/
   assert(p.rosc && !p.gray, 'a gray-zone patient with a pulse back has no observe-or-home call');
   p.gray = { band: 'moderate', tool: 'HEART', score: 6, right: 'obs' }; p.dsp = 'decide';
   assert(!OC.grayDispo(p.id, 'home').ok && !OC.grayDispo(p.id, 'obs').ok, 'and if one is open, home and observation are refused'); }
+
+// ---- R2.3-01: the children's dose arithmetic, by the numbers (PALS: epinephrine 0.01 mg/kg max 1 mg; amiodarone 5 mg/kg max 300 mg;
+// shocks 2 then 4 J/kg). Weights are APLS-style estimates: about 9 kg at 9 months, 16 kg at 3 years, 32 kg at 8, 48 kg at 12.
+{ const kid = (age, id) => ({ id, ck: 'asthma', age });
+  const est = [[kid(3, 'w3'), 14, 18], [kid(8, 'w8'), 28, 36], [kid(12, 'w12'), 44, 52]];
+  for (const [q, lo, hi] of est) { const kg = OC.kgOf(q); assert(kg >= lo && kg <= hi, `a ${q.age}-year-old is dosed for ${kg} kg (expected ${lo} to ${hi})`); }
+  for (let m = 0; m < 24; m++) { const q = { id: 'inf' + m, ck: 'rsv', age: m < 12 ? 0 : 1 }; const mo = OC.monthsOf(q), kg = OC.kgOf(q);
+    const want = mo < 12 ? (mo + 9) / 2 : 2 * (mo / 12 + 5); if (Math.abs(kg - Math.max(3, Math.round(want))) > 0.01) { assert(false, `infant of ${mo} months: ${kg} kg, expected ${Math.round(want)}`); break; } }
+  for (const age of [0, 1, 3, 6, 8, 12]) { const q = { id: 'd' + age, ck: age < 2 ? 'rsv' : 'asthma', age }, kg = OC.kgOf(q);
+    const epi = String(Math.round(Math.min(1, 0.01 * kg) * 100) / 100), amio = String(Math.min(300, Math.round(5 * kg)));
+    q.code = { r: 'vf' }; const vf = OC.codeSteps(q).map(st => st.c.find(c => c[2])[0]);
+    q.code = { r: 'pea' }; const pea = OC.codeSteps(q).map(st => st.c.find(c => c[2])[0]);
+    const ok = vf[0].includes(`${Math.round(2 * kg)} J`) && vf[1].includes(`${Math.round(4 * kg)} J`) && vf[1].includes(`epinephrine ${epi} mg`) && vf[2].includes(`amiodarone ${amio} mg`) && pea[0].includes(`epinephrine ${epi} mg`);
+    assert(ok, `age ${age} (${kg} kg): shocks ${Math.round(2 * kg)} then ${Math.round(4 * kg)} J, epinephrine ${epi} mg, amiodarone ${amio} mg`); } }
+// ---- R2.3-02: the outcome model, by the numbers
+{ const P = (r, right, n, wait, o) => Object.assign({ id: 'o1', ck: 'nstemi', age: 60, code: { r, right, me: true, wait, shocked: r !== 'vf' || right > 0 } }, o || {});
+  const odds = x => OC.codeOdds(x);
+  const vfAll = odds(P('vf', 3, 3, 0)), vfNone = odds(P('vf', 0, 3, 0)), vfLate = odds(P('vf', 3, 3, 13)), pea = odds(P('pea', 3, 3, 0)), field = odds(P('vf', 3, 3, 0, { ck: 'arrest' }));
+  assert(Math.abs(vfAll - OC.CODE_BASE.ed.vf) < 0.001, `VF, everything right and fast: the full ${OC.CODE_BASE.ed.vf}`);
+  assert(vfNone < vfAll * 0.05, `VF never shocked: almost no chance (${vfNone.toFixed(3)})`);
+  assert(Math.abs(vfLate / vfAll - 0.5) < 0.001, 'ten minutes late (13 without a doctor) halves the odds');
+  assert(pea < vfAll && field < vfAll, 'PEA is worse than VF; arriving in arrest is worse than arresting in the ED');
+  assert(odds(P('vf', 2, 3, 0)) < vfAll && odds(P('vf', 1, 3, 0)) < odds(P('vf', 2, 3, 0)), 'each wrong rhythm check lowers the odds');
+  assert(OC.CODE_GAP >= 2, `rhythm checks are at least 2 game minutes apart (${OC.CODE_GAP})`); }

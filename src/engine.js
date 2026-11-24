@@ -2228,15 +2228,21 @@ function codePick(k, ctx) {
 const CODE_BASE = { ed: { vf: 0.65, pea: 0.45, asys: 0.25, trauma: 0.15, limb: 0.25 }, field: { vf: 0.45, pea: 0.2, asys: 0.08, trauma: 0.08, limb: 0.15 } };
 const CODE_AI_Q = 0.6;   // a doctor run by the game gets it partly right: running the code well yourself (3 of 3) beats handing it off
 const CODE_NAME = { vf: 'VF', pea: 'PEA', asys: 'asystole', trauma: 'traumatic arrest', limb: 'arrest after bleeding' };
-function codeOutcome(p) {
-  if (!p.code) codeStart(p, true);   // a code already running in a save from before this system: run it quietly
+// The odds of a pulse coming back for this code, from its rhythm and setting, the answers (or the game-run doctor's skill), the minutes
+// before a doctor took over, an unshocked VF, and respiratory therapy. A pure function of p, so tests can check the numbers (R2.3-02).
+function codeOdds(p) {
   const C = p.code, n = codeSteps(p).length;
   const q = C.me ? C.right / n : CODE_AI_Q;
   const late = Math.min(0.7, Math.max(0, C.wait - 3) * 0.05);   // each minute without a team after the first three costs 5% of the odds
   let odds = CODE_BASE[p.ck === 'arrest' ? 'field' : 'ed'][C.r] * (0.35 + 0.65 * q) * (1 - late);
   if (C.me && C.r === 'vf' && !C.shocked) odds *= 0.1;   // VF that is never shocked almost never comes back
   if (p.rtCode) odds = Math.min(0.95, odds * 1.1);
-  if (chance(odds)) {
+  return odds;
+}
+function codeOutcome(p) {
+  if (!p.code) codeStart(p, true);   // a code already running in a save from before this system: run it quietly
+  const C = p.code, n = codeSteps(p).length;
+  if (chance(codeOdds(p))) {
     p.arrest = false; p.rosc = true; p.gray = null; p.vit = null; p.dx = 'ROSC after cardiac arrest'; p.dxK = true; p.con = 'icu'; p.pre = []; p.need = null; p.dispo = 'icu';
     p.consult = { st: 'none', spec: null, due: 0 };
     const tubed = p.treat.intub && p.treat.intub.st === 'done';
@@ -4841,7 +4847,7 @@ const OC = {
   startOutage, sickEnough, looksSick, classCode, readCode, setCodeVersion, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   lintCases, HCG_CASES, hcgDue, CONTRA_IF, REQ_AGE, NEVER_WRONG, SAME_CLASS_OK, sameClassAlt, signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME, DRUGS, DRUG_CLASS, RXOK, RXREQ, ALSO, BLEED_RISK, contraOf, drugFor, drugsFor, reqLeft, rxOk, ORDER_MENUS, PROC, DDX, MUST, dxPick, dxName, DXQ, NODX, accuracy, litAdd, LIT_STEPS,
-  LESSON_CASE, CONTRA, ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, lyticWindowOk, ARREST_NO_TEAM, CODE_Q, CODE_CAUSE, codeSteps, codeRhythm, codeCause, kgOf, lintCode, CODE_AI_Q, CODE_CAUSE, CODE_WHY, CAUSE_OF, afOnset, contraWhy, CONTRA_WHY, staffGone, CODE_GAP, CODE_BASE, toArrest, harmCheck, inStream, CRASH, needsTx, strokeSetup, DX_PLAIN,
+  LESSON_CASE, CONTRA, ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, lyticWindowOk, ARREST_NO_TEAM, CODE_Q, CODE_CAUSE, codeSteps, codeRhythm, codeCause, kgOf, lintCode, CODE_AI_Q, codeOdds, codeFill, monthsOf, CODE_CAUSE, CODE_WHY, CAUSE_OF, afOnset, contraWhy, CONTRA_WHY, staffGone, CODE_GAP, CODE_BASE, toArrest, harmCheck, inStream, CRASH, needsTx, strokeSetup, DX_PLAIN,
   crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k] && EV[k].fire) fireEv(k); }, eventKeys: () => Object.keys(EV), eventReady: k => !!(EV[k] && EV[k].fire && EV[k].w && EV[k].w() > 0),
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };

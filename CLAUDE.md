@@ -18,6 +18,8 @@ Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages
 - Work happens on `3d`. It is merged into `main` with `--no-ff`, and `main` deploys to Pages through the workflow (tests first). (A Claude session may be told to use a different branch; follow that.)
 - A release: bump `package.json` `version`, set `PAST_V` in `ui.js` to the version being replaced (one entry only: each entry makes typos more likely to read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
 - WebKit CI results: `git fetch origin ci-results && git show FETCH_HEAD:webkit.txt`.
+- **Before a merge into `main`:** the Tests workflow is green on `3d` at the exact commit being merged, and `docs/SMOKE.md` has been run on a phone. The deploy (`pages.yml`) re-runs the build check, `npm test` and stress, then checks the live site: the new version is in `index.html` at the Pages address and at edcodeblack.com, and the source, docs and CLAUDE.md answer 404.
+- **Rolling back:** `git revert -m 1 <merge commit>` on `main` and push: the deploy republishes the previous version. If the live-site check reports a published source file, roll back first, then check Settings > Pages (Source must be "GitHub Actions"; the custom domain edcodeblack.com).
 
 ## Working with the owner
 
@@ -76,7 +78,7 @@ src3d/map3d.js           3D floor (three.js). esbuild bundles it to 3d/map3d.js
 build.js                 builds index.html and sw.js. Stops if engine.js or ui.js+map.js fails to parse
 build3d.js               esbuild call for the 3D bundle
 test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes
-test/golden.js           a change detector: seeded-shift behaviour fingerprints, class codes, save round trips, answer keys (drugs, code cards, radio)
+test/golden.js           a change detector: seeded-shift behaviour fingerprints, class sync, class codes, save round trips, answer keys, code cards, drug rules, scripted codes
 test/sim.js, stress.js   simulated shifts, and 188 shifts across every level and scenario
 test/*_test.py           Playwright UI tests against the built index.html (test/_browser.py picks the browser)
 art/blender/             Blender scripts that made the 3D models in 3d/
@@ -157,7 +159,7 @@ npm run stress    # 188 shifts across every level and scenario: stuck states, ou
 The UI tests are Python Playwright scripts against the **built** `index.html`, so build first. In this cloud container Chromium is preinstalled; use `python3 -m pip install playwright` if the module is missing, and don't run `playwright install`. Common ones: `test/ui_test.py`, `md_ui_test.py`, `map_test.py`, `train_test.py` (env `MODE=md`, `LESSON=stroke`, `CHAPTER=2`, `VIEW=list`), `finger_test.py`, `class_test.py`, `offline_test.py`, `map3d_test.py`, `imaging_test.py`, `gate_test.py`, `events_test.py`, `about_test.py`. `BROWSER=webkit|firefox` switches engines and `CHROME_PATH` points at a local Chrome (see `test/_browser.py`). Screenshots go to `test/shots/` (gitignored).
 
 Practical notes:
-- **`test/golden.js` is a change detector, not a correctness check.** It records what the game does today: a change that moves a shift's outcomes, a class code's layout, a save round trip, or an answer key (drug keys, code cards, radio calls, the pregnancy-test list) fails it, with a readable diff for the answer keys. If the change is intended, run `npm run golden:update` and say in the commit which golden lines moved and why. Whether the content is *right* is checked by the rule tests (`rules10.js` plays every case, `rules11.js` and `rules12.js` check the clinical rules and code cards). `docs/SMOKE.md` is the by-hand phone checklist before a merge into `main`.
+- **`test/golden.js` is a change detector, not a correctness check.** It records what the game does today: a change that moves a shift's outcomes, a class code's layout, a save round trip, an answer key (drug keys, radio calls, the pregnancy-test list), any code card's text, answers or reasons, the drug-scoring rule lists, or the outcome of 80 scripted codes fails it, with a readable diff for the content. If the change is intended, run `npm run golden:update` and say in the commit which golden lines moved and why. Whether the content is *right* is checked by the rule tests (`rules10.js` plays every case, `rules11.js` and `rules12.js` check the clinical rules and code cards). `docs/SMOKE.md` is the by-hand phone checklist before a merge into `main`.
 - **Seed-dependent tests break when arrival timing changes.** If an old rule test fails after an engine change, check whether it relied on one specific random shift before assuming a real bug.
 - `map3d_test.py` needs the folder served (`python3 -m http.server 8765`) and takes about 15 minutes with software GL.
 - A full lesson sweep is `LESSON=<key> python3 test/train_test.py` for every key. Case lessons are named `c_<case>`.

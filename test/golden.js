@@ -44,7 +44,7 @@ function play(mode, level, scen, seed, style) {
   return OC.G.report;
 }
 
-const out = { version: VERSION, shifts: {}, streams: {}, codes: [], save: {}, answers: {}, codeKey: {}, radioKey: {} };
+const out = { version: VERSION, shifts: {}, streams: {}, codes: [], save: {}, answers: {}, codeKey: {}, radioKey: {}, codeCards: {}, drugRules: {}, codeRuns: {} };
 
 // ---- shifts
 const RUNS = [];
@@ -131,6 +131,27 @@ for (const [k, L] of Object.entries(OC.CODE_Q)) out.codeKey[k] = L.map(q => q.c.
 for (const [k, q] of Object.entries(OC.CODE_CAUSE)) out.codeKey['cause:' + k] = q.c.find(c => c[2])[0];
 for (const [k, L] of Object.entries(OC.SCEN)) out.radioKey[k] = L.map(q => (q.opts ? q.opts[q.r] : q.a ? 'yes' : 'no'));
 out.codeKey.hcg = [...OC.HCG_CASES].sort().join(' ');   // the cases where a woman of 12 to 55 needs a pregnancy test
+// every code card as the student sees it: each answer (right ones marked) and its reason, so any content edit is a readable diff (R2.3-05)
+const card = q => q.c.map(c => `${c[2] ? '[RIGHT] ' : ''}${c[0]} -> ${OC.CODE_WHY[c[1]] || '?'}`);
+for (const [k, L] of Object.entries(OC.CODE_Q)) L.forEach((q, i) => { out.codeCards[`${k}[${i}]`] = [q.t, ...card(q)]; });
+for (const [k, q] of Object.entries(OC.CODE_CAUSE)) out.codeCards['cause:' + k] = [q.t, ...card(q)];
+out.codeCards.lists = { CAUSE_OF: OC.CAUSE_OF, base: OC.CODE_BASE, aiSkill: OC.CODE_AI_Q, gap: OC.CODE_GAP };
+// the drug-scoring rule lists (R2.3-05)
+const sortObj = o => Object.fromEntries(Object.keys(o).sort().map(k => [k, Array.isArray(o[k]) ? o[k].slice().sort() : o[k]]));
+out.drugRules = { ALSO: sortObj(OC.ALSO), CONTRA: sortObj(OC.CONTRA), CONTRA_IF: Object.fromEntries(Object.keys(OC.CONTRA_IF).sort().map(k => [k, Object.keys(OC.CONTRA_IF[k]).sort()])),
+  RXREQ: OC.RXREQ, REQ_AGE: OC.REQ_AGE, NEVER_WRONG: [...OC.NEVER_WRONG].sort(), SAME_CLASS_OK: OC.SAME_CLASS_OK };
+// scripted codes: 40 arrests run by the attending, every call right, then every call wrong: how many pulses come back (R2.3-02)
+{ const runs = right => { let rosc = 0;
+    for (let s = 0; s < 40; s++) { OC.newGame('easy', 30000 + s, { mode: 'md' }); OC.G.train = null; OC.G.card = null;
+      const free = OC.G.rooms.find(r => !r.pid && /^[0-9]+$/.test(r.id) && r.st === 'clean' && !r.closed && !r.iso);
+      const p = OC.pt(OC.trainPatient(['nstemi', 'pe', 'asthma', 'stemi'][s % 4], 'room', { room: free.id })); p.prov = OC.G.me; p.mine = true; p.ev = 'done'; OC.awaitOrders(p);
+      OC.toArrest(p, 'golden'); OC.assign(OC.G.me, p.id);
+      for (let i = 0; i < 400 && p.arrest; i++) { const c = OC.G.card;
+        if (c && c.eid === 'code') { const q = OC.codeSteps(p)[c.ctx.step], ri = q.c.findIndex(x => x[2]); OC.chooseCard(String(right ? ri : (ri + 1) % 4)); }
+        else if (c) OC.chooseCard(c.choices.find(x => !x.dis).k); else OC.step(0.1); }
+      if (p.rosc) rosc++; }
+    return rosc; };
+  out.codeRuns = { allRight: runs(true), allWrong: runs(false) }; }
 
 // ---- compare
 if (!UPDATE && !fs.existsSync(FILE)) { console.error('FAIL: test/golden.json is missing. Restore it from git, or run npm run golden:update on purpose.'); process.exitCode = 1; }
@@ -145,13 +166,14 @@ else if (UPDATE) {
   for (const sec of ['shifts', 'streams', 'save']) for (const k of new Set([...Object.keys(out[sec]), ...Object.keys(old[sec] || {})])) cmp(sec, k, out[sec][k], (old[sec] || {})[k]);
   out.codes.forEach((c, i) => cmp('codes', i, c, old.codes[i]));
   for (const k of new Set([...Object.keys(out.answers), ...Object.keys(old.answers || {})])) cmp('answers', k, out.answers[k], (old.answers || {})[k]);
-  for (const sec of ['codeKey', 'radioKey']) for (const k of new Set([...Object.keys(out[sec]), ...Object.keys(old[sec] || {})])) cmp(sec, k, out[sec][k], (old[sec] || {})[k]);
+  for (const sec of ['codeKey', 'radioKey', 'codeCards', 'drugRules', 'codeRuns']) for (const k of new Set([...Object.keys(out[sec]), ...Object.keys(old[sec] || {})])) cmp(sec, k, out[sec][k], (old[sec] || {})[k]);
   if (!fails) console.log(`ok - golden: ${Object.keys(out.shifts).length} shifts, ${Object.keys(out.streams).length} stream checks, ${out.codes.length} codes, save round trip, ${Object.keys(out.answers).length} answer keys unchanged`);
   else { console.error(`FAIL: ${fails} golden difference(s). If they are intended, run: node test/golden.js --update, and say why in the commit.`); process.exitCode = 1; }
 }
 // invariants that must hold whatever the snapshot says
 const inv = (c, m) => { if (!c) { console.error('FAIL:', m); process.exitCode = 1; } else console.log('ok -', m); };
 inv(out.codes.every(c => c.roundTrip), 'every class code decodes to what made it');
+inv(out.codeRuns.allRight > out.codeRuns.allWrong * 1.5, `the code's outcome follows the calls (${out.codeRuns.allRight} of 40 pulses back with every call right, ${out.codeRuns.allWrong} with every call wrong)`);
 inv(out.save.identical, 'a saved and reloaded shift plays on exactly like an unbroken one');
 inv(out.save.attending === 4, `an attending shift saved and reloaded plays on exactly the same (${out.save.attending} of 4 seeds)`);
 inv(out.save.midCode.card && out.save.midCode.identical, 'an attending saved mid-code finds the same rhythm-check card after the reload, and plays on the same');
