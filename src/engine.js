@@ -1964,7 +1964,7 @@ function mdDecide(pid, pick) {
   const p = pt(pid);
   if (!p || !mdMine(p) || p.dsp !== 'mddecide') return { ok: false, why: 'There’s no decision waiting for this patient' };
   let want = p.dispo; const S = G.stats.md;
-  if (pick === 'home' && p.rosc) return { ok: false, why: 'After a cardiac arrest the patient goes to the ICU, never home. Call Critical Care.' };   // round 2 (R5.2-02)
+  if (pick === 'home' && p.rosc) return { ok: false, why: 'After a cardiac arrest the patient never goes home: an ICU, a procedure, or a transfer.' };   // round 2 (R5.2-02)
   if (pick === 'home') {
     if (want === 'home') { S.dispoRight++; care(12, 'dispo', p); }
     else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; litAdd(MUST.has(p.ck) ? 10 : 5, `sent home when they needed ${DISPO_NAME[want] || 'admission'}`, p); mm(65, `${p.name} went home with ${(/^[A-Z][a-z]/.test(p.dx) ? p.dx.charAt(0).toLowerCase() + p.dx.slice(1) : p.dx)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
@@ -2043,7 +2043,7 @@ function codeTeam(p) {
    oxygen, tension pneumothorax and tamponade, all at once). The rhythm and the cause follow the case; where the case doesn't say,
    they come from the patient's id, not the dice, so everyone on a class code sees the same arrest. When the attending runs the code,
    each rhythm check is a card, about two minutes of CPR apart (CODE_GAP game minutes). Content pending clinician review. */
-const CODE_GAP = 4;
+const CODE_GAP = 2;   // R5.3-04: "two minutes of CPR" between rhythm checks, in game minutes
 const CODE_WHY = {
   shock: 'VF or pulseless VT is shockable: shock as soon as the pads are on, then straight back to 2 minutes of CPR.',
   epiFirst: 'In VF the shock comes first. Epinephrine goes in after the second shock.',
@@ -2102,55 +2102,55 @@ const CODE_WHY = {
   amioKid: 'VF that won\'t stop in a child: amiodarone 5 mg/kg (or lidocaine 1 mg/kg), and keep shocking at 4 J/kg or more.',
   epiKid: 'Not shockable: CPR, and epinephrine 0.01 mg/kg as soon as possible, then every 3 to 5 minutes.',
 };
-const CODE_Q = {
+const CODE_Q = {   // R5.3-03: answer lengths are balanced, so the longest answer is not a tell (test/rules12.js checks)
   vf: [
-    { t: 'The monitor shows **ventricular fibrillation (VF)**: a shockable rhythm. What first?', c: [['Shock now (defibrillate), then straight back to CPR', 'shock', 1], ['Epinephrine 1 mg first, then shock', 'epiFirst'], ['Stop CPR and feel for a pulse for a full minute', 'longCheck'], ['Synchronized cardioversion', 'syncVf']] },
-    { t: 'Two minutes of CPR. Rhythm check: **still VF**.', c: [['Shock again, then epinephrine 1 mg IV every 3 to 5 minutes', 'shock2', 1], ['Amiodarone instead of a second shock', 'drugNoShock'], ['Stop compressions to intubate', 'stopTube'], ['Sodium bicarbonate, as in every arrest', 'bicarbAll']] },
-    { t: 'Two more minutes. **Still VF** after two shocks and epinephrine.', c: [['Shock, then amiodarone 300 mg IV', 'amio', 1], ['Adenosine 6 mg rapid push', 'adeno'], ['Call the code: it has been 4 minutes', 'callEarly'], ['Atropine 1 mg IV', 'atropineArr']] },
+    { t: 'The monitor shows **ventricular fibrillation (VF)**: a shockable rhythm. What first?', c: [['Shock now (defibrillate), then straight back to CPR', 'shock', 1], ['Epinephrine 1 mg IV first, then shock at the next rhythm check', 'epiFirst'], ['Stop CPR and feel for a pulse for a full minute first', 'longCheck'], ['Synchronized cardioversion at 100 J, then CPR', 'syncVf']] },
+    { t: 'Two minutes of CPR. Rhythm check: **still VF**.', c: [['Shock again, then epinephrine 1 mg IV every 3 to 5 minutes', 'shock2', 1], ['Amiodarone 300 mg instead of a second shock, then recheck', 'drugNoShock'], ['Hold CPR, intubate first, then shock once the tube is secure', 'stopTube'], ['Sodium bicarbonate 50 mEq, as in every arrest, then shock', 'bicarbAll']] },
+    { t: 'Two more minutes. **Still VF** after two shocks and epinephrine.', c: [['Shock, then amiodarone 300 mg IV', 'amio', 1], ['Adenosine 6 mg rapid push, then recheck', 'adeno'], ['Call the code: it has been 4 minutes already', 'callEarly'], ['Atropine 1 mg IV, then shock at the next check', 'atropineArr']] },
   ],
   pea: [
-    { t: 'The monitor shows **a rhythm but no pulse (PEA)**: not shockable. What first?', c: [['Keep CPR going; epinephrine 1 mg IV now', 'epiNow', 1], ['Shock it', 'shockPea'], ['Atropine 1 mg IV', 'atropineArr'], ['Wait for respiratory therapy before compressions', 'waitRt']] },
-    { t: 'Two minutes later, **still no pulse**. What are you hunting for?', c: [['The reversible causes: the H\'s and T\'s', 'hsts', 1], ['Nothing: keep repeating epinephrine', 'noHunt'], ['A shock every 2 minutes in case it turns to VF', 'shockMaybe'], ['Amiodarone 300 mg', 'amioPea']] },
+    { t: 'The monitor shows **a rhythm but no pulse (PEA)**: not shockable. What first?', c: [['Keep CPR going; epinephrine 1 mg IV now', 'epiNow', 1], ['Shock it at 200 J, then resume CPR', 'shockPea'], ['Atropine 1 mg IV, repeated every 3 minutes', 'atropineArr'], ['Wait for respiratory therapy before compressions', 'waitRt']] },
+    { t: 'Two minutes later, **still no pulse**. What are you hunting for?', c: [['The reversible causes: the H\'s and T\'s', 'hsts', 1], ['Nothing new: keep repeating epinephrine on time', 'noHunt'], ['A shock every 2 minutes in case it turns to VF', 'shockMaybe'], ['Amiodarone 300 mg, then recheck', 'amioPea']] },
   ],
   asys: [
-    { t: 'The monitor shows **a flat line (asystole)**: not shockable. What first?', c: [['Keep CPR going; epinephrine 1 mg IV now', 'epiNow', 1], ['Shock it', 'shockPea'], ['Atropine 1 mg IV', 'atropineArr'], ['Wait for respiratory therapy before compressions', 'waitRt']] },
-    { t: 'Two minutes later, **still asystole**. What are you hunting for?', c: [['The reversible causes: the H\'s and T\'s', 'hsts', 1], ['Nothing: keep repeating epinephrine', 'noHunt'], ['A shock every 2 minutes in case it turns to VF', 'shockMaybe'], ['Amiodarone 300 mg', 'amioPea']] },
+    { t: 'The monitor shows **a flat line (asystole)**: not shockable. What first?', c: [['Keep CPR going; epinephrine 1 mg IV now', 'epiNow', 1], ['Shock it at 200 J, then resume CPR', 'shockPea'], ['Atropine 1 mg IV, repeated every 3 minutes', 'atropineArr'], ['Wait for respiratory therapy before compressions', 'waitRt']] },
+    { t: 'Two minutes later, **still asystole**. What are you hunting for?', c: [['The reversible causes: the H\'s and T\'s', 'hsts', 1], ['Nothing new: keep repeating epinephrine on time', 'noHunt'], ['A shock every 2 minutes in case it turns to VF', 'shockMaybe'], ['Amiodarone 300 mg, then recheck', 'amioPea']] },
   ],
   trauma: [
-    { t: 'A traumatic arrest: **no pulse, PEA** on the monitor. What first?', c: [['All at once: stop the bleeding, give blood, secure the airway, decompress both sides of the chest', 'traumaFix', 1], ['Epinephrine every 3 minutes and nothing else', 'epiOnly'], ['Shock it', 'shockPea'], ['Normal saline, six liters', 'saline']] },
-    { t: 'Blood is going in and both sides of the chest are decompressed. The ultrasound shows **fluid around the heart**.', c: [['Drain it now (pericardiocentesis), or the surgeon opens the chest', 'tamponade', 1], ['Amiodarone 300 mg', 'amioPea'], ['Synchronized cardioversion', 'syncVf'], ['Sodium bicarbonate, as in every arrest', 'bicarbAll']] },
+    { t: 'A traumatic arrest: **no pulse, PEA** on the monitor. What first?', c: [['Blood, bleeding control, airway, and both sides of the chest decompressed, all at once', 'traumaFix', 1], ['Epinephrine 1 mg every 3 minutes and good CPR, nothing else yet', 'epiOnly'], ['Shock it at 200 J, then 2 minutes of CPR and epinephrine', 'shockPea'], ['Normal saline, six liters as fast as it will run, then reassess them', 'saline']] },
+    { t: 'Blood is going in and both sides of the chest are decompressed. The ultrasound shows **fluid around the heart**.', c: [['Drain it now (pericardiocentesis), or the surgeon opens the chest', 'tamponade', 1], ['Amiodarone 300 mg IV, then shock if the rhythm changes', 'amioPea'], ['Synchronized cardioversion at 100 J to restart the heart', 'syncVf'], ['Sodium bicarbonate and calcium, as in every arrest, then recheck', 'bicarbAll']] },
   ],
   limb: [
-    { t: 'An arrest after bleeding from a broken limb: **no pulse, PEA** on the monitor. What first?', c: [['Stop the bleeding (pressure, splint, tourniquet), give blood fast, secure the airway', 'limbFix', 1], ['Epinephrine every 3 minutes and nothing else', 'epiOnly'], ['Shock it', 'shockPea'], ['Normal saline, six liters', 'saline']] },
-    { t: 'Two units in, **still no pulse**. The ultrasound shows a small, empty heart and no fluid around it.', c: [['Keep the blood coming: massive transfusion', 'moreBlood', 1], ['Tenecteplase', 'tnkWrong'], ['Synchronized cardioversion', 'syncVf'], ['Amiodarone 300 mg', 'amioPea']] },
+    { t: 'An arrest after bleeding from a broken limb: **no pulse, PEA** on the monitor. What first?', c: [['Tourniquet or pressure on the bleed, blood fast, secure the airway', 'limbFix', 1], ['Epinephrine 1 mg every 3 minutes and good CPR, nothing else yet', 'epiOnly'], ['Shock it at 200 J, then 2 minutes of CPR and epinephrine', 'shockPea'], ['Normal saline, six liters as fast as it will run, then reassess them', 'saline']] },
+    { t: 'Two units in, **still no pulse**. The ultrasound shows a small, empty heart and no fluid around it.', c: [['Keep the blood coming: massive transfusion', 'moreBlood', 1], ['Tenecteplase, in case a clot caused this', 'tnkWrong'], ['Synchronized cardioversion at 100 J', 'syncVf'], ['Amiodarone 300 mg IV, then a shock at the next check', 'amioPea']] },
   ],
   // children under 13 (PALS): doses by weight, filled in from the child's estimated weight
   kidvf: [
-    { t: 'The monitor shows **VF**: a shockable rhythm. What first?', c: [['Shock at {j2} J (2 J/kg), then straight back to CPR', 'shock', 1], ['Shock at 200 J, the adult setting', 'shockKid'], ['Epinephrine first, then shock', 'epiFirst'], ['Synchronized cardioversion', 'syncVf']] },
-    { t: 'Two minutes of CPR. **Still VF**.', c: [['Shock at {j4} J (4 J/kg), then epinephrine {epi} mg IV or IO (0.01 mg/kg)', 'shockKid2', 1], ['Shock, then epinephrine 1 mg IV', 'epiAdult'], ['Amiodarone instead of a second shock', 'drugNoShock'], ['Stop compressions to intubate', 'stopTube']] },
-    { t: 'Two more minutes. **Still VF**.', c: [['Shock at {j4} J, then amiodarone {amio} mg IV or IO (5 mg/kg)', 'amioKid', 1], ['Shock, then amiodarone 300 mg IV', 'amioAdult'], ['Adenosine', 'adeno'], ['Atropine', 'atropineArr']] },
+    { t: 'The monitor shows **VF**: a shockable rhythm. What first?', c: [['Shock at {j2} J (2 J/kg), then straight back to CPR', 'shock', 1], ['Shock at 200 J, the adult setting, then back to CPR', 'shockKid'], ['Epinephrine 0.01 mg/kg first, then shock at the next check', 'epiFirst'], ['Synchronized cardioversion at 1 J/kg, then CPR', 'syncVf']] },
+    { t: 'Two minutes of CPR. **Still VF**.', c: [['Shock at {j4} J (4 J/kg), then epinephrine {epi} mg (0.01 mg/kg)', 'shockKid2', 1], ['Shock at {j4} J (4 J/kg), then epinephrine 1 mg IV or IO', 'epiAdult'], ['Amiodarone 5 mg/kg instead of a second shock, then recheck', 'drugNoShock'], ['Hold CPR, intubate first, then shock again once the tube is secure', 'stopTube']] },
+    { t: 'Two more minutes. **Still VF**.', c: [['Shock at {j4} J, then amiodarone {amio} mg (5 mg/kg)', 'amioKid', 1], ['Shock at {j4} J, then amiodarone 300 mg IV or IO', 'amioAdult'], ['Adenosine 0.1 mg/kg rapid push, then recheck the rhythm', 'adeno'], ['Atropine 0.02 mg/kg IV, then shock if it is still VF', 'atropineArr']] },
   ],
   kidpea: [
-    { t: 'The monitor shows **a rhythm but no pulse (PEA)**: not shockable. What first?', c: [['Keep CPR going; epinephrine {epi} mg IV or IO now (0.01 mg/kg)', 'epiKid', 1], ['Keep CPR going; epinephrine 1 mg IV now', 'epiAdult'], ['Shock it', 'shockPea'], ['Wait for respiratory therapy before compressions', 'waitRt']] },
-    { t: 'Two minutes later, **still no pulse**. What comes first in the hunt?', c: [['Oxygen and ventilation, then the rest of the H\'s and T\'s', 'hstsKid', 1], ['Nothing: keep repeating epinephrine', 'noHunt'], ['A shock every 2 minutes in case it turns to VF', 'shockMaybe'], ['Amiodarone', 'amioPea']] },
+    { t: 'The monitor shows **a rhythm but no pulse (PEA)**: not shockable. What first?', c: [['CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg)', 'epiKid', 1], ['CPR, and epinephrine 1 mg IV or IO now, then repeat', 'epiAdult'], ['Shock it at 2 J/kg, then 2 minutes of CPR', 'shockPea'], ['Wait for respiratory therapy to arrive before starting compressions', 'waitRt']] },
+    { t: 'Two minutes later, **still no pulse**. What comes first in the hunt?', c: [['Oxygen and ventilation, then the rest of the H\'s and T\'s', 'hstsKid', 1], ['Nothing new: keep repeating epinephrine every 3 to 5 minutes', 'noHunt'], ['A shock every 2 minutes in case it turns to VF', 'shockMaybe'], ['Amiodarone 5 mg/kg, then recheck the rhythm', 'amioPea']] },
   ],
   kidasys: [
-    { t: 'The monitor shows **a flat line (asystole)**: not shockable. What first?', c: [['Keep CPR going; epinephrine {epi} mg IV or IO now (0.01 mg/kg)', 'epiKid', 1], ['Keep CPR going; epinephrine 1 mg IV now', 'epiAdult'], ['Shock it', 'shockPea'], ['Wait for respiratory therapy before compressions', 'waitRt']] },
-    { t: 'Two minutes later, **still asystole**. What comes first in the hunt?', c: [['Oxygen and ventilation, then the rest of the H\'s and T\'s', 'hstsKid', 1], ['Nothing: keep repeating epinephrine', 'noHunt'], ['A shock every 2 minutes in case it turns to VF', 'shockMaybe'], ['Amiodarone', 'amioPea']] },
+    { t: 'The monitor shows **a flat line (asystole)**: not shockable. What first?', c: [['CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg)', 'epiKid', 1], ['CPR, and epinephrine 1 mg IV or IO now, then repeat', 'epiAdult'], ['Shock it at 2 J/kg, then 2 minutes of CPR', 'shockPea'], ['Wait for respiratory therapy to arrive before starting compressions', 'waitRt']] },
+    { t: 'Two minutes later, **still asystole**. What comes first in the hunt?', c: [['Oxygen and ventilation, then the rest of the H\'s and T\'s', 'hstsKid', 1], ['Nothing new: keep repeating epinephrine every 3 to 5 minutes', 'noHunt'], ['A shock every 2 minutes in case it turns to VF', 'shockMaybe'], ['Amiodarone 5 mg/kg, then recheck the rhythm', 'amioPea']] },
   ],
 };
 const CODE_CAUSE = {   // the last rhythm check in PEA or asystole: the cause they find
-  k: { t: 'The blood gas is back: **potassium 7.9**.', c: [['Calcium chloride and sodium bicarbonate; keep CPR going', 'hyperk', 1], ['Start an insulin drip and recheck in an hour', 'slowK'], ['Shock it', 'shockPea'], ['Nothing changes: epinephrine only', 'noHunt']] },
-  trap: { t: 'Severe asthma: the chest is **stiff and over-full**, and each breath gets harder.', c: [['Pause the bagging, press on the chest to let the trapped air out, then slow breaths; check for a tension pneumothorax', 'trap', 1], ['Bag faster and harder', 'bagFaster'], ['A double dose of epinephrine', 'highEpi'], ['Shock it', 'shockPea']] },
-  air: { t: 'The bag-mask **isn\'t moving the chest** well.', c: [['Reposition, two-person bag-mask, then an advanced airway, without stopping CPR', 'hypox', 1], ['Stop CPR until the tube is in', 'stopForTube'], ['A double dose of epinephrine', 'highEpi'], ['More sodium bicarbonate', 'bicarbAll']] },
-  bleed: { t: '**Hemoglobin 5** on the gas. The bleeding is inside: {src}.', c: [['Massive transfusion now, and the surgeon or interventional radiology to stop the bleeding', 'hemctl', 1], ['Tenecteplase', 'tnkWrong'], ['Shock it', 'shockPea'], ['Nothing changes: epinephrine only', 'noHunt']] },
-  vol: { t: 'They were very sick and dry before this. The ultrasound shows **a small, empty heart**.', c: [['Fluids wide open, while CPR and epinephrine go on', 'hypovol', 1], ['Tenecteplase', 'tnkWrong'], ['Shock it', 'shockPea'], ['Nothing changes: epinephrine only', 'noHunt']] },
-  opioid: { t: 'They were found **not breathing**, pupils pinpoint.', c: [['Oxygen and good ventilation; naloxone is reasonable, and CPR goes on', 'opioid', 1], ['Give naloxone and stop CPR until it works', 'naloxWait'], ['Flumazenil', 'flumaz'], ['Shock it', 'shockPea']] },
-  tension: { t: 'No breath sounds on one side, and the **trachea is pushed to the other side**.', c: [['Decompress that side of the chest now (needle or finger)', 'tension', 1], ['A chest X-ray first', 'xrayFirst'], ['A double dose of epinephrine', 'highEpi'], ['Shock it', 'shockPea']] },
-  clot: { t: 'The ultrasound shows **a huge right heart** and a clot in the leg.', c: [['A clot buster (tenecteplase) during CPR, and keep CPR going', 'clot', 1], ['Stop: a PE arrest can\'t come back', 'peHopeless'], ['Heparin, and recheck in an hour', 'heparinWait'], ['Shock it', 'shockPea']] },
-  coronary: { t: 'They had **chest pain** before the arrest: **a heart attack** is the likely cause.', c: [['Keep running the code; if the pulse comes back, a 12-lead ECG and cardiology for the cath lab', 'coronary', 1], ['Stop: a heart attack arrest can\'t come back', 'coronaryHopeless'], ['Shock it', 'shockPea'], ['Amiodarone 300 mg', 'amioPea']] },
-  gluc: { t: 'The fingerstick glucose: **18**.', c: [['Dextrose IV now, while CPR goes on', 'gluc', 1], ['Insulin', 'insulinLow'], ['Shock it', 'shockPea'], ['Nothing changes: epinephrine only', 'noHunt']] },
-  look: { t: 'No clear cause yet. How do you look for one?', c: [['A quick ultrasound in the pulse check, and a blood gas, while CPR goes on', 'lookCause', 1], ['Stop CPR for a full ultrasound', 'stopForEcho'], ['Shock it', 'shockPea'], ['Nothing changes: epinephrine only', 'noHunt']] },
+  k: { t: 'The blood gas is back: **potassium 7.9**.', c: [['Calcium chloride and sodium bicarbonate; keep CPR going', 'hyperk', 1], ['Start an insulin drip and recheck the potassium in an hour', 'slowK'], ['Shock it at 200 J, then 2 minutes of CPR', 'shockPea'], ['Nothing changes: epinephrine every 3 to 5 minutes', 'noHunt']] },
+  trap: { t: 'Severe asthma: the chest is **stiff and over-full**, and each breath gets harder.', c: [['Pause the bag, press the chest to let air out, slow the breaths', 'trap', 1], ['Bag faster and harder to push more oxygen past the tight airways', 'bagFaster'], ['A double dose of epinephrine, then keep bagging hard', 'highEpi'], ['Shock it at 200 J, then 2 minutes of CPR and recheck', 'shockPea']] },
+  air: { t: 'The bag-mask **isn\'t moving the chest** well.', c: [['Reposition, two-person bag-mask, then a tube, without stopping CPR', 'hypox', 1], ['Stop CPR until the breathing tube is in, then restart compressions', 'stopForTube'], ['A double dose of epinephrine to open up the airways', 'highEpi'], ['More sodium bicarbonate to correct the acid from poor breathing', 'bicarbAll']] },
+  bleed: { t: '**Hemoglobin 5** on the gas. The bleeding is inside: {src}.', c: [['Massive transfusion, and a surgeon or IR to stop the bleeding', 'hemctl', 1], ['Tenecteplase, in case a clot is behind this arrest', 'tnkWrong'], ['Shock it at 200 J, then 2 minutes of CPR and epinephrine', 'shockPea'], ['Nothing changes: epinephrine every 3 to 5 minutes and wait for labs', 'noHunt']] },
+  vol: { t: 'They were very sick and dry before this. The ultrasound shows **a small, empty heart**.', c: [['Fluids wide open, while CPR and epinephrine go on', 'hypovol', 1], ['Tenecteplase, in case a clot is behind this arrest', 'tnkWrong'], ['Shock it at 200 J, then 2 minutes of CPR', 'shockPea'], ['Nothing changes: epinephrine every 3 to 5 minutes', 'noHunt']] },
+  opioid: { t: 'They were found **not breathing**, pupils pinpoint.', c: [['Oxygen and ventilation; naloxone is reasonable; CPR goes on', 'opioid', 1], ['Give naloxone and stop CPR until it starts working', 'naloxWait'], ['Flumazenil, to reverse whatever they took, then recheck', 'flumaz'], ['Shock it at 200 J, then 2 minutes of CPR and more epinephrine', 'shockPea']] },
+  tension: { t: 'No breath sounds on one side, and the **trachea is pushed to the other side**.', c: [['Decompress that side now, with a needle or a finger', 'tension', 1], ['A portable chest X-ray first, to be sure which side it is', 'xrayFirst'], ['A double dose of epinephrine, then keep bagging', 'highEpi'], ['Shock it at 200 J, then 2 minutes of CPR and recheck', 'shockPea']] },
+  clot: { t: 'The ultrasound shows **a huge right heart** and a clot in the leg.', c: [['Tenecteplase (a clot buster) during CPR, and keep going', 'clot', 1], ['Stop now: an arrest from a clot this size can\'t come back', 'peHopeless'], ['Heparin drip, and recheck the rhythm and pulse in an hour', 'heparinWait'], ['Shock it at 200 J, then 2 minutes of CPR and recheck', 'shockPea']] },
+  coronary: { t: 'They had **chest pain** before the arrest: **a heart attack** is the likely cause.', c: [['Run the code; with a pulse back, a 12-lead ECG and cardiology', 'coronary', 1], ['Stop: an arrest from a heart attack can\'t come back, so call it', 'coronaryHopeless'], ['Shock it at 200 J, then 2 minutes of CPR and recheck', 'shockPea'], ['Amiodarone 300 mg IV, then a shock at the next rhythm check', 'amioPea']] },
+  gluc: { t: 'The fingerstick glucose: **18**.', c: [['Dextrose IV now, while CPR goes on', 'gluc', 1], ['Insulin, to move the sugar into the cells', 'insulinLow'], ['Shock it at 200 J, then 2 minutes of CPR', 'shockPea'], ['Nothing changes: epinephrine every 3 to 5 minutes', 'noHunt']] },
+  look: { t: 'No clear cause yet. How do you look for one?', c: [['A quick ultrasound in the pulse check, and a blood gas, with CPR on', 'lookCause', 1], ['Stop CPR for a full, careful ultrasound of the heart, lungs and belly', 'stopForEcho'], ['Shock it at 200 J, then 2 minutes of CPR and recheck', 'shockPea'], ['Nothing changes: epinephrine every 3 to 5 minutes and wait', 'noHunt']] },
 };
 const TRAUMA_CASES = ['mvc', 'tfall', 'burn', 'mcired', 'mcimin', 'mcigrn', 'mciwr'];
 const LIMB_CASES = ['mciyel', 'moto'];   // a femur fracture bleeding: no chest injury to decompress
@@ -2251,15 +2251,17 @@ function codeOutcome(p) {
   if (!p.code) codeStart(p, true);   // a code already running in a save from before this system: run it quietly
   const C = p.code, n = codeSteps(p).length;
   if (chance(codeOdds(p))) {
-    p.arrest = false; p.rosc = true; p.gray = null; p.vit = null; p.dx = 'ROSC after cardiac arrest'; p.dxK = true; p.con = 'icu'; p.pre = []; p.need = null; p.dispo = 'icu';
+    p.arrest = false; p.rosc = true; p.gray = null; p.vit = null; p.dx = 'ROSC after cardiac arrest'; p.dxK = true; p.pre = []; p.need = null;
     p.consult = { st: 'none', spec: null, due: 0 };
+    roscPlan(p);
     const tubed = p.treat.intub && p.treat.intub.st === 'done';
     for (const k of ['intub', 'vent']) if (!p.tr.includes(k)) p.tr.push(k);
     if (!tubed) p.treat.intub = newTreat('intub');
     p.treat.vent = tubed ? newTreat('vent') : { st: 'wait' }; queueProcs(p);
-    if (mdMine(p)) { p.ord = 'signed'; p.right = { wk: p.wk.slice(), tr: ['intub'] }; p.txGap = null; }   // post-arrest orders are standard; the ICU call is yours
+    if (p.bledOut && !p.tr.includes('blood')) { p.tr.push('blood'); p.treat.blood = newTreat('blood'); if (!p.bb) p.bb = { st: 'xm', due: G.t + 10 }; }   // R5.3-01: the bleeding didn't stop with the arrest
+    if (mdMine(p)) { p.ord = 'signed'; p.right = { wk: p.wk.slice(), tr: p.tr.filter(k => k === 'intub' || k === 'blood') }; p.txGap = null; }   // post-arrest orders are standard; where they go is your call
     if (!G.pre) { G.stats.rosc++; care(30, 'flow', p); }
-    toast(`A pulse is back (ROSC) in ${roomName(p.room)}! Intubate (attending and RT), then the vent. Get Critical Care down here.`, 'good'); sound('good');
+    toast(`A pulse is back (ROSC) in ${roomName(p.room)}! Intubate (attending and RT), then the vent. ${p.dispo === 'transfer' ? 'Then a transfer to ' + p.txTo + '.' : 'Call ' + (SPECS[p.con] ? SPECS[p.con].name : 'Critical Care') + '.'}`, 'good'); sound('good');
     codeEnd(p, true, n);
   } else {
     p.arrest = false; p.dx = 'Resuscitation unsuccessful'; p.dxK = true; p.dsp = 'family'; p.due = G.t + 15;
@@ -2268,12 +2270,23 @@ function codeOutcome(p) {
     codeEnd(p, false, n);
   }
 }
+// R5.3-01, R5.3-02: where a patient goes after a pulse comes back. A child: a children's hospital with a PICU. A case whose care is a
+// procedure (the OR, the cath lab) or a transfer keeps it, with Critical Care after. Everyone else: Critical Care, with the case's own
+// service second (cardiology for a heart attack, GI for a bleed, neurosurgery for a head bleed).
+function roscPlan(p) {
+  const c = CASES.find(x => x.k === p.ck) || {};
+  p.con2 = null; p.consult2 = null;
+  if (isKid(p)) { p.con = null; p.dispo = 'transfer'; p.txTo = 'a children\'s hospital with a pediatric ICU'; p.txNeed = 'icu'; return; }
+  if (c.dispo === 'transfer') { p.con = c.con || null; p.dispo = 'transfer'; p.txTo = c.txTo || p.txTo; return; }
+  if (c.dispo === 'or' || c.dispo === 'cath') { p.con = c.con; p.dispo = c.dispo; p.con2 = 'icu'; return; }
+  p.con = 'icu'; p.dispo = 'icu'; p.con2 = c.con && c.con !== 'icu' && c.con !== 'hosp' && SPECS[c.con] ? c.con : null;
+}
 // R4.2-02: the end of your own code is a card, not just a toast: what happened, and what moved the odds
 function codeEnd(p, rosc, n) {
   const C = p.code; if (!C || !C.me || G.pre || G.card) return;
   const why = [`${C.right} of ${n} rhythm checks right`, C.wait > 3 ? `${C.wait} minutes before a doctor took over` : 'a doctor took over fast', C.r === 'vf' && !C.shocked ? 'VF was never shocked' : ''].filter(Boolean).join(' · ');
   setCard('codeend', rosc ? 'A pulse is back (ROSC)' : 'The code is called', `${roomName(p.room)} · ${p.name} · ${CODE_NAME[C.r]}`,
-    rosc ? `**${why}.**\nNext: intubate, the ventilator, and Critical Care.` : `**${why}.**\nNot every arrest comes back, even with everything right. The chaplain is with the family.`,
+    rosc ? `**${why}.**\nNext: intubate, the ventilator${p.bledOut ? ', blood' : ''}, and ${p.dispo === 'transfer' ? 'a transfer to ' + p.txTo : SPECS[p.con] ? SPECS[p.con].name + (p.con2 && SPECS[p.con2] ? ', then ' + SPECS[p.con2].name : '') : 'Critical Care'}.` : `**${why}.**\nNot every arrest comes back, even with everything right. The chaplain is with the family.`,
     [{ k: 'ok', label: rosc ? 'Back to work' : 'OK' }], { pid: p.id });
   G.card.mine = true;
 }

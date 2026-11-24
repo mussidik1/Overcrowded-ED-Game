@@ -216,7 +216,7 @@ assert(OC.CODE_AI_Q < 0.67, 'a code handed to the computer doctor scores below a
   assert(/^Shock/.test(steps[2].c.find(c => c[2])[0]), 'the amiodarone answer starts with a shock, so it counts as one (R6.3-04)'); }
 assert(OC.codeCause({ id: 'd1', ck: 'dka', age: 40 }) === 'vol', 'a DKA arrest isn\'t told potassium 7.9 when its chart says 4.8 (R6.3-05)');
 assert(!/ECG before the arrest/.test(OC.CODE_CAUSE.coronary.t), 'the coronary card doesn\'t claim an ECG the chart may not show (R6.3-06)');
-assert(OC.codeCause({ id: 'a1', ck: 'asthma', age: 30 }) === 'trap' && /trapped/i.test(OC.CODE_CAUSE.trap.c.find(c => c[2])[0]), 'an asthma arrest: let the trapped air out, think tension (R6.3-14)');
+assert(OC.codeCause({ id: 'a1', ck: 'asthma', age: 30 }) === 'trap' && /let air out/i.test(OC.CODE_CAUSE.trap.c.find(c => c[2])[0]), 'an asthma arrest: let the trapped air out, think tension (R6.3-14)');
 { const p = mine('stroke', { lkw: 60, over: false }, 8600); const r = sign(p, ['ct', 'lab'], ['tnk', 'asa']);
   assert(r.harm === 1, 'aspirin on the same order sheet as a stroke lytic is harm (R6.3-10)'); }
 { const p = mine('afib', {}, 8700); OC.crashNow(p.id); run(5); assert(/cardioversion/i.test(OC.whyOf(p)), 'the unstable A-fib disposition card says cardioversion, not diltiazem (R6.3-09)'); }
@@ -287,3 +287,17 @@ assert(OC.codeCause({ id: 'a1', ck: 'asthma', age: 30 }) === 'trap' && /trapped/
   OC.crashNow(p.id); run(0.2); assert(/diltiazem/i.test(OC.rxName(p)), 'after a crash, the chart still names the diltiazem that was given (R1.3-07)'); }
 { let threw = false; const keep = OC.CODE_Q.kidpea; delete OC.CODE_Q.kidpea; try { OC.lintCode(); } catch (e) { threw = true; } OC.CODE_Q.kidpea = keep;
   assert(threw, 'a missing card set fails the load-time check (R1.3-08)'); }
+
+// ---- round 3, player (R5.3)
+{ const roscOf = (k, o, seed) => { let p = null; for (let s = 0; s < 60 && !(p && p.rosc); s++) { p = mine(k, o || {}, seed + s); OC.toArrest(p, 'x'); runCode(p, true); } return p; };
+  const e = roscOf('ectopic', {}, 9600); e.dsp = 'mddecide';
+  assert(e.rosc && e.con === 'obgyn' && e.dispo === 'or' && e.con2 === 'icu' && e.tr.includes('blood') === !!e.bledOut, `an ectopic with a pulse back goes to OB/GYN and the OR, then Critical Care (R5.3-01): ${e.con}/${e.dispo}`);
+  const st = roscOf('stemi', {}, 9700); assert(st.rosc && st.con === 'cards' && st.dispo === 'cath', 'a STEMI with a pulse back goes to cardiology and the cath lab');
+  const ns = roscOf('nstemi', {}, 9800); assert(ns.rosc && ns.con === 'icu' && ns.con2 === 'cards', 'an NSTEMI with a pulse back: Critical Care, then cardiology');
+  const kid = roscOf('rsv', { age: 0 }, 9900); kid.dsp = 'mddecide';
+  const r = OC.mdDecide(kid.id, 'transfer');
+  assert(kid.rosc && r.ok && /children/.test(kid.txTo), `an infant with a pulse back is transferred to a children's hospital (R5.3-02): ${r.why || r.msg}`); }
+{ let longest = 0, n = 0; const L = q => q.c.map(c => c[0].replace(/\{[a-z0-9]+\}/g, '00').length);
+  for (const q of [...Object.values(OC.CODE_Q).flat(), ...Object.values(OC.CODE_CAUSE)]) { const l = L(q), ri = q.c.findIndex(c => c[2]); n++; if (l[ri] === Math.max(...l) && l.filter(x => x === l[ri]).length === 1) longest++; }
+  assert(longest <= n * 0.25, `the right answer is the longest on only ${longest} of ${n} cards: "pick the longest" doesn't work (R5.3-03)`); }
+assert(OC.CODE_GAP === 2, 'rhythm checks are two game minutes apart, as the cards say (R5.3-04)');

@@ -739,7 +739,7 @@ function mapRender(G) {
   }
 
   // the wall: a crew and a stretcher in each spot, with how long they've held it
-  const wall = act.filter(p => p.loc === 'wall').sort((a, b) => a.tArrive - b.tArrive), inside = wall.slice(0, 6), outside = wall.slice(6);
+  const wall = act.filter(p => p.loc === 'wall').sort((a, b) => (b.arrest ? 1 : 0) - (a.arrest ? 1 : 0) || a.tArrive - b.tArrive), inside = wall.slice(0, 6), outside = wall.slice(6);   // R5.3-06: a code is always drawn
   const lab = (id, t) => { const n = document.getElementById(id); if (n && n.textContent !== t) n.textContent = t; };
   lab('mWallL', wall.length ? `WALL · ${wall.length}` : 'THE WALL');   // with a count it drops THE, so it stays clear of the Resus tray lab('mWaitL', waiting.length ? `WAITING · ${waiting.length}` : 'WAITING'); lab('mDoorL', G.triageQ.length ? `DOOR · ${G.triageQ.length}` : 'DOOR');
   const nowW = performance.now();
@@ -750,7 +750,8 @@ function mapRender(G) {
     by.set(p.id, [196, y + 4]);
     posNow.set(p.id, { x: 195, y, kind: 'wall' });
     if (SN) SN.pts.push({ id: p.id, kind: 'wall', x: 195, y, esi, name: p.name, sel: !!(sel && sel.pid === p.id), code: !!p.arrest });
-    const badge = intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
+    const badge = p.arrest ? `<g transform="translate(236 ${y + 9})"><rect x="-17" y="-9.5" width="34" height="19" rx="9.5" fill="#B3261E" stroke="#fff" stroke-width="1.6"/><text y="4.6" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">CPR</text></g>`   // R5.3-06
+      : intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
       : E.emergent(p) ? icoSVG('alert', 240, y + 9, 9, 'bad fl') : '';
     pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${crewSVG(!!(sel && sel.pid === p.id))}</g>`
       + stretcherSVG(152, y - 13, 86, 26, p, esi) + (p.tag ? `<rect x="148" y="${y - 12}" width="9" height="24" rx="3" fill="${TAGC[p.tag]}" stroke="#fff" stroke-width="1.3"/>` : '')
