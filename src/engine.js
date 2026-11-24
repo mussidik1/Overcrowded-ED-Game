@@ -1077,6 +1077,7 @@ const vFar = (v, n) => Math.abs(v.hr - n.hr) / 5 + Math.abs(v.sbp - n.sbp) / 6 +
 function vitalsOf(p, when) {
   const t = when != null ? when : G.t;
   if (p.arrest) return { arrest: true, taken: true, text: 'No pulse. CPR in progress', signs: [], flags: {}, trend: 'worse', s: 2 };
+  if (['family', 'morgue', 'morguing'].includes(p.dsp)) return { arrest: true, dead: true, taken: true, text: 'Pronounced dead', signs: [], flags: {}, trend: 'steady', s: 2 };   // after a code is called, no vitals
   const ems = p.src === 'ems' || !!p.unit;
   if (!ems && p.tri !== 'done' && p.loc !== 'room') return { taken: false, text: 'Not taken yet. Triage takes the first set.', signs: [], flags: {}, trend: 'steady', s: 1 };
   const R = vRaw(p, t), R0 = vRaw(p, t - 15), { n, s, kid } = R, v = Object.assign({}, R.v);
