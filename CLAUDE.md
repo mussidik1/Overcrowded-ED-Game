@@ -25,6 +25,7 @@ The owner is a paramedic and EMS educator. He reads replies on the phone app.
 
 - **Replies:** short, direct, declarative sentences. Put anything he'll copy and paste in one complete block, never in pieces.
 - **Hostile review rule:** after any change bigger than a bug fix, run three subagents, each with exactly this prompt: *"Pretend you are a senior software engineer, and you absolutely HATE this project. What would you critique about this project after a comprehensive review."* Fix their serious findings before shipping. Spawn other subagents only when he asks; this rule counts as asking. Run the "CEO agent" only when he says "run the CEO agent". Never use a subagent to get around a denied action.
+- **Six-reviewer rule (Nov 24, 2026):** at the end of every step (an audit phase, a release), unless the step only fixes bugs, run the six audit reviewers again: R1 architecture, R2 tooling and legal, R3 game tech, security and privacy, R4 UI/UX, R5 player and game design, R6 clinical accuracy (roles and report format in `docs/audit/BRIEF.md` and `docs/PRO_AUDIT.md`). Fix their serious findings before shipping to `main`.
 - **Privacy:** never send his email to an external service without his explicit approval. The gate password stays out of the repo (it's in his status doc).
 - **Gate:** stays on until he says "launch". Launch is one SQL line: `update public.cb_gate set gate_on = false where id = 1;`
 - **Database changes** to the Supabase project need his approval each time.
