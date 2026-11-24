@@ -19,7 +19,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "f0356cbe"
+   "stateHash": "6e7ea3ef"
   },
   "rn/easy/none": {
    "arrivals": 93,
@@ -39,7 +39,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "a3959f82"
+   "stateHash": "2d18f037"
   },
   "rn/med/none": {
    "arrivals": 110,
@@ -59,7 +59,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "093230b5"
+   "stateHash": "c991e6e2"
   },
   "rn/hard/none": {
    "arrivals": 130,
@@ -71,35 +71,35 @@
    "tx": 0,
    "lwbs": 0,
    "ama": 1,
-   "expired": 0,
-   "left": 31,
-   "care": 597,
+   "expired": 1,
+   "left": 30,
+   "care": 590,
    "wait": 36,
    "stars": 1,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "4dfbb614"
+   "stateHash": "f1daeff6"
   },
   "md/rush/none": {
-   "arrivals": 27,
-   "arrivalsHash": "f432188f",
-   "seen": 26,
-   "dc": 7,
-   "adm": 6,
-   "proc": 2,
+   "arrivals": 23,
+   "arrivalsHash": "d3ac2a53",
+   "seen": 23,
+   "dc": 9,
+   "adm": 7,
+   "proc": 0,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 23,
-   "care": 167,
-   "wait": 21,
+   "left": 19,
+   "care": 213,
+   "wait": 22,
    "stars": 3,
    "fail": null,
-   "lit": 20,
-   "acc": 71,
-   "stateHash": "bd71ad64"
+   "lit": 25,
+   "acc": 77,
+   "stateHash": "b189a9fa"
   },
   "md/easy/none": {
    "arrivals": 88,
@@ -119,47 +119,47 @@
    "fail": null,
    "lit": 58,
    "acc": 67,
-   "stateHash": "ef358bec"
+   "stateHash": "4c224f37"
   },
   "md/med/none": {
-   "arrivals": 112,
-   "arrivalsHash": "38a60d1a",
-   "seen": 112,
-   "dc": 58,
-   "adm": 36,
-   "proc": 9,
+   "arrivals": 108,
+   "arrivalsHash": "581b51ce",
+   "seen": 108,
+   "dc": 54,
+   "adm": 35,
+   "proc": 8,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 10,
-   "care": 1826,
+   "left": 12,
+   "care": 2057,
    "wait": 21,
    "stars": 3,
    "fail": null,
    "lit": 50,
-   "acc": 67,
-   "stateHash": "64d00e62"
+   "acc": 74,
+   "stateHash": "44504a51"
   },
   "md/hard/none": {
-   "arrivals": 125,
-   "arrivalsHash": "d46c8c96",
-   "seen": 124,
-   "dc": 64,
-   "adm": 33,
-   "proc": 11,
+   "arrivals": 127,
+   "arrivalsHash": "c26f04f8",
+   "seen": 126,
+   "dc": 63,
+   "adm": 35,
+   "proc": 12,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 20,
-   "care": 1775,
+   "left": 19,
+   "care": 1842,
    "wait": 23,
    "stars": 3,
    "fail": null,
-   "lit": 72,
-   "acc": 67,
-   "stateHash": "02eccb1f"
+   "lit": 64,
+   "acc": 73,
+   "stateHash": "5959d819"
   },
   "rn/med/ct": {
    "arrivals": 109,
@@ -179,7 +179,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "8118bed1"
+   "stateHash": "a44b8a1e"
   },
   "rn/med/mci": {
    "arrivals": 113,
@@ -199,7 +199,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "1b2f4e80"
+   "stateHash": "82a9db85"
   },
   "rn/med/board": {
    "arrivals": 118,
@@ -219,7 +219,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "4f7d182b"
+   "stateHash": "f8417602"
   },
   "rn/med/short": {
    "arrivals": 111,
@@ -239,27 +239,27 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "e61c283b"
+   "stateHash": "081097b8"
   },
   "md/med/board": {
-   "arrivals": 113,
-   "arrivalsHash": "649b7816",
-   "seen": 113,
+   "arrivals": 114,
+   "arrivalsHash": "6876359f",
+   "seen": 114,
    "dc": 59,
-   "adm": 34,
+   "adm": 27,
    "proc": 8,
    "tx": 0,
    "lwbs": 0,
-   "ama": 1,
-   "expired": 0,
-   "left": 19,
-   "care": 1656,
+   "ama": 2,
+   "expired": 1,
+   "left": 25,
+   "care": 1456,
    "wait": 21,
    "stars": 3,
    "fail": null,
-   "lit": 66,
-   "acc": 67,
-   "stateHash": "0c970de7"
+   "lit": 67,
+   "acc": 68,
+   "stateHash": "fdd0220b"
   }
  },
  "streams": {
@@ -517,6 +517,7 @@
      "methylpred"
     ]
    },
+   "also": null,
    "contra": []
   },
   "refill": {
@@ -528,6 +529,7 @@
      "homemed"
     ]
    },
+   "also": null,
    "contra": []
   },
   "otitis": {
@@ -542,6 +544,7 @@
      "amoxclav"
     ]
    },
+   "also": null,
    "contra": []
   },
   "dental": {
@@ -559,6 +562,7 @@
      "apap"
     ]
    },
+   "also": null,
    "contra": []
   },
   "strep": {
@@ -576,6 +580,7 @@
      "bicillin"
     ]
    },
+   "also": null,
    "contra": []
   },
   "ankle": {
@@ -593,6 +598,7 @@
      "ketor"
     ]
    },
+   "also": null,
    "contra": []
   },
   "lac": {
@@ -602,6 +608,7 @@
    ],
    "dx": "Simple laceration",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "uti": {
@@ -618,6 +625,7 @@
      "cephalex"
     ]
    },
+   "also": null,
    "contra": []
   },
   "gastro": {
@@ -637,6 +645,7 @@
      "prochlor"
     ]
    },
+   "also": null,
    "contra": []
   },
   "appy": {
@@ -665,6 +674,7 @@
      "metro"
     ]
    },
+   "also": null,
    "contra": []
   },
   "chole": {
@@ -693,6 +703,7 @@
      "metro"
     ]
    },
+   "also": null,
    "contra": []
   },
   "hipfx": {
@@ -714,6 +725,7 @@
      "apap"
     ]
    },
+   "also": null,
    "contra": []
   },
   "flu": {
@@ -731,6 +743,7 @@
      "ibu"
     ]
    },
+   "also": null,
    "contra": []
   },
   "pnalow": {
@@ -751,6 +764,7 @@
      "amoxclav"
     ]
    },
+   "also": null,
    "contra": []
   },
   "pna": {
@@ -770,6 +784,7 @@
      "azith"
     ]
    },
+   "also": null,
    "contra": []
   },
   "copd": {
@@ -792,6 +807,7 @@
      "albut"
     ]
    },
+   "also": null,
    "contra": [
     "metop"
    ]
@@ -813,6 +829,7 @@
      "furo"
     ]
    },
+   "also": null,
    "contra": []
   },
   "stone": {
@@ -835,6 +852,7 @@
      "hydro"
     ]
    },
+   "also": null,
    "contra": []
   },
   "dvt": {
@@ -853,6 +871,7 @@
      "heparin"
     ]
    },
+   "also": null,
    "contra": []
   },
   "migraine": {
@@ -870,6 +889,7 @@
      "diphen"
     ]
    },
+   "also": null,
    "contra": []
   },
   "tb": {
@@ -880,6 +900,7 @@
    "treats": [],
    "dx": "Suspected tuberculosis",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "bh": {
@@ -889,6 +910,7 @@
    "treats": [],
    "dx": "Behavioral health emergency",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "etoh": {
@@ -901,6 +923,7 @@
    ],
    "dx": "Alcohol intoxication",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "od": {
@@ -912,6 +935,7 @@
    ],
    "dx": "Opioid overdose",
    "ok": null,
+   "also": null,
    "contra": [
     "loraz"
    ]
@@ -932,6 +956,7 @@
      "cephalex"
     ]
    },
+   "also": null,
    "contra": []
   },
   "syncope": {
@@ -942,6 +967,7 @@
    "treats": [],
    "dx": "Syncope, low risk",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "synchigh": {
@@ -953,6 +979,7 @@
    "treats": [],
    "dx": "Syncope, high risk",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "tia": {
@@ -968,6 +995,7 @@
      "asa"
     ]
    },
+   "also": null,
    "contra": []
   },
   "dehyd": {
@@ -979,6 +1007,7 @@
    ],
    "dx": "Dehydration",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "cpmod": {
@@ -997,6 +1026,11 @@
      "asa"
     ]
    },
+   "also": [
+    "ntg",
+    "morph",
+    "metop"
+   ],
    "contra": []
   },
   "cwp": {
@@ -1010,12 +1044,17 @@
    "dx": "Chest pain, low risk",
    "ok": {
     "meds": [
-     "ibu",
+     "asa",
      "apap",
+     "ibu",
      "ketor"
     ]
    },
-   "contra": []
+   "also": null,
+   "contra": [
+    "ibu",
+    "ketor"
+   ]
   },
   "nstemi": {
    "tests": [
@@ -1034,6 +1073,11 @@
      "enox"
     ]
    },
+   "also": [
+    "ntg",
+    "morph",
+    "metop"
+   ],
    "contra": []
   },
   "afib": {
@@ -1051,6 +1095,7 @@
      "metop"
     ]
    },
+   "also": null,
    "contra": []
   },
   "chb": {
@@ -1067,6 +1112,7 @@
      "atropine"
     ]
    },
+   "also": null,
    "contra": [
     "dilt",
     "metop"
@@ -1084,6 +1130,7 @@
    ],
    "dx": "Upper GI bleed",
    "ok": null,
+   "also": null,
    "contra": [
     "apixa",
     "asa",
@@ -1109,6 +1156,9 @@
      "insdrip"
     ]
    },
+   "also": [
+    "kcl"
+   ],
    "contra": [
     "d50"
    ]
@@ -1132,6 +1182,7 @@
      "duoneb"
     ]
    },
+   "also": null,
    "contra": [
     "metop"
    ]
@@ -1153,6 +1204,7 @@
      "epiim"
     ]
    },
+   "also": null,
    "contra": [
     "epiarr"
    ]
@@ -1175,6 +1227,7 @@
      "piptazo"
     ]
    },
+   "also": null,
    "contra": [
     "furo",
     "labet"
@@ -1190,6 +1243,7 @@
    ],
    "dx": "Acute ischemic stroke",
    "ok": null,
+   "also": null,
    "contra": [
     "enox",
     "heparin"
@@ -1209,6 +1263,11 @@
      "heparin"
     ]
    },
+   "also": [
+    "ntg",
+    "morph",
+    "metop"
+   ],
    "contra": []
   },
   "stroke": {
@@ -1221,6 +1280,7 @@
    ],
    "dx": "Acute ischemic stroke",
    "ok": null,
+   "also": null,
    "contra": [
     "enox",
     "heparin"
@@ -1237,6 +1297,7 @@
    ],
    "dx": "Large vessel occlusion stroke",
    "ok": null,
+   "also": null,
    "contra": [
     "enox",
     "heparin"
@@ -1254,6 +1315,7 @@
    ],
    "dx": "Splenic laceration, hemorrhagic shock",
    "ok": null,
+   "also": null,
    "contra": [
     "apixa",
     "asa",
@@ -1280,6 +1342,7 @@
      "vitk"
     ]
    },
+   "also": null,
    "contra": [
     "apixa",
     "asa",
@@ -1313,6 +1376,7 @@
      "ctx"
     ]
    },
+   "also": null,
    "contra": [
     "apixa",
     "asa",
@@ -1328,6 +1392,14 @@
    "treats": [],
    "dx": "Cardiac arrest",
    "ok": null,
+   "also": [
+    "epiarr",
+    "amio",
+    "calc",
+    "bicarb",
+    "ns",
+    "lr"
+   ],
    "contra": []
   },
   "shock": {
@@ -1355,6 +1427,7 @@
      "pushepi"
     ]
    },
+   "also": null,
    "contra": [
     "furo",
     "labet",
@@ -1371,6 +1444,7 @@
    ],
    "dx": "RSV, tiring out",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "burn": {
@@ -1390,6 +1464,7 @@
      "ketamine"
     ]
    },
+   "also": null,
    "contra": []
   },
   "pe": {
@@ -1409,6 +1484,7 @@
      "enox"
     ]
    },
+   "also": null,
    "contra": [
     "tnk"
    ]
@@ -1429,6 +1505,14 @@
      "tnk"
     ]
    },
+   "also": [
+    "heparin",
+    "enox",
+    "norepi",
+    "pushepi",
+    "ns",
+    "lr"
+   ],
    "contra": []
   },
   "dissect": {
@@ -1449,6 +1533,9 @@
      "hydro"
     ]
    },
+   "also": [
+    "nicard"
+   ],
    "contra": [
     "apixa",
     "apixa",
@@ -1471,6 +1558,7 @@
    ],
    "dx": "Ruptured abdominal aortic aneurysm",
    "ok": null,
+   "also": null,
    "contra": [
     "apixa",
     "asa",
@@ -1491,6 +1579,11 @@
    ],
    "dx": "Hyperkalemia",
    "ok": null,
+   "also": [
+    "albut",
+    "bicarb",
+    "furo"
+   ],
    "contra": [
     "kcl",
     "succ"
@@ -1518,6 +1611,7 @@
      "apap"
     ]
    },
+   "also": null,
    "contra": [
     "apixa",
     "apixa",
@@ -1541,6 +1635,10 @@
    ],
    "dx": "Bacterial meningitis",
    "ok": null,
+   "also": [
+    "acyclo",
+    "ampi"
+   ],
    "contra": []
   },
   "status": {
@@ -1553,6 +1651,10 @@
    ],
    "dx": "Status epilepticus",
    "ok": null,
+   "also": [
+    "d50",
+    "thiamine"
+   ],
    "contra": []
   },
   "cauda": {
@@ -1573,6 +1675,7 @@
      "apap"
     ]
    },
+   "also": null,
    "contra": []
   },
   "ectopic": {
@@ -1587,6 +1690,9 @@
    ],
    "dx": "Ruptured ectopic pregnancy",
    "ok": null,
+   "also": [
+    "rhogam"
+   ],
    "contra": [
     "apixa",
     "asa",
@@ -1612,6 +1718,7 @@
      "ketor"
     ]
    },
+   "also": null,
    "contra": []
   },
   "ovtorsion": {
@@ -1632,6 +1739,7 @@
      "ketor"
     ]
    },
+   "also": null,
    "contra": []
   },
   "sbo": {
@@ -1648,11 +1756,18 @@
    "ok": {
     "meds": [
      "ondan",
-     "reglan",
      "prochlor"
     ]
    },
-   "contra": []
+   "also": [
+    "morph",
+    "fent",
+    "hydro",
+    "kcl"
+   ],
+   "contra": [
+    "reglan"
+   ]
   },
   "mesisch": {
    "tests": [
@@ -1667,6 +1782,11 @@
    ],
    "dx": "Mesenteric ischemia",
    "ok": null,
+   "also": [
+    "morph",
+    "fent",
+    "hydro"
+   ],
    "contra": []
   },
   "apapod": {
@@ -1687,6 +1807,10 @@
      "nac"
     ]
    },
+   "also": [
+    "ondan",
+    "charcoal"
+   ],
    "contra": [
     "apap"
    ]
@@ -1703,6 +1827,11 @@
    ],
    "dx": "Salicylate overdose",
    "ok": null,
+   "also": [
+    "charcoal",
+    "kcl",
+    "d50"
+   ],
    "contra": [
     "asa"
    ]
@@ -1717,6 +1846,10 @@
    ],
    "dx": "Tricyclic antidepressant overdose",
    "ok": null,
+   "also": [
+    "loraz",
+    "midaz"
+   ],
    "contra": [
     "amio",
     "ondan",
@@ -1737,6 +1870,10 @@
      "glucagon"
     ]
    },
+   "also": [
+    "octreo",
+    "thiamine"
+   ],
    "contra": [
     "insdrip",
     "insreg"
@@ -1752,6 +1889,7 @@
    ],
    "dx": "Spontaneous pneumothorax",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "necfasc": {
@@ -1767,6 +1905,7 @@
    ],
    "dx": "Necrotizing fasciitis",
    "ok": null,
+   "also": null,
    "contra": []
   },
   "sea": {
@@ -1781,6 +1920,7 @@
    ],
    "dx": "Spinal epidural abscess",
    "ok": null,
+   "also": null,
    "contra": []
   }
  }

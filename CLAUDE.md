@@ -44,6 +44,8 @@ The owner is a paramedic and EMS educator. He reads replies on the phone app.
 ## Decisions worth knowing
 
 - **The hospital has neurosurgery** (it takes trauma) but **no cardiac surgery**: dissections transfer out, and cardiothoracic is a phone consult.
+- **Cardiac arrest follows ACLS** (audit phase 1). The rhythm (VF, PEA, asystole, traumatic) comes from the patient id. When the attending runs the code, each rhythm check is a card; the answers, the rhythm and the minutes before a doctor got there set the ROSC odds. Your own patient's arrest shows **Run the code**; another provider's patient gets a code at once. An arrest nobody runs for 20 minutes is a death, and it counts.
+- **Clinical rules that depend on the moment use `CONTRA_IF`**: tenecteplase outside 4.5 hours of last known well, nitroglycerin under SBP 90, NSAIDs in chest pain before the troponin, rate control in unstable A-fib (which needs synchronized cardioversion).
 - **Same-class drug alternatives are neutral** ("works, but not the first choice"): they neither fill the slot nor score as wrong. Ondansetron and acetaminophen are never wrong.
 - **Class codes stay six characters.** Since v0.29.1 the game version is folded into the check characters, so a code from another version is refused instead of becoming a different shift.
 - **Rejected:** pixel art or flat styles for 3D; Cloudflare Access or an email login for the gate; easier regular levels; routine work that runs itself; a CSP on the Claude artifact copy (it breaks the host); hardening the gate (it's deleted at launch). Renumbering rooms is left alone because Orientation, Lessons and tests name rooms by number.
@@ -72,7 +74,8 @@ src/index.template.html  page shell with /*FONTS*/ /*STYLE*/ /*ENGINE*/ /*UI*/ p
 src3d/map3d.js           3D floor (three.js). esbuild bundles it to 3d/map3d.js
 build.js                 builds index.html and sw.js. Stops if engine.js or ui.js+map.js fails to parse
 build3d.js               esbuild call for the 3D bundle
-test/rules*.js           Node rule checks against src/engine.js (npm test)
+test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js holds the audit's clinical fixes
+test/golden.js           the safety net: seeded-shift fingerprints, class codes, save round trip, answer keys
 test/sim.js, stress.js   simulated shifts, and 188 shifts across every level and scenario
 test/*_test.py           Playwright UI tests against the built index.html (test/_browser.py picks the browser)
 art/blender/             Blender scripts that made the 3D models in 3d/
@@ -143,7 +146,7 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules10.js: engine rule checks in Node (~520 "ok -" lines; any "FAIL:" sets exit 1)
+npm test          # rules.js through rules11.js: engine rule checks in Node (~520 "ok -" lines; any "FAIL:" sets exit 1)
                   #   then golden.js: seeded-shift fingerprints, stream sync, class codes, save round trip, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run sim       # simulated shifts at several player speeds

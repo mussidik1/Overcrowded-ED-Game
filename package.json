@@ -5,7 +5,7 @@
   "description": "Emergency Department: Code Black, an ED shift survival game in one self-contained HTML file.",
   "scripts": {
     "build": "node build3d.js && node build.js",
-    "test": "node test/rules.js && node test/rules2.js && node test/rules3.js && node test/rules4.js && node test/rules5.js && node test/rules6.js && node test/rules7.js && node test/rules8.js && node test/rules9.js && node test/rules10.js && node test/golden.js",
+    "test": "node test/rules.js && node test/rules2.js && node test/rules3.js && node test/rules4.js && node test/rules5.js && node test/rules6.js && node test/rules7.js && node test/rules8.js && node test/rules9.js && node test/rules10.js && node test/rules11.js && node test/golden.js",
     "sim": "node test/sim.js",
     "stress": "node test/stress.js",
     "build3d": "node build3d.js",

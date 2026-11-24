@@ -88,7 +88,7 @@ OC.setCodeVersion('', []);
     if (!p || !p.right) { out.answers[c.k] = 'no key'; continue; }
     const tests = OC.needOf(p).n.slice().sort();
     const treats = p.right.tr.map(t => { const g = OC.reqLeft(p, t); return g ? t + '=' + g.map(x => x.join('/')).join('+') : t; });
-    out.answers[c.k] = { tests, treats, dx: p.dx || c.dx || null, ok: OC.RXOK[c.k] || null, contra: OC.contraOf(p).slice().sort() };
+    out.answers[c.k] = { tests, treats, dx: p.dx || c.dx || null, ok: OC.RXOK[c.k] || null, also: (OC.ALSO || {})[c.k] || null, contra: OC.contraOf(p).slice().sort() };
   }
 }
 
