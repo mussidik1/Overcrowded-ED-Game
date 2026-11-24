@@ -101,6 +101,7 @@ const chipInline = (label, role) => `<svg class="lgc" viewBox="-25 -16 50 34" ar
 const ptChipInline = (e) => `<svg class="lgc" viewBox="-25 -16 50 34" aria-hidden="true">${ptChipSVG({ tri: e ? 'done' : 'none', acu: e, esi: e, vesi: e, _key: e })}</svg>`;
 /* A patient on their feet (the door, the waiting room, walking to a bed): a circle with the triage level, or ? before triage. */
 function ptChipSVG(p, ring) {
+  if (p.arrest) return `<circle r="18.5" fill="rgba(179,38,30,.35)" stroke="#B3261E" stroke-width="3"/><circle r="12.5" fill="#B3261E" stroke="#FFFFFF" stroke-width="2.4"/><g color="#FFFFFF" transform="scale(.85)">${ICO.code}</g>`;   // R5.2-03: no pulse, out of a room: impossible to miss
   const tri = p.tri === 'done' || !!p.room, e = !tri ? 0 : p._key != null ? p._key : E.vEsi(p);
   return `${ring ? '<circle r="18.5" fill="rgba(242,194,48,.4)" stroke="#F2C230" stroke-width="3"/>' : ''}<circle cx="1.5" cy="2.8" r="12.5" fill="rgba(0,0,0,.24)"/><circle r="12.5" fill="${tri ? `var(--e${e})` : '#77818F'}" stroke="#FFFFFF" stroke-width="2.4"/><text y="5.7" text-anchor="middle" font-size="16.5" font-weight="700" fill="${e === 3 ? '#3A2F00' : '#FFFFFF'}">${tri ? e : '?'}</text>`;
 }

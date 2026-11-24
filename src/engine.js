@@ -1351,7 +1351,9 @@ function canPlace(p, r) {
   if (r.pid) return { ok: false, why: `${roomName(r.id)} is occupied` };
   if (r.st === 'dirty') return { ok: false, why: `${roomName(r.id)} is dirty. Tap it to send EVS.` };
   if (r.st === 'cleaning') return { ok: false, why: `EVS is still cleaning ${roomName(r.id)}` };
-  if (p.esi === 1 && r.kind !== 'resus' && !p.anyRoom && !(p.dsp === 'watch' || p.dsp === 'ready' || p.dsp === 'dc')) return { ok: false, why: 'ESI 1 needs a resus bay' };   // once treated and only being watched, they can step down
+  const resusFree = () => G.rooms.some(x => x.kind === 'resus' && !x.pid && !x.closed && x.st === 'clean');
+  if (p.arrest && r.kind !== 'resus' && (r.kind === 'chair' || r.kind === 'hall' || r.kind === 'ft' || resusFree())) return { ok: false, why: resusFree() ? 'A code goes in a resus bay: one is open' : 'A code needs a monitored room: a resus bay or a pod room' };
+  if (p.esi === 1 && r.kind !== 'resus' && !p.anyRoom && !p.arrest && !(p.dsp === 'watch' || p.dsp === 'ready' || p.dsp === 'dc')) return { ok: false, why: 'ESI 1 needs a resus bay' };   // once treated and only being watched, they can step down
   if (p.iso === 'air' && !r.iso) return { ok: false, why: 'Airborne isolation needs Room 8 or 16 (negative pressure)' };
   if (r.kind === 'chair') {
     if (p.iso || p.sitter) return { ok: false, why: 'Isolation and safety patients need a room' };
@@ -1948,6 +1950,7 @@ function mdDecide(pid, pick) {
   const p = pt(pid);
   if (!p || !mdMine(p) || p.dsp !== 'mddecide') return { ok: false, why: 'There’s no decision waiting for this patient' };
   let want = p.dispo; const S = G.stats.md;
+  if (pick === 'home' && p.rosc) return { ok: false, why: 'After a cardiac arrest the patient goes to the ICU, never home. Call Critical Care.' };   // round 2 (R5.2-02)
   if (pick === 'home') {
     if (want === 'home') { S.dispoRight++; care(12, 'dispo', p); }
     else { S.dispoWrong++; care(-25, 'dispo', p); p.wrongHome = want; litAdd(MUST.has(p.ck) ? 10 : 5, `sent home when they needed ${DISPO_NAME[want] || 'admission'}`, p); mm(65, `${p.name} went home with ${(/^[A-Z][a-z]/.test(p.dx) ? p.dx.charAt(0).toLowerCase() + p.dx.slice(1) : p.dx)}`, `They needed ${DISPO_NAME[want] || 'admission'}`, true); }
@@ -2200,7 +2203,7 @@ function codePick(k, ctx) {
     G.stats.md.codeRight = (G.stats.md.codeRight || 0) + 1; care(4, 'md', p); sound('good');
   } else {
     G.stats.md.codeWrong = (G.stats.md.codeWrong || 0) + 1; care(-4, 'md', p); sound('bad');
-    mm(40, `Code for ${p.name}: ${ch[0].toLowerCase()}`, `${codeWhy(p, ch[1])} The call: ${right[0].toLowerCase()}.`, true);
+    mm(25, `Code for ${p.name}: ${ch[0].toLowerCase()}`, `${codeWhy(p, ch[1])} The call: ${right[0].toLowerCase()}.`, true);
   }
   const last = p.code.step >= codeSteps(p).length;
   setCard('coderes', ch[2] ? 'Right' : 'Not this one', `Code blue: ${CODE_NAME[p.code.r]} · rhythm check ${ctx.step + 1}`,
@@ -2223,7 +2226,7 @@ function codeOutcome(p) {
   if (C.me && C.r === 'vf' && !C.shocked) odds *= 0.1;   // VF that is never shocked almost never comes back
   if (p.rtCode) odds = Math.min(0.95, odds * 1.1);
   if (chance(odds)) {
-    p.arrest = false; p.vit = null; p.dx = 'ROSC after cardiac arrest'; p.dxK = true; p.con = 'icu'; p.pre = []; p.need = null; p.dispo = 'icu';
+    p.arrest = false; p.rosc = true; p.vit = null; p.dx = 'ROSC after cardiac arrest'; p.dxK = true; p.con = 'icu'; p.pre = []; p.need = null; p.dispo = 'icu';
     p.consult = { st: 'none', spec: null, due: 0 };
     const tubed = p.treat.intub && p.treat.intub.st === 'done';
     for (const k of ['intub', 'vent']) if (!p.tr.includes(k)) p.tr.push(k);
@@ -2234,7 +2237,7 @@ function codeOutcome(p) {
     toast(`A pulse is back (ROSC) in ${roomName(p.room)}! Intubate (attending and RT), then the vent. Get Critical Care down here.`, 'good'); sound('good');
   } else {
     p.arrest = false; p.dx = 'Resuscitation unsuccessful'; p.dxK = true; p.dsp = 'family'; p.due = G.t + 15;
-    if (C.me && !G.pre) mm(30, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
+    if (C.me && !G.pre) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
     toast(`Code called at ${clock()} in ${roomName(p.room)}. The chaplain is with the family.`, 'info');
   }
 }
@@ -2253,7 +2256,8 @@ function arrestNoTeam(p) {
   mm(90, `${p.name} died in cardiac arrest with no code team`, roomed ? `${ARREST_NO_TEAM} minutes of CPR and no doctor ran the code` : `${ARREST_NO_TEAM} minutes of CPR and never got a room`, roomed || G.mode !== 'md');
   if (!G.pre) {
     G.stats.noTeam = (G.stats.noTeam || 0) + 1;
-    if (G.mode !== 'md') care(-40, 'safety'); else if (roomed) care(-40, 'flow');
+    if (G.mode !== 'md') care(-40, 'safety');
+    else if (roomed) { care(-40, 'md', p); if (p.prov === G.me || p.mine || !p.prov) litAdd(15, 'died in cardiac arrest and no code was run', p); }   // R5.2-01: never cheaper than running it
     toast(`${p.name} died in cardiac arrest. ${roomed ? 'Nobody ran the code.' : 'They never got a room.'}`, 'alert'); sound('bad');
   }
   if (roomed) { p.dsp = 'family'; p.due = G.t + 15; } else leave(p, 'expired');
@@ -4824,6 +4828,6 @@ const RADIO_BTN = {
   miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
 };
 for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
-Object.assign(OC, { WATCH_WHY, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => ((p && EXAM[p.ck]) || '') + (p && p.rehab ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ORD_WHY[p.ck]) || '' });
+Object.assign(OC, { WATCH_WHY, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ORD_WHY[p.ck]) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);

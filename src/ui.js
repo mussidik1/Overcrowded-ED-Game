@@ -2246,6 +2246,7 @@ function needList(G) {
       else if (intakeDone(p)) out.push({ k: 'pt', id: p.id, pid: p.id, pr: (sick ? 3.2 : 6) - Math.min(0.9, (G.t - p.tArrive) / 90), s: p.name, what: `${u}: ${p.name} is ready for a bed` });
       else if (p.reg === 'none' || p.tri === 'none') out.push({ k: 'pt', id: p.id, pid: p.id, pr: sick ? 3.4 : 6.5, s: p.name, what: `${u}: ${p.name} needs ${p.tri === 'none' ? 'report taken' : 'registration'}` });
     }
+    for (const p of E.active()) if (p.arrest && (p.loc === 'waiting' || p.loc === 'triage')) out.push({ k: 'pt', id: p.id, pid: p.id, pr: 1.2, s: p.name, what: `CODE: ${p.name} has no pulse in the ${p.loc === 'waiting' ? 'waiting room' : 'triage line'}. Room them now` });   // R5.2-03
     const door = G.triageQ.map(E.pt).filter(p => p && (p.reg === 'none' || p.tri === 'none')).length;
     if (door) out.push({ k: 'door', id: 'door', pr: 7, s: 'The door', what: `${door} at the door need${door === 1 ? 's' : ''} registration or triage` });
     const wait = E.active().filter(p => p.loc === 'waiting' && !p.pitSeen).length;

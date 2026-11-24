@@ -179,3 +179,24 @@ assert(!Object.values(OC.CODE_Q).flat().some(q => /cardioversion/i.test(q.c.find
   assert(threw, 'a code card with no right answer fails the load-time check (R1.2-07)'); }
 assert(OC.CODE_AI_Q < 0.67, 'a code handed to the computer doctor scores below a player who gets every rhythm check right (and no better than 2 of 3)');
 { const L = OC.HCG_CASES; assert(['appy', 'dissect', 'pe', 'mpe', 'od', 'sbo'].every(k => L.has(k)), 'the pregnancy-test list still holds the cases that need it'); }
+
+// ---- R5.2-02: a patient with a pulse back after an arrest goes to the ICU, never home
+{ let p = null; for (let s = 0; s < 40 && !(p && p.rosc); s++) { p = mine('nstemi', {}, 8000 + s); OC.toArrest(p, 'x'); runCode(p, true); }
+  assert(p && p.rosc && p.dx === 'ROSC after cardiac arrest', 'a code with every call right got a pulse back');
+  p.dsp = 'mddecide'; const r = OC.mdDecide(p.id, 'home');
+  assert(!r.ok && /ICU/.test(r.why) && p.dsp === 'mddecide', 'and "home" is refused: after an arrest, the ICU');
+  assert(/pulse came back/i.test(OC.examOf(p)), 'and the card says what happened, not the old case\'s exam'); }
+// ---- R5.2-03: a patient in arrest can go in a pod room when no resus bay is free, but not a chair or the hallway
+{ OC.newGame('med', 8100, { mode: 'rn' }); OC.G.card = null;
+  for (const r of OC.G.rooms) if (r.kind === 'resus') r.closed = true;
+  const p = OC.pt(OC.trainPatient('nstemi', 'waiting', {})); OC.toArrest(p, 'Arrested in the waiting room');
+  const pod = OC.G.rooms.find(r => r.kind === 'main' && !r.pid && r.st === 'clean' && !r.closed), chair = OC.G.rooms.find(r => r.kind === 'chair' && !r.pid);
+  assert(OC.canPlace(p, pod).ok && !OC.canPlace(p, chair).ok, 'resus is full: the code can run in a pod room, never a chair');
+  for (const r of OC.G.rooms) if (r.kind === 'resus') r.closed = false;
+  const bay = OC.G.rooms.find(r => r.kind === 'resus' && !r.pid && r.st === 'clean');
+  if (bay) assert(!OC.canPlace(p, pod).ok && OC.canPlace(p, bay).ok, 'with a resus bay free, the code goes there'); }
+// ---- R5.2-01: letting your own patient die with no code costs the attending more than running it badly
+{ const p = mine('nstemi', {}, 8200); OC.toArrest(p, 'x'); const c0 = OC.G.care, l0 = OC.G.lit || 0; run(21);
+  const ignoreCost = c0 - OC.G.care, litUp = (OC.G.lit || 0) - l0;
+  const q = mine('nstemi', {}, 8201); OC.toArrest(q, 'x'); const c1 = OC.G.care; runCode(q, false); const badCost = c1 - OC.G.care;
+  assert(/no code team/.test(p.dx) && ignoreCost >= 40 && litUp > 0 && ignoreCost > badCost, `ignoring your own arrest costs ${ignoreCost} points and legal risk; running it with every call wrong costs ${badCost}`); }
