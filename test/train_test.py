@@ -30,7 +30,7 @@ with sync_playwright() as pw:
     page.locator('[data-act="tmenu"][data-arg="learn"]').tap(); page.wait_for_timeout(300)
     if LESSON:
         page.locator('#title [data-act="lessons"]').tap(); page.wait_for_timeout(400)
-        if page.locator('#sheet [data-act="lesson"]').count() != 30: errors.append("the Lessons list does not show all 30 lessons")
+        if page.locator('#sheet [data-act="lesson"]').count() != 32: errors.append("the Lessons list does not show all 32 lessons")
         page.locator(f'#sheet [data-act="lesson"][data-arg="{LESSON}"]').tap(); page.wait_for_timeout(500)
         ok_start = J('OC.G.level') == 'train' and J('OC.G.mode') == 'md' and J('OCUI.coach().lesson') == LESSON and J('OC.active().length') == 0 and J('OCUI.U.mode') == MODE
         if not ok_start: errors.append(f'the {LESSON} lesson did not start as the attending on an empty board, leaving the title role alone')
@@ -126,7 +126,7 @@ with sync_playwright() as pw:
         if missed: errors.append(f'following the {LESSON} lesson missed a time goal: {missed}')
         nxt = page.locator('[data-act="lessonNext"]')
         page.locator('[data-act="coachDone"]').first.tap(); page.wait_for_timeout(500)
-        if not (J("localStorage.getItem('oc-lesson-" + LESSON + "')") == '1' and page.is_visible('#title') and '1 of 30' in page.inner_text('#title [data-act="lessons"]')): errors.append('finishing the lesson did not mark it done on the title')
+        if not (J("localStorage.getItem('oc-lesson-" + LESSON + "')") == '1' and page.is_visible('#title') and '1 of 32' in page.inner_text('#title [data-act="lessons"]')): errors.append('finishing the lesson did not mark it done on the title')
         if J("localStorage.getItem('oc-trained-md')") or J("localStorage.getItem('oc-trained')"): errors.append('a lesson marked Orientation as done')
         print('goals:', goals)
     print('\n'.join(log))

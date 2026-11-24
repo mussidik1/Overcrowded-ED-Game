@@ -45,8 +45,8 @@ The owner is a paramedic and EMS educator. He reads replies on the phone app.
 ## Decisions worth knowing
 
 - **The hospital has neurosurgery** (it takes trauma) but **no cardiac surgery**: dissections transfer out, and cardiothoracic is a phone consult.
-- **Cardiac arrest follows ACLS** (audit phase 1). The rhythm (VF, PEA, asystole, traumatic) comes from the patient id. When the attending runs the code, each rhythm check is a card; the answers, the rhythm and the minutes before a doctor got there set the ROSC odds. Your own patient's arrest shows **Run the code**; another provider's patient gets a code at once. An arrest nobody runs for 20 minutes is a death, and it counts.
-- **Clinical rules that depend on the moment use `CONTRA_IF`**: tenecteplase outside 4.5 hours of last known well, nitroglycerin under SBP 90, NSAIDs in chest pain before the troponin, rate control in unstable A-fib (which needs synchronized cardioversion).
+- **Cardiac arrest is modeled on ACLS and PALS** (audit phase 1, reworked in round 2). The rhythm and the reversible cause follow the case (`CAUSE_OF`, `TRAUMA_CASES`, `LIMB_CASES`, `BLEED_SRC` in engine.js); otherwise they come from the patient id. Children under 13 get PALS cards with doses by an estimated weight (`kgOf`). When the attending runs the code, each rhythm check is a card `CODE_GAP` game minutes apart, followed by a result card. The answers, the rhythm and the minutes before a doctor got there set the ROSC odds (`CODE_BASE`; a game-run doctor scores `CODE_AI_Q`). `lintCode()` checks the card data at load. Your own patient's arrest shows **Run the code** with a countdown; another provider's patient gets a code at once; a code whose doctor leaves restarts its 20 minutes. An arrest nobody runs for 20 minutes is a death, and it counts. **No licensed clinician has reviewed this content yet.**
+- **Clinical rules that depend on the moment use `CONTRA_IF`** (add with `addContraIf`, which merges): tenecteplase outside 4.5 hours of last known well (unknown onset counts as outside), nitroglycerin and opioids under SBP 90, metoprolol with signs of shock, NSAIDs in chest pain before the troponin, rate control in unstable A-fib (which needs synchronized cardioversion). `CONTRA_WHY` gives the reason the harm message shows; it must never name a diagnosis the player hasn't made.
 - **Same-class drug alternatives are neutral** ("works, but not the first choice"): they neither fill the slot nor score as wrong. Ondansetron and acetaminophen are never wrong.
 - **Class codes stay six characters.** Since v0.29.1 the game version is folded into the check characters, so a code from another version is usually refused (about 63 in 64) instead of becoming a different shift.
 - **Rejected:** pixel art or flat styles for 3D; Cloudflare Access or an email login for the gate; easier regular levels; routine work that runs itself; a CSP on the Claude artifact copy (it breaks the host); hardening the gate (it's deleted at launch). Renumbering rooms is left alone because Orientation, Lessons and tests name rooms by number.
@@ -75,8 +75,8 @@ src/index.template.html  page shell with /*FONTS*/ /*STYLE*/ /*ENGINE*/ /*UI*/ p
 src3d/map3d.js           3D floor (three.js). esbuild bundles it to 3d/map3d.js
 build.js                 builds index.html and sw.js. Stops if engine.js or ui.js+map.js fails to parse
 build3d.js               esbuild call for the 3D bundle
-test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js holds the audit's clinical fixes
-test/golden.js           the safety net: seeded-shift fingerprints, class codes, save round trip, answer keys
+test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes
+test/golden.js           a change detector: seeded-shift behaviour fingerprints, class codes, save round trips, answer keys (drugs, code cards, radio)
 test/sim.js, stress.js   simulated shifts, and 188 shifts across every level and scenario
 test/*_test.py           Playwright UI tests against the built index.html (test/_browser.py picks the browser)
 art/blender/             Blender scripts that made the 3D models in 3d/
@@ -147,8 +147,8 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules11.js: engine rule checks in Node (~520 "ok -" lines; any "FAIL:" sets exit 1)
-                  #   then golden.js: seeded-shift fingerprints, stream sync, class codes, save round trip, answer keys
+npm test          # rules.js through rules12.js: engine rule checks in Node (~520 "ok -" lines; any "FAIL:" sets exit 1)
+                  #   then golden.js: behaviour fingerprints, stream sync, class codes, save round trips, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run sim       # simulated shifts at several player speeds
 npm run stress    # 188 shifts across every level and scenario: stuck states, out-of-range vitals
@@ -157,7 +157,7 @@ npm run stress    # 188 shifts across every level and scenario: stuck states, ou
 The UI tests are Python Playwright scripts against the **built** `index.html`, so build first. In this cloud container Chromium is preinstalled; use `python3 -m pip install playwright` if the module is missing, and don't run `playwright install`. Common ones: `test/ui_test.py`, `md_ui_test.py`, `map_test.py`, `train_test.py` (env `MODE=md`, `LESSON=stroke`, `CHAPTER=2`, `VIEW=list`), `finger_test.py`, `class_test.py`, `offline_test.py`, `map3d_test.py`, `imaging_test.py`, `gate_test.py`, `events_test.py`, `about_test.py`. `BROWSER=webkit|firefox` switches engines and `CHROME_PATH` points at a local Chrome (see `test/_browser.py`). Screenshots go to `test/shots/` (gitignored).
 
 Practical notes:
-- **`test/golden.js` is the safety net.** It records what the game does today. A change that moves a shift, a code, a save or an answer key fails it. If the change is intended, run `npm run golden:update` and name the reason in the commit. `docs/SMOKE.md` is the by-hand phone checklist before a merge into `main`.
+- **`test/golden.js` is a change detector, not a correctness check.** It records what the game does today: a change that moves a shift's outcomes, a class code's layout, a save round trip, or an answer key (drug keys, code cards, radio calls, the pregnancy-test list) fails it, with a readable diff for the answer keys. If the change is intended, run `npm run golden:update` and say in the commit which golden lines moved and why. Whether the content is *right* is checked by the rule tests (`rules10.js` plays every case, `rules11.js` and `rules12.js` check the clinical rules and code cards). `docs/SMOKE.md` is the by-hand phone checklist before a merge into `main`.
 - **Seed-dependent tests break when arrival timing changes.** If an old rule test fails after an engine change, check whether it relied on one specific random shift before assuming a real bug.
 - `map3d_test.py` needs the folder served (`python3 -m http.server 8765`) and takes about 15 minutes with software GL.
 - A full lesson sweep is `LESSON=<key> python3 test/train_test.py` for every key. Case lessons are named `c_<case>`.

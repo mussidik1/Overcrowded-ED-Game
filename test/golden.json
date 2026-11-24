@@ -19,7 +19,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "6e7ea3ef"
+   "stateHash": "77b91bbe"
   },
   "rn/easy/none": {
    "arrivals": 93,
@@ -39,7 +39,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "2d18f037"
+   "stateHash": "01c00e88"
   },
   "rn/med/none": {
    "arrivals": 110,
@@ -59,7 +59,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "c991e6e2"
+   "stateHash": "450c7bc2"
   },
   "rn/hard/none": {
    "arrivals": 130,
@@ -79,7 +79,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "f1daeff6"
+   "stateHash": "cdb0539a"
   },
   "md/rush/none": {
    "arrivals": 23,
@@ -99,7 +99,7 @@
    "fail": null,
    "lit": 25,
    "acc": 77,
-   "stateHash": "b189a9fa"
+   "stateHash": "eb3d3cb2"
   },
   "md/easy/none": {
    "arrivals": 88,
@@ -119,7 +119,7 @@
    "fail": null,
    "lit": 58,
    "acc": 67,
-   "stateHash": "4c224f37"
+   "stateHash": "c856953b"
   },
   "md/med/none": {
    "arrivals": 108,
@@ -139,7 +139,7 @@
    "fail": null,
    "lit": 50,
    "acc": 74,
-   "stateHash": "38e1706a"
+   "stateHash": "3d0e420f"
   },
   "md/hard/none": {
    "arrivals": 127,
@@ -153,13 +153,13 @@
    "ama": 0,
    "expired": 0,
    "left": 19,
-   "care": 1842,
+   "care": 1839,
    "wait": 23,
    "stars": 3,
    "fail": null,
    "lit": 64,
    "acc": 73,
-   "stateHash": "a9d06f78"
+   "stateHash": "f1fd2b32"
   },
   "rn/med/ct": {
    "arrivals": 109,
@@ -179,7 +179,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "a44b8a1e"
+   "stateHash": "62b482b3"
   },
   "rn/med/mci": {
    "arrivals": 113,
@@ -199,7 +199,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "82a9db85"
+   "stateHash": "232ab890"
   },
   "rn/med/board": {
    "arrivals": 118,
@@ -219,7 +219,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "f8417602"
+   "stateHash": "4fe0d1f5"
   },
   "rn/med/short": {
    "arrivals": 111,
@@ -239,7 +239,7 @@
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "081097b8"
+   "stateHash": "307b14b8"
   },
   "md/med/board": {
    "arrivals": 114,
@@ -259,7 +259,7 @@
    "fail": null,
    "lit": 67,
    "acc": 68,
-   "stateHash": "2b9e662a"
+   "stateHash": "8ff29b9b"
   }
  },
  "streams": {
@@ -279,7 +279,7 @@
    "sameEarlyArrivals": true,
    "sameWalkIns": true,
    "hash": "6c6265c7",
-   "walkHash": "92d2d034"
+   "walkHash": "85993652"
   }
  },
  "codes": [
@@ -291,7 +291,7 @@
     "pack": "national",
     "seed": 13
    },
-   "code": "003-80R",
+   "code": "003-81M",
    "roundTrip": true
   },
   {
@@ -302,7 +302,7 @@
     "pack": "miemss",
     "seed": 7932
    },
-   "code": "1XZ-4QN",
+   "code": "1XZ-4PX",
    "roundTrip": true
   },
   {
@@ -313,7 +313,7 @@
     "pack": "national",
     "seed": 15851
    },
-   "code": "3VT-S85",
+   "code": "3VT-S9V",
    "roundTrip": true
   },
   {
@@ -324,7 +324,7 @@
     "pack": "miemss",
     "seed": 23770
    },
-   "code": "5SP-NZB",
+   "code": "5SP-NYE",
    "roundTrip": true
   },
   {
@@ -335,7 +335,7 @@
     "pack": "national",
     "seed": 31689
    },
-   "code": "7QJ-A1R",
+   "code": "7QJ-A0G",
    "roundTrip": true
   },
   {
@@ -346,7 +346,7 @@
     "pack": "miemss",
     "seed": 39608
    },
-   "code": "9NE-463",
+   "code": "9NE-464",
    "roundTrip": true
   },
   {
@@ -357,7 +357,7 @@
     "pack": "national",
     "seed": 47527
    },
-   "code": "BK9-RS0",
+   "code": "BK9-RSA",
    "roundTrip": true
   },
   {
@@ -368,7 +368,7 @@
     "pack": "miemss",
     "seed": 55446
    },
-   "code": "DH5-NEZ",
+   "code": "DH5-NFG",
    "roundTrip": true
   },
   {
@@ -379,7 +379,7 @@
     "pack": "national",
     "seed": 63365
    },
-   "code": "FF1-9HP",
+   "code": "FF1-9GP",
    "roundTrip": true
   },
   {
@@ -390,7 +390,7 @@
     "pack": "miemss",
     "seed": 71284
    },
-   "code": "HCX-67E",
+   "code": "HCX-67P",
    "roundTrip": true
   },
   {
@@ -401,7 +401,7 @@
     "pack": "national",
     "seed": 79203
    },
-   "code": "KAR-R8W",
+   "code": "KAR-R8K",
    "roundTrip": true
   },
   {
@@ -412,7 +412,7 @@
     "pack": "miemss",
     "seed": 87122
    },
-   "code": "N8M-MZ2",
+   "code": "N8M-MZT",
    "roundTrip": true
   },
   {
@@ -423,7 +423,7 @@
     "pack": "national",
     "seed": 95041
    },
-   "code": "Q6G-90T",
+   "code": "Q6G-90J",
    "roundTrip": true
   },
   {
@@ -434,7 +434,7 @@
     "pack": "miemss",
     "seed": 102960
    },
-   "code": "S4C-5PW",
+   "code": "S4C-5Q5",
    "roundTrip": true
   },
   {
@@ -445,7 +445,7 @@
     "pack": "national",
     "seed": 110879
    },
-   "code": "V27-T9G",
+   "code": "V27-T8V",
    "roundTrip": true
   },
   {
@@ -456,7 +456,7 @@
     "pack": "miemss",
     "seed": 118798
    },
-   "code": "X03-MFM",
+   "code": "X03-MFV",
    "roundTrip": true
   },
   {
@@ -467,7 +467,7 @@
     "pack": "national",
     "seed": 126717
    },
-   "code": "YXZ-8HY",
+   "code": "YXZ-8H6",
    "roundTrip": true
   },
   {
@@ -478,7 +478,7 @@
     "pack": "miemss",
     "seed": 3564
    },
-   "code": "0VV-57F",
+   "code": "0VV-56G",
    "roundTrip": true
   },
   {
@@ -489,7 +489,7 @@
     "pack": "national",
     "seed": 11483
    },
-   "code": "2SP-SS5",
+   "code": "2SP-SS0",
    "roundTrip": true
   },
   {
@@ -500,13 +500,17 @@
     "pack": "miemss",
     "seed": 19402
    },
-   "code": "4QJ-PEK",
+   "code": "4QJ-PEV",
    "roundTrip": true
   }
  ],
  "save": {
   "identical": true,
-  "bytesAt3h": true
+  "attending": 4,
+  "midCode": {
+   "card": true,
+   "identical": true
+  }
  },
  "answers": {
   "rash": {
@@ -1035,9 +1039,14 @@
    "also": [
     "ntg",
     "morph",
+    "fent",
+    "hydro",
     "metop"
    ],
-   "contra": []
+   "contra": [
+    "ibu",
+    "ketor"
+   ]
   },
   "cwp": {
    "tests": [
@@ -1051,12 +1060,13 @@
    "ok": {
     "meds": [
      "asa",
-     "apap",
      "ibu",
      "ketor"
     ]
    },
-   "also": null,
+   "also": [
+    "ntg"
+   ],
    "contra": [
     "ibu",
     "ketor"
@@ -1082,9 +1092,14 @@
    "also": [
     "ntg",
     "morph",
+    "fent",
+    "hydro",
     "metop"
    ],
-   "contra": []
+   "contra": [
+    "ibu",
+    "ketor"
+   ]
   },
   "afib": {
    "tests": [
@@ -1101,7 +1116,11 @@
      "metop"
     ]
    },
-   "also": null,
+   "also": [
+    "heparin",
+    "enox",
+    "apixa"
+   ],
    "contra": []
   },
   "chb": {
@@ -1272,9 +1291,14 @@
    "also": [
     "ntg",
     "morph",
+    "fent",
+    "hydro",
     "metop"
    ],
-   "contra": []
+   "contra": [
+    "ibu",
+    "ketor"
+   ]
   },
   "stroke": {
    "tests": [
@@ -1929,5 +1953,100 @@
    "also": null,
    "contra": []
   }
+ },
+ "codeKey": {
+  "vf": [
+   "Shock now (defibrillate), then straight back to CPR",
+   "Shock again, then epinephrine 1 mg IV every 3 to 5 minutes",
+   "Shock, then amiodarone 300 mg IV"
+  ],
+  "pea": [
+   "Keep CPR going; epinephrine 1 mg IV now",
+   "The reversible causes: the H's and T's"
+  ],
+  "asys": [
+   "Keep CPR going; epinephrine 1 mg IV now",
+   "The reversible causes: the H's and T's"
+  ],
+  "trauma": [
+   "All at once: stop the bleeding, give blood, secure the airway, decompress both sides of the chest",
+   "Drain it now (pericardiocentesis), or the surgeon opens the chest"
+  ],
+  "limb": [
+   "Stop the bleeding (pressure, splint, tourniquet), give blood fast, secure the airway",
+   "Keep the blood coming: massive transfusion"
+  ],
+  "kidvf": [
+   "Shock at {j2} J (2 J/kg), then straight back to CPR",
+   "Shock at {j4} J (4 J/kg), then epinephrine {epi} mg IV or IO (0.01 mg/kg)",
+   "Shock at {j4} J, then amiodarone {amio} mg IV or IO (5 mg/kg)"
+  ],
+  "kidpea": [
+   "Keep CPR going; epinephrine {epi} mg IV or IO now (0.01 mg/kg)",
+   "Oxygen and ventilation, then the rest of the H's and T's"
+  ],
+  "kidasys": [
+   "Keep CPR going; epinephrine {epi} mg IV or IO now (0.01 mg/kg)",
+   "Oxygen and ventilation, then the rest of the H's and T's"
+  ],
+  "cause:k": "Calcium chloride and sodium bicarbonate; keep CPR going",
+  "cause:air": "Reposition, two-person bag-mask, then an advanced airway, without stopping CPR",
+  "cause:bleed": "Massive transfusion now, and the surgeon or interventional radiology to stop the bleeding",
+  "cause:vol": "Fluids wide open, while CPR and epinephrine go on",
+  "cause:opioid": "Oxygen and good ventilation; naloxone is reasonable, and CPR goes on",
+  "cause:tension": "Decompress that side of the chest now (needle or finger)",
+  "cause:clot": "A clot buster (tenecteplase) during CPR, and keep CPR going",
+  "cause:coronary": "Keep running the code; if the pulse comes back, straight to the cath lab",
+  "cause:gluc": "Dextrose IV now, while CPR goes on",
+  "cause:look": "A quick ultrasound in the pulse check, and a blood gas, while CPR goes on",
+  "hcg": "apapod appy chole dissect dka gastro mesisch mpe od pe salod sbo stone syncope tcaod uti"
+ },
+ "radioKey": {
+  "national": [
+   "no",
+   "no",
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "yes",
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "yes",
+   "10 mg IM",
+   "4 mg intranasal",
+   "Repeat epinephrine 0.5 mg IM (1 mg/mL)",
+   "6 mg rapid IV push with a flush",
+   "1 mg IV, repeat every 3 to 5 minutes up to 3 mg",
+   "Synchronized cardioversion",
+   "Dextrose 25 g IV",
+   "0.4 to 2 mg IV or IN, titrated to breathing",
+   "1 mcg/kg IV: about 80 mcg",
+   "Needle decompression of the right chest"
+  ],
+  "miemss": [
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "yes",
+   "yes",
+   "no",
+   "no",
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "no",
+   "yes",
+   "yes",
+   "yes"
+  ]
  }
 }

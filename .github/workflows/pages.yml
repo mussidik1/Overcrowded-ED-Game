@@ -53,3 +53,24 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+      # After the deploy: the game is there, and the source, tests, docs and CLAUDE.md are not (audit R2.2-06). The site can take a
+      # few minutes to update, so each check retries for up to 5 minutes.
+      - name: Check the live site
+        env:
+          SITE: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          site="${SITE%/}"
+          want() {   # want <status> <path>
+            for i in $(seq 1 30); do
+              got=$(curl -s -o /dev/null -w '%{http_code}' "$site/$2?nocache=$i")
+              [ "$got" = "$1" ] && { echo "ok   $2 -> $got"; return 0; }
+              sleep 10
+            done
+            echo "FAIL $2 -> $got (wanted $1)"; return 1
+          }
+          fail=0
+          want 200 index.html || fail=1
+          want 200 sw.js || fail=1
+          want 200 3d/map3d.js || fail=1
+          for f in CLAUDE.md README.md src/engine.js src/ui.js test/golden.js docs/PRO_AUDIT.md docs/audit/BRIEF.md package.json build.js; do want 404 "$f" || fail=1; done
+          exit $fail
