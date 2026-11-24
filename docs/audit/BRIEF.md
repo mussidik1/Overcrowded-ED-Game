@@ -62,3 +62,14 @@ npm test                           # Node rule checks (about 1 minute)
 - **Read-only:** do not edit, create or delete any project file except your own report at `docs/audit/reviewer-N-<role>.md`.
 - Put scratch scripts in `/tmp/claude-0/-home-user/286dd7cf-48a1-5847-834d-1aabfe7b01a4/scratchpad/`, in your own subfolder.
 - Don't run `npm install` with new packages in the repo, and don't commit.
+
+## Round 2 (Nov 24, 2026): re-review after Phase 0 and Phase 1, at v0.30.0
+- Branch `claude/sleepy-rubin-jot35n` (also pushed to `3d`) is now **v0.30.0**. `main` (the live site) is still v0.29.0; this release has not shipped yet.
+- The first round's results are in `docs/PRO_AUDIT.md` (synthesis), `docs/audit/reviewer-*.md` (the six reports) and `docs/audit/verification.md` (the Verifier). Read your own earlier report.
+- What changed since the audit (`git diff 6edcc3d..HEAD`, `git log 6edcc3d..HEAD`):
+  - **Phase 0, safety net:** `test/golden.js` + `test/golden.json` (seeded-shift fingerprints, class-sync checks, class codes, save round trip, answer keys; part of `npm test`), `docs/SMOKE.md`.
+  - **Phase 1, Critical clinical fixes and arrests:** stroke lytic window (R6-01), metoclopramide in SBO (R6-05), unstable A-fib and synchronized cardioversion (R6-06), Bicillin IM-only menu (R6-07), ACS drug scoring (R6-08), ACLS code cards and ROSC odds (R6-04), your own patient's arrest (R5-01), no-team arrest deaths counted (R5-02), epinephrine in arrest (R6-03 data). New rule checks in `test/rules11.js`. Then fixes from three generic hostile reviews (mid-exam arrest, medical bleeds vs trauma, code odds, troponin rule, unknown onset, stream slots).
+  - **Release:** version 0.30.0, README paragraph, CLAUDE.md updates, test fixes (`md_ui_test.py`, `imaging_test.py`).
+- The screenshots in `docs/audit/screenshots/` were taken at v0.29.1. Take your own of anything that changed.
+- The class-results database migration (a `ver` column and stats checks) is **not applied yet**; the client works with or without it.
+- Rules are the same as round 1, except reports go to `docs/audit/round2/` and scratch to `scratchpad/round2/rN/`.
