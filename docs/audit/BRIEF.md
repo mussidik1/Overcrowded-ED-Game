@@ -85,3 +85,11 @@ npm test                           # Node rule checks (about 1 minute)
 - Phase 2's scope in `docs/PRO_AUDIT.md`: R3-01, R3-02, R3-03 (= R1-05, R2-07), R3-13, R3-14, R3-15. R4-02 and R4-03 were fixed on the same screen. **Not in this phase, by the owner's earlier decisions:** a separate Supabase project for the game (the free plan allows two; Case Room shares this one), and hardening the password gate (it is deleted at launch). R2-01/R1-06/R3-06 (Pages from Actions) shipped in v0.30.0.
 - **Do not contact supabase.co or edcodeblack.com**, and do not apply anything to the live database. Use the local Postgres: `npm run db:test`, or run `supabase/tests/run.sh` pieces by hand against your own throwaway cluster (`/usr/lib/postgresql/16/bin`).
 - Rules are the same as round 1, except reports go to `docs/audit/round4/` and scratch to `scratchpad/round4/rN/`.
+
+## Round 5 (Nov 24, 2026): the round-4 fixes to Phase 2, at v0.31.0
+- Branch `claude/sleepy-rubin-jot35n` at `46a0b03` ("Phase 2, round-4 review fixes"). Still unreleased, and the migration is still **not applied** to the live project.
+- Read `docs/audit/round4/STATUS.md` first: what was fixed, what is partly fixed and why, what moved to later phases, and what waits for the owner (a privacy contact, the attending's scoring). Don't re-report moved or owner-decision items unless the fix made them worse.
+- What changed: `git diff ce11887..46a0b03` (the round-4 reports themselves are docs only). In short: the migration was rewritten (counters, client-made keys, `cb_health`, stats rebuilt, names, versions, deletes by result id); the baseline moved to `supabase/baseline/`; `supabase/tests/client_call.json` is a contract checked by the SQL tests and `test/class_test.py`; the class-results UI in `src/ui.js` was rewritten (hidden key, saved-codes list, list layout, export, Send box); `src/backend.json` holds the backend config; the deploy checks the live database before publishing.
+- `npm run db:test` runs the database checks (about 150) on a throwaway local Postgres 16 here; CI uses 17. `python3 test/class_test.py` runs the class flow with the server stubbed (60 checks).
+- **Do not contact supabase.co or edcodeblack.com**, and do not apply anything to the live database.
+- Rules are the same as round 1, except reports go to `docs/audit/round5/` and scratch to `scratchpad/round5/rN/`.
