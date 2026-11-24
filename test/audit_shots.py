@@ -61,7 +61,7 @@ def run(pw, url, size, wh):
     J("(() => { const i = document.querySelector('#ccIn'); if (i) { i.value = 'ABC-DEX'; i.dispatchEvent(new Event('input', { bubbles: true })); } })()"); wait(200); shot('class-code-bad-code-error')
     act('codeMake', 'med'); shot('class-code-made')
     J("(() => { const i = document.querySelector('#cbCode'); if (i) i.value = document.querySelector('.cc-code') ? document.querySelector('.cc-code').textContent : 'ABC-DEF'; })()")
-    page.route('**/rest/v1/rpc/cb_class', lambda r: r.fulfill(status=200, content_type='application/json', body='[]'))
+    page.route('**/rest/v1/rpc/cb_class_read', lambda r: r.fulfill(status=200, content_type='application/json', body='{"error": "key"}'))
     act('cbShow'); wait(500); shot('class-results-empty')
     def menu(tab):   # back to the main menu, then open a tab with a real tap (showTitle() would reset the tab)
         J("OCUI.U.sheet = null; OCUI.U.modal = null; OCUI.render()"); act('tmenu', 'main'); act('tmenu', tab); wait(300)

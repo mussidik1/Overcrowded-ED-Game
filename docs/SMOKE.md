@@ -27,9 +27,12 @@ Run this by hand on a real phone before each merge into `main`, after `npm test`
 - [ ] Finish a Five-Minute Rush; the end-of-shift report shows scores, stars and the M&M lines.
 
 ## Class code
-- [ ] Make a code; it shows on screen without sideways scrolling. (Known open at v0.30.0: audit R4-02 and R4-03, the sheet scrolls sideways on phones. Note it, don't block on it.)
+- [ ] Make a code; it scrolls into view, with no sideways scrolling, and an **instructor key** shows below it. Copy key works.
 - [ ] Enter the code on a second device; both get the same first patients.
 - [ ] A mistyped code is refused before Start.
+- [ ] On the second device, finish the shift (a Five-Minute Rush is quickest) and **Send** with a first name. It says it went; an email address in the name box is refused.
+- [ ] On the first device, Class results lists the code; one tap shows the result. Delete it (it asks first).
+- [ ] On a third device or a private window with no key, Class results shows no names, only "Open with an instructor key".
 
 ## Learn
 - [ ] Orientation chapter 1 runs to the end.

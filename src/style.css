@@ -1006,7 +1006,7 @@ body.ingame { touch-action: pan-x pan-y; }
 #viewer .vw-cr a { color: #aeb8c6; }
 
 /* v0.20: class codes */
-.cc-box { display: grid; gap: 6px; margin: 10px 0; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); }
+.cc-box { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 10px 0; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); }   /* minmax: an input's own width can't push the sheet sideways (R4-02) */
 .cc-box small { color: var(--ink-2); font-size: 13px; line-height: 1.3; }
 .cc-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .cc-row .big { flex: 1 1 auto; margin: 0; min-width: 96px; }
@@ -1014,6 +1014,16 @@ body.ingame { touch-action: pan-x pan-y; }
 .cc-lv { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 .cc-made { display: grid; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed #9AA3AD; }
 .cc-code { font: 700 40px/1.1 var(--ui); letter-spacing: .14em; text-align: center; }
+/* v0.31: the instructor key, and deleting results */
+.cb-key { display: grid; gap: 4px; margin-top: 4px; padding: 8px 10px; border: 2px solid #1F5FA8; border-radius: 10px; }
+.cb-key.bad { border-color: #A51D2F; }
+.cb-key-v { font: 700 clamp(16px, 5.2vw, 22px)/1.2 var(--ui); letter-spacing: .04em; text-align: center; white-space: nowrap; user-select: all; -webkit-user-select: all; }
+.cb-tabw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 460px) { .cb-tab .cb-n, .cb-tab .cb-p { display: none; } .cb-tab { font-size: 14px; } .cb-tab th, .cb-tab td { padding: 4px 3px; } }   /* a phone held upright: the rank is the order, the play time is the least needed */
+.cb-keyin { font-size: 18px; letter-spacing: .06em; }
+.cb-del { min-width: 40px; min-height: 40px; padding: 0 8px; border: 1.5px solid var(--line, #C5CCD6); border-radius: 8px; background: var(--paper); font: 600 15px/1 var(--ui); color: var(--ink); }
+.cb-del.go { border-color: #A51D2F; color: #A51D2F; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .rep-class b { letter-spacing: .08em; }
 
 /* v0.25: the four scores on the shift summary */

@@ -1,6 +1,6 @@
 {
   "name": "overcrowded-ed-game",
-  "version": "0.30.0",
+  "version": "0.31.0",
   "private": true,
   "description": "Emergency Department: Code Black, an ED shift survival game in one self-contained HTML file.",
   "scripts": {
@@ -9,7 +9,9 @@
     "sim": "node test/sim.js",
     "stress": "node test/stress.js",
     "build3d": "node build3d.js",
-    "golden:update": "node test/golden.js --update"
+    "golden:update": "node test/golden.js --update",
+    "db:test": "bash supabase/tests/run.sh",
+    "db:live": "node test/db_live.js"
   },
   "devDependencies": {
     "@fontsource/cardo": "^5.3.0",

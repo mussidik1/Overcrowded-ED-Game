@@ -32,6 +32,17 @@ jobs:
       - run: npm test
       - run: npm run stress
 
+  database:
+    name: Database rules (local Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: PostgreSQL with pgcrypto
+        run: ls /usr/lib/postgresql/*/bin/initdb >/dev/null 2>&1 || { sudo apt-get update -q && sudo apt-get install -y -q postgresql; }
+      # supabase/migrations on a throwaway local database, then supabase/tests/privacy_test.sql. Nothing reaches the live project.
+      - run: bash supabase/tests/run.sh
+
   chrome:
     name: UI tests in Chrome
     runs-on: ubuntu-latest
