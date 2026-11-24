@@ -25,13 +25,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - run: npm ci
       - run: npm run build
       - name: The committed build matches the source
         run: git diff --exit-code --stat index.html sw.js 3d/map3d.js || { echo "Rebuild with npm run build and commit index.html, sw.js and 3d/map3d.js"; exit 1; }
       - run: npm test
       - run: npm run stress
+      # Before anything is published: the live database must already have this release's migration and its rules
+      # (supabase/README.md, "Releasing"). If this fails, apply the migration first, then re-run the deploy.
+      - name: Check the database rules
+        run: node test/db_live.js
       - name: Package the game files only
         run: |
           mkdir _site
@@ -47,6 +51,7 @@ jobs:
   deploy:
     name: Deploy
     needs: build
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -59,8 +64,6 @@ jobs:
           sparse-checkout: |
             package.json
             CNAME
-            src/ui.js
-            test/db_live.js
       # After the deploy (audit R2.2-06, R2.3-03): the live page is this release (its version is in index.html), and the source, tests,
       # docs and CLAUDE.md are not published. Checked at the Pages address and at the custom domain (CNAME). The site can take a few
       # minutes to update, so each check retries for up to 5 minutes. If this fails, roll back: see "Rolling back" in CLAUDE.md.
@@ -73,7 +76,7 @@ jobs:
           sites="${SITE%/}"; dom=$(tr -d ' \n\r' < CNAME 2>/dev/null || true); [ -n "$dom" ] && [ "${sites#https://}" != "$dom" ] && sites="$sites https://$dom"   # the Pages address is the custom domain once one is set: check it once
           want() {   # want <status> <url> [text the page must contain]
             for i in $(seq 1 30); do
-              body=$(curl -s -w '\n%{http_code}' "$2?nocache=$RANDOM$i"); got=${body##*$'\n'}
+              body=$(curl -s --max-time 20 -w '\n%{http_code}' "$2?nocache=$RANDOM$i"); got=${body##*$'\n'}
               if [ "$got" = "$1" ] && { [ -z "$3" ] || grep -qF -- "$3" <<< "$body"; }; then echo "ok   $2 -> $got${3:+ (has $3)}"; return 0; fi
               sleep 10
             done
@@ -87,7 +90,3 @@ jobs:
             for f in CLAUDE.md README.md src/engine.js src/ui.js test/golden.js docs/PRO_AUDIT.md docs/audit/BRIEF.md package.json build.js; do want 404 "$site/$f" || fail=1; done
           done
           exit $fail
-      # The class-results database (Supabase): from outside, with the game's public key, the old open table and reading by code alone
-      # are gone, the private tables can't be reached, and a made-up code or key gets nothing. See supabase/README.md.
-      - name: Check the database rules
-        run: node test/db_live.js

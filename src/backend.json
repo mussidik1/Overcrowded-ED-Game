@@ -1,0 +1,6 @@
+{
+  "_": "The class-results database (Supabase). build.js puts url and key into the game (CB in src/ui.js) and url into the page's Content Security Policy; test/db_live.js reads them too. The key is the publishable one, public by design. contact is shown in the About page's Privacy section when it is set.",
+  "url": "https://ecpxhcqvgxizdadwumqt.supabase.co",
+  "key": "sb_publishable___VN24arBpZ8osEXV3G75w_JgU5zAyk",
+  "contact": ""
+}

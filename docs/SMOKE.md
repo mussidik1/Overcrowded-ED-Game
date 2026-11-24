@@ -27,11 +27,12 @@ Run this by hand on a real phone before each merge into `main`, after `npm test`
 - [ ] Finish a Five-Minute Rush; the end-of-shift report shows scores, stars and the M&M lines.
 
 ## Class code
-- [ ] Make a code; it scrolls into view, with no sideways scrolling, and an **instructor key** shows below it. Copy key works.
+- [ ] Make a code; it scrolls into view with no sideways scrolling, says "Class results are on", and the **instructor key is hidden**. Show key shows it; Copy key says Copied only if it worked.
 - [ ] Enter the code on a second device; both get the same first patients.
 - [ ] A mistyped code is refused before Start.
-- [ ] On the second device, finish the shift (a Five-Minute Rush is quickest) and **Send** with a first name. It says it went; an email address in the name box is refused.
-- [ ] On the first device, Class results lists the code; one tap shows the result. Delete it (it asks first).
+- [ ] On the second device, finish the shift (a Five-Minute Rush is quickest). The Send box shows the score being sent; an email address in the name box is refused; Send with a first name says it went. Leaving the summary before sending asks first.
+- [ ] On the first device, Class results lists the code; Results shows the result. Download CSV saves a file. Delete it (it asks first; a quick double tap doesn't delete).
+- [ ] Forget the key on that device; the code leaves the list. "A code made on another device" with the code and the key typed in opens it again.
 - [ ] On a third device or a private window with no key, Class results shows no names, only "Open with an instructor key".
 
 ## Learn

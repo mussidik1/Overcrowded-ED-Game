@@ -128,16 +128,17 @@ When you add anything random that should be the same for every player on a code 
 
 ## Backend (small, optional)
 
-Class results and the testing gate use **Supabase, the same project as Case Room** (`CB` in `ui.js`; the key there is the publishable one, which is meant to be public). Since v0.31.0 the whole Code Black database is in `supabase/migrations/` (`supabase/README.md` explains it):
+Class results and the testing gate use **Supabase, the same project as Case Room**. The address, the publishable key (public by design) and an optional privacy contact are in `src/backend.json`; `build.js` puts them in the page (`CB` in `ui.js`) and the CSP. Since v0.31.0 the whole Code Black database is in `supabase/` (`supabase/README.md` explains it), and the results sit in a `codeblack` schema that the API doesn't expose. The functions are the only way in:
 
-- `rpc/cb_class_new`: making a class code registers it and returns an **instructor key** (16 characters), kept on the instructor's device (`oc-ckeys`). A code another live class has comes back `taken`, and the game makes another.
-- `rpc/cb_submit`: a student sends their summary for a code: first name or initials, score 0 to 100, stars, real time played, a few stats, the version and the result's own id (sent once however often it's retried).
-- `rpc/cb_class_read`, `rpc/cb_class_delete`: the instructor's "Class results" table, and deleting one result or all of them. Both need the key.
+- `rpc/cb_class_new`: making a class code registers it with an **instructor key** (16 characters) that the game makes and keeps on that device (`oc-ckeys`, `{ v: 1, c: { code: { k, exp, t } } }`). Repeating it is safe; a code another class has comes back `taken`, and the game makes another before showing it. The key stays hidden until the instructor taps Show key.
+- `rpc/cb_submit`: a student sends their summary: first name or initials, score 0 to 100, stars, real time played, stats (`client_call.json` lists the keys), the version the shift was played on, and the result's own id (kept once however often it's retried). The name is never stored on the device.
+- `rpc/cb_class_read`, `rpc/cb_class_delete`: the instructor's Class results list, and deleting one result or all. Both need the key. Copy table and Download CSV export it.
+- `rpc/cb_health`: for the deploy's check (which migration is live, whether the clean-up runs). No class data.
 - `rpc/cb_gate_on`, `rpc/cb_gate_check`: the password gate, active only on `edcodeblack.com/.net` and `*.github.io` (`GATED`). The password is checked by bcrypt hash in the database, and a device that passed the gate once can play offline.
 
-The results live in the `codeblack` schema, which the API doesn't expose and the public key has no grant on: the four functions above are the only way in. A code and its results are deleted 30 days after the code was made (the `codeblack-tidy` job). Rate limits count requests per network, by a keyed hash of the address kept for a day. Every call gives up after 8 seconds (`cbFetch`). Everything else runs offline in the browser.
+A code lasts 7 days until its first result, then 30 days from when it was made; then it and its results are deleted. Rate limits are per network, per hour, by a daily-salted hash of the address. Every call gives up after 8 seconds (`cbFetch`), and a failure says whether it was the network, a timeout or the server. Everything else runs offline in the browser.
 
-- **Changing the database:** add a new file to `supabase/migrations/`, run `npm run db:test` (a throwaway local Postgres; also a CI job), and get the owner's approval before it goes to the live project (he pastes it into the SQL editor, or approves the tool call). After it's applied, `npm run db:live` checks the live rules from outside; the deploy runs it too. This container's network can't reach supabase.co, so run that one in CI.
+- **Changing the database:** add a new file to `supabase/migrations/`, run `npm run db:test` (a throwaway local Postgres; also a CI job, on PostgreSQL 17 as live), and get the owner's approval before it goes to the live project (he pastes it into the SQL editor, or approves the tool call). **The database goes first, then the game:** the Pages deploy runs `test/db_live.js` before it publishes and stops if the live database isn't ready. This container's network can't reach supabase.co, so that check runs in CI. `supabase/tests/client_call.json` pins the calls the game makes; change it, `ui.js` and the SQL together.
 
 ## Running it
 
@@ -158,6 +159,7 @@ npm run golden:update   # rewrite test/golden.json after an intended change; say
 npm run sim       # simulated shifts at several player speeds
 npm run stress    # 188 shifts across every level and scenario: stuck states, out-of-range vitals
 npm run db:test   # the Supabase migrations and their rules on a throwaway local Postgres (needs PostgreSQL 15+)
+npm run db:live   # the live project's rules, from outside (not from a Claude cloud container: supabase.co is blocked)
 ```
 
 The UI tests are Python Playwright scripts against the **built** `index.html`, so build first. In this cloud container Chromium is preinstalled; use `python3 -m pip install playwright` if the module is missing, and don't run `playwright install`. Common ones: `test/ui_test.py`, `md_ui_test.py`, `map_test.py`, `train_test.py` (env `MODE=md`, `LESSON=stroke`, `CHAPTER=2`, `VIEW=list`), `finger_test.py`, `class_test.py`, `offline_test.py`, `map3d_test.py`, `imaging_test.py`, `gate_test.py`, `events_test.py`, `about_test.py`. `BROWSER=webkit|firefox` switches engines and `CHROME_PATH` points at a local Chrome (see `test/_browser.py`). Screenshots go to `test/shots/` (gitignored).

@@ -1,17 +1,27 @@
 -- Code Black: the live database as it stood on Nov 24, 2026, before Phase 2 (v0.31.0).
 --
--- A record, not something to run on the live project: it is already there. It was read from the live project
--- (pg_get_functiondef, information_schema, pg_policies) and from the two Code Black migrations stored in it
--- (codeblack_class_results, codeblack_private_gate). Other changes reached it through migrations shared with
--- Case Room ("security_fixes", "review_fixes", "hostile_review_fixes") and the Nov 24 version-column migration.
--- It is written so it also builds a fresh database, which is how supabase/tests/run.sh uses it.
+-- A record, not a migration, and not something to run on the live project: it is already there. It lives outside
+-- supabase/migrations/ for that reason, and it refuses to run on a database that has the codeblack schema (Phase 2),
+-- because it would bring back the open results table and reading by code alone.
+--
+-- It was read from the live project (pg_get_functiondef, information_schema, pg_policies) and from the two Code
+-- Black migrations stored in it (codeblack_class_results, codeblack_private_gate). Other changes reached it through
+-- migrations shared with Case Room ("security_fixes", "review_fixes", "hostile_review_fixes") and the Nov 24
+-- version-column migration. It also builds a fresh database, which is how supabase/tests/run.sh uses it: the live
+-- state first, then each file in supabase/migrations/.
 --
 -- The project is shared with Case Room (schemas caseroom and golden_hour, functions cr_* and gh_*). Only the
 -- Code Black objects are here, plus the two Case Room helpers the results table used: caseroom.client_ip()
--- and caseroom.cb_hits.
+-- and caseroom.cb_hits. Both are created only if missing, so this never overwrites Case Room's own versions.
 --
 -- The gate password's bcrypt hash is NOT in this repo. Set or change the password in the SQL editor with:
 --   update public.cb_gate set pass_hash = extensions.crypt('<the password>', extensions.gen_salt('bf')), updated_at = now() where id = 1;
+
+do $$ begin
+  if to_regnamespace('codeblack') is not null then
+    raise exception 'This is the record of the database before v0.31.0. This database already has v0.31.0 (the codeblack schema): running it would reopen the old results table.';
+  end if;
+end $$;
 
 -- ---------- Case Room helpers the results table used ----------
 create schema if not exists caseroom;
@@ -20,7 +30,10 @@ create table if not exists caseroom.cb_hits (ip text, at timestamptz default now
 create index if not exists cb_hits_ip_at_idx on caseroom.cb_hits (ip, at);
 alter table caseroom.cb_hits enable row level security;
 
-create or replace function caseroom.client_ip()
+do $outer$ begin
+  if to_regprocedure('caseroom.client_ip()') is not null then return; end if;
+  execute $fn$
+create function caseroom.client_ip()
  returns text
  language plpgsql
  stable
@@ -46,6 +59,8 @@ begin
   end if;
   return v;
 end $function$;
+  $fn$;
+end $outer$;
 
 -- ---------- class results ----------
 create table if not exists public.cb_results (

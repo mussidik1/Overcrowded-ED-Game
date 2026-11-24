@@ -22,6 +22,7 @@ def run(pw, url, size, wh):
     ctx = b.new_context(viewport={'width': wh[0], 'height': wh[1]}, has_touch=True, is_mobile=size.startswith('phone'), device_scale_factor=1)
     ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', { get: () => false })")   # the game skips the first-visit About page for automated browsers; look like a person
     page = ctx.new_page(); page.set_default_timeout(20000)
+    ctx.route('**/rest/v1/**', lambda r: r.abort())   # screenshots never reach the real class-results server (or register real codes)
     errs = []
     page.on('pageerror', lambda e: errs.append('pageerror: ' + str(e)))
     page.on('console', lambda m: errs.append('console.' + m.type + ': ' + m.text[:200]) if m.type == 'error' and 'GL Driver' not in m.text else None)
