@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds a throwaway Postgres and checks the Code Black database on it. Nothing here touches the live project.
 #   bash supabase/tests/run.sh          (npm run db:test)
-# Needs PostgreSQL 15 or newer with pgcrypto (Ubuntu's postgresql package has both), and bash 4.4 or newer.
+# Needs PostgreSQL 15 or newer with pgcrypto (Ubuntu's postgresql package has both), and bash 3.2 or newer.
 # Set PG_BIN to pick a PostgreSQL, KEEP=1 to keep the database folder afterwards.
 #
 # 1. The Supabase stand-ins (stubs.sql), then the live state before v0.31.0 (baseline/live_before_v0.31.0.sql).
@@ -39,15 +39,21 @@ q postgres -c "insert into public.cb_results (code, name, role, level, score, st
 if q postgres -f "$last" 2>/dev/null; then echo "FAIL: the migration ran over a results table with rows in it"; exit 1; fi
 q postgres -c "do \$\$ begin if to_regnamespace('codeblack') is not null or (select count(*) from public.cb_results) <> 1 then raise exception 'FAIL: the refused migration changed something'; end if; end \$\$"
 echo "ok - with a row in the old table, the migration refuses and changes nothing"
-q postgres -c "delete from public.cb_results"
+q postgres -c "delete from public.cb_results; insert into caseroom.cb_hits (ip) values ('192.0.2.1')"
 for f in $migs; do echo "migration $f"; q postgres -f "$f"; done
 echo "second run of $last (it must be safe to run twice)"; q postgres -f "$last"
+q postgres -c "do \$\$ begin if (select max(name) from codeblack.migrations) <> '${last%.sql}' then raise exception 'FAIL: the latest migration did not record its own name'; end if; end \$\$"
+echo "ok - the latest migration recorded its own name (the deploy's check depends on it)"
+q postgres -c "insert into codeblack.migrations (name) values ('29991231235959_codeblack_from_the_future')"
+if q postgres -f "$last" 2>/dev/null; then echo "FAIL: an older migration ran over a newer one"; exit 1; fi
+q postgres -c "delete from codeblack.migrations where name = '29991231235959_codeblack_from_the_future'"
+echo "ok - a migration refuses to run over a newer one"
 if q postgres -f live_before_v0.31.0.sql 2>/dev/null; then echo "FAIL: the baseline ran on a migrated database"; exit 1; fi
 echo "ok - the baseline refuses to run on a migrated database"
 q postgres -c "create database fresh"
 q fresh -f stubs.sql
 for f in $migs; do q fresh -f "$f"; done
-q fresh -c "do \$\$ begin if to_regprocedure('public.cb_submit(text,uuid,text,text,text,int,int,int,jsonb,text)') is null then raise exception 'FAIL: fresh project'; end if; end \$\$"
+q fresh -c "do \$\$ begin if to_regprocedure('public.cb_class_new(text,text,text)') is null or to_regprocedure('public.cb_submit(text,uuid,text,text,text,int,int,int,jsonb,text)') is null or to_regprocedure('public.cb_class_read(text,text)') is null or to_regprocedure('public.cb_class_delete(text,text,uuid,boolean)') is null or to_regprocedure('public.cb_health(boolean)') is null or to_regnamespace('codeblack') is null then raise exception 'FAIL: fresh project'; end if; end \$\$"
 echo "ok - the migrations alone build a fresh project"
 (cd "$work" && "${as[@]}" "$bin/psql" -X -q -o /dev/null -v ON_ERROR_STOP=1 -h "$work" -p "$port" -U postgres -d postgres -f privacy_test.sql) 2>&1 | sed -e 's/^psql:[^ ]* NOTICE:  //' -e 's/^NOTICE:  //'
 echo "ALL DATABASE CHECKS PASSED"

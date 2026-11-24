@@ -29,8 +29,8 @@ deferred or waived.
   rotated daily; deletes by the result's own id (no global sequence), "all" explicit; the migration records itself;
   `cb_health` for the deploy; the baseline moved out of `migrations/`, refuses to run on a migrated database, and no longer
   overwrites Case Room's `client_ip()`; search path `pg_catalog, pg_temp`; the guard locks the old table.
-- **The game (R3.4-03, -09, -10, -11, -15, -18, R4.4-01 to -15, R5.4-01 to -06, -09, -10, -12 to -15, R6.4-02 to -08,
-  -11, -12, -14, R1.4-08, -10, -14):** the key is hidden until Show key; Class results lists every saved code with
+- **The game (R3.4-03, -09, -10, -11, -15, -18, R4.4-01 to -15, R5.4-01 to -06, -09, -10, -12 to -15, R6.4-02 to -08
+  (round 5 rated six of those seven only partly fixed; see round5/STATUS.md), -11, -12, -14, R1.4-08, -10, -14):** the key is hidden until Show key; Class results lists every saved code with
   Results, Show key, Copy key and Forget; a typed key is kept only if asked; any well-formed code opens with its key,
   whatever its version; the code shows only after registration, so it never changes in front of a class; the results are a
   list with the delete button on the left (the sheet's close button sits over the right edge when it scrolls), a confirm

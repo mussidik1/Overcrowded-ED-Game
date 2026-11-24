@@ -29,7 +29,7 @@ select t_ok(bool_and(c.relrowsecurity), 'row-level security is on for every code
   from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'codeblack' and c.relkind = 'r';
 select t_ok(count(*) = 5 and bool_and(p.prosecdef) and bool_and(array_to_string(p.proconfig, ',') = 'search_path=pg_catalog, pg_temp'), 'the five API functions run as their owner, with pg_catalog first and pg_temp last')
   from pg_proc p where p.oid in ('public.cb_class_new(text,text,text)'::regprocedure, 'public.cb_submit(text,uuid,text,text,text,int,int,int,jsonb,text)'::regprocedure,
-                                 'public.cb_class_read(text,text)'::regprocedure, 'public.cb_class_delete(text,text,uuid,boolean)'::regprocedure, 'public.cb_health()'::regprocedure);
+                                 'public.cb_class_read(text,text)'::regprocedure, 'public.cb_class_delete(text,text,uuid,boolean)'::regprocedure, 'public.cb_health(boolean)'::regprocedure);
 select t_ok(bool_and(array_to_string(p.proconfig, ',') = 'search_path=pg_catalog, pg_temp') and not bool_or(p.prosecdef), 'the codeblack helpers have the same search path and are not security definers')
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'codeblack';
 select t_ok(not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
@@ -39,13 +39,20 @@ select t_ok(not exists (select 1 from pg_proc p, aclexplode(coalesce(p.proacl, a
 select t_ok(exists (select 1 from cron.job where jobname = 'codeblack-tidy' and command = 'select codeblack.tidy()'), 'the hourly clean-up is scheduled');
 select t_ok((select count(*) from cron.job where jobname = 'codeblack-tidy') = 1, 'and scheduled once, after two runs of the migration');
 select t_ok((select count(*) from codeblack.migrations) = 1 and (select name from codeblack.migrations) = '20261124120000_codeblack_private_results', 'the migration recorded itself, once');
+select t_ok(not exists (select 1 from caseroom.cb_hits), 'the raw addresses Code Black''s old trigger left in caseroom.cb_hits are gone');
 
 -- ---------- the contract with the game (client_call.json) ----------
 select t_ok((select bool_and(exists (select 1 from pg_proc p where p.proname = f.key and p.pronamespace = 'public'::regnamespace
                and (select array_agg(x order by x) from jsonb_object_keys(f.value) x) is not distinct from
                    (select array_agg(a order by a) from unnest(coalesce(p.proargnames, '{}')) a where a <> '')))
-             from jsonb_each(:'call'::jsonb) f where f.key like 'cb\_%'), 'every function the game calls takes exactly the argument names the game sends');
-select t_ok(codeblack.clean_stats(:'call'::jsonb -> 'cb_submit' -> 'p_stats') = :'call'::jsonb -> 'cb_submit' -> 'p_stats', 'the database keeps every stats key the game sends, unchanged');
+             from jsonb_each(:'call'::jsonb -> 'calls') f), 'every function the game calls takes exactly the argument names the game sends');
+select t_ok((select bool_and((select coalesce(array_agg(distinct m[1] order by m[1]), '{}') from pg_proc p, regexp_matches(p.prosrc, '''error'', ''([a-z]+)''', 'g') m
+                              where p.proname = f.key and p.pronamespace = 'public'::regnamespace)
+                             = (select array_agg(x order by x) from jsonb_array_elements_text(f.value) x))
+             from jsonb_each(:'call'::jsonb -> 'answers') f), 'every error each function can give is in the contract file, which the game is checked against');
+select t_ok((select bool_and(codeblack.clean_name(n) is not null) from jsonb_array_elements_text(:'call'::jsonb -> 'names' -> 'accept') n), 'the database accepts every name in the contract file''s accept list');
+select t_ok((select bool_and(codeblack.clean_name(n) is null) from jsonb_array_elements_text(:'call'::jsonb -> 'names' -> 'refuse') n), 'and refuses every name in its refuse list');
+select t_ok(codeblack.clean_stats(:'call'::jsonb -> 'calls' -> 'cb_submit' -> 'p_stats') = :'call'::jsonb -> 'calls' -> 'cb_submit' -> 'p_stats', 'the database keeps every stats key the game sends, unchanged');
 
 -- ---------- the browser can't touch the tables ----------
 set role anon;
@@ -62,18 +69,19 @@ do $$ begin
 end $$;
 
 -- ---------- the game's own calls, exactly as it sends them ----------
-select t_ok(cb_class_new(p_code => :'call'::jsonb -> 'cb_class_new' ->> 'p_code', p_key => :'call'::jsonb -> 'cb_class_new' ->> 'p_key', p_ver => :'call'::jsonb -> 'cb_class_new' ->> 'p_ver') ->> 'ok' = 'true', 'the game''s registration call works');
+select t_ok(cb_class_new(p_code => :'call'::jsonb -> 'calls' -> 'cb_class_new' ->> 'p_code', p_key => :'call'::jsonb -> 'calls' -> 'cb_class_new' ->> 'p_key', p_ver => :'call'::jsonb -> 'calls' -> 'cb_class_new' ->> 'p_ver') ->> 'ok' = 'true', 'the game''s registration call works');
 select t_ok((select cb_submit(p_code => c ->> 'p_code', p_cid => (c ->> 'p_cid')::uuid, p_name => c ->> 'p_name', p_role => c ->> 'p_role', p_level => c ->> 'p_level',
         p_score => (c ->> 'p_score')::int, p_stars => (c ->> 'p_stars')::int, p_real_sec => (c ->> 'p_real_sec')::int, p_stats => c -> 'p_stats', p_ver => c ->> 'p_ver')
-        from (select :'call'::jsonb -> 'cb_submit' as c) x) = '{"ok": true}', 'the game''s send call works');
-select t_ok(jsonb_array_length(cb_class_read(p_code => :'call'::jsonb -> 'cb_class_read' ->> 'p_code', p_key => :'call'::jsonb -> 'cb_class_read' ->> 'p_key') -> 'rows') = 1, 'the game''s read call works');
+        from (select :'call'::jsonb -> 'calls' -> 'cb_submit' as c) x) = '{"ok": true}', 'the game''s send call works');
+select t_ok(jsonb_array_length(cb_class_read(p_code => :'call'::jsonb -> 'calls' -> 'cb_class_read' ->> 'p_code', p_key => :'call'::jsonb -> 'calls' -> 'cb_class_read' ->> 'p_key') -> 'rows') = 1, 'the game''s read call works');
 select t_ok(cb_class_delete(p_code => 'QZ7-K4M', p_key => '7K2M9QXH4V1R8ZTB', p_id => '8f14e45f-ceea-467a-9575-1c6e1d0a2b3c', p_all => false) = '{"deleted": 1}', 'the game''s delete call works');
-select t_ok(cb_health() ->> 'db' = '20261124120000_codeblack_private_results' and (cb_health() ->> 'overdue')::int = 0 and cb_health() ->> 'cron' = 'true' and cb_health() ->> 'addr' = 'true', 'the health call names the live migration, no class is overdue, the clean-up is scheduled, and the caller''s address was read');
+select t_ok(cb_health() ->> 'db' = '20261124120000_codeblack_private_results' and (cb_health() ->> 'overdue')::int = 0 and cb_health() ->> 'cron' = 'true' and cb_health() ->> 'addr' = 'true' and cb_health() ->> 'public' = 'true',
+  'the health call names the live migration, no class is overdue, the clean-up is scheduled, and the caller''s address was read and is public');
 
 -- ---------- an instructor registers a code ----------
 select cb_class_new('kta-80p', :'K1', :'V')::text as r \gset
 select t_ok(:'r'::jsonb ->> 'ok' = 'true', 'registering a code with a key the game made works');
-select t_ok((:'r'::jsonb ->> 'expires')::timestamptz between now() + interval '6 days 23 hours' and now() + interval '7 days 1 minute', 'a class nobody has sent to yet lasts 7 days');
+select t_ok((:'r'::jsonb ->> 'expires')::timestamptz between now() + interval '13 days 23 hours' and now() + interval '14 days 1 minute', 'a class nobody has sent to yet lasts 14 days');
 select t_ok(cb_class_new('KTA80P', :'K1', :'V') ->> 'ok' = 'true', 'registering it again with the same key is fine: a retry after a lost answer');
 select t_ok(cb_class_new('KTA-80P', :'K2', :'V') ->> 'error' = 'taken', 'the same code with another key is taken');
 select t_ok(cb_class_new('KTA-80U', :'K1', :'V') ->> 'error' = 'invalid', 'a code with a letter outside the alphabet is refused');
@@ -85,7 +93,7 @@ select t_ok(cb_class_new('L1M-0O0', :'K3', :'V') ->> 'ok' = 'true' and cb_class_
 select t_ok((select count(*) from (select cb_class_new('NEW-' || lpad(i::text, 3, '0'), :'K1', :'V') ->> 'ok' k from generate_series(1, 3) i) x where k = 'true') = 3, 'other codes register (one key may serve several codes)');
 
 -- ---------- a student sends a result ----------
-\set stats '{"wait":12,"lwbs":1,"seen":30,"ama":0,"expired":0,"bedFirst":2,"fired":0,"fast":40,"scen":"none"}'
+\set stats '{"wait":12,"lwbs":1,"seen":30,"ama":0,"expired":0,"bedFirst":2,"fired":0,"walkout":0,"fast":40,"scen":"none"}'
 select t_ok(cb_submit('kta-80p', '00000000-0000-4000-8000-000000000001', 'Sam', 'rn', 'med', 85, 3, 1200, :'stats', :'V') = '{"ok": true}', 'a good result is accepted');
 reset role;
 select t_ok((select expires_at = created_at + interval '30 days' from codeblack.classes where code = 'KTA-80P'), 'the first result makes the class last 30 days from when it was made');
@@ -115,7 +123,7 @@ do $$ declare s jsonb; f text; begin
   perform t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', null, 1, 60, '{}', '0.31.0') ->> 'field' = 'score', 'a missing score is refused');
   perform t_ok(cb_submit('KTA-80P', null, 'Al', 'rn', 'med', 50, 1, 60, '{}', '0.31.0') ->> 'field' = 'cid', 'a result without its id is refused');
   perform t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, '{}', null) ->> 'field' = 'ver', 'a result without a version is refused');
-  perform t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, '{}', '0.30.0') = '{"error": "version"}', 'a result from another game version than the class is refused');
+  perform t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, '{}', '0.30.0') = '{"error": "unknown"}', 'a result from another game version than the class is refused, with the same answer as an unknown code');
   foreach s in array array['[]', '"x"', 'null']::jsonb[] loop
     perform t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, s, '0.31.0') ->> 'field' = 'stats', format('stats that aren''t an object (%s) are refused', s));
   end loop;
@@ -190,6 +198,14 @@ do $$ declare n int := 0; begin
   perform t_ok(cb_class_delete('KMN-000', 'WRONGKEYWRONGKEY', null, true) = '{"error": "busy"}', 'wrong-key deletes are limited to 120 an hour');
   perform t_ok(cb_class_delete('KMN-000', '0123456789ABCDEF', gen_random_uuid()) = '{"deleted": 0}', 'the right key still deletes from that network: keyed deletes aren''t limited');
 end $$;
+select t_net('192.0.2.50');
+do $$ declare n int := 0; begin
+  for i in 1..30 loop if cb_health(true) = '{"ok": true}' then n := n + 1; end if; end loop;
+  perform t_ok(n = 30 and cb_health(true) = '{"error": "busy"}', 'the deploy''s forged-header probe has its own bucket of 30 an hour');
+  perform t_ok(cb_health() ? 'db', 'and doesn''t use up the health check''s own budget');
+end $$;
+select set_config('request.headers', '{"x-forwarded-for":"10.1.2.3"}', false);
+select t_ok(cb_health() ->> 'public' = 'false', 'a private address is reported as not public (the gateway would be hiding callers)');
 select t_net(null);
 select t_ok(cb_class_read('KMN-000', :'K3') ? 'rows', 'a call with no request headers (the SQL editor) is not limited');
 

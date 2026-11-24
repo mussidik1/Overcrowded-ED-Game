@@ -1,13 +1,126 @@
 {
-  "_": "The contract between the game and the database: the exact arguments src/ui.js sends to each function. test/class_test.py checks that the game sends these names and stats keys; supabase/tests/privacy_test.sql checks that the functions take these names, keep every stats key, and accept these calls. Change all three together.",
-  "cb_class_new": { "p_code": "QZ7-K4M", "p_key": "7K2M9QXH4V1R8ZTB", "p_ver": "0.31.0" },
-  "cb_submit": {
-    "p_code": "QZ7-K4M", "p_cid": "8f14e45f-ceea-467a-9575-1c6e1d0a2b3c", "p_name": "Sam", "p_role": "rn", "p_level": "med",
-    "p_score": 74, "p_stars": 2, "p_real_sec": 1200,
-    "p_stats": { "wait": 12, "lwbs": 1, "seen": 30, "ama": 0, "expired": 0, "bedFirst": 2, "fired": 0, "fast": 40, "dxRight": 5, "dxWrong": 1, "scen": "none" },
-    "p_ver": "0.31.0"
+ "_": "The contract between the game and the database. calls: the exact arguments src/ui.js sends to each function. answers: every error each function can give, which src/ui.js must handle. names: names both the game (cbClean) and the database (codeblack.clean_name) must accept and refuse. test/class_test.py checks the game side; supabase/tests/privacy_test.sql checks the database side. Change all three together.",
+ "calls": {
+  "cb_class_new": {
+   "p_code": "QZ7-K4M",
+   "p_key": "7K2M9QXH4V1R8ZTB",
+   "p_ver": "0.31.0"
   },
-  "cb_class_read": { "p_code": "QZ7-K4M", "p_key": "7K2M9QXH4V1R8ZTB" },
-  "cb_class_delete": { "p_code": "QZ7-K4M", "p_key": "7K2M9QXH4V1R8ZTB", "p_id": "8f14e45f-ceea-467a-9575-1c6e1d0a2b3c", "p_all": false },
-  "cb_health": {}
+  "cb_submit": {
+   "p_code": "QZ7-K4M",
+   "p_cid": "8f14e45f-ceea-467a-9575-1c6e1d0a2b3c",
+   "p_name": "Sam",
+   "p_role": "rn",
+   "p_level": "med",
+   "p_score": 74,
+   "p_stars": 2,
+   "p_real_sec": 1200,
+   "p_stats": {
+    "wait": 12,
+    "lwbs": 1,
+    "seen": 30,
+    "ama": 0,
+    "expired": 0,
+    "bedFirst": 2,
+    "fired": 0,
+    "walkout": 0,
+    "fast": 40,
+    "dxRight": 5,
+    "dxWrong": 1,
+    "mdSeen": 9,
+    "harm": 0,
+    "radioRight": 3,
+    "radioWrong": 1,
+    "radioMiss": 0,
+    "scen": "none"
+   },
+   "p_ver": "0.31.0"
+  },
+  "cb_class_read": {
+   "p_code": "QZ7-K4M",
+   "p_key": "7K2M9QXH4V1R8ZTB"
+  },
+  "cb_class_delete": {
+   "p_code": "QZ7-K4M",
+   "p_key": "7K2M9QXH4V1R8ZTB",
+   "p_id": "8f14e45f-ceea-467a-9575-1c6e1d0a2b3c",
+   "p_all": false
+  },
+  "cb_health": {
+   "p_probe": false
+  }
+ },
+ "answers": {
+  "cb_class_new": [
+   "invalid",
+   "taken",
+   "busy",
+   "full"
+  ],
+  "cb_submit": [
+   "invalid",
+   "unknown",
+   "full",
+   "busy"
+  ],
+  "cb_class_read": [
+   "key",
+   "busy"
+  ],
+  "cb_class_delete": [
+   "key",
+   "invalid",
+   "busy"
+  ],
+  "cb_health": [
+   "busy"
+  ]
+ },
+ "names": {
+  "accept": [
+   "Sam",
+   "José",
+   "Zoë",
+   "O'Neil",
+   "Mary-Kate",
+   "J.D.",
+   "Ana M.",
+   "Mary Ann K.",
+   "Анна",
+   "李娜",
+   "राम",
+   "प्रिया",
+   "कृष्ण",
+   "অমিত",
+   "ਗੁਰਪ੍ਰੀਤ",
+   "தமிழ்",
+   "สมศักดิ์",
+   "مُحَمَّد",
+   "שָׁלוֹם",
+   "Abcdefghijklmnopqrst"
+  ],
+  "refuse": [
+   "Bob1",
+   "a@b.com",
+   "<b>x</b>",
+   "Sam_K",
+   "Sam;--",
+   ".Sam",
+   "555-1234",
+   "Jane Q Public Jr",
+   "Abcdefghijklmnopqrstu",
+   "ㅤㅤㅤ",
+   "５５５",
+   "٥٥٥",
+   "५५५",
+   "Sam᱑᱒",
+   "Ⅷ",
+   "𝐒𝐚𝐦",
+   "Ⓢⓐⓜ",
+   "🅂🄰🄼",
+   "Sam²",
+   "Sam‮x",
+   ""
+  ]
+ }
 }

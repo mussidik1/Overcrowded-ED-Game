@@ -7,11 +7,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      skip_db_check:
+        description: 'Skip the live database check (emergency only, such as a rollback while Supabase is down)'
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: read   # the deploy job alone gets pages and id-token
 
 concurrency:
   group: pages
@@ -21,6 +24,7 @@ jobs:
   build:
     name: Check and package
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,10 +36,12 @@ jobs:
         run: git diff --exit-code --stat index.html sw.js 3d/map3d.js || { echo "Rebuild with npm run build and commit index.html, sw.js and 3d/map3d.js"; exit 1; }
       - run: npm test
       - run: npm run stress
-      # Before anything is published: the live database must already have this release's migration and its rules
-      # (supabase/README.md, "Releasing"). If this fails, apply the migration first, then re-run the deploy.
+      # Before anything is published: the live database must have this release's migration (or a newer one) and its rules
+      # (supabase/README.md, "Releasing"). The output says what failed and what to do. skip_db_check is for emergencies only.
       - name: Check the database rules
         run: node test/db_live.js
+        env:
+          SKIP_DB_CHECK: ${{ inputs.skip_db_check && '1' || '' }}
       - name: Package the game files only
         run: |
           mkdir _site
@@ -51,7 +57,11 @@ jobs:
   deploy:
     name: Deploy
     needs: build
-    timeout-minutes: 15
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -83,10 +93,10 @@ jobs:
             echo "FAIL $2 -> $got (wanted $1${3:+ with $3})"; return 1
           }
           fail=0
-          for site in $sites; do
+          for site in $sites; do   # the files that must not be public first: a slow propagation can't time out before them
+            for f in CLAUDE.md README.md src/engine.js src/ui.js src/backend.json test/golden.js docs/PRO_AUDIT.md docs/audit/BRIEF.md package.json build.js supabase/README.md; do want 404 "$site/$f" || fail=1; done
             want 200 "$site/index.html" "\"$ver\"" || fail=1
             want 200 "$site/sw.js" "$ver" || fail=1
             want 200 "$site/3d/map3d.js" || fail=1
-            for f in CLAUDE.md README.md src/engine.js src/ui.js test/golden.js docs/PRO_AUDIT.md docs/audit/BRIEF.md package.json build.js; do want 404 "$site/$f" || fail=1; done
           done
           exit $fail

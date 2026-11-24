@@ -17,6 +17,8 @@
 -- The gate password's bcrypt hash is NOT in this repo. Set or change the password in the SQL editor with:
 --   update public.cb_gate set pass_hash = extensions.crypt('<the password>', extensions.gen_salt('bf')), updated_at = now() where id = 1;
 
+begin;   -- one transaction: if the guard below refuses, nothing after it runs, in any client
+
 do $$ begin
   if to_regnamespace('codeblack') is not null then
     raise exception 'This is the record of the database before v0.31.0. This database already has v0.31.0 (the codeblack schema): running it would reopen the old results table.';
@@ -183,3 +185,5 @@ grant execute on function public.cb_gate_on() to anon, authenticated;
 grant execute on function public.cb_gate_check(text) to anon, authenticated;
 
 -- Launch: update public.cb_gate set gate_on = false where id = 1;
+
+commit;

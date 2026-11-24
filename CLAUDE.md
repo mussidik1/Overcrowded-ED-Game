@@ -16,10 +16,10 @@ Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages
 ## Branches and releases
 
 - Work happens on `3d`. It is merged into `main` with `--no-ff`, and `main` deploys to Pages through the workflow (tests first). (A Claude session may be told to use a different branch; follow that.)
-- A release: bump `package.json` `version`, set `PAST_V` in `ui.js` to the version being replaced (one entry only: each entry makes typos more likely to read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
+- A release: bump `package.json` `version`, set `PAST_V` in `ui.js` to the version being replaced (one entry only: each entry makes typos more likely to read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. **If the release has a new file in `supabase/migrations/`, the owner applies it to the live project first**; the deploy checks the live database before it publishes and stops if the migration isn't there. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
 - WebKit CI results: `git fetch origin ci-results && git show FETCH_HEAD:webkit.txt`.
 - **Before a merge into `main`:** the Tests workflow is green on `3d` at the exact commit being merged, and `docs/SMOKE.md` has been run on a phone. The deploy (`pages.yml`) re-runs the build check, `npm test` and stress, then checks the live site: the new version is in `index.html` at the Pages address and at edcodeblack.com, and the source, docs and CLAUDE.md answer 404.
-- **Rolling back:** `git revert -m 1 <merge commit>` on `main` and push: the deploy republishes the previous version. If the live-site check reports a published source file, roll back first, then check Settings > Pages (Source must be "GitHub Actions"; the custom domain edcodeblack.com).
+- **Rolling back:** `git revert -m 1 <merge commit>` on `main` and push: the deploy republishes the previous version. The database stays as it is (a live database ahead of the game passes the deploy's check). If Supabase itself is down, run the Deploy workflow by hand with **skip_db_check** ticked. If the live-site check reports a published source file, roll back first, then check Settings > Pages (Source must be "GitHub Actions"; the custom domain edcodeblack.com).
 
 ## Working with the owner
 
@@ -133,12 +133,12 @@ Class results and the testing gate use **Supabase, the same project as Case Room
 - `rpc/cb_class_new`: making a class code registers it with an **instructor key** (16 characters) that the game makes and keeps on that device (`oc-ckeys`, `{ v: 1, c: { code: { k, exp, t } } }`). Repeating it is safe; a code another class has comes back `taken`, and the game makes another before showing it. The key stays hidden until the instructor taps Show key.
 - `rpc/cb_submit`: a student sends their summary: first name or initials, score 0 to 100, stars, real time played, stats (`client_call.json` lists the keys), the version the shift was played on, and the result's own id (kept once however often it's retried). The name is never stored on the device.
 - `rpc/cb_class_read`, `rpc/cb_class_delete`: the instructor's Class results list, and deleting one result or all. Both need the key. Copy table and Download CSV export it.
-- `rpc/cb_health`: for the deploy's check (which migration is live, whether the clean-up runs). No class data.
+- `rpc/cb_health`: for the deploy's check (which migration is live, whether the clean-up runs, whether callers' addresses are read). No class data.
 - `rpc/cb_gate_on`, `rpc/cb_gate_check`: the password gate, active only on `edcodeblack.com/.net` and `*.github.io` (`GATED`). The password is checked by bcrypt hash in the database, and a device that passed the gate once can play offline.
 
-A code lasts 7 days until its first result, then 30 days from when it was made; then it and its results are deleted. Rate limits are per network, per hour, by a daily-salted hash of the address. Every call gives up after 8 seconds (`cbFetch`), and a failure says whether it was the network, a timeout or the server. Everything else runs offline in the browser.
+A code lasts 14 days until its first result, then 30 days from when it was made; then it and its results are deleted. The device keeps a key 30 days from when its code was made. Rate limits are per network, per hour, by a daily-salted hash of the address. Every call gives up after 8 seconds (`cbFetch`), and a failure says whether it was the network, a timeout or the server. Everything else runs offline in the browser.
 
-- **Changing the database:** add a new file to `supabase/migrations/`, run `npm run db:test` (a throwaway local Postgres; also a CI job, on PostgreSQL 17 as live), and get the owner's approval before it goes to the live project (he pastes it into the SQL editor, or approves the tool call). **The database goes first, then the game:** the Pages deploy runs `test/db_live.js` before it publishes and stops if the live database isn't ready. This container's network can't reach supabase.co, so that check runs in CI. `supabase/tests/client_call.json` pins the calls the game makes; change it, `ui.js` and the SQL together.
+- **Changing the database:** add a new file to `supabase/migrations/`, run `npm run db:test` (a throwaway local Postgres; also a CI job, on PostgreSQL 17 as live), and get the owner's approval before it goes to the live project (he pastes it into the SQL editor, or approves the tool call). **The database goes first, then the game:** the Pages deploy runs `test/db_live.js` before it publishes and stops if the live database doesn't have the release's migration (or a newer one). Each migration refuses to run over a newer one and records its own name in `codeblack.migrations`. This container's network can't reach supabase.co, so that check runs in CI. `supabase/tests/client_call.json` is the contract: the calls the game makes, the errors each function gives, and the names both sides accept and refuse. Change it, `ui.js` and the SQL together.
 
 ## Running it
 
@@ -153,7 +153,7 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules12.js: engine rule checks in Node (~520 "ok -" lines; any "FAIL:" sets exit 1)
+npm test          # rules.js through rules12.js: engine rule checks in Node (~690 "ok" lines; any "FAIL:" sets exit 1)
                   #   then golden.js: behaviour fingerprints, stream sync, class codes, save round trips, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run sim       # simulated shifts at several player speeds

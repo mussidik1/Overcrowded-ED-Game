@@ -1033,7 +1033,10 @@ body.ingame { touch-action: pan-x pan-y; }
 .cb-ask span { flex: 1 1 100%; font-weight: 700; }
 .cb-ask .big { flex: 1 1 96px; margin: 0; }
 .cb-list { list-style: none; margin: 4px 0; padding: 0; }
-.cb-row { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line, #E1E5EA); }
+.cb-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 36px 8px 0; border-bottom: 1px solid var(--line, #E1E5EA); }   /* right padding: the sheet's close button sits over the right edge */
+.cb-row .cb-ask { flex: 1 1 100%; }
+.cb-codes > li.open { border-left: 4px solid #1F5FA8; padding-left: 8px; }
+.rep-note { margin: 10px 0 0; font-size: 13px; color: var(--ink-2); }
 .cb-main { flex: 1 1 auto; min-width: 0; }
 .cb-del-gap { flex: 0 0 44px; }
 .cb-top { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }

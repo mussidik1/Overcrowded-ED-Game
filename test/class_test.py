@@ -39,13 +39,18 @@ with sync_playwright() as pw:
         a = _json.loads(route.request.post_data or '{}'); reg.append(a); step = reg_plan.pop(0) if reg_plan else 'ok'
         if step == 'fail': route.fulfill(status=503, body='')
         elif step == 'taken': route.fulfill(status=200, content_type='application/json', body='{"error": "taken"}')
-        else: route.fulfill(status=200, content_type='application/json', body=_json.dumps({'ok': True, 'expires': '2026-12-24T16:00:00+00:00'}))
+        else: route.fulfill(status=200, content_type='application/json', body=_json.dumps({'ok': True, 'expires': '2026-12-08T16:00:00+00:00'}))   # 14 days: what the real function says for a new class
     page.route('**/rest/v1/rpc/cb_class_new', on_new)
+    names = J("(L) => [L.accept.filter(n => !OCUI.cbClean(n)), L.refuse.filter(n => OCUI.cbClean(n))]", CALL['names'])
+    ok(names == [[], []], f'the game accepts and refuses the same names as the contract file says the database does ({names})')
+    src_ui = open(os.path.join(os.path.dirname(__file__), '..', 'src', 'ui.js'), encoding='utf-8').read()
+    unhandled = [f'{fn}:{e}' for fn, errs in CALL['answers'].items() if fn != 'cb_health' for e in errs if f"'{e}'" not in src_ui and f"{e}:" not in src_ui]
+    ok(not unhandled, f'every error the database can give has a message in the game ({unhandled})')
     page.locator('#sheet [data-act="codeMake"][data-arg="rush"]').tap(); page.wait_for_timeout(700)
     first = page.locator('#sheet .cc-code').inner_text().strip() if page.locator('#sheet .cc-code').count() else ''
     ok(reg and reg[0].get('p_code') == first and _re.match(r'^[0-9A-HJKMNP-TV-Z]{16}$', reg[0].get('p_key') or '') and 'Class results are off' in page.locator('#sheet .cb-key').inner_text() and page.locator('#sheet [data-act="codeReg"]').count() == 1,
        f'making a code registers it with a key the game made; if the server fails, the code shows with "results are off" and Try again ({first})')
-    ok(sorted(reg[0].keys()) == sorted(CALL['cb_class_new'].keys()), f'the registration call matches the contract file ({sorted(reg[0].keys())})')
+    ok(sorted(reg[0].keys()) == sorted(CALL['calls']['cb_class_new'].keys()), f'the registration call matches the contract file ({sorted(reg[0].keys())})')
     page.locator('#sheet [data-act="codeReg"]').tap(); page.wait_for_timeout(700)
     ok(len(reg) == 2 and reg[1] == reg[0] and page.locator('#sheet .cc-code').inner_text().strip() == first and 'Class results are on' in page.locator('#sheet .cb-key').inner_text(),
        'Try again sends the same code and key (safe to repeat), and the code on screen doesn\'t change')
@@ -57,10 +62,16 @@ with sync_playwright() as pw:
     page.locator(f'#sheet .cc-made [data-act="keyShow"]').tap(); page.wait_for_timeout(300)
     kv = page.locator('#sheet .cc-made .cb-key-v').inner_text().strip() if page.locator('#sheet .cc-made .cb-key-v').count() else ''
     saved = J("JSON.parse(localStorage.getItem('oc-ckeys') || '{}')")
-    ok(kv.replace('-', '') == KEY and len(kv) == 19 and ((saved.get('c') or {}).get(code) or {}).get('k') == KEY and saved.get('v') == 1, f'Show key shows it in groups of four; it is saved on this device, in a versioned record ({kv})')
+    ok(kv.replace('-', '') == KEY and len(kv) == 19 and ((saved.get('c') or {}).get(code) or {}).get('k') == KEY and saved.get('v') == 1 and not ((saved.get('c') or {}).get(code) or {}).get('p'), f'Show key shows it in groups of four; it is saved on this device, confirmed, in a versioned record ({kv})')
     ok(first in (saved.get('c') or {}), 'the first code\'s key is kept too (it was registered on the retry)')
     page.locator(f'#sheet .cc-made [data-act="keyShow"]').tap(); page.wait_for_timeout(200)
     ok(page.locator('#sheet .cc-made .cb-key-v').count() == 0, 'and Hide key hides it again')
+    J("(() => { const o = JSON.parse(localStorage.getItem('oc-ckeys')); for (const c of Object.keys(o.c)) o.c[c].t -= 20 * 864e5; localStorage.setItem('oc-ckeys', JSON.stringify(o)); })()")
+    ok(code in J("Object.keys(OCUI.U && JSON.parse(localStorage.getItem('oc-ckeys')).c)") and page.locator(f'#sheet .cb-codes [data-act="cbShow"][data-arg="{code}"]').count() == 1, 'a key made 20 days ago is still listed (a class with results lives 30 days)')
+    J("(() => { const o = JSON.parse(localStorage.getItem('oc-ckeys')); for (const c of Object.keys(o.c)) o.c[c].t += 20 * 864e5; localStorage.setItem('oc-ckeys', JSON.stringify(o)); })()")
+    page.locator(f'#sheet .cc-made [data-act="keyShow"]').tap(); page.wait_for_timeout(150)
+    J("OCUI.U.sheet = null; OCUI.render()"); page.locator('#title [data-act="classCode"]').tap(); page.wait_for_timeout(400)
+    ok(page.locator('#sheet .cb-key-v').count() == 0, 'a key left showing is hidden again when the sheet is opened again (a projector)')
     ok(len(code) == 7 and code[3] == '-' and 'Five-Minute Rush' in page.locator('#sheet .cc-made').inner_text(), f'picking the Rush makes a code and names the shift ({code})')
     # a student types it, in lower case without the dash
     page.locator('#sheet .cc-in').fill(code.replace('-', '').lower()); page.wait_for_timeout(200)
@@ -109,14 +120,17 @@ with sync_playwright() as pw:
     nm = J("(() => { const i = document.querySelector('#report input.cb-name'); return { auto: i.getAttribute('autocomplete'), ph: i.placeholder, val: i.value }; })()")
     ok(nm['auto'] == 'off' and 'initials' in nm['ph'] and nm['val'] == '', f'the name box asks for a first name or initials, starts empty, and the browser doesn\'t fill it ({nm})')
     page.locator('#report [data-act="menu"]').tap(); page.wait_for_timeout(300)
-    ok(page.is_visible('#report') and 'isn’t sent yet' in J("document.body.innerText"), 'leaving the summary with the result unsent asks first')
+    ok(page.is_visible('#report') and 'Not sent yet' in sb.inner_text(), 'leaving the summary with the result unsent asks first, in the Send box')
     page.locator('#report [data-act="cbSend"]').tap(); page.wait_for_timeout(300)
     ok('first name or initials' in sb.inner_text() and not sent, 'it asks for a name before sending')
     for bad in ['sam@school.edu', 'ㅤㅤㅤ', '５５５ ５５５', 'Bob1']:
         page.locator('#report input.cb-name').fill(bad); page.locator('#report [data-act="cbSend"]').tap(); page.wait_for_timeout(250)
         ok('letters only' in sb.inner_text() and not sent, f'{bad!r} is refused before anything is sent')
-    page.locator('#report input.cb-name').fill('  Sam   R '); page.locator('#report input.cb-name').press('Enter'); page.wait_for_timeout(600)
+    page.locator('#report input.cb-name').fill('  Sam   R ')
+    with page.expect_request('**/rpc/cb_submit'): page.locator('#report input.cb-name').press('Enter')
+    page.wait_for_timeout(400)
     ok(len(sent) == 1 and 'isn’t set up for class results' in sb.inner_text(), 'Enter in the name box sends; a code the server doesn\'t know gets a plain answer')
+    ok(J("document.activeElement && document.activeElement.id") == 'cbName', 'and the name box keeps the focus (and the phone its keyboard) after a refusal')
     page.locator('#report [data-act="cbSend"]').tap(); page.wait_for_timeout(500)
     busy = J("(() => { const b = document.querySelector('#report [data-act=\"cbSend\"]'); return { dis: !!(b && b.disabled), txt: b ? b.textContent : '' }; })()")
     ok(len(sent) == 2 and held and busy['dis'] and 'Sending' in busy['txt'], f'while a send is out, the button is off, so it can\'t be sent twice ({busy})')
@@ -126,17 +140,19 @@ with sync_playwright() as pw:
     s0 = sent[-1]
     ok(s0.get('p_code') == code and s0.get('p_name') == 'Sam R' and s0.get('p_role') == 'rn' and s0.get('p_level') == 'rush' and isinstance(s0.get('p_score'), int) and 0 <= s0['p_score'] <= 100,
        f'it sends the code, the tidied name, role, shift and a 0-100 score ({s0})')
-    ok(sorted(s0.keys()) == sorted(CALL['cb_submit'].keys()) and sorted((s0.get('p_stats') or {}).keys()) == sorted(CALL['cb_submit']['p_stats'].keys()),
+    ok(sorted(s0.keys()) == sorted(CALL['calls']['cb_submit'].keys()) and sorted((s0.get('p_stats') or {}).keys()) == sorted(CALL['calls']['cb_submit']['p_stats'].keys()),
        f'the send call matches the contract file, argument names and stats keys ({sorted((s0.get("p_stats") or {}).keys())})')
     ok(_re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', s0.get('p_cid') or '') and sent[0].get('p_cid') == s0.get('p_cid'), 'with its own id, the same on every try, so the server keeps it once')
     ok(s0.get('p_ver') == J("OC.readCode ? (JSON.parse(localStorage.getItem('oc-last-report')).R.ver) : ''"), f"and the version the shift was played on ({s0.get('p_ver')})")
     ok('Sent to the instructor' in sb.inner_text(), 'and says it went')
     lr = J("JSON.parse(localStorage.getItem('oc-last-report') || '{}')")
-    ok(lr.get('sent') is True and lr.get('cid') == s0.get('p_cid') and J("localStorage.getItem('oc-cb-name')") is None, 'the summary remembers it was sent (no resend after a reload), and the name isn\'t kept on the device')
+    ok(lr.get('sent') is True and lr.get('cid') == s0.get('p_cid') and J("localStorage.getItem('oc-cb-name')") is None and J("OCUI.U.cbName") == '', 'the summary remembers it was sent (no resend after a reload), and the name isn\'t kept, not even for the next student in this tab')
     page.screenshot(path=os.path.join(os.path.dirname(__file__), 'shots', 'class-report.png'))
     U1, U2 = '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222'
-    rows = [{'id': U1, 'name': 'Sam R', 'role': 'rn', 'level': 'rush', 'score': 88, 'stars': 3, 'real_sec': 330, 'stats': {'wait': 14, 'lwbs': 1, 'expired': 0, 'fast': 60}, 'ver': '0.31.0', 'created_at': '2026-11-18T22:00:00Z'},
-            {'id': U2, 'name': 'Ana Maria Lopez-Ruiz', 'role': 'rn', 'level': 'rush', 'score': 61, 'stars': 1, 'real_sec': 290, 'stats': {'wait': 31, 'lwbs': 3, 'expired': 1, 'fired': 1}, 'ver': '0.31.0', 'created_at': '2026-11-18T22:01:00Z'},
+    U3 = '33333333-3333-4333-8333-333333333333'
+    rows = [{'id': U1, 'name': 'Sam R', 'role': 'rn', 'level': 'rush', 'score': 88, 'stars': 3, 'real_sec': 330, 'stats': {'wait': 14, 'lwbs': 1, 'expired': 0, 'fast': 60}, 'ver': '0.31.0', 'created_at': '2026-11-18T22:03:00Z'},
+            {'id': U2, 'name': 'Ana Maria Lopez-Ruiz', 'role': 'rn', 'level': 'rush', 'score': 61, 'stars': 1, 'real_sec': 290, 'stats': {'wait': 31, 'lwbs': 3, 'expired': 1, 'walkout': 1}, 'ver': '0.31.0', 'created_at': '2026-11-18T22:01:00Z'},
+            {'id': U3, 'name': 'Sam R', 'role': 'rn', 'level': 'rush', 'score': 95, 'stars': 3, 'real_sec': 300, 'stats': {'wait': 9, 'lwbs': 0, 'expired': 0}, 'ver': '0.31.0', 'created_at': '2026-11-18T22:05:00Z'},
             # a hostile row: nothing in it may run or become markup, whatever the server sends, and no cell may run as a spreadsheet formula
             {'id': '<b>13</b>', 'name': '=HYPERLINK("x")<img src=x onerror="window.__xss=1">', 'role': 'rn', 'level': 'rush', 'score': '<img src=x onerror="window.__xss=2">', 'stars': '<b>9</b>', 'real_sec': 'x', 'stats': {'wait': '<svg onload="window.__xss=3">', 'lwbs': '<i>1</i>'}, 'ver': '<img src=x onerror="window.__xss=4">', 'created_at': '2026-11-18T22:02:00Z'}]
     asked, dels = [], []
@@ -160,13 +176,16 @@ with sync_playwright() as pw:
     ok(KEY in page.locator('#sheet .cb-codes').inner_text().replace('-', ''), 'Show key shows a saved code\'s key again, after the sheet was closed')
     page.locator(f'#sheet .cb-codes [data-act="cbShow"][data-arg="{code}"]').tap(); page.wait_for_timeout(600)
     lst = page.locator('#sheet .cb-list')
-    ok(asked and asked[-1] == {'p_code': code, 'p_key': KEY} and lst.count() == 1 and lst.locator('li').count() == 3 and 'Sam R' in lst.inner_text() and '88' in lst.inner_text(), f'one tap reads the results with the saved key, best first ({asked[-1:]})')
-    ok(sorted(asked[-1].keys()) == sorted(CALL['cb_class_read'].keys()), 'the read call matches the contract file')
+    order = J("[...document.querySelectorAll('#sheet .cb-list .cb-nm')].map(e => e.textContent)")
+    ok(asked and asked[-1] == {'p_code': code, 'p_key': KEY} and lst.count() == 1 and lst.locator('li').count() == 4 and order[0].startswith('Ana') and order[1].startswith('=HYPERLINK') and order[2] == 'Sam R' and 'Sam R (2nd result)' in order[3] and not any(o[:2].strip('. ').isdigit() for o in order),
+       f'one tap reads the results with the saved key, in the order they came in, unranked, with a second try marked ({order})')
+    ok(J("(() => { const h = document.getElementById('cbHead'), r = h && h.getBoundingClientRect(); return !!r && r.top >= 0 && r.top < innerHeight; })()"), 'and the results scroll into view')
+    ok(sorted(asked[-1].keys()) == sorted(CALL['calls']['cb_class_read'].keys()), 'the read call matches the contract file')
     page.wait_for_timeout(300)
     ok(J('window.__xss') is None and lst.locator('img, svg, i').count() == 0, 'a hostile result row shows as text: nothing in it runs or becomes markup')
-    ok(lst.locator('[data-act="cbDel"]').count() == 2, 'each row with a real id has a delete button (the hostile id gets none)')
+    ok(lst.locator('[data-act="cbDel"]').count() == 3, 'each row with a real id has a delete button (the hostile id gets none)')
     txt = page.locator('#sheet .cb-res').inner_text()
-    ok('Not for grading' in txt and '1 died' in txt and 'fired' in txt and '60% sped up' in txt, 'the list says it is not for grading and shows deaths, firing and sped-up play')
+    ok('Not for grading' in txt and 'no licensed clinician' in txt and '1 died' in txt and 'staff walked out' in txt and 'fired' not in txt.replace('not fired', '') and '60% sped up' in txt, 'the list says it is not for grading or clinically reviewed, and shows deaths, a staff walkout (not "fired") and sped-up play')
     box = J("(() => { const s = document.getElementById('sheet').getBoundingClientRect(); return [...document.querySelectorAll('#sheet .cb-del')].every(b => { const r = b.getBoundingClientRect(); return r.right <= s.right + 0.5 && r.width >= 44 && r.height >= 44; }); })()")
     ok(box, 'every delete button is fully on screen and at least 44 px, even next to a long name')
     page.screenshot(path=os.path.join(os.path.dirname(__file__), 'shots', 'class-results.png'))
@@ -174,17 +193,18 @@ with sync_playwright() as pw:
         page.locator('#sheet [data-act="cbCsv"]').tap()
     csv = open(dl.value.path(), encoding='utf-8-sig').read()
     ok(page.locator('#sheet .cb-list').count() == 1, 'and the results stay open')
-    ok(csv.startswith('Rank,Name,Role,Score') and 'Sam R' in csv and '"\'=HYPERLINK(""x"")' in csv, f'Download CSV gives the table, and a name that looks like a formula can\'t run as one ({csv.splitlines()[3][:40] if len(csv.splitlines()) > 3 else csv[:80]})')
+    lines = csv.splitlines()
+    ok('Not for grading' in lines[0] and lines[2].startswith('Name,Result #,Role,Score') and 'Rank' not in csv and 'Sam R' in csv and '"\'=HYPERLINK(""x"")' in csv, f'Download CSV carries the caveats, has no rank, and a name that looks like a formula can\'t run as one ({lines[2][:40] if len(lines) > 2 else csv[:80]})')
     n_read = len(asked)
     lst.locator(f'[data-act="cbDel"][data-arg="{U2}"]').tap()
     #, errors[-3:], J("JSON.stringify({ask: OCUI.U.cbList && OCUI.U.cbList.ask, sheet: OCUI.U.sheet, res: !!document.querySelector('#sheet .cb-res'), txt: document.getElementById('sheet').innerText.slice(0, 300)})"))
     page.wait_for_selector(f'#sheet [data-act="cbDelGo"][data-arg="{U2}"]', timeout=2000)
     page.locator(f'#sheet [data-act="cbDelGo"][data-arg="{U2}"]').tap(); page.wait_for_timeout(200)   # within half a second of the ✕: a double tap
-    ok(not dels and page.locator('#sheet .cb-ask').count() == 1, 'a double tap doesn\'t delete: the confirm ignores a tap in the first half second')
+    ok(not dels and page.locator(f'#sheet .cb-row .cb-ask [data-act="cbDelGo"][data-arg="{U2}"]').count() == 1, 'a double tap doesn\'t delete; the confirm shows in that row, where the finger is, and ignores a tap in the first half second')
     page.wait_for_timeout(500); page.locator(f'#sheet [data-act="cbDelGo"][data-arg="{U2}"]').tap(); page.wait_for_timeout(600)
-    ok(dels and dels[-1] == {'p_code': code, 'p_key': KEY, 'p_id': U2, 'p_all': False} and len(asked) == n_read and page.locator('#sheet .cb-list li').count() == 2,
+    ok(dels and dels[-1] == {'p_code': code, 'p_key': KEY, 'p_id': U2, 'p_all': False} and len(asked) == n_read and page.locator('#sheet .cb-list li').count() == 3,
        f'then deletes that one result by its id, and takes it out of the list without reloading ({dels[-1:]})')
-    ok(sorted(dels[-1].keys()) == sorted(CALL['cb_class_delete'].keys()), 'the delete call matches the contract file')
+    ok(sorted(dels[-1].keys()) == sorted(CALL['calls']['cb_class_delete'].keys()), 'the delete call matches the contract file')
     page.locator('#sheet .cb-res [data-act="cbDel"][data-arg="all"]').tap(); page.wait_for_timeout(600)
     page.locator('#sheet [data-act="cbDelGo"][data-arg="all"]').tap(); page.wait_for_timeout(600)
     ok(dels[-1] == {'p_code': code, 'p_key': KEY, 'p_all': True} and page.locator('#sheet .cb-list li').count() == 0, 'Delete all asks, then deletes every result for the code')
@@ -195,18 +215,24 @@ with sync_playwright() as pw:
     # another device: the code and the key typed in
     J("localStorage.removeItem('oc-ckeys'); OCUI.U.cbList = null; OCUI.U.cbOpen = false; OCUI.U.reg = null; OCUI.U.codeMade = null; OCUI.render()"); page.wait_for_timeout(300)
     page.locator('#sheet .cb-res [data-act="cbOpen"]').tap(); page.wait_for_timeout(300)
-    page.locator('#sheet #cbCode').fill(code.lower().replace('-', '')); page.locator('#sheet #cbKey').fill('ABCD-EFGH-JKMN-PQRS'); page.locator('#sheet .cb-res [data-act="cbShow"]').first.tap(); page.wait_for_timeout(600)
+    page.locator('#sheet #cbCode').fill(code.lower().replace('-', '')); page.locator('#sheet #cbKey').fill('ABCD-EFGH-JKMN-PQRS')
+    with page.expect_request('**/rpc/cb_class_read'): page.locator('#sheet .cb-res [data-act="cbShow"]').first.tap()
+    page.wait_for_timeout(400)
     ok('don’t match' in page.locator('#sheet .cb-res').inner_text() and page.locator('#sheet .cb-list').count() == 0, 'a wrong key shows nothing')
     ok(page.locator('#sheet #cbKey').input_value() == 'ABCD-EFGH-JKMN-PQRS' and page.locator('#sheet #cbCode').input_value() == code.lower().replace('-', ''), 'and keeps what was typed, to fix it')
-    page.locator('#sheet #cbKey').fill(KEY.lower()[:4] + '-' + KEY.lower()[4:]); page.locator('#sheet .cb-res [data-act="cbShow"]').first.tap(); page.wait_for_timeout(600)
-    ok(asked[-1] == {'p_code': code, 'p_key': KEY} and page.locator('#sheet .cb-list').count() == 1, 'the key typed in lower case with a dash opens the results')
+    page.locator('#sheet #cbKey').fill(KEY.lower()[:4] + '-' + KEY.lower()[4:])
+    with page.expect_request('**/rpc/cb_class_read') as rq: page.locator('#sheet .cb-res [data-act="cbShow"]').first.tap()
+    page.wait_for_timeout(400)
+    ok(rq.value.post_data_json == {'p_code': code, 'p_key': KEY} and page.locator('#sheet .cb-list').count() == 1, 'the key typed in lower case with a dash opens the results')
     ok(not (J("JSON.parse(localStorage.getItem('oc-ckeys') || '{}')").get('c') or {}), 'a typed key isn\'t remembered unless asked (a shared computer)')
+    J("OCUI.U.sheet = null; OCUI.render()"); page.locator('#title [data-act="classCode"]').tap(); page.wait_for_timeout(400)
+    ok(page.locator('#sheet .cb-list').count() == 0, 'and its results are gone when the sheet is opened again')
     # a code from an older version (its check characters no longer match) still opens with its key
     oldc = code[:6] + ('A' if code[6] != 'A' else 'B')
     J("OCUI.U.cbList = null; OCUI.U.cbOpen = true; OCUI.U.cbForm = {}; OCUI.render()"); page.wait_for_timeout(200)
-    page.locator('#sheet #cbCode').fill(oldc); page.locator('#sheet #cbKey').fill(KEY); page.locator('.cb-rem input').check(); page.locator('#sheet .cb-res [data-act="cbShow"]').first.tap(); page.wait_for_timeout(600)
-    ok(asked[-1] == {'p_code': oldc, 'p_key': KEY} and oldc in (J("JSON.parse(localStorage.getItem('oc-ckeys') || '{}')").get('c') or {}) is False or asked[-1] == {'p_code': oldc, 'p_key': KEY},
-       f'a code the game can no longer play (another version) still goes to the server with its key ({oldc})')
+    page.locator('#sheet #cbCode').fill(oldc); page.locator('#sheet #cbKey').fill(KEY); page.locator('.cb-rem input').check()
+    with page.expect_request('**/rpc/cb_class_read') as rq: page.locator('#sheet .cb-res [data-act="cbShow"]').first.tap()
+    ok(rq.value.post_data_json == {'p_code': oldc, 'p_key': KEY}, f'a code the game can no longer play (another version) still goes to the server with its key ({oldc})')
     # the privacy notice says where names go
     J("OCUI.U.sheet = null; OCUI.render()"); page.wait_for_timeout(200)
     J("OCUI.showTitle()"); page.wait_for_timeout(300)

@@ -16,13 +16,21 @@ const call = (p, opt = {}) => fetch(URL + p, Object.assign({}, opt, { signal: Ab
 const rpc = (fn, args, headers) => call('/rest/v1/rpc/' + fn, { method: 'POST', body: JSON.stringify(args), headers });
 const json = t => { try { return JSON.parse(t); } catch (e) { return null; } };
 const BAD = 'ZZZZZZZZZZZZZZZZ';   // a well-formed key nobody has (a 1 in 2^80 chance otherwise)
+const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  const h = await rpc('cb_health', {}), hj = json(h.body) || {};
-  ok(h.status === 200 && hj.db === LATEST, `the live database has the latest migration, ${LATEST} (${h.status} ${h.body})`);
+  if (process.env.SKIP_DB_CHECK) {   // only for an emergency deploy, such as a rollback: say so loudly
+    console.log('::warning::The live database check was SKIPPED for this deploy (skip_db_check). Run npm run db:live as soon as you can.');
+    console.log('SKIPPED: the live database was not checked.'); process.exit(0);
+  }
+  const h = await rpc('cb_health', { p_probe: false }), hj = json(h.body) || {};
+  if (h.status === 0) { console.log(`FAIL: couldn't reach the database (${h.body}). Supabase may be down or paused; nothing was published.`); process.exit(1); }
+  if (hj.error === 'busy') { console.log(`FAIL: this network has used its health checks for this hour. Re-run after ${new Date(Math.ceil(Date.now() / 36e5) * 36e5).toISOString().slice(11, 16)} UTC; the database itself may be fine.`); process.exit(1); }
+  ok(h.status === 200 && typeof hj.db === 'string', `the health check answers (${h.status} ${h.body.slice(0, 200)})`);
+  ok(typeof hj.db === 'string' && hj.db >= LATEST, `the live database has this release's migration ${LATEST} (live: ${hj.db}). ${hj.db < LATEST ? 'Apply it in the Supabase SQL editor first (supabase/README.md, "Releasing"), then re-run the deploy.' : 'A newer one is fine (a rollback).'}`);
   ok(hj.overdue === 0, `no class is more than two hours past its deletion time (${hj.overdue})`);
   ok(hj.cron === true, 'the hourly clean-up job is scheduled');
-  ok(hj.addr === true, 'the database can read each caller\'s address (otherwise everyone would share one rate limit)');
+  ok(hj.addr === true && hj.public === true, `the database reads each caller's public address (addr ${hj.addr}, public ${hj.public}); otherwise everyone would share one rate limit`);
   const oldGet = await call('/rest/v1/cb_results?select=*&limit=1');
   ok(oldGet.status === 404, `the old results table is gone from the API (HTTP ${oldGet.status})`);
   // An invalid row (role "x"): refused by the old table's checks if it were still there (400), so this never writes.
@@ -42,13 +50,16 @@ const BAD = 'ZZZZZZZZZZZZZZZZ';   // a well-formed key nobody has (a 1 in 2^80 c
   ok(sub.status === 200 && (json(sub.body) || {}).field === 'level', `an invalid result is refused and names the field (${sub.status} ${sub.body})`);
   const reg = await rpc('cb_class_new', { p_code: 'ZZZ-ZZZ', p_key: BAD, p_ver: 'x' });
   ok(reg.status === 200 && (json(reg.body) || {}).error === 'invalid', `registering with a bad version is refused (${reg.status} ${reg.body})`);
-  // The rate limit must hold however a caller dresses up its address: 121 health calls, each claiming a different one.
-  let last = null;
-  for (let i = 0; i < 121; i++) {
-    const ip = `203.0.113.${(i % 250) + 1}`;
-    last = await rpc('cb_health', {}, { 'X-Forwarded-For': ip, 'X-Real-IP': ip, 'CF-Connecting-IP': ip, 'True-Client-IP': ip });
+  // The rate limit must hold however a caller dresses up its address: 31 probe calls (a bucket of 30 an hour), each claiming a
+  // different address. Not across the top of the hour, when the counter restarts.
+  if (new Date().getUTCMinutes() >= 58) { const ms = Math.ceil(Date.now() / 36e5) * 36e5 - Date.now() + 5000; console.log(`waiting ${Math.round(ms / 1000)} s for the next hour`); await wait(ms); }
+  let last = null, busy = 0;
+  for (let i = 0; i < 31; i++) {
+    const ip = `203.0.113.${i + 1}`;
+    last = await rpc('cb_health', { p_probe: true }, { 'X-Forwarded-For': ip, 'X-Real-IP': ip, 'CF-Connecting-IP': ip, 'True-Client-IP': ip });
+    if ((json(last.body) || {}).error === 'busy') busy++;
   }
-  ok((json(last && last.body) || {}).error === 'busy', `forged address headers don't get round the rate limit (call 121: ${last && last.body})`);
+  ok((json(last && last.body) || {}).error === 'busy', `forged address headers don't get round the rate limit (call 31: ${last && last.body}; ${busy} refused)`);
   console.log(fails ? `${fails} FAILED` : 'All live database checks passed.');
   process.exit(fails ? 1 : 0);
 })().catch(e => { console.log('FAIL: ' + (e && e.message)); process.exit(1); });
