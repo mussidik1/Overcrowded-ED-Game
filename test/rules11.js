@@ -66,8 +66,12 @@ assert(!OC.contraOf(p).includes('ketor'), 'after a normal troponin, an NSAID for
 for (const k of ['cpmod', 'nstemi', 'stemi']) {
   p = mine(k); r = sign(p, ['ecg', 'trop'], ['ntg']);
   assert(!r.harm && !r.wrong && !r.extra, `${k}: nitroglycerin is not a "wrong drug"`);
-  p = mine(k); r = sign(p, ['ecg', 'trop'], ['morph', 'metop']);
-  assert(!r.harm && !r.wrong && !r.extra, `${k}: morphine and metoprolol are neutral (pending clinician review)`);
+  p = mine(k, { age: 55 }); r = sign(p, ['ecg', 'trop'], ['morph']);
+  assert(!r.harm && !r.wrong && !r.extra, `${k}: morphine is neutral with a normal pressure (pending clinician review)`);
+  p = mine(k, { age: 55 }); { const v = OC.vitalsOf(p), risky = v.sbp < 120 || v.hr > 110; r = sign(p, ['ecg', 'trop'], ['metop']);
+    assert(risky ? r.harm === 1 : !r.harm && !r.wrong && !r.extra, `${k}: metoprolol is ${risky ? 'harm with shock risk' : 'neutral when stable'} (SBP ${Math.round(v.sbp)}, HR ${Math.round(v.hr)}; round 3, R6.3-13)`); }
+  p = mine(k, { age: 78 }); r = sign(p, ['ecg', 'trop'], ['metop']);
+  assert(r.harm === 1, `${k}: metoprolol at 78 is harm (age over 70 is a shock-risk factor)`);
 }
 p = mine('nstemi'); OC.crashNow(p.id); run(30);
 assert(OC.vitalsOf(p).sbp < 90 && OC.contraOf(p).includes('ntg'), `NSTEMI in cardiogenic shock (SBP ${Math.round(OC.vitalsOf(p).sbp)}): nitroglycerin is harm`);
@@ -140,7 +144,7 @@ p = OC.inRooms().find(x => x.prov && !x.arrest);
 if (p) {
   const sid = p.prov; OC.toArrest(p, 'Arrested in the room');
   assert(p.prov === sid && OC.staff(sid).q.some(k => k.type === 'code' && k.pid === p.id), 'a provider whose patient arrests runs the code: no dead end');
-  for (let i = 0; i < 300 && p.arrest; i++) OC.step(0.1);
+  for (let i = 0; i < 300 && p.arrest; i++) { if (OC.G.card && !OC.G.card.mine) OC.botStep({ budget: 0 }); OC.step(0.1); }   // a call-out card stops the clock
   assert(!p.arrest, 'and it resolves within 30 minutes');
 }
 

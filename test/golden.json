@@ -22,64 +22,64 @@
    "stateHash": "77b91bbe"
   },
   "rn/easy/none": {
-   "arrivals": 93,
-   "arrivalsHash": "cb817bfd",
-   "seen": 93,
+   "arrivals": 91,
+   "arrivalsHash": "6ef04f3f",
+   "seen": 91,
    "dc": 46,
-   "adm": 31,
+   "adm": 30,
    "proc": 8,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 10,
-   "care": 1952,
+   "left": 8,
+   "care": 1978,
    "wait": 15,
    "stars": 2,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "01c00e88"
+   "stateHash": "c1513aea"
   },
   "rn/med/none": {
-   "arrivals": 110,
-   "arrivalsHash": "8097b879",
-   "seen": 110,
+   "arrivals": 111,
+   "arrivalsHash": "a515de27",
+   "seen": 111,
    "dc": 50,
-   "adm": 39,
+   "adm": 37,
    "proc": 9,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 10,
-   "care": 1816,
-   "wait": 16,
+   "left": 12,
+   "care": 1872,
+   "wait": 19,
    "stars": 2,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "450c7bc2"
+   "stateHash": "cec7d540"
   },
   "rn/hard/none": {
-   "arrivals": 130,
-   "arrivalsHash": "53abc880",
-   "seen": 130,
-   "dc": 57,
-   "adm": 34,
+   "arrivals": 134,
+   "arrivalsHash": "3394310a",
+   "seen": 134,
+   "dc": 56,
+   "adm": 37,
    "proc": 10,
    "tx": 0,
    "lwbs": 0,
-   "ama": 1,
+   "ama": 0,
    "expired": 1,
-   "left": 30,
-   "care": 590,
-   "wait": 36,
+   "left": 35,
+   "care": 591,
+   "wait": 40,
    "stars": 1,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "cdb0539a"
+   "stateHash": "ffa8d1f8"
   },
   "md/rush/none": {
    "arrivals": 23,
@@ -102,184 +102,187 @@
    "stateHash": "eb3d3cb2"
   },
   "md/easy/none": {
-   "arrivals": 88,
-   "arrivalsHash": "1506c083",
-   "seen": 88,
-   "dc": 51,
+   "arrivals": 90,
+   "arrivalsHash": "e8662ead",
+   "seen": 90,
+   "dc": 53,
    "adm": 27,
    "proc": 5,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 10,
-   "care": 1421,
+   "left": 8,
+   "care": 1725,
    "wait": 19,
    "stars": 3,
    "fail": null,
-   "lit": 58,
-   "acc": 67,
-   "stateHash": "c856953b"
+   "lit": 62,
+   "acc": 72,
+   "stateHash": "9a756542"
   },
   "md/med/none": {
-   "arrivals": 108,
-   "arrivalsHash": "581b51ce",
-   "seen": 108,
-   "dc": 54,
-   "adm": 35,
-   "proc": 8,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 0,
-   "expired": 0,
-   "left": 12,
-   "care": 2057,
-   "wait": 21,
-   "stars": 3,
-   "fail": null,
-   "lit": 50,
-   "acc": 74,
-   "stateHash": "3d0e420f"
-  },
-  "md/hard/none": {
-   "arrivals": 127,
-   "arrivalsHash": "c26f04f8",
-   "seen": 126,
-   "dc": 63,
-   "adm": 35,
-   "proc": 12,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 0,
-   "expired": 0,
-   "left": 19,
-   "care": 1839,
-   "wait": 23,
-   "stars": 3,
-   "fail": null,
-   "lit": 64,
-   "acc": 73,
-   "stateHash": "f1fd2b32"
-  },
-  "rn/med/ct": {
-   "arrivals": 109,
-   "arrivalsHash": "c81af170",
-   "seen": 109,
-   "dc": 48,
-   "adm": 41,
-   "proc": 8,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 0,
-   "expired": 0,
-   "left": 8,
-   "care": 2028,
-   "wait": 18,
-   "stars": 2,
-   "fail": null,
-   "lit": 0,
-   "acc": null,
-   "stateHash": "62b482b3"
-  },
-  "rn/med/mci": {
-   "arrivals": 113,
-   "arrivalsHash": "ac63f685",
-   "seen": 113,
-   "dc": 50,
-   "adm": 40,
+   "arrivals": 110,
+   "arrivalsHash": "28fc4473",
+   "seen": 110,
+   "dc": 53,
+   "adm": 36,
    "proc": 8,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
    "left": 14,
-   "care": 1734,
+   "care": 1882,
+   "wait": 21,
+   "stars": 3,
+   "fail": null,
+   "lit": 53,
+   "acc": 73,
+   "stateHash": "0da13789"
+  },
+  "md/hard/none": {
+   "arrivals": 126,
+   "arrivalsHash": "97243afc",
+   "seen": 125,
+   "dc": 63,
+   "adm": 29,
+   "proc": 12,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 24,
+   "care": 1868,
+   "wait": 24,
+   "stars": 3,
+   "fail": null,
+   "lit": 70,
+   "acc": 74,
+   "stateHash": "3d6881c5"
+  },
+  "rn/med/ct": {
+   "arrivals": 108,
+   "arrivalsHash": "59142af6",
+   "seen": 108,
+   "dc": 49,
+   "adm": 37,
+   "proc": 9,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 1,
+   "expired": 0,
+   "left": 11,
+   "care": 2016,
    "wait": 20,
    "stars": 2,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "232ab890"
+   "stateHash": "a2bd4b86"
   },
-  "rn/med/board": {
-   "arrivals": 118,
-   "arrivalsHash": "1ab528b8",
-   "seen": 118,
-   "dc": 54,
-   "adm": 29,
-   "proc": 7,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 0,
-   "expired": 0,
-   "left": 32,
-   "care": 1190,
-   "wait": 27,
-   "stars": 2,
-   "fail": null,
-   "lit": 0,
-   "acc": null,
-   "stateHash": "4fe0d1f5"
-  },
-  "rn/med/short": {
-   "arrivals": 111,
-   "arrivalsHash": "afc8e836",
-   "seen": 111,
-   "dc": 50,
+  "rn/med/mci": {
+   "arrivals": 113,
+   "arrivalsHash": "93d30375",
+   "seen": 113,
+   "dc": 52,
    "adm": 40,
    "proc": 9,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 14,
-   "care": 1710,
+   "left": 10,
+   "care": 1810,
+   "wait": 21,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "c9bea414"
+  },
+  "rn/med/board": {
+   "arrivals": 120,
+   "arrivalsHash": "1b1d5a9f",
+   "seen": 120,
+   "dc": 57,
+   "adm": 30,
+   "proc": 6,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 1,
+   "left": 31,
+   "care": 938,
+   "wait": 27,
+   "stars": 1,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "8a62baaf"
+  },
+  "rn/med/short": {
+   "arrivals": 111,
+   "arrivalsHash": "659ddf48",
+   "seen": 111,
+   "dc": 49,
+   "adm": 37,
+   "proc": 8,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 15,
+   "care": 1535,
    "wait": 18,
    "stars": 2,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "307b14b8"
+   "stateHash": "22b5b51a"
   },
   "md/med/board": {
-   "arrivals": 114,
-   "arrivalsHash": "6876359f",
-   "seen": 114,
-   "dc": 59,
-   "adm": 27,
-   "proc": 8,
+   "arrivals": 103,
+   "arrivalsHash": "afd61acb",
+   "seen": 103,
+   "dc": 54,
+   "adm": 28,
+   "proc": 7,
    "tx": 0,
    "lwbs": 0,
-   "ama": 2,
+   "ama": 1,
    "expired": 1,
-   "left": 25,
-   "care": 1456,
-   "wait": 21,
+   "left": 19,
+   "care": 1873,
+   "wait": 20,
    "stars": 3,
    "fail": null,
-   "lit": 67,
-   "acc": 68,
-   "stateHash": "8ff29b9b"
+   "lit": 51,
+   "acc": 70,
+   "stateHash": "7aed12b1"
   }
  },
  "streams": {
   "rn/med": {
    "sameEarlyArrivals": true,
    "sameWalkIns": true,
+   "sameFacts": true,
    "hash": "f7221b69",
    "walkHash": "874745ee"
   },
   "rn/hard": {
    "sameEarlyArrivals": true,
    "sameWalkIns": true,
-   "hash": "2da4986c",
+   "sameFacts": true,
+   "hash": "31a2aabd",
    "walkHash": "28110a98"
   },
   "md/med": {
    "sameEarlyArrivals": true,
    "sameWalkIns": true,
-   "hash": "6c6265c7",
-   "walkHash": "85993652"
+   "sameFacts": true,
+   "hash": "f7221b69",
+   "walkHash": "874745ee"
   }
  },
  "codes": [
@@ -1045,7 +1048,8 @@
    ],
    "contra": [
     "ibu",
-    "ketor"
+    "ketor",
+    "metop"
    ]
   },
   "cwp": {
@@ -1098,7 +1102,8 @@
    ],
    "contra": [
     "ibu",
-    "ketor"
+    "ketor",
+    "metop"
    ]
   },
   "afib": {
@@ -1119,7 +1124,12 @@
    "also": [
     "heparin",
     "enox",
-    "apixa"
+    "apixa",
+    "midaz",
+    "ketamine",
+    "fent",
+    "propofol",
+    "etomidate"
    ],
    "contra": []
   },
@@ -1297,7 +1307,8 @@
    ],
    "contra": [
     "ibu",
-    "ketor"
+    "ketor",
+    "metop"
    ]
   },
   "stroke": {
@@ -1969,36 +1980,37 @@
    "The reversible causes: the H's and T's"
   ],
   "trauma": [
-   "All at once: stop the bleeding, give blood, secure the airway, decompress both sides of the chest",
+   "Blood, bleeding control, airway, and both sides of the chest decompressed, all at once",
    "Drain it now (pericardiocentesis), or the surgeon opens the chest"
   ],
   "limb": [
-   "Stop the bleeding (pressure, splint, tourniquet), give blood fast, secure the airway",
+   "Tourniquet or pressure on the bleed, blood fast, secure the airway",
    "Keep the blood coming: massive transfusion"
   ],
   "kidvf": [
    "Shock at {j2} J (2 J/kg), then straight back to CPR",
-   "Shock at {j4} J (4 J/kg), then epinephrine {epi} mg IV or IO (0.01 mg/kg)",
-   "Shock at {j4} J, then amiodarone {amio} mg IV or IO (5 mg/kg)"
+   "Shock at {j4} J (4 J/kg), then epinephrine {epi} mg (0.01 mg/kg)",
+   "Shock at {j4} J, then amiodarone {amio} mg (5 mg/kg)"
   ],
   "kidpea": [
-   "Keep CPR going; epinephrine {epi} mg IV or IO now (0.01 mg/kg)",
+   "CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg)",
    "Oxygen and ventilation, then the rest of the H's and T's"
   ],
   "kidasys": [
-   "Keep CPR going; epinephrine {epi} mg IV or IO now (0.01 mg/kg)",
+   "CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg)",
    "Oxygen and ventilation, then the rest of the H's and T's"
   ],
   "cause:k": "Calcium chloride and sodium bicarbonate; keep CPR going",
-  "cause:air": "Reposition, two-person bag-mask, then an advanced airway, without stopping CPR",
-  "cause:bleed": "Massive transfusion now, and the surgeon or interventional radiology to stop the bleeding",
+  "cause:trap": "Pause the bag, press the chest to let air out, slow the breaths",
+  "cause:air": "Reposition, two-person bag-mask, then a tube, without stopping CPR",
+  "cause:bleed": "Massive transfusion, and a surgeon or IR to stop the bleeding",
   "cause:vol": "Fluids wide open, while CPR and epinephrine go on",
-  "cause:opioid": "Oxygen and good ventilation; naloxone is reasonable, and CPR goes on",
-  "cause:tension": "Decompress that side of the chest now (needle or finger)",
-  "cause:clot": "A clot buster (tenecteplase) during CPR, and keep CPR going",
-  "cause:coronary": "Keep running the code; if the pulse comes back, straight to the cath lab",
+  "cause:opioid": "Oxygen and ventilation; naloxone is reasonable; CPR goes on",
+  "cause:tension": "Decompress that side now, with a needle or a finger",
+  "cause:clot": "Tenecteplase (a clot buster) during CPR, and keep going",
+  "cause:coronary": "Run the code; with a pulse back, a 12-lead ECG and cardiology",
   "cause:gluc": "Dextrose IV now, while CPR goes on",
-  "cause:look": "A quick ultrasound in the pulse check, and a blood gas, while CPR goes on",
+  "cause:look": "A quick ultrasound in the pulse check, and a blood gas, with CPR on",
   "hcg": "apapod appy chole dissect dka gastro mesisch mpe od pe salod sbo stone syncope tcaod uti"
  },
  "radioKey": {
@@ -2048,5 +2060,728 @@
    "yes",
    "yes"
   ]
+ },
+ "codeCards": {
+  "vf[0]": [
+   "The monitor shows **ventricular fibrillation (VF)**: a shockable rhythm. What first?",
+   "[RIGHT] Shock now (defibrillate), then straight back to CPR -> VF or pulseless VT is shockable: shock as soon as the pads are on, then straight back to 2 minutes of CPR.",
+   "Epinephrine 1 mg IV first, then shock at the next rhythm check -> In VF the shock comes first. Epinephrine goes in after the second shock.",
+   "Stop CPR and feel for a pulse for a full minute first -> A pulse check takes under 10 seconds. Every pause stops blood flow to the brain.",
+   "Synchronized cardioversion at 100 J, then CPR -> Synchronized cardioversion needs a QRS to time the shock to. VF has none: defibrillate (an unsynchronized shock)."
+  ],
+  "vf[1]": [
+   "Two minutes of CPR. Rhythm check: **still VF**.",
+   "[RIGHT] Shock again, then epinephrine 1 mg IV every 3 to 5 minutes -> Still shockable: shock every time, then epinephrine every 3 to 5 minutes.",
+   "Amiodarone 300 mg instead of a second shock, then recheck -> Shock every time the rhythm is shockable. Drugs support the shocks; they don't replace them.",
+   "Hold CPR, intubate first, then shock once the tube is secure -> Keep compressions going. A bag-mask works; a tube can go in without stopping CPR.",
+   "Sodium bicarbonate 50 mEq, as in every arrest, then shock -> Bicarbonate is for specific causes (high potassium, some overdoses), not every arrest."
+  ],
+  "vf[2]": [
+   "Two more minutes. **Still VF** after two shocks and epinephrine.",
+   "[RIGHT] Shock, then amiodarone 300 mg IV -> VF that won't stop after shocks: amiodarone (lidocaine is the other choice). Keep shocking every 2 minutes.",
+   "Adenosine 6 mg rapid push, then recheck -> Adenosine is for SVT in a patient with a pulse.",
+   "Call the code: it has been 4 minutes already -> Far too early to stop. VF is the rhythm most likely to come back.",
+   "Atropine 1 mg IV, then shock at the next check -> Atropine is for a slow heart with a pulse. It was taken out of the cardiac arrest algorithm in 2010."
+  ],
+  "pea[0]": [
+   "The monitor shows **a rhythm but no pulse (PEA)**: not shockable. What first?",
+   "[RIGHT] Keep CPR going; epinephrine 1 mg IV now -> Not shockable: CPR, and epinephrine as soon as possible, then every 3 to 5 minutes.",
+   "Shock it at 200 J, then resume CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Atropine 1 mg IV, repeated every 3 minutes -> Atropine is for a slow heart with a pulse. It was taken out of the cardiac arrest algorithm in 2010.",
+   "Wait for respiratory therapy before compressions -> Compressions start now, with whoever is in the room."
+  ],
+  "pea[1]": [
+   "Two minutes later, **still no pulse**. What are you hunting for?",
+   "[RIGHT] The reversible causes: the H's and T's -> Not shockable: the way back is the cause. Hunt the H's and T's: low volume, low oxygen, acid, potassium, cold, tension pneumothorax, tamponade, toxins, clot.",
+   "Nothing new: keep repeating epinephrine on time -> Repeating epinephrine without looking for the cause rarely ends well.",
+   "A shock every 2 minutes in case it turns to VF -> Only shock a shockable rhythm. Check it every 2 minutes.",
+   "Amiodarone 300 mg, then recheck -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "asys[0]": [
+   "The monitor shows **a flat line (asystole)**: not shockable. What first?",
+   "[RIGHT] Keep CPR going; epinephrine 1 mg IV now -> Not shockable: CPR, and epinephrine as soon as possible, then every 3 to 5 minutes.",
+   "Shock it at 200 J, then resume CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Atropine 1 mg IV, repeated every 3 minutes -> Atropine is for a slow heart with a pulse. It was taken out of the cardiac arrest algorithm in 2010.",
+   "Wait for respiratory therapy before compressions -> Compressions start now, with whoever is in the room."
+  ],
+  "asys[1]": [
+   "Two minutes later, **still asystole**. What are you hunting for?",
+   "[RIGHT] The reversible causes: the H's and T's -> Not shockable: the way back is the cause. Hunt the H's and T's: low volume, low oxygen, acid, potassium, cold, tension pneumothorax, tamponade, toxins, clot.",
+   "Nothing new: keep repeating epinephrine on time -> Repeating epinephrine without looking for the cause rarely ends well.",
+   "A shock every 2 minutes in case it turns to VF -> Only shock a shockable rhythm. Check it every 2 minutes.",
+   "Amiodarone 300 mg, then recheck -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "trauma[0]": [
+   "A traumatic arrest: **no pulse, PEA** on the monitor. What first?",
+   "[RIGHT] Blood, bleeding control, airway, and both sides of the chest decompressed, all at once -> A traumatic arrest is fixed by its causes, all at once: stop the bleeding, give blood, secure the airway, decompress both sides of the chest. Epinephrine and CPR do little without volume.",
+   "Epinephrine 1 mg every 3 minutes and good CPR, nothing else yet -> In a traumatic arrest, drugs alone don't replace lost blood.",
+   "Shock it at 200 J, then 2 minutes of CPR and epinephrine -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Normal saline, six liters as fast as it will run, then reassess them -> Blood, not liters of saline: saline thins what is left."
+  ],
+  "trauma[1]": [
+   "Blood is going in and both sides of the chest are decompressed. The ultrasound shows **fluid around the heart**.",
+   "[RIGHT] Drain it now (pericardiocentesis), or the surgeon opens the chest -> Fluid around the heart squeezing it: drain it now (pericardiocentesis), or the surgeon opens the chest.",
+   "Amiodarone 300 mg IV, then shock if the rhythm changes -> Amiodarone is for VF and pulseless VT, not PEA or asystole.",
+   "Synchronized cardioversion at 100 J to restart the heart -> Synchronized cardioversion needs a QRS to time the shock to. VF has none: defibrillate (an unsynchronized shock).",
+   "Sodium bicarbonate and calcium, as in every arrest, then recheck -> Bicarbonate is for specific causes (high potassium, some overdoses), not every arrest."
+  ],
+  "limb[0]": [
+   "An arrest after bleeding from a broken limb: **no pulse, PEA** on the monitor. What first?",
+   "[RIGHT] Tourniquet or pressure on the bleed, blood fast, secure the airway -> A bleed from a limb: control it (pressure, splint, tourniquet), give blood fast, secure the airway.",
+   "Epinephrine 1 mg every 3 minutes and good CPR, nothing else yet -> In a traumatic arrest, drugs alone don't replace lost blood.",
+   "Shock it at 200 J, then 2 minutes of CPR and epinephrine -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Normal saline, six liters as fast as it will run, then reassess them -> Blood, not liters of saline: saline thins what is left."
+  ],
+  "limb[1]": [
+   "Two units in, **still no pulse**. The ultrasound shows a small, empty heart and no fluid around it.",
+   "[RIGHT] Keep the blood coming: massive transfusion -> Still empty: keep the blood coming (massive transfusion).",
+   "Tenecteplase, in case a clot caused this -> A clot buster in a bleeding patient makes it worse.",
+   "Synchronized cardioversion at 100 J -> Synchronized cardioversion needs a QRS to time the shock to. VF has none: defibrillate (an unsynchronized shock).",
+   "Amiodarone 300 mg IV, then a shock at the next check -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "kidvf[0]": [
+   "The monitor shows **VF**: a shockable rhythm. What first?",
+   "[RIGHT] Shock at {j2} J (2 J/kg), then straight back to CPR -> VF or pulseless VT is shockable: shock as soon as the pads are on, then straight back to 2 minutes of CPR.",
+   "Shock at 200 J, the adult setting, then back to CPR -> Children are shocked by weight: 2 J/kg first, then 4 J/kg.",
+   "Epinephrine 0.01 mg/kg first, then shock at the next check -> In VF the shock comes first. Epinephrine goes in after the second shock.",
+   "Synchronized cardioversion at 1 J/kg, then CPR -> Synchronized cardioversion needs a QRS to time the shock to. VF has none: defibrillate (an unsynchronized shock)."
+  ],
+  "kidvf[1]": [
+   "Two minutes of CPR. **Still VF**.",
+   "[RIGHT] Shock at {j4} J (4 J/kg), then epinephrine {epi} mg (0.01 mg/kg) -> Still shockable: shock at 4 J/kg, then epinephrine 0.01 mg/kg every 3 to 5 minutes.",
+   "Shock at {j4} J (4 J/kg), then epinephrine 1 mg IV or IO -> One milligram is the adult dose. A child gets 0.01 mg/kg: {epi} mg for about {kg} kg.",
+   "Amiodarone 5 mg/kg instead of a second shock, then recheck -> Shock every time the rhythm is shockable. Drugs support the shocks; they don't replace them.",
+   "Hold CPR, intubate first, then shock again once the tube is secure -> Keep compressions going. A bag-mask works; a tube can go in without stopping CPR."
+  ],
+  "kidvf[2]": [
+   "Two more minutes. **Still VF**.",
+   "[RIGHT] Shock at {j4} J, then amiodarone {amio} mg (5 mg/kg) -> VF that won't stop in a child: amiodarone 5 mg/kg (or lidocaine 1 mg/kg), and keep shocking at 4 J/kg or more.",
+   "Shock at {j4} J, then amiodarone 300 mg IV or IO -> 300 mg is the adult dose. A child gets 5 mg/kg: {amio} mg for about {kg} kg.",
+   "Adenosine 0.1 mg/kg rapid push, then recheck the rhythm -> Adenosine is for SVT in a patient with a pulse.",
+   "Atropine 0.02 mg/kg IV, then shock if it is still VF -> Atropine is for a slow heart with a pulse. It was taken out of the cardiac arrest algorithm in 2010."
+  ],
+  "kidpea[0]": [
+   "The monitor shows **a rhythm but no pulse (PEA)**: not shockable. What first?",
+   "[RIGHT] CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg) -> Not shockable: CPR, and epinephrine 0.01 mg/kg as soon as possible, then every 3 to 5 minutes.",
+   "CPR, and epinephrine 1 mg IV or IO now, then repeat -> One milligram is the adult dose. A child gets 0.01 mg/kg: {epi} mg for about {kg} kg.",
+   "Shock it at 2 J/kg, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Wait for respiratory therapy to arrive before starting compressions -> Compressions start now, with whoever is in the room."
+  ],
+  "kidpea[1]": [
+   "Two minutes later, **still no pulse**. What comes first in the hunt?",
+   "[RIGHT] Oxygen and ventilation, then the rest of the H's and T's -> In children most arrests start with breathing, so low oxygen is the first H to fix. Then the rest of the H's and T's.",
+   "Nothing new: keep repeating epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well.",
+   "A shock every 2 minutes in case it turns to VF -> Only shock a shockable rhythm. Check it every 2 minutes.",
+   "Amiodarone 5 mg/kg, then recheck the rhythm -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "kidasys[0]": [
+   "The monitor shows **a flat line (asystole)**: not shockable. What first?",
+   "[RIGHT] CPR, and epinephrine {epi} mg IV or IO now (0.01 mg/kg) -> Not shockable: CPR, and epinephrine 0.01 mg/kg as soon as possible, then every 3 to 5 minutes.",
+   "CPR, and epinephrine 1 mg IV or IO now, then repeat -> One milligram is the adult dose. A child gets 0.01 mg/kg: {epi} mg for about {kg} kg.",
+   "Shock it at 2 J/kg, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Wait for respiratory therapy to arrive before starting compressions -> Compressions start now, with whoever is in the room."
+  ],
+  "kidasys[1]": [
+   "Two minutes later, **still asystole**. What comes first in the hunt?",
+   "[RIGHT] Oxygen and ventilation, then the rest of the H's and T's -> In children most arrests start with breathing, so low oxygen is the first H to fix. Then the rest of the H's and T's.",
+   "Nothing new: keep repeating epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well.",
+   "A shock every 2 minutes in case it turns to VF -> Only shock a shockable rhythm. Check it every 2 minutes.",
+   "Amiodarone 5 mg/kg, then recheck the rhythm -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "cause:k": [
+   "The blood gas is back: **potassium 7.9**.",
+   "[RIGHT] Calcium chloride and sodium bicarbonate; keep CPR going -> High potassium in arrest: calcium to protect the heart and sodium bicarbonate are the usual first moves (the evidence is thin), with insulin and dextrose as a bolus, and dialysis.",
+   "Start an insulin drip and recheck the potassium in an hour -> A drip and an hour is too slow. In arrest: calcium first, insulin with dextrose as a bolus, and call for dialysis.",
+   "Shock it at 200 J, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "cause:trap": [
+   "Severe asthma: the chest is **stiff and over-full**, and each breath gets harder.",
+   "[RIGHT] Pause the bag, press the chest to let air out, slow the breaths -> In an asthma arrest, air gets trapped: breathe slowly, let it out (disconnect, press on the chest), and think of a tension pneumothorax on either side.",
+   "Bag faster and harder to push more oxygen past the tight airways -> Faster, harder breaths trap more air and drop the pressure further.",
+   "A double dose of epinephrine, then keep bagging hard -> A bigger dose of epinephrine doesn't help. Fix the airway.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)"
+  ],
+  "cause:air": [
+   "The bag-mask **isn't moving the chest** well.",
+   "[RIGHT] Reposition, two-person bag-mask, then a tube, without stopping CPR -> Fix the airway: reposition, a two-person bag-mask, then an advanced airway, all without stopping compressions.",
+   "Stop CPR until the breathing tube is in, then restart compressions -> Stopping compressions to place a tube costs more than it gains.",
+   "A double dose of epinephrine to open up the airways -> A bigger dose of epinephrine doesn't help. Fix the airway.",
+   "More sodium bicarbonate to correct the acid from poor breathing -> Bicarbonate is for specific causes (high potassium, some overdoses), not every arrest."
+  ],
+  "cause:bleed": [
+   "**Hemoglobin 5** on the gas. The bleeding is inside: {src}.",
+   "[RIGHT] Massive transfusion, and a surgeon or IR to stop the bleeding -> A bleed inside the body: blood (massive transfusion) and a surgeon or interventional radiology to stop it. CPR can't fill an empty heart.",
+   "Tenecteplase, in case a clot is behind this arrest -> A clot buster in a bleeding patient makes it worse.",
+   "Shock it at 200 J, then 2 minutes of CPR and epinephrine -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes and wait for labs -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "cause:vol": [
+   "They were very sick and dry before this. The ultrasound shows **a small, empty heart**.",
+   "[RIGHT] Fluids wide open, while CPR and epinephrine go on -> An empty heart: fluids wide open, while CPR and epinephrine go on.",
+   "Tenecteplase, in case a clot is behind this arrest -> A clot buster in a bleeding patient makes it worse.",
+   "Shock it at 200 J, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "cause:opioid": [
+   "They were found **not breathing**, pupils pinpoint.",
+   "[RIGHT] Oxygen and ventilation; naloxone is reasonable; CPR goes on -> An opioid arrest is a breathing arrest: oxygen and good ventilation first. Naloxone is reasonable, but it never replaces CPR.",
+   "Give naloxone and stop CPR until it starts working -> Never stop CPR to wait for naloxone.",
+   "Flumazenil, to reverse whatever they took, then recheck -> Flumazenil reverses benzodiazepines, not opioids, and can cause seizures.",
+   "Shock it at 200 J, then 2 minutes of CPR and more epinephrine -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)"
+  ],
+  "cause:tension": [
+   "No breath sounds on one side, and the **trachea is pushed to the other side**.",
+   "[RIGHT] Decompress that side now, with a needle or a finger -> No breath sounds and a shifted trachea: a tension pneumothorax. Decompress now; don't wait for an X-ray.",
+   "A portable chest X-ray first, to be sure which side it is -> A tension pneumothorax is a clinical call. There is no time for an X-ray in arrest.",
+   "A double dose of epinephrine, then keep bagging -> A bigger dose of epinephrine doesn't help. Fix the airway.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)"
+  ],
+  "cause:clot": [
+   "The ultrasound shows **a huge right heart** and a clot in the leg.",
+   "[RIGHT] Tenecteplase (a clot buster) during CPR, and keep going -> A big clot in the lungs causing the arrest: a clot buster (tenecteplase) during CPR is reasonable, and CPR goes on longer after it.",
+   "Stop now: an arrest from a clot this size can't come back -> A PE arrest can come back, especially with a clot buster.",
+   "Heparin drip, and recheck the rhythm and pulse in an hour -> Heparin stops new clot; it won't break this one in time.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)"
+  ],
+  "cause:coronary": [
+   "They had **chest pain** before the arrest: **a heart attack** is the likely cause.",
+   "[RIGHT] Run the code; with a pulse back, a 12-lead ECG and cardiology -> A heart attack behind the arrest: run the code, and if the pulse comes back, a 12-lead ECG right away; cardiology decides on the cath lab.",
+   "Stop: an arrest from a heart attack can't come back, so call it -> Arrests from a heart attack often come back, and the cath lab can fix the cause.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Amiodarone 300 mg IV, then a shock at the next rhythm check -> Amiodarone is for VF and pulseless VT, not PEA or asystole."
+  ],
+  "cause:gluc": [
+   "The fingerstick glucose: **18**.",
+   "[RIGHT] Dextrose IV now, while CPR goes on -> A sugar that low can stop the heart. Dextrose now, while CPR goes on.",
+   "Insulin, to move the sugar into the cells -> Insulin lowers the sugar further.",
+   "Shock it at 200 J, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "cause:look": [
+   "No clear cause yet. How do you look for one?",
+   "[RIGHT] A quick ultrasound in the pulse check, and a blood gas, with CPR on -> No clear cause yet: a quick ultrasound (tamponade, pneumothorax, clot, an empty heart) and a blood gas (potassium, acid), without stopping CPR.",
+   "Stop CPR for a full, careful ultrasound of the heart, lungs and belly -> Ultrasound fits in the pulse check, under 10 seconds. Never stop CPR for a full exam.",
+   "Shock it at 200 J, then 2 minutes of CPR and recheck -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
+   "Nothing changes: epinephrine every 3 to 5 minutes and wait -> Repeating epinephrine without looking for the cause rarely ends well."
+  ],
+  "lists": {
+   "CAUSE_OF": {
+    "hyperk": "k",
+    "dka": "vol",
+    "asthma": "trap",
+    "copd": "air",
+    "anaph": "air",
+    "chf": "air",
+    "pna": "air",
+    "rsv": "air",
+    "od": "opioid",
+    "ptx": "tension",
+    "pe": "clot",
+    "mpe": "clot",
+    "stemi": "coronary",
+    "nstemi": "coronary",
+    "cpmod": "coronary",
+    "hypogly": "gluc",
+    "sepsisw": "vol",
+    "shock": "vol",
+    "dehyd": "vol"
+   },
+   "base": {
+    "ed": {
+     "vf": 0.65,
+     "pea": 0.45,
+     "asys": 0.25,
+     "trauma": 0.15,
+     "limb": 0.25
+    },
+    "field": {
+     "vf": 0.45,
+     "pea": 0.2,
+     "asys": 0.08,
+     "trauma": 0.08,
+     "limb": 0.15
+    }
+   },
+   "aiSkill": 0.6,
+   "gap": 2
+  }
+ },
+ "drugRules": {
+  "ALSO": {
+   "afib": [
+    "apixa",
+    "enox",
+    "etomidate",
+    "fent",
+    "heparin",
+    "ketamine",
+    "midaz",
+    "propofol"
+   ],
+   "apapod": [
+    "charcoal",
+    "ondan"
+   ],
+   "arrest": [
+    "amio",
+    "bicarb",
+    "calc",
+    "epiarr",
+    "lr",
+    "ns"
+   ],
+   "cpmod": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "cwp": [
+    "ntg"
+   ],
+   "dissect": [
+    "nicard"
+   ],
+   "dka": [
+    "kcl"
+   ],
+   "ectopic": [
+    "rhogam"
+   ],
+   "hyperk": [
+    "albut",
+    "bicarb",
+    "furo"
+   ],
+   "hypogly": [
+    "octreo",
+    "thiamine"
+   ],
+   "mening": [
+    "acyclo",
+    "ampi"
+   ],
+   "mesisch": [
+    "fent",
+    "hydro",
+    "morph"
+   ],
+   "mpe": [
+    "enox",
+    "heparin",
+    "lr",
+    "norepi",
+    "ns",
+    "pushepi"
+   ],
+   "nstemi": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "salod": [
+    "charcoal",
+    "d50",
+    "kcl"
+   ],
+   "sbo": [
+    "fent",
+    "hydro",
+    "kcl",
+    "morph"
+   ],
+   "status": [
+    "d50",
+    "thiamine"
+   ],
+   "stemi": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "tcaod": [
+    "loraz",
+    "midaz"
+   ]
+  },
+  "CONTRA": {
+   "aaa": [
+    "@bleed"
+   ],
+   "afib": [
+    "dilt",
+    "metop"
+   ],
+   "anaph": [
+    "epiarr"
+   ],
+   "apapod": [
+    "apap"
+   ],
+   "asthma": [
+    "metop"
+   ],
+   "chb": [
+    "dilt",
+    "metop"
+   ],
+   "copd": [
+    "metop"
+   ],
+   "cpmod": [
+    "fent",
+    "hydro",
+    "ibu",
+    "ketor",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "cwp": [
+    "ibu",
+    "ketor",
+    "ntg"
+   ],
+   "dissect": [
+    "@bleed",
+    "apixa"
+   ],
+   "dka": [
+    "d50"
+   ],
+   "ectopic": [
+    "@bleed"
+   ],
+   "gib": [
+    "@bleed"
+   ],
+   "hyperk": [
+    "kcl",
+    "succ"
+   ],
+   "hypogly": [
+    "insdrip",
+    "insreg"
+   ],
+   "lvo": [
+    "asa",
+    "enox",
+    "heparin",
+    "tnk"
+   ],
+   "mcired": [
+    "@bleed"
+   ],
+   "moto": [
+    "@bleed"
+   ],
+   "mvc": [
+    "@bleed"
+   ],
+   "nstemi": [
+    "fent",
+    "hydro",
+    "ibu",
+    "ketor",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "od": [
+    "loraz"
+   ],
+   "pe": [
+    "tnk"
+   ],
+   "sah": [
+    "@bleed",
+    "apixa"
+   ],
+   "salod": [
+    "asa"
+   ],
+   "sbo": [
+    "reglan"
+   ],
+   "sepsisw": [
+    "furo",
+    "labet"
+   ],
+   "shock": [
+    "furo",
+    "labet",
+    "metop",
+    "nicard"
+   ],
+   "stemi": [
+    "fent",
+    "hydro",
+    "ibu",
+    "ketor",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "stroke": [
+    "asa",
+    "enox",
+    "heparin",
+    "tnk"
+   ],
+   "strokew": [
+    "asa",
+    "enox",
+    "heparin",
+    "tnk"
+   ],
+   "tcaod": [
+    "amio",
+    "ondan",
+    "procain"
+   ],
+   "tfall": [
+    "@bleed"
+   ]
+  },
+  "CONTRA_IF": {
+   "afib": [
+    "dilt",
+    "metop"
+   ],
+   "cpmod": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "cwp": [
+    "ibu",
+    "ketor",
+    "ntg"
+   ],
+   "lvo": [
+    "asa",
+    "tnk"
+   ],
+   "nstemi": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "pe": [
+    "tnk"
+   ],
+   "stemi": [
+    "fent",
+    "hydro",
+    "metop",
+    "morph",
+    "ntg"
+   ],
+   "stroke": [
+    "asa",
+    "tnk"
+   ],
+   "strokew": [
+    "asa",
+    "tnk"
+   ]
+  },
+  "RXREQ": {
+   "stemi": {
+    "meds": [
+     [
+      "asa"
+     ],
+     [
+      "heparin",
+      "enox"
+     ]
+    ]
+   },
+   "nstemi": {
+    "meds": [
+     [
+      "asa"
+     ],
+     [
+      "heparin",
+      "enox"
+     ]
+    ]
+   },
+   "tfall": {
+    "reverse": [
+     [
+      "pcc"
+     ],
+     [
+      "vitk"
+     ]
+    ]
+   },
+   "dissect": {
+    "bp": [
+     [
+      "esmolol",
+      "labet"
+     ]
+    ]
+   },
+   "hyperk": {
+    "meds": [
+     [
+      "calc",
+      "calcgluc"
+     ],
+     [
+      "d50"
+     ]
+    ],
+    "insulin": [
+     [
+      "insreg"
+     ]
+    ]
+   },
+   "mening": {
+    "abx": [
+     [
+      "ctx",
+      "cefepime"
+     ],
+     [
+      "vanc"
+     ]
+    ],
+    "meds": [
+     [
+      "dexa"
+     ]
+    ]
+   },
+   "status": {
+    "meds": [
+     [
+      "loraz",
+      "midaz"
+     ],
+     [
+      "levet",
+      "fosphen"
+     ]
+    ]
+   },
+   "mesisch": {
+    "meds": [
+     [
+      "heparin"
+     ]
+    ]
+   },
+   "salod": {
+    "meds": [
+     [
+      "bicarb"
+     ]
+    ]
+   },
+   "tcaod": {
+    "meds": [
+     [
+      "bicarb"
+     ]
+    ]
+   },
+   "necfasc": {
+    "abx": [
+     [
+      "vanc"
+     ],
+     [
+      "piptazo",
+      "cefepime"
+     ],
+     [
+      "clinda"
+     ]
+    ]
+   },
+   "sea": {
+    "abx": [
+     [
+      "vanc"
+     ],
+     [
+      "ctx",
+      "cefepime"
+     ]
+    ]
+   }
+  },
+  "REQ_AGE": {
+   "mening": {
+    "abx": {
+     "over": 50,
+     "add": [
+      "ampi"
+     ]
+    }
+   }
+  },
+  "NEVER_WRONG": [
+   "apap",
+   "ondan"
+  ],
+  "SAME_CLASS_OK": [
+   [
+    "morph",
+    "fent",
+    "hydro"
+   ],
+   [
+    "ketor",
+    "ibu"
+   ],
+   [
+    "ondan",
+    "reglan",
+    "prochlor"
+   ],
+   [
+    "methylpred",
+    "pred",
+    "dexa"
+   ],
+   [
+    "loraz",
+    "midaz"
+   ],
+   [
+    "levet",
+    "fosphen"
+   ],
+   [
+    "albut",
+    "duoneb"
+   ],
+   [
+    "ns",
+    "lr"
+   ]
+  ]
+ },
+ "codeRuns": {
+  "allRight": 26,
+  "allWrong": 7
  }
 }

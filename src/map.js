@@ -711,7 +711,9 @@ function mapRender(G) {
   const waiting = act.filter(p => p.loc === 'waiting').sort((a, b) => a.tArrive - b.tArrive), wIds = new Set(waiting.map(p => p.id));
   for (const id of Array.from(SEAT.keys())) if (!wIds.has(id)) SEAT.delete(id);
   { const taken = new Set(SEAT.values()); let next = 0;
-    for (const p of waiting) if (!SEAT.has(p.id)) { while (taken.has(next)) next++; if (next < WAIT_SEATS.length) { SEAT.set(p.id, next); taken.add(next); } } }
+    for (const p of waiting) if (!SEAT.has(p.id)) { while (taken.has(next)) next++; if (next < WAIT_SEATS.length) { SEAT.set(p.id, next); taken.add(next); } }
+    // R4.3-02: a patient in arrest is always drawn: with every seat taken, they take the seat of the latest arrival who has a pulse
+    for (const p of waiting) if (p.arrest && !SEAT.has(p.id)) { const v = waiting.filter(q => !q.arrest && SEAT.has(q.id)).pop(); if (v) { SEAT.set(p.id, SEAT.get(v.id)); SEAT.delete(v.id); } } }
   let standing = 0;
   for (const p of waiting) {
     if (!SEAT.has(p.id)) { standing++; continue; }
@@ -737,7 +739,7 @@ function mapRender(G) {
   }
 
   // the wall: a crew and a stretcher in each spot, with how long they've held it
-  const wall = act.filter(p => p.loc === 'wall').sort((a, b) => a.tArrive - b.tArrive), inside = wall.slice(0, 6), outside = wall.slice(6);
+  const wall = act.filter(p => p.loc === 'wall').sort((a, b) => (b.arrest ? 1 : 0) - (a.arrest ? 1 : 0) || a.tArrive - b.tArrive), inside = wall.slice(0, 6), outside = wall.slice(6);   // R5.3-06: a code is always drawn
   const lab = (id, t) => { const n = document.getElementById(id); if (n && n.textContent !== t) n.textContent = t; };
   lab('mWallL', wall.length ? `WALL · ${wall.length}` : 'THE WALL');   // with a count it drops THE, so it stays clear of the Resus tray lab('mWaitL', waiting.length ? `WAITING · ${waiting.length}` : 'WAITING'); lab('mDoorL', G.triageQ.length ? `DOOR · ${G.triageQ.length}` : 'DOOR');
   const nowW = performance.now();
@@ -747,8 +749,9 @@ function mapRender(G) {
     const y = WALL_Y(i), esi = p.tri === 'done' ? ve(p) : 0, mins = Math.round(G.t - p.tArrive);
     by.set(p.id, [196, y + 4]);
     posNow.set(p.id, { x: 195, y, kind: 'wall' });
-    if (SN) SN.pts.push({ id: p.id, kind: 'wall', x: 195, y, esi, name: p.name, sel: !!(sel && sel.pid === p.id) });
-    const badge = intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
+    if (SN) SN.pts.push({ id: p.id, kind: 'wall', x: 195, y, esi, name: p.name, sel: !!(sel && sel.pid === p.id), code: !!p.arrest });
+    const badge = p.arrest ? `<g transform="translate(236 ${y + 9})"><rect x="-17" y="-9.5" width="34" height="19" rx="9.5" fill="#B3261E" stroke="#fff" stroke-width="1.6"/><text y="4.6" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">CPR</text></g>`   // R5.3-06
+      : intakeDone(p) ? `<g transform="translate(240 ${y + 9})"><circle r="9" fill="#1F8048" stroke="#fff" stroke-width="1.5"/><g transform="scale(.82)" style="color:#fff">${ICO.check}</g></g>`
       : E.emergent(p) ? icoSVG('alert', 240, y + 9, 9, 'bad fl') : '';
     pts += ptG(p, 0, 0, `<rect x="116" y="${y - 23}" width="132" height="46" fill="transparent"/><g transform="translate(134 ${y})">${crewSVG(!!(sel && sel.pid === p.id))}</g>`
       + stretcherSVG(152, y - 13, 86, 26, p, esi) + (p.tag ? `<rect x="148" y="${y - 12}" width="9" height="24" rx="3" fill="${TAGC[p.tag]}" stroke="#fff" stroke-width="1.3"/>` : '')
@@ -761,7 +764,7 @@ function mapRender(G) {
   for (const w of walkers) {
     const p = w.p, id = 'w-' + p.id, tr = `translate(${w.x}px, ${w.y}px)`; seenW.add(id);
     const ok = sel && sel.type === 'reg' ? regable(p) : sel && sel.type === 'tri' ? p.tri === 'none' && (p.loc === 'wall' || p.loc === 'triage') : null;
-    if (SN) { const pk = posNow.get(p.id); SN.pts.push({ id: p.id, kind: pk ? pk.kind : 'door', x: w.x, y: w.y, esi: p.tri === 'done' ? ve(p) : 0, name: p.name, sel: !!(sel && sel.pid === p.id), ok: ok === true, fresh: !LAST.get(p.id) && p.loc === 'triage' && G.t - p.tArrive < 3 }); }
+    if (SN) { const pk = posNow.get(p.id); SN.pts.push({ id: p.id, kind: pk ? pk.kind : 'door', x: w.x, y: w.y, esi: p.tri === 'done' ? ve(p) : 0, name: p.name, sel: !!(sel && sel.pid === p.id), ok: ok === true, code: !!p.arrest, fresh: !LAST.get(p.id) && p.loc === 'triage' && G.t - p.tArrive < 3 }); }
     let n = wl.querySelector(`[data-id="${id}"]`);
     if (!n) {
       n = document.createElementNS(SVGNS, 'g'); n.setAttribute('data-id', id); n.setAttribute('data-act', 'pt'); n.setAttribute('data-arg', p.id); n.setAttribute('role', 'button');

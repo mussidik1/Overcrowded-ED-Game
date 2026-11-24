@@ -1107,3 +1107,8 @@ button.ob { border: 0; font: inherit; color: inherit; cursor: pointer; }
 
 /* v0.28.1: the evidence beside the diagnosis question; Sign stays in reach */
 .dxev { margin: 4px 0 6px; padding-left: 18px; font-size: 13px; line-height: 1.3; }
+
+/* round 3 (R3.3-03): a note at the top of the main menu that stays until dismissed */
+.t-note { border: 2px solid var(--e2, #B45309); border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; background: rgba(180, 83, 9, .08); }
+.t-note p { margin: 0 0 8px; font-size: 15px; line-height: 1.35; }
+.t-note button { min-height: 44px; padding: 0 18px; font: inherit; font-weight: 700; border-radius: 10px; border: 2px solid currentColor; background: transparent; color: inherit; }

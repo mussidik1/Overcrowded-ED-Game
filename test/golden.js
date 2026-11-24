@@ -23,9 +23,13 @@ const stateHash = () => {   // R2.2-01: a fingerprint of what happened (each pat
   return fnv(pts.join('|') + '#' + num(OC.G.stats).join(',') + '#' + num(OC.G.stats.md).join(',') + '#' + Math.round(OC.G.care));
 };
 function fnv(s) { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193); return (h >>> 0).toString(16).padStart(8, '0'); }
-const arrivals = () => OC.G.order.map(id => OC.G.pts[id]).filter(p => p.tArrive >= 0).map(p => `${p.ck}@${Math.round(p.tArrive * 10)}${p.src === 'ems' ? 'e' : ''}`);
+const arrivals = () => OC.G.order.map(id => OC.G.pts[id]).filter(p => p.tArrive >= 0).map(p => `${p.ck}@${Math.round(p.tArrive * 10)}${p.src === 'ems' ? 'e' : ''}${p.ret ? 'R' : ''}`);   // R: a return visit (play-driven)
 // new walk-ins (not return visits, which come from that player's own discharges): these must match all shift long on one code
 // (patients made by events, such as a VIP or a bus crash, are left out: events can be held back by what the player is doing)
+// the clinical facts "from the patient" (rhythm, stroke onset, A-fib onset, infant months) must match too, not only the case and time (R3.3-01)
+const facts = () => { const m = {}; for (const p of OC.G.order.map(id => OC.G.pts[id])) if (p.tArrive >= 0 && p.hk) m[p.hk] = `${p.ck}:${OC.codeRhythm(p)}:${p.lkw == null ? '' : p.lkw}:${OC.afOnset(p) == null ? '' : OC.afOnset(p)}:${OC.ageSex(p)}`; return m; };
+// the same patient (same stream slot, same case; one player's diversion can swap an ambulance's case) has the same facts
+const factsAgree = (x, y) => { const both = Object.keys(x).filter(k => k in y && x[k].split(':')[0] === y[k].split(':')[0]); return both.length > 0 && both.every(k => x[k] === y[k]); };
 const walkIns = () => OC.G.order.map(id => OC.G.pts[id]).filter(p => p.tArrive >= 0 && p.src !== 'ems' && !p.ret && p.ck !== 'vip' && !/^mci/.test(p.ck)).map(p => [p.ck, p.tArrive]);
 
 function play(mode, level, scen, seed, style) {
@@ -40,7 +44,7 @@ function play(mode, level, scen, seed, style) {
   return OC.G.report;
 }
 
-const out = { version: VERSION, shifts: {}, streams: {}, codes: [], save: {}, answers: {}, codeKey: {}, radioKey: {} };
+const out = { version: VERSION, shifts: {}, streams: {}, codes: [], save: {}, answers: {}, codeKey: {}, radioKey: {}, codeCards: {}, drugRules: {}, codeRuns: {} };
 
 // ---- shifts
 const RUNS = [];
@@ -60,13 +64,14 @@ for (const [mode, level, scen] of RUNS) {
 
 // ---- streams: two players on one code get the same patients at the same times
 for (const [mode, level] of [['rn', 'med'], ['rn', 'hard'], ['md', 'med']]) {
-  play(mode, level, 'none', 777, 'normal'); const a = arrivals(), w1 = walkIns(), end1 = OC.G.t;
-  play(mode, level, 'none', 777, 'careless'); const b = arrivals(), w2 = walkIns(), end2 = OC.G.t;
+  play(mode, level, 'none', 777, 'normal'); const a = arrivals(), w1 = walkIns(), end1 = OC.G.t, f1 = facts();
+  play(mode, level, 'none', 777, 'careless'); const b = arrivals(), w2 = walkIns(), end2 = OC.G.t, f2 = facts();
   const upTo = (w, t) => w.filter(x => x[1] <= t).map(x => `${x[0]}@${Math.round(x[1] * 10)}`).join(',');   // a fired or walked-out shift ends early
   const wa = upTo(w1, Math.min(end1, end2)), wb = upTo(w2, Math.min(end1, end2));
-  // compare the first 2 hours: later arrivals can legitimately differ once diversion status differs between players
-  const early = list => list.filter(x => +x.split('@')[1].replace('e', '') <= 1200).join(',');
-  out.streams[`${mode}/${level}`] = { sameEarlyArrivals: early(a) === early(b), sameWalkIns: wa === wb, hash: fnv(early(a)), walkHash: fnv(wa) };
+  // The first 2 hours: the new walk-ins must match exactly. Ambulances aren't compared by case or minute: one player's diversion can
+  // turn one away or change which case comes (documented in CLAUDE.md); their clinical facts are checked by factsAgree.
+  const early = list => list.filter(x => !/[eR]$/.test(x) && +x.split('@')[1] <= 1200).join(',');
+  out.streams[`${mode}/${level}`] = { sameEarlyArrivals: early(a) === early(b), sameWalkIns: wa === wb, sameFacts: factsAgree(f1, f2), hash: fnv(early(a)), walkHash: fnv(wa) };
 }
 
 // ---- codes: the bit layout, checked without the version salt so the fixtures don't change every release (R3.2-06);
@@ -126,6 +131,27 @@ for (const [k, L] of Object.entries(OC.CODE_Q)) out.codeKey[k] = L.map(q => q.c.
 for (const [k, q] of Object.entries(OC.CODE_CAUSE)) out.codeKey['cause:' + k] = q.c.find(c => c[2])[0];
 for (const [k, L] of Object.entries(OC.SCEN)) out.radioKey[k] = L.map(q => (q.opts ? q.opts[q.r] : q.a ? 'yes' : 'no'));
 out.codeKey.hcg = [...OC.HCG_CASES].sort().join(' ');   // the cases where a woman of 12 to 55 needs a pregnancy test
+// every code card as the student sees it: each answer (right ones marked) and its reason, so any content edit is a readable diff (R2.3-05)
+const card = q => q.c.map(c => `${c[2] ? '[RIGHT] ' : ''}${c[0]} -> ${OC.CODE_WHY[c[1]] || '?'}`);
+for (const [k, L] of Object.entries(OC.CODE_Q)) L.forEach((q, i) => { out.codeCards[`${k}[${i}]`] = [q.t, ...card(q)]; });
+for (const [k, q] of Object.entries(OC.CODE_CAUSE)) out.codeCards['cause:' + k] = [q.t, ...card(q)];
+out.codeCards.lists = { CAUSE_OF: OC.CAUSE_OF, base: OC.CODE_BASE, aiSkill: OC.CODE_AI_Q, gap: OC.CODE_GAP };
+// the drug-scoring rule lists (R2.3-05)
+const sortObj = o => Object.fromEntries(Object.keys(o).sort().map(k => [k, Array.isArray(o[k]) ? o[k].slice().sort() : o[k]]));
+out.drugRules = { ALSO: sortObj(OC.ALSO), CONTRA: sortObj(OC.CONTRA), CONTRA_IF: Object.fromEntries(Object.keys(OC.CONTRA_IF).sort().map(k => [k, Object.keys(OC.CONTRA_IF[k]).sort()])),
+  RXREQ: OC.RXREQ, REQ_AGE: OC.REQ_AGE, NEVER_WRONG: [...OC.NEVER_WRONG].sort(), SAME_CLASS_OK: OC.SAME_CLASS_OK };
+// scripted codes: 40 arrests run by the attending, every call right, then every call wrong: how many pulses come back (R2.3-02)
+{ const runs = right => { let rosc = 0;
+    for (let s = 0; s < 40; s++) { OC.newGame('easy', 30000 + s, { mode: 'md' }); OC.G.train = null; OC.G.card = null;
+      const free = OC.G.rooms.find(r => !r.pid && /^[0-9]+$/.test(r.id) && r.st === 'clean' && !r.closed && !r.iso);
+      const p = OC.pt(OC.trainPatient(['nstemi', 'pe', 'asthma', 'stemi'][s % 4], 'room', { room: free.id })); p.prov = OC.G.me; p.mine = true; p.ev = 'done'; OC.awaitOrders(p);
+      OC.toArrest(p, 'golden'); OC.assign(OC.G.me, p.id);
+      for (let i = 0; i < 400 && p.arrest; i++) { const c = OC.G.card;
+        if (c && c.eid === 'code') { const q = OC.codeSteps(p)[c.ctx.step], ri = q.c.findIndex(x => x[2]); OC.chooseCard(String(right ? ri : (ri + 1) % 4)); }
+        else if (c) OC.chooseCard(c.choices.find(x => !x.dis).k); else OC.step(0.1); }
+      if (p.rosc) rosc++; }
+    return rosc; };
+  out.codeRuns = { allRight: runs(true), allWrong: runs(false) }; }
 
 // ---- compare
 if (!UPDATE && !fs.existsSync(FILE)) { console.error('FAIL: test/golden.json is missing. Restore it from git, or run npm run golden:update on purpose.'); process.exitCode = 1; }
@@ -140,15 +166,17 @@ else if (UPDATE) {
   for (const sec of ['shifts', 'streams', 'save']) for (const k of new Set([...Object.keys(out[sec]), ...Object.keys(old[sec] || {})])) cmp(sec, k, out[sec][k], (old[sec] || {})[k]);
   out.codes.forEach((c, i) => cmp('codes', i, c, old.codes[i]));
   for (const k of new Set([...Object.keys(out.answers), ...Object.keys(old.answers || {})])) cmp('answers', k, out.answers[k], (old.answers || {})[k]);
-  for (const sec of ['codeKey', 'radioKey']) for (const k of new Set([...Object.keys(out[sec]), ...Object.keys(old[sec] || {})])) cmp(sec, k, out[sec][k], (old[sec] || {})[k]);
+  for (const sec of ['codeKey', 'radioKey', 'codeCards', 'drugRules', 'codeRuns']) for (const k of new Set([...Object.keys(out[sec]), ...Object.keys(old[sec] || {})])) cmp(sec, k, out[sec][k], (old[sec] || {})[k]);
   if (!fails) console.log(`ok - golden: ${Object.keys(out.shifts).length} shifts, ${Object.keys(out.streams).length} stream checks, ${out.codes.length} codes, save round trip, ${Object.keys(out.answers).length} answer keys unchanged`);
   else { console.error(`FAIL: ${fails} golden difference(s). If they are intended, run: node test/golden.js --update, and say why in the commit.`); process.exitCode = 1; }
 }
 // invariants that must hold whatever the snapshot says
 const inv = (c, m) => { if (!c) { console.error('FAIL:', m); process.exitCode = 1; } else console.log('ok -', m); };
 inv(out.codes.every(c => c.roundTrip), 'every class code decodes to what made it');
+inv(out.codeRuns.allRight > out.codeRuns.allWrong * 1.5, `the code's outcome follows the calls (${out.codeRuns.allRight} of 40 pulses back with every call right, ${out.codeRuns.allWrong} with every call wrong)`);
 inv(out.save.identical, 'a saved and reloaded shift plays on exactly like an unbroken one');
 inv(out.save.attending === 4, `an attending shift saved and reloaded plays on exactly the same (${out.save.attending} of 4 seeds)`);
 inv(out.save.midCode.card && out.save.midCode.identical, 'an attending saved mid-code finds the same rhythm-check card after the reload, and plays on the same');
-inv(Object.values(out.streams).every(s => s.sameEarlyArrivals), 'two players on one shift get the same arrivals for the first two hours, however they play');
+inv(Object.values(out.streams).every(s => s.sameEarlyArrivals), 'two players on one shift get the same walk-ins for the first two hours, however they play');
 inv(Object.values(out.streams).every(s => s.sameWalkIns), 'and the same new walk-ins all shift long');
+inv(Object.values(out.streams).every(s => s.sameFacts), 'and the same patients have the same clinical facts (rhythm, onset times, months)');
