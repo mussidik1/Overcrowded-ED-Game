@@ -524,7 +524,7 @@ body.mapmode .pill { flex: 1 1 0; flex-direction: row; align-items: baseline; ga
 body.mapmode .pill b { font-size: 17px; }
 body.mapmode.msgon:not(.msgover) .pill { flex: 0 0 auto; justify-content: center; }   /* a message is up: the scores are five numbers on the left, and it takes the rest */
 body.mapmode.msgon:not(.msgover) .pill span { display: none; }
-body.mapmode .toast.long { -webkit-line-clamp: 3; line-clamp: 3; padding-top: 1px; padding-bottom: 1px; font-size: 12px; line-height: 1.14; }
+body.mapmode.ingame .toast.long { -webkit-line-clamp: 3; line-clamp: 3; padding-top: 1px; padding-bottom: 1px; font-size: 12px; line-height: 1.14; }
 body.mapmode .shiftbar { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; margin: 0; }
 body.mapmode .boxbar { flex: 0 1 auto; min-width: 0; min-height: 0; padding: 5px max(10px, env(safe-area-inset-right)) 6px 12px; border-bottom: 0; border-left: 1px solid rgba(255, 255, 255, .12); }
 body.mapmode .boxbar .bx-btn { height: 36px; }
@@ -539,8 +539,8 @@ body.mapmode .boxbar { margin-right: 46px; }
 body.mapmode .objs { position: fixed; z-index: 27; top: calc(var(--topH, 60px) + 5px); right: calc(var(--railR, 0px) + 5px); flex-direction: column; align-items: flex-end; gap: 3px; max-width: 46vw; padding: 0; overflow: visible; border: 0; background: transparent; pointer-events: none; }
 body.mapmode .objs > * { pointer-events: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
 body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 131px); bottom: calc(var(--dockH, 0px) + 3px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + var(--nbW, 0px) + 6px); max-width: 640px; padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
-body.mapmode .toasts { top: env(safe-area-inset-top); right: var(--tsR, 120px); bottom: auto; left: var(--tsL, 230px); display: grid; place-items: center; height: calc(var(--topH, 60px) - env(safe-area-inset-top)); padding: 2px 3px; gap: 0; }
-body.mapmode .toast { grid-area: 1 / 1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; width: 100%; max-width: 620px; max-height: 100%; padding: 4px 12px; border-radius: 9px; font-size: 14px; line-height: 1.22; text-align: center; box-shadow: 0 0 0 2px var(--frame), 0 2px 8px rgba(0, 0, 0, .35); }
+body.mapmode.ingame .toasts { top: env(safe-area-inset-top); right: var(--tsR, 120px); bottom: auto; left: var(--tsL, 230px); display: grid; place-items: center; height: calc(var(--topH, 60px) - env(safe-area-inset-top)); padding: 2px 3px; gap: 0; }
+body.mapmode.ingame .toast { grid-area: 1 / 1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; width: 100%; max-width: 620px; max-height: 100%; padding: 4px 12px; border-radius: 9px; font-size: 14px; line-height: 1.22; text-align: center; box-shadow: 0 0 0 2px var(--frame), 0 2px 8px rgba(0, 0, 0, .35); }
 body.mapmode .coach { right: calc(var(--railR, 0px) + 10px); bottom: calc(var(--dockH, 70px) + 10px + env(safe-area-inset-bottom)); left: auto; width: min(420px, calc(100vw - 24px)); margin: 0; }
 body.mapmode .coach.cleft { right: auto; left: calc(var(--railL, 0px) + 10px); }
 body.mapmode .coach.calt { top: calc(var(--topH, 60px) + 8px); bottom: auto; }
@@ -600,9 +600,9 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
   body.mapmode .selbar { bottom: calc(var(--dockH, 0px) + 2px + env(safe-area-inset-bottom)); padding: 2px 6px 2px 10px; }   /* one short line over the imaging strip, clear of the bottom row of rooms */
   body.mapmode .selbar > span { font-size: 12.5px; }
   body.mapmode .selbar button { height: 28px; padding: 0 10px; font-size: 13px; }
-  body.mapmode .toast { padding: 2px 9px; border-radius: 8px; font-size: 12px; line-height: 1.18; }
-  body.mapmode .toast.long { font-size: 10.5px; line-height: 1.12; }
-  body.mapmode .toasts.tight .toast { padding: 1px 6px; font-size: 10.5px; line-height: 1.12; -webkit-line-clamp: 3; line-clamp: 3; }
+  body.mapmode.ingame .toast { padding: 2px 9px; border-radius: 8px; font-size: 12px; line-height: 1.18; }
+  body.mapmode.ingame .toast.long { font-size: 10.5px; line-height: 1.12; }
+  body.mapmode.ingame .toasts.tight .toast { padding: 1px 6px; font-size: 10.5px; line-height: 1.12; -webkit-line-clamp: 3; line-clamp: 3; }
   body.mapmode .coach.calt { top: auto; bottom: calc(var(--dockH, 0px) + 6px + var(--selH, 0px) + env(safe-area-inset-bottom)); }
   body.mapmode .coach { top: calc(var(--topH, 40px) + 6px); bottom: auto; width: min(280px, calc((100vw - var(--railL, 0px) - var(--railR, 0px)) * .44)); max-height: calc(100vh - var(--topH, 40px) - var(--selH, 0px) - 14px); max-height: calc(100dvh - var(--topH, 40px) - var(--selH, 0px) - 14px); overflow: auto; border-radius: 14px; }
   body.mapmode .coach-c { padding: 8px 10px; }

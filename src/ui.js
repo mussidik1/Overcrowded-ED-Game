@@ -15,16 +15,21 @@ function setC(el, c) { if (el && el.className !== c) el.className = c; }
 /* Swap only the top-level sections whose markup changed, so buttons in unchanged sections stay put mid-tap. */
 function morph(el, h) {
   if (!el || el._h === h) return;
-  el._h = h;
+  // A box the player is typing in is left alone until they leave it: replacing it would drop the keyboard after one letter
+  // (the typed value is also in U, so the box is redrawn with it once focus moves on).
+  const ae = document.activeElement, typing = ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || (ae.tagName === 'INPUT' && !/^(checkbox|radio|button|submit)$/.test(ae.type)));
+  let held = false;
   const tpl = document.createElement('template'); tpl.innerHTML = h;
   const next = Array.from(tpl.content.childNodes), cur = Array.from(el.childNodes);
   for (let i = 0; i < next.length; i++) {
     const n = next[i], c = cur[i], src = n.nodeType === 1 ? n.outerHTML : n.textContent;
     if (c && c._src === src) continue;
+    if (c && typing && c.contains(ae)) { held = true; continue; }
     n._src = src;
     if (c) el.replaceChild(n, c); else el.appendChild(n);
   }
-  for (let i = next.length; i < cur.length; i++) cur[i].remove();
+  for (let i = next.length; i < cur.length; i++) if (!(typing && cur[i].contains(ae))) cur[i].remove();
+  el._h = held ? null : h;   // held: try again next frame
 }
 const cap = x => x ? x.charAt(0).toUpperCase() + x.slice(1) : x;
 const fmt = x => esc(x).replace(/\[\[(.+?)\]\]/g, '<b class="pn">$1</b>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');   // prompts mark key words with **two stars**, a patient's name with [[two brackets]], and a new line with \n
@@ -163,7 +168,7 @@ function stripLayout() {
    On a real shift, routine news (a goal met, staff arriving, a patient off to the OR: the engine marks these) skips the strip and is filed under the bell, which counts what is new.
    Bad news, anything to act on, and the answer to a tap still take the strip. */
 const TQ = [];
-const inStrip = () => document.body.classList.contains('mapmode');
+const inStrip = () => document.body.classList.contains('mapmode') && document.body.classList.contains('ingame');   // the toast strip is the game's; menus and the summary get full toasts
 function msgOn(on) { const b = document.body; if (b.classList.contains('msgon') !== on) { b.classList.toggle('msgon', on); stripLayout(); } }
 function toastShow(msg, kind) {
   const box = $('#toasts'); if (!box) return;
