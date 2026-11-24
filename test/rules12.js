@@ -45,7 +45,10 @@ for (const k of ['aaa', 'ectopic']) {
 { const p = mine('mvc', {}, 6200); p.bb = null; p.bleed = 'mtp'; untilArrest(p, 40);
   assert(p.arrest && OC.codeRhythm(p) === 'trauma', 'a crash victim who bleeds out is a traumatic arrest');
   const cards = runCode(p, true);
-  assert(/all at once/i.test(cards[0].right) && /decompress/i.test(cards[0].right) && /drain/i.test(cards[1].right), 'traumatic arrest: everything at once first (R6.2-09), then the tamponade'); }
+  assert(/all at once/i.test(cards[0].right) && /decompress/i.test(cards[0].right) && /blood/i.test(cards[1].right) && !/drain/i.test(cards[1].right), 'a crash victim who bled out: everything at once (R6.2-09), then more blood, not a scripted tamponade (R6.3-07)'); }
+{ const p = mine('mvc', {}, 6201); OC.toArrest(p, 'Traumatic arrest'); const cards = runCode(p, true);
+  assert(OC.codeRhythm(p) === 'trauma' && /drain/i.test(cards[1].right), 'a crash victim who arrests without bleeding out: the tamponade card'); }
+{ const p = mine('moto', {}, 6202); OC.toArrest(p, 'x'); assert(OC.codeRhythm(p) === 'limb', 'a motorcycle open femur is a limb bleed: no chest decompression (R6.3-07)'); }
 
 // ---- R6.2-02: no beta-blocker or opioid in cardiogenic shock
 { const p = mine('nstemi', {}, 6300); OC.crashNow(p.id); run(30);
@@ -200,3 +203,36 @@ assert(OC.CODE_AI_Q < 0.67, 'a code handed to the computer doctor scores below a
   const ignoreCost = c0 - OC.G.care, litUp = (OC.G.lit || 0) - l0;
   const q = mine('nstemi', {}, 8201); OC.toArrest(q, 'x'); const c1 = OC.G.care; runCode(q, false); const badCost = c1 - OC.G.care;
   assert(/no code team/.test(p.dx) && ignoreCost >= 40 && litUp > 0 && ignoreCost > badCost, `ignoring your own arrest costs ${ignoreCost} points and legal risk; running it with every call wrong costs ${badCost}`); }
+
+// ---- round 3 (R6.3, R3.3)
+{ const p = mine('afib', {}, 8300); const r = sign(p, ['ecg', 'lab'], ['dilt', 'midaz', 'propofol', 'synccv']);
+  assert(!r.wrong && !r.harm && !p.tr.includes('intub'), 'sedation for a cardioversion is right care, not a wrong drug or an intubation (R6.3-01)'); }
+{ let s0 = null; for (let s = 0; s < 60 && s0 == null; s++) { const q = mine('afib', {}, 8400 + s); if (OC.afOnset(q) != null) s0 = s; }
+  const p = mine('afib', {}, 8400 + s0); sign(p, ['ecg', 'lab'], ['synccv']);
+  assert(!OC.missNow(p).some(x => /dilt|Medications/i.test(x)), 'stable A-fib under 48 hours: a cardioversion alone answers the rate-control order (R6.3-02)'); }
+{ const q = mine('nstemi', {}, 8500); q.code = { r: 'vf' }; const steps = OC.codeSteps(q);
+  assert(/^Shock/.test(steps[2].c.find(c => c[2])[0]), 'the amiodarone answer starts with a shock, so it counts as one (R6.3-04)'); }
+assert(OC.codeCause({ id: 'd1', ck: 'dka', age: 40 }) === 'vol', 'a DKA arrest isn\'t told potassium 7.9 when its chart says 4.8 (R6.3-05)');
+assert(!/ECG before the arrest/.test(OC.CODE_CAUSE.coronary.t), 'the coronary card doesn\'t claim an ECG the chart may not show (R6.3-06)');
+assert(OC.codeCause({ id: 'a1', ck: 'asthma', age: 30 }) === 'trap' && /trapped/i.test(OC.CODE_CAUSE.trap.c.find(c => c[2])[0]), 'an asthma arrest: let the trapped air out, think tension (R6.3-14)');
+{ const p = mine('stroke', { lkw: 60, over: false }, 8600); const r = sign(p, ['ct', 'lab'], ['tnk', 'asa']);
+  assert(r.harm === 1, 'aspirin on the same order sheet as a stroke lytic is harm (R6.3-10)'); }
+{ const p = mine('afib', {}, 8700); OC.crashNow(p.id); run(5); assert(/cardioversion/i.test(OC.whyOf(p)), 'the unstable A-fib disposition card says cardioversion, not diltiazem (R6.3-09)'); }
+// R3.3-01: two players on one shift see the same clinical facts for the same patient, however their ids drift
+{ const facts = style => { OC.newGame('med', 4321, { mode: 'rn' }); let n = 0, s = 0;
+    while (OC.G.t < 240 && n++ < 6000) { OC.step(0.1); s += 0.1; if (OC.G.card) OC.botStep({ budget: 0 }); if (s >= 1.5) { s = 0; OC.botStep({ budget: style ? 2 : 1, acc: style ? 0.6 : 0.2 }); } }
+    return OC.G.order.map(id => OC.G.pts[id]).filter(p => p.tArrive >= 0 && p.hk).map(p => `${p.hk}:${p.ck}:${OC.codeRhythm(p)}:${p.lkw || ''}:${OC.afOnset(p) || ''}`); };
+  const a = facts(1), b = new Set(facts(0)), both = a.filter(x => b.has(x)).length;
+  assert(a.length > 20 && both >= a.length * 0.9, `the same patient keeps the same facts across players (${both} of ${a.length} matched)`); }
+// R3.3-02: the computer charge nurse rooms a code in a pod room when resus is full
+{ OC.newGame('med', 8800, { mode: 'md' }); OC.G.card = null;
+  for (const r of OC.G.rooms) if (r.kind === 'resus') r.closed = true;
+  const p = OC.pt(OC.trainPatient('nstemi', 'waiting', {})); OC.toArrest(p, 'Arrested in the waiting room'); p.tri = 'done';
+  for (let i = 0; i < 100 && p.loc !== 'room'; i++) { OC.step(0.1); OC.botStep({ budget: 3 }); }
+  assert(p.loc === 'room' && OC.room(p.room).kind === 'main', 'resus is full: the computer charge nurse puts the code in a pod room'); }
+
+// R4.3-01: after ROSC there's no gray-zone home or observation
+{ let p = null; for (let s = 0; s < 40 && !(p && p.rosc); s++) { p = mine('cpmod', {}, 8900 + s); OC.toArrest(p, 'x'); runCode(p, true); }
+  assert(p.rosc && !p.gray, 'a gray-zone patient with a pulse back has no observe-or-home call');
+  p.gray = { band: 'moderate', tool: 'HEART', score: 6, right: 'obs' }; p.dsp = 'decide';
+  assert(!OC.grayDispo(p.id, 'home').ok && !OC.grayDispo(p.id, 'obs').ok, 'and if one is open, home and observation are refused'); }

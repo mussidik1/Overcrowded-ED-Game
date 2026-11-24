@@ -1319,7 +1319,7 @@ const GLOSS = [
     ['Under-triaged', 'Given an ESI number too low for how sick the patient really is. A recheck catches it.'],
     ['STAT', 'Right now. Marking a patient STAT moves their tests and treatments to the front of the line.'],
     ['GCS', 'Glasgow Coma Scale. How awake someone is, from 3, no response, to 15, fully awake.'],
-    ['Last known well', 'The last time anyone saw the patient acting normally. The clot-dissolving drug for a stroke is given within four and a half hours of it. Later needs advanced brain imaging, which this ED doesn’t have.'],
+    ['Last known well', 'The last time anyone saw the patient acting normally. The clot-dissolving drug for a stroke is given within four and a half hours of it. Later needs perfusion imaging, which this game doesn’t model.'],
     ['Red, yellow, green tag', 'At a scene with many patients, crews tag each one. Red: treat now. Yellow: can wait a little. Green: walking wounded.'],
   ]],
   ['Tests', [
@@ -1853,7 +1853,7 @@ const LESSONS = {
     { id: 'k1', wait: true, title: 'Stroke alert', text: `An ambulance is bringing [[Helen]], 68. She can’t move her right side.\nThe **stroke alert** calls **neurology** and saves the **CT** scanner for her.`,
       setup: () => ({ pt: E.trainPatient('stroke', 'alert', { name: 'Helen V.', age: 68, sex: 'F', unit: 'Medic 14', eta: 4, lkw: 50, bpOver: true }) }), done: lRoomed },
     { id: 'k2', title: 'Time is brain', text: () => `Every minute blocked, brain dies.\nTap **${lRoom()}**, then **See this patient**.`, ...seeStep('pt') },
-    { id: 'k3', wait: true, title: 'In the room', text: () => `Right side weak, speech slurred.\n**Last known well: ${E.clock(LP().lkwT)}**. The clot drug must go in within **4½ hours** of that (later needs advanced imaging we don’t have).`, done: lExamined },
+    { id: 'k3', wait: true, title: 'In the room', text: () => `Right side weak, speech slurred.\n**Last known well: ${E.clock(LP().lkwT)}**. The clot drug must go in within **4½ hours** of that (later needs perfusion imaging, which this game doesn’t model).`, done: lExamined },
     { id: 'k4', next: true, title: 'Clot or bleed', text: `A **CT** shows if it’s a **clot** or a **bleed**.\nA **thrombolytic** dissolves clots, but it makes a bleed worse. So **CT first**.`},
     { id: 'k5', next: true, title: 'Her pressure is too high', text: () => `Her BP is **${lBP()}**. The clot drug’s limit is **185/110**.\nAbove that, the brain can bleed. Add **blood pressure control**. The nurse waits until it’s down.`},
     { id: 'k6', title: 'Stroke orders', text: `Tap **her room**. Then **CT head**, **BMP**, **Labetalol** (Medications, Heart and blood pressure), **Tenecteplase** (Clots), **Sign**.\nThe BMP checks sugar. Low sugar can look just like a stroke.`, ...ordStep('pt', [['t', 'ct'], ['t', 'lab'], ['r', 'bp'], ['r', 'tnk']]) },
@@ -1863,7 +1863,7 @@ const LESSONS = {
     { id: 'k9', final: true, title: 'Stroke: the short version', text: `**Looks like**: sudden face droop, weak arm or leg, slurred speech.\n**Order**: CT, labs, thrombolytic. BP control if over 185/110.\n**Clock**: CT in 25, drug in 60.\n**Charge nurse**: room her now, keep CT free.` },
   ] },
   arrest: { name: 'Cardiac arrest', sys: 'cardio', blurb: 'Shockable or not. Epinephrine, amiodarone, the H’s and T’s. Children and injuries.', steps: [
-    { id: 'ca0', next: true, title: 'No pulse', text: `**Cardiac arrest**: the heart has stopped pumping. No pulse, not breathing.\nThe team starts **CPR** (hard, fast chest compressions and breaths) at once, and the attending **runs the code**.` },
+    { id: 'ca0', next: true, title: 'No pulse', text: `**Cardiac arrest**: the heart has stopped pumping. No pulse, not breathing.\nThe team starts **CPR** at once: push **hard** (2 inches, 5 cm) and **fast** (100 to 120 a minute), let the chest **come back up**, keep **pauses under 10 seconds**, and swap compressors **every 2 minutes**. The attending **runs the code**.` },
     { id: 'ca1', next: true, title: 'Read the monitor', text: `The **rhythm** picks the path.\n**Shockable:** **VF** (a quivering heart) or **pulseless VT**. **Not shockable:** **PEA** (a rhythm with no pulse) or **asystole** (a flat line).` },
     { id: 'ca2', next: true, title: 'Shockable', text: `**VF:** shock (**defibrillate**) right away, then **2 minutes of CPR**.\nStill VF? Shock again, then **epinephrine 1 mg IV** every 3 to 5 minutes. After the third shock: **amiodarone 300 mg**.` },
     { id: 'ca3', next: true, title: 'Not shockable', text: `**PEA or asystole:** no shock. CPR, and **epinephrine 1 mg IV** as soon as you can.\nThen find the cause, the **H’s and T’s**: low **volume**, low **oxygen**, **acid**, **potassium**, **cold**; **tension** pneumothorax, **tamponade**, **toxins**, a **clot**.` },
@@ -1874,7 +1874,7 @@ const LESSONS = {
     { id: 'ta0', next: true, title: 'A fast heart', text: `**A-fib** (atrial fibrillation) is a fast, irregular rhythm. Most patients are **stable**: the pressure holds.\nStable: **slow the rate** with **diltiazem** or **metoprolol**, and think about a **blood thinner**.` },
     { id: 'ta1', next: true, title: 'Unstable', text: `**Unstable** means the rhythm is hurting them: **low pressure**, **chest pain**, **confusion**, **short of breath**.\nNow the drugs that slow the heart can drop the pressure further: **don’t give them**.` },
     { id: 'ta2', next: true, title: 'Shock it', text: `Unstable: **synchronized cardioversion**, a shock **timed to the heartbeat**, with sedation if there’s time.\nIt’s on the order sheet, under **Procedures**.` },
-    { id: 'ta3', final: true, title: 'A fast heart: the short version', text: `Stable A-fib that started **under 48 hours** ago can be shocked back too.\nLonger, or **not sure** when it started? A clot may be waiting in the heart: a **blood thinner** or a heart **ultrasound** first.` },
+    { id: 'ta3', final: true, title: 'A fast heart: the short version', text: `Stable A-fib that started **under 48 hours** ago can be shocked back too.\nLonger, or **not sure** when it started? A clot may be waiting in the heart: **three weeks of a blood thinner**, or a **TEE** (an ultrasound through the esophagus) to rule out a clot, before a shock.` },
   ] },
   heart: { name: 'Heart attack', sys: 'cardio', blurb: 'The ECG. A STEMI alert. Door to balloon.', steps: [
     { id: 'h0', next: true, title: 'Heart attack', text: `A **heart attack** is a blocked heart artery. The muscle behind it starts to die.\nIt feels like **chest pressure**, often with sweating or arm or jaw pain.\nFirst test: an **ECG**, a quick heart tracing.`},
@@ -2391,6 +2391,7 @@ const ACT = {
   dxPick: a => { const i = a.indexOf('|'), r = E.dxPick(a.slice(0, i), a.slice(i + 1)); if (r.ok) { toast(r.msg, r.right ? 'good' : 'bad'); sfx(r.right ? 'good' : 'bad'); } else res(r); },
   ordMenu: id => { const S = OM_OPEN(); if (S.has(id)) { S.delete(id); for (const k of [...S]) if (k.startsWith(id + ':')) S.delete(k); } else { if (!id.includes(':')) for (const k of [...S]) if (!k.includes(':')) S.delete(k); S.add(id); } },
   mdd: a => { const [pid, k] = a.split('|'); if (k === 'consult') { U.sheet = { type: 'consult', pid }; return; } res(E.mdDecide(pid, k), true); },
+  staleOk: () => { try { localStorage.removeItem('oc-save'); } catch (e) { /* storage blocked */ } if (U.scene === 'title') setH($('#title'), titleHTML()); },
   aboutDone: () => { store('oc-seen-about', '1'); ACT.tmenu('main'); },
   tmenu: a => { U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; } },
   img: a => { const [pid, d] = a.split('|'); openViewer(pid, d); },
@@ -2574,15 +2575,14 @@ function save(force) {
 }
 // v0.29.1: saves carry the version. A class shift saved on another version is not resumed: it would no longer be the class's shift.
 function readSave() { try { const s = localStorage.getItem('oc-save'); if (!s) return null; const d = JSON.parse(s); return d && d.G && d.G.v === 5 && !d.G.over && !(d.G.code && d.ver !== GAME_V) ? d : null; } catch (e) { return null; } }
-function staleClassNote() {   // round 2 (R3-08): a class shift saved on another version can't resume; tell the player once
-  try {
-    const d = JSON.parse(localStorage.getItem('oc-save') || 'null');
-    if (!d || !d.G || d.G.over || !d.G.code || d.ver === GAME_V) return;
-    const key = d.G.code + '|' + (d.ver || '');
-    if (store('oc-save-noted') === key) return;
-    store('oc-save-noted', key);
-    toast(`Your class shift (code ${d.G.code}) was saved on ${d.ver ? 'v' + d.ver : 'an older version'} and can’t continue on v${GAME_V}: the shift would change. Start it again with the code, or ask your instructor for a new one.`, 'info', true);
-  } catch (e) { /* no save */ }
+// Round 3 (R3.3-03): a class shift saved on another version can't resume (the shift would change). The main menu says so, in full, until
+// the player taps Got it (a toast was cut off on a phone and gone in 3 seconds).
+function staleClassSave() {
+  try { const d = JSON.parse(localStorage.getItem('oc-save') || 'null'); return d && d.G && !d.G.over && d.G.code && d.ver !== GAME_V ? d : null; } catch (e) { return null; }
+}
+function staleClassHTML() {
+  const d = staleClassSave(); if (!d) return '';
+  return `<div class="t-note" role="status"><p>Your class shift (code <b>${esc(d.G.code)}</b>) was saved on ${d.ver ? 'v' + esc(d.ver) : 'an older version'} and can’t continue on v${GAME_V}: the shift would change. Start it again with the code, or ask your instructor for a new one.</p><button type="button" data-act="staleOk">Got it</button></div>`;
 }
 function resumeSave() {
   const d = readSave(); if (!d) { toast('No saved shift on this device', 'bad'); return; }
@@ -2625,7 +2625,7 @@ function titleHTML() {
   const learnBadge = store(trainedKey(U.mode)) ? '<span class="best">Done ✓</span>' : chD ? `<span class="best">${chD} of ${chN}</span>` : fresh ? '<span class="best go">Start here</span>' : '';
   const play = row('play', DOT.med, 'Play a shift', 'Four shifts, plus class scenarios.', stars ? `<span class="best">${stars} ★</span>` : '');
   const learn = row('learn', 'var(--accent)', 'Learn', 'Introductory orientation, then managing disease-specific conditions.', learnBadge);
-  return `<div class="card t-main">${brand}${modes}<p class="t-sub">${md ? 'You see patients, write the orders, and answer the radio.' : 'You manage the flow of a 32-bed ED.'}</p><div class="levels">${resume}${fresh ? learn + play : play + learn}${row('set', '#6B7280', 'Settings', '')}</div><div class="t-links"><button type="button" data-act="help">How to play</button>${lastReport() ? '<button type="button" data-act="lastReport">Last summary</button>' : ''}<button type="button" data-act="tmenu" data-arg="about">About</button></div></div>`;
+  return `<div class="card t-main">${staleClassHTML()}${brand}${modes}<p class="t-sub">${md ? 'You see patients, write the orders, and answer the radio.' : 'You manage the flow of a 32-bed ED.'}</p><div class="levels">${resume}${fresh ? learn + play : play + learn}${row('set', '#6B7280', 'Settings', '')}</div><div class="t-links"><button type="button" data-act="help">How to play</button>${lastReport() ? '<button type="button" data-act="lastReport">Last summary</button>' : ''}<button type="button" data-act="tmenu" data-arg="about">About</button></div></div>`;
 }
 function clearToasts() { const b = $('#toasts'); if (b) b.innerHTML = ''; TQ.length = 0; clearTimeout(toastPump.t); msgOn(false); }
 /* ---------- the first-visit page (v0.22): what this is, who it's for, privacy, credits. Later it's About on the menu. ---------- */
@@ -2885,7 +2885,7 @@ function boot2(data) {
     E.load(data.G); U.scene = 'game'; U.mode = data.G.mode || 'rn'; U.lvl = data.lvl || data.G.level; U.speed = data.speed || 1; U.paused = true;
     $('#title').hidden = true;
     render();
-  } else { showTitle(); staleClassNote(); }
+  } else showTitle();
   try { if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => (U.scene === 'game' && g() && !g().over ? { G: g(), lvl: U.lvl, speed: U.speed, sound: U.sound } : { sound: U.sound })); } catch (e) { /* ignore */ }
   requestAnimationFrame(frame);
 }

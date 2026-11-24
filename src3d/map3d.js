@@ -411,7 +411,7 @@ function apply(sn) {
     const key = 'p' + p.id, want = ptWant(p); seen.add(key);
     const model = want.gown ? PTG[hsh(p.id) % PTG.length] : 'raw:' + RAW[hsh(p.id) % RAW.length];
     const e = entity(key, model);
-    e.meta = { kind: 'pt', id: p.id, tap: p.kind !== 'room', esi: p.esi, name: p.name, sel: p.sel, ok: p.ok, kindAt: p.kind };
+    e.meta = { kind: 'pt', id: p.id, tap: p.kind !== 'room', esi: p.esi, name: p.name, sel: p.sel, ok: p.ok, kindAt: p.kind, code: !!p.code };
     const where = p.kind + '|' + (p.room || '') + '|' + Math.round(p.x) + ',' + Math.round(p.y);
     if (!e.placed) {
       const fresh = p.kind === 'door' && p.fresh;
@@ -510,6 +510,10 @@ function labels() {
       setSprite(l, t + m.me + m.sel, w * 2, 84, near ? 24 : 14, g => { g.scale(2, 2); pill(g, 2, 2, w - 4, 38, 10, '#101215', m.sel ? '#F2C230' : m.me ? '#F2C230' : '#FFFFFF', m.sel || m.me ? 5 : 2.5); g.fillStyle = '#fff'; g.font = FONT(25); g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillText(t, w / 2, 22); });
     } else {
       if (m.kindAt === 'room') { l.s.visible = false; continue; }
+      if (m.code) {   // R4.3-02: a patient in arrest outside a room: a big red CPR badge, impossible to miss
+        setSprite(l, 'CPR' + m.sel, 128, 88, near ? 30 : 20, g => { g.scale(2, 2); pill(g, 3, 5, 58, 34, 17, '#B3261E', m.sel ? '#F2C230' : '#FFFFFF', m.sel ? 4 : 2.5); g.fillStyle = '#fff'; g.font = FONT(22); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('CPR', 32, 23); });
+        l.s.visible = true; const p0 = e.root.position; l.s.position.set(p0.x, p0.y + 2.4, p0.z); l.tap = m.tap ? { kind: m.kind, id: m.id } : null; continue;
+      }
       const t = m.esi ? String(m.esi) : '?', w = 44;
       setSprite(l, t + m.sel + m.ok, 88, 88, near ? 22 : 13, g => { g.scale(2, 2); g.beginPath(); g.arc(22, 22, 19, 0, 7); g.fillStyle = m.esi ? ['', '#C8243A', '#E46A1C', '#F2C230', '#2FA35B', '#3B74C4'][m.esi] : '#5E6878'; g.fill(); g.lineWidth = m.sel || m.ok ? 5 : 3; g.strokeStyle = m.sel ? '#F2C230' : m.ok ? '#2fd36a' : '#fff'; g.stroke(); g.fillStyle = m.esi === 3 ? '#3A2F00' : '#fff'; g.font = FONT(24); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 22, 24); });
     }
