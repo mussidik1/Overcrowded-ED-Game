@@ -1,7 +1,10 @@
-# Runs on every push to main and the 3d branch: the rule checks (and that the committed build matches the source), stress, and the UI tests in Chrome. The phone-size UI tests in WebKit (the engine behind Safari) run
-# only for main and by hand: since the repo went private (Nov 18), macOS minutes count ten times against the plan's monthly minutes.
+# Runs on every push to the 3d branch: the rule checks (and that the committed build matches the source), stress, the database rules,
+# and the UI tests in Chrome. A push to main (a release merge) runs the rule checks and database rules only: the Chrome UI tests already
+# passed on 3d at the same commit (the merge gate in CLAUDE.md), and the repo is private, so every minute counts against the plan.
+# The phone-size UI tests in WebKit (the engine behind Safari) run only by hand (Actions > Tests > Run workflow): macOS minutes count
+# ten times against the plan's monthly minutes, and running them on every push to main used up the month's allowance (Nov 2026).
 # The UI tests were written against Chrome; this is the only place they run in Safari's engine.
-# Each run's output is saved as webkit.txt on the ci-results branch, so it can be read without opening Actions.
+# Each WebKit run's output is saved as webkit.txt on the ci-results branch, so it can be read without opening Actions.
 name: Tests (rules + Safari engine)
 
 on:
@@ -63,6 +66,7 @@ jobs:
 
   chrome:
     name: UI tests in Chrome
+    if: github.ref != 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     steps:
@@ -92,7 +96,7 @@ jobs:
 
   webkit:
     name: UI tests in WebKit (Safari's engine)
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'   # by hand only: macOS minutes count 10x
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
