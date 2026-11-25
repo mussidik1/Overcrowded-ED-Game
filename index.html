@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-9SJN9QuZzKVMgK/xBnz3HYn8kzAsCC48gv2KHnxgKyQ=' 'sha256-Z6q3LabRIIJfjiFjn2JRoirFxu+SwT8qNWcSms5SBRs=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-nSHNWFSPBITgLMxc5DfJ7X32Dxfnj6st+YriBaMlxnQ=' 'sha256-Z6q3LabRIIJfjiFjn2JRoirFxu+SwT8qNWcSms5SBRs=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1B2230">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1669,14 +1669,14 @@ const RXOK = {
   uti: { meds: ['nitrof', 'cephalex'] }, gastro: { meds: ['ondan', 'reglan', 'prochlor'] }, flu: { meds: ['osel', 'apap', 'ibu'] },
   appy: { meds: ['morph', 'fent', 'hydro', 'apap', 'ketor', 'ondan'], abx: ['piptazo', 'ctx', 'metro'] }, chole: { meds: ['morph', 'fent', 'hydro', 'ketor', 'ondan', 'apap'], abx: ['piptazo', 'ctx', 'metro'] },
   hipfx: { meds: ['fent', 'morph', 'hydro', 'apap'] }, pnalow: { abx: ['amox', 'doxy', 'azith', 'amoxclav'] }, pna: { abx: ['ctx', 'azith'] },
-  copd: { meds: ['methylpred', 'pred'], nebs: ['duoneb', 'albut'] }, chf: { meds: ['ntg', 'furo'] }, stone: { meds: ['ketor', 'ibu', 'morph', 'fent', 'hydro'] },
+  copd: { meds: ['methylpred', 'pred', 'dexa'], nebs: ['duoneb', 'albut'], abx: ['azith', 'doxy', 'amoxclav', 'ctx'] }, chf: { meds: ['ntg', 'furo'] }, stone: { meds: ['ketor', 'ibu', 'morph', 'fent', 'hydro'] },
   dvt: { meds: ['apixa', 'enox', 'heparin'] }, migraine: { meds: ['prochlor', 'reglan', 'ketor', 'diphen'] }, cell: { abx: ['cefaz', 'vanc', 'ctx', 'cephalex'] },
   tia: { meds: ['asa'] }, cpmod: { meds: ['asa'] }, cwp: { meds: ['asa', 'ibu', 'ketor'] }, nstemi: { meds: ['asa', 'heparin', 'enox'] }, afib: { meds: ['dilt', 'metop'] },
-  asthma: { meds: ['dexa', 'pred', 'methylpred', 'mag'], nebs: ['albut', 'duoneb'] }, anaph: { meds: ['diphen', 'methylpred', 'famot'], epi: ['epiim'] },
+  asthma: { meds: ['dexa', 'pred', 'methylpred'], nebs: ['albut', 'duoneb'] }, anaph: { meds: ['diphen', 'methylpred', 'famot'], epi: ['epiim'] },
   sepsisw: { abx: ['ctx', 'piptazo'] }, stemi: { meds: ['asa', 'heparin'] }, burn: { meds: ['fent', 'morph', 'ketamine'] },
   mciyel: { meds: ['fent', 'morph', 'hydro'] }, mcimin: { meds: ['ibu', 'apap'] }, mciwr: { meds: ['ibu', 'apap', 'ketor'] },
-  moto: { meds: ['fent', 'morph', 'hydro', 'ketamine'], abx: ['cefaz', 'ctx'] }, shock: { abx: ['piptazo', 'vanc', 'ctx'], pressor: ['norepi', 'pushepi'] },
-  tfall: { reverse: ['pcc', 'vitk'] }, chb: { pace: ['atropine'] }, vip: { meds: ['mecliz'] },
+  moto: { meds: ['fent', 'morph', 'hydro', 'ketamine'], abx: ['cefaz', 'ctx'] }, shock: { abx: ['piptazo', 'vanc', 'ctx'], pressor: ['norepi'] },
+  tfall: { reverse: ['pcc', 'vitk'] }, chb: { pace: ['atropine'] }, vip: { meds: ['mecliz'] }, dka: { meds: ['kcl'] },
 };
 // The drug a preceptor or a bot picks for a treatment: the case's first right drug, or the usual one.
 // v0.28.1: drugs that can hurt this patient. Ordering one is harm, not just an extra.
@@ -1709,13 +1709,17 @@ const contraOf = p => (CONTRA[p.ck] || []).flatMap(d => (d === '@bleed' ? BLEED_
 const DRUG_DEF = { fluids: 'ns', nebs: 'albut', epi: 'epiim', nalox: 'nalox', insulin: 'insdrip', tnk: 'tnk', bp: 'labet', pressor: 'norepi', reverse: 'pcc', abx: 'ctx', pace: 'atropine' };
 // v0.29.1: some treatments need more than one drug (aspirin AND heparin). RXREQ[case][tx] lists groups: one drug from every group.
 // ALSO[case]: standard add-ons that are fine to give (albuterol in hyperkalemia), never counted as extra or wrong.
-const RXREQ = { stemi: { meds: [['asa'], ['heparin', 'enox']] }, nstemi: { meds: [['asa'], ['heparin', 'enox']] }, tfall: { reverse: [['pcc'], ['vitk']] } };
-const ALSO = { dka: ['kcl'], arrest: ['epiarr', 'amio', 'calc', 'bicarb', 'ns', 'lr'], afib: ['heparin', 'enox', 'apixa', 'midaz', 'ketamine', 'fent', 'propofol', 'etomidate'],   // R6.2-16: anticoagulation; R6.3-01: sedation for a cardioversion (not an intubation)   // v0.29.1: potassium in DKA (K 4.8) is reasonable, not required
+const RXREQ = { stemi: { meds: [['asa'], ['heparin', 'enox']] }, nstemi: { meds: [['asa'], ['heparin', 'enox']] }, tfall: { reverse: [['pcc'], ['vitk']] },
+  pna: { abx: [['ctx'], ['azith', 'doxy']] }, shock: { abx: [['piptazo', 'ctx'], ['vanc']] } };   // Phase 3 (R6-14): IDSA/ATS 2019 CAP inpatient; SSC 2021 shock with an unknown source
+const ALSO = { arrest: ['epiarr', 'amio', 'calc', 'bicarb', 'ns', 'lr'], afib: ['heparin', 'enox', 'apixa', 'midaz', 'ketamine', 'fent', 'propofol', 'etomidate'],   // R6.2-16: anticoagulation; R6.3-01: sedation for a cardioversion (not an intubation)   // v0.29.1: potassium in DKA (K 4.8) is reasonable, not required
   // Audit phase 1 (R6-08): in suspected ACS, nitroglycerin for ongoing pain is standard care (ACC/AHA NSTE-ACS, Class I). Morphine and a
   // beta-blocker are judgment calls (morphine IIb; IV beta-blockade harms patients at risk of shock): neutral, pending clinician review.
   // Round 2 (R6.2-02, 06): opioids are harm under SBP 90; metoprolol is harm with signs of shock or heart failure (low pressure, a fast
   // rate, a crash); NSAIDs are harm in any ACS; nitroglycerin is fine in undifferentiated chest pain too.
-  cpmod: ['ntg', 'morph', 'fent', 'hydro', 'metop'], nstemi: ['ntg', 'morph', 'fent', 'hydro', 'metop'], stemi: ['ntg', 'morph', 'fent', 'hydro', 'metop'], cwp: ['ntg'] };
+  cpmod: ['ntg', 'morph', 'fent', 'hydro', 'metop'], nstemi: ['ntg', 'morph', 'fent', 'hydro', 'metop'], stemi: ['ntg', 'morph', 'fent', 'hydro', 'metop'], cwp: ['ntg'],
+  // Phase 3: magnesium in severe asthma (R6-09); antihistamines, steroids, fluids and bronchodilators in anaphylaxis (R6-11); TXA in
+  // hemorrhagic shock within 3 hours (CRASH-2; R6-12); push-dose epinephrine as a bridge to norepinephrine (R6-14). Fine, never required.
+  asthma: ['mag'], anaph: ['diphen', 'methylpred', 'famot', 'dexa', 'pred', 'ns', 'lr', 'albut', 'duoneb'], mvc: ['txa'], moto: ['txa'], shock: ['pushepi'] };
 // v0.29.1: drugs that are never wrong to give, unless this patient has a reason not to (CONTRA): nausea, and fever or pain.
 const NEVER_WRONG = new Set(['ondan', 'apap']);
 // v0.29.1: drugs that do the same job in the same way. When a case's right drug is in one of these groups, another drug from the
@@ -1929,7 +1933,7 @@ const CASES = [
   { k: 'flu', cc: 'Fever, cough, body aches', dx: 'Influenza', esi: 4, src: 'w', age: [18, 75], wt: 2, wk: ['lab'], tr: ['meds'], dispo: 'home', iso: 'drop', find: { lab: 'Flu A positive' } },
   { k: 'pnalow', cc: 'Cough and fever for three days', dx: 'Pneumonia, low risk', esi: 3, src: 'w', age: [25, 64], wt: 2, wk: ['lab', 'xr'], tr: ['abx'], dispo: 'home', gray: 'pna', find: { lab: 'WBC 13.1', xr: 'Small right lower lobe infiltrate' } },
   { k: 'pna', cc: 'Cough and fever', dx: 'Pneumonia', esi: 3, src: 'b', age: [50, 90], wt: 4, wk: ['lab', 'xr'], tr: ['o2', 'abx'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', find: { lab: 'WBC 17.2', xr: 'Right lower lobe infiltrate' } },
-  { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 1, anyRoom: true, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 90%, RR 24, wheezing', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' }, ok: ['meds'] },
+  { k: 'copd', cc: 'Short of breath', dx: 'COPD flare', esi: 1, anyRoom: true, src: 'e', age: [55, 85], wt: 4, wk: ['xr', 'lab'], tr: ['nebs', 'meds', 'abx', 'bipap'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 90%, RR 24, wheezing', find: { xr: 'Hyperinflated, no pneumonia', lab: 'VBG pCO2 58' }, ok: ['meds'] },
   { k: 'chf', cc: "Short of breath, can't lie flat", dx: 'Heart failure flare', esi: 2, src: 'e', age: [60, 90], wt: 3, wk: ['ecg', 'xr', 'lab'], tr: ['bipap', 'meds'], con: 'hosp', pre: ['lab', 'xr'], dispo: 'admit', vit: 'SpO2 91%, BP 178/102', find: { ecg: 'Sinus tach, old Q waves', xr: 'Pulmonary edema', lab: 'BNP 2,400' } },
   { k: 'stone', cc: 'Flank pain', dx: 'Kidney stone', esi: 3, src: 'w', age: [25, 60], wt: 4, wk: ['lab', 'ct'], tr: ['meds', 'fluids'], dispo: 'home', find: { lab: 'Blood in urine, no infection', ct: '4 mm ureteral stone' } },
   { k: 'dvt', cc: 'Swollen leg', dx: 'Deep vein thrombosis', esi: 3, src: 'w', age: [30, 80], wt: 3, wk: ['us', 'lab'], tr: ['meds'], dispo: 'home', find: { us: 'Femoral vein clot', lab: 'Kidney function normal' } },
@@ -1949,9 +1953,9 @@ const CASES = [
   { k: 'afib', cc: 'Racing heart', dx: 'A-fib with rapid rate', esi: 2, src: 'b', age: [55, 90], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', vit: 'HR 152, BP 118/76', find: { ecg: 'Irregularly irregular, no P waves, rate 152', lab: 'Troponin negative' } },
   { k: 'chb', cc: 'Dizzy, nearly passed out', dx: 'Complete heart block', esi: 1, src: 'b', age: [60, 90], wt: 1.2, wk: ['ecg', 'lab'], tr: ['pace'], con: 'cards', pre: ['ecg'], dispo: 'icu', ecg10: true, vit: 'HR 38, BP 102/60, lightheaded', find: { ecg: 'P waves march through, unrelated to the QRS; rate 38', lab: 'Potassium 4.4, troponin negative' } },
   { k: 'gib', con2: 'hosp', cc: 'Vomiting blood', dx: 'Upper GI bleed', esi: 2, src: 'b', age: [40, 85], wt: 2, wk: ['lab'], tr: ['fluids', 'blood'], con: 'gi', pre: ['lab'], dispo: 'admit', bleed: 'prbc', vit: 'HR 122, BP 92/58', find: { lab: 'Hemoglobin 6.8' } },
-  { k: 'dka', cc: 'Vomiting, sugar very high', dx: 'Diabetic ketoacidosis', esi: 2, src: 'b', age: [16, 45], wt: 1.5, wk: ['lab'], tr: ['fluids', 'insulin'], con: 'icu', pre: ['lab'], dispo: 'icu', ok: ['ecg'], find: { lab: 'Glucose 540, anion gap 26, potassium 4.8', ecg: 'Sinus tachycardia, T waves normal' } },
+  { k: 'dka', cc: 'Vomiting, sugar very high', dx: 'Diabetic ketoacidosis', esi: 2, src: 'b', age: [16, 45], wt: 1.5, wk: ['lab'], tr: ['fluids', 'insulin', 'meds'], con: 'icu', pre: ['lab'], dispo: 'icu', ok: ['ecg'], find: { lab: 'Glucose 540, anion gap 26, potassium 4.8', ecg: 'Sinus tachycardia, T waves normal' } },
   { k: 'asthma', cc: 'Wheezing', dx: 'Asthma attack', esi: 2, src: 'w', age: [5, 30], wt: 3, wk: [], tr: ['nebs', 'meds'], dispo: 'home', vit: 'SpO2 91%, can speak 3 words', watch: 60 },
-  { k: 'anaph', cc: 'Throat tight after eating shrimp', dx: 'Anaphylaxis', esi: 1, anyRoom: true, src: 'b', age: [12, 60], wt: 1.5, wk: [], tr: ['epi', 'meds'], dispo: 'home', vit: 'Hives, wheeze, BP 96/60', watch: 240 },
+  { k: 'anaph', cc: 'Throat tight after eating shrimp', dx: 'Anaphylaxis', esi: 1, anyRoom: true, src: 'b', age: [12, 60], wt: 1.5, wk: [], tr: ['epi'], dispo: 'home', vit: 'Hives, wheeze, BP 96/60', watch: 240 },
   { k: 'sepsisw', cc: 'Fever and confusion', dx: 'Sepsis (urinary source)', esi: 2, src: 'w', age: [65, 92], wt: 1.2, wk: ['lab'], tr: ['fluids', 'abx'], con: 'hosp', pre: ['lab'], need: ['lab'], dispo: 'admit', alert: 'sepsis', vit: 'Temp 102.9, HR 118, BP 98/60', find: { lab: 'Lactate 3.1, urine positive' }, ok: ['xr'] },
   { k: 'strokew', cc: 'Face droop, slurred speech', dx: 'Acute ischemic stroke', esi: 2, src: 'w', age: [55, 88], wt: 1, wk: ['ct', 'lab'], tr: ['tnk'], con: 'neuro', pre: ['ct'], need: ['ct'], dispo: 'icu', alert: 'stroke', find: { ct: 'No bleed', lab: 'Glucose 118' }, ok: ['ecg'] },
   // EMS alerts: they ring the Box first
@@ -2471,7 +2475,7 @@ function grayScore(c) {
     if (c.k !== 'synchigh') return g('Canadian Syncope Risk Score', randi(-2, 0), 'low', 'home');
     const s = randi(4, 7); return s <= 5 ? g('Canadian Syncope Risk Score', s, 'high', 'obs', ['admit']) : g('Canadian Syncope Risk Score', s, 'very high', 'admit', ['obs']);
   }
-  if (c.gray === 'tia') { const s = randi(2, 6); return s <= 3 ? g('ABCD2 score', s, 'low', 'home') : s <= 5 ? g('ABCD2 score', s, 'moderate', 'obs', ['admit']) : g('ABCD2 score', s, 'high', 'admit', ['obs']); }
+  if (c.gray === 'tia') { const s = randi(2, 6); return s <= 3 ? g('ABCD2 score', s, 'low', 'home', ['obs']) : s <= 5 ? g('ABCD2 score', s, 'moderate', 'obs', ['admit']) : g('ABCD2 score', s, 'high', 'admit', ['obs']); }
   return null;
 }
 const vEsi = p => (p.esiT != null ? p.esiT : p.esi);

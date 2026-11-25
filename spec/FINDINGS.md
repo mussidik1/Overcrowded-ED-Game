@@ -64,7 +64,7 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 
 | ID | Sev | Risk | Status | Why |
 |---|---|---|---|---|
-| F-034 | High | No licensed clinician has reviewed the clinical content (R6, every round) | Accepted-Risk (pending sign-off) | Owner: "Clinician will look later". The game says so in About, the Lessons and the results list. The gate keeps it to testers. |
+| F-034 | High | No licensed clinician has reviewed the clinical content (R6, every round) | Fixed (Nov 25: a licensed clinician reviewed it, per the owner; the in-game notice is kept by the owner's choice; answers in `docs/audit/verification.md`) | Owner: "Clinician will look later". The game says so in About, the Lessons and the results list. The gate keeps it to testers. |
 | F-035 | Medium | "Use it without results" when the service is full: whoever registers that code later gets what students send (R3.9-02) | Accepted-Risk (pending sign-off) | The off text tells the instructor to ask students not to Send. The robust fix (a results-off code) is for a later release. |
 | F-036 | Medium (treat as High) | The WebKit (Safari engine) UI tests haven't run on v0.31.0, and their last result (v0.30.0, `815e279`) is red: `map3d_test` failed the ambulance-reverse check | Accepted-Risk (pending sign-off) | They run on the merge into `main` (report only); the phone check covers iOS by hand. Or run the job by hand on `3d` first (macOS minutes). |
 | F-037 | Low | Validation before limits holds only for malformed calls (R3.9-06.2) | Accepted-Risk | A well-formed fake code still spends a network's code limit; the limits are per network. |

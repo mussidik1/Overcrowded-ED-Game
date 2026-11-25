@@ -13,253 +13,253 @@
    "ama": 0,
    "expired": 0,
    "left": 23,
-   "care": 427,
+   "care": 430,
    "wait": 21,
    "stars": 3,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "77b91bbe"
+   "stateHash": "7bceb04a"
   },
   "rn/easy/none": {
-   "arrivals": 91,
-   "arrivalsHash": "6ef04f3f",
-   "seen": 91,
-   "dc": 46,
+   "arrivals": 85,
+   "arrivalsHash": "fb9d0af6",
+   "seen": 85,
+   "dc": 45,
    "adm": 30,
-   "proc": 8,
+   "proc": 7,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 8,
-   "care": 1978,
-   "wait": 15,
+   "left": 5,
+   "care": 1933,
+   "wait": 12,
    "stars": 2,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "c1513aea"
+   "stateHash": "bb5261d3"
   },
   "rn/med/none": {
    "arrivals": 111,
-   "arrivalsHash": "a515de27",
+   "arrivalsHash": "a3365d3d",
    "seen": 111,
-   "dc": 50,
+   "dc": 48,
+   "adm": 36,
+   "proc": 9,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 14,
+   "care": 2051,
+   "wait": 17,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "cc0c5591"
+  },
+  "rn/hard/none": {
+   "arrivals": 125,
+   "arrivalsHash": "aaf84b8f",
+   "seen": 125,
+   "dc": 65,
+   "adm": 31,
+   "proc": 11,
+   "tx": 1,
+   "lwbs": 0,
+   "ama": 1,
+   "expired": 1,
+   "left": 22,
+   "care": 1493,
+   "wait": 38,
+   "stars": 2,
+   "fail": null,
+   "lit": 0,
+   "acc": null,
+   "stateHash": "05a0d752"
+  },
+  "md/rush/none": {
+   "arrivals": 27,
+   "arrivalsHash": "f432188f",
+   "seen": 26,
+   "dc": 8,
+   "adm": 6,
+   "proc": 2,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 22,
+   "care": 308,
+   "wait": 21,
+   "stars": 3,
+   "fail": null,
+   "lit": 6,
+   "acc": 72,
+   "stateHash": "4f73ffca"
+  },
+  "md/easy/none": {
+   "arrivals": 88,
+   "arrivalsHash": "56b2f846",
+   "seen": 88,
+   "dc": 51,
+   "adm": 26,
+   "proc": 5,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 0,
+   "expired": 0,
+   "left": 9,
+   "care": 1625,
+   "wait": 18,
+   "stars": 3,
+   "fail": null,
+   "lit": 60,
+   "acc": 69,
+   "stateHash": "02c2c9b3"
+  },
+  "md/med/none": {
+   "arrivals": 111,
+   "arrivalsHash": "cb993581",
+   "seen": 111,
+   "dc": 57,
    "adm": 37,
+   "proc": 9,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 1,
+   "expired": 0,
+   "left": 10,
+   "care": 2051,
+   "wait": 20,
+   "stars": 3,
+   "fail": null,
+   "lit": 39,
+   "acc": 72,
+   "stateHash": "3201b054"
+  },
+  "md/hard/none": {
+   "arrivals": 128,
+   "arrivalsHash": "59a5c7f1",
+   "seen": 127,
+   "dc": 63,
+   "adm": 29,
+   "proc": 10,
+   "tx": 0,
+   "lwbs": 0,
+   "ama": 1,
+   "expired": 0,
+   "left": 26,
+   "care": 1939,
+   "wait": 24,
+   "stars": 3,
+   "fail": null,
+   "lit": 49,
+   "acc": 73,
+   "stateHash": "dd7d5d75"
+  },
+  "rn/med/ct": {
+   "arrivals": 106,
+   "arrivalsHash": "f1290880",
+   "seen": 106,
+   "dc": 48,
+   "adm": 38,
    "proc": 9,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
    "left": 12,
-   "care": 1872,
-   "wait": 19,
+   "care": 1980,
+   "wait": 16,
    "stars": 2,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "cec7d540"
-  },
-  "rn/hard/none": {
-   "arrivals": 134,
-   "arrivalsHash": "3394310a",
-   "seen": 134,
-   "dc": 56,
-   "adm": 37,
-   "proc": 10,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 0,
-   "expired": 1,
-   "left": 35,
-   "care": 591,
-   "wait": 40,
-   "stars": 1,
-   "fail": null,
-   "lit": 0,
-   "acc": null,
-   "stateHash": "ffa8d1f8"
-  },
-  "md/rush/none": {
-   "arrivals": 23,
-   "arrivalsHash": "d3ac2a53",
-   "seen": 23,
-   "dc": 9,
-   "adm": 7,
-   "proc": 0,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 0,
-   "expired": 0,
-   "left": 19,
-   "care": 213,
-   "wait": 22,
-   "stars": 3,
-   "fail": null,
-   "lit": 25,
-   "acc": 77,
-   "stateHash": "eb3d3cb2"
-  },
-  "md/easy/none": {
-   "arrivals": 90,
-   "arrivalsHash": "e8662ead",
-   "seen": 90,
-   "dc": 53,
-   "adm": 27,
-   "proc": 5,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 0,
-   "expired": 0,
-   "left": 8,
-   "care": 1725,
-   "wait": 19,
-   "stars": 3,
-   "fail": null,
-   "lit": 62,
-   "acc": 72,
-   "stateHash": "9a756542"
-  },
-  "md/med/none": {
-   "arrivals": 110,
-   "arrivalsHash": "28fc4473",
-   "seen": 110,
-   "dc": 53,
-   "adm": 36,
-   "proc": 8,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 0,
-   "expired": 0,
-   "left": 14,
-   "care": 1882,
-   "wait": 21,
-   "stars": 3,
-   "fail": null,
-   "lit": 53,
-   "acc": 73,
-   "stateHash": "0da13789"
-  },
-  "md/hard/none": {
-   "arrivals": 126,
-   "arrivalsHash": "97243afc",
-   "seen": 125,
-   "dc": 63,
-   "adm": 29,
-   "proc": 12,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 0,
-   "expired": 0,
-   "left": 24,
-   "care": 1868,
-   "wait": 24,
-   "stars": 3,
-   "fail": null,
-   "lit": 70,
-   "acc": 74,
-   "stateHash": "3d6881c5"
-  },
-  "rn/med/ct": {
-   "arrivals": 108,
-   "arrivalsHash": "59142af6",
-   "seen": 108,
-   "dc": 49,
-   "adm": 37,
-   "proc": 9,
-   "tx": 0,
-   "lwbs": 0,
-   "ama": 1,
-   "expired": 0,
-   "left": 11,
-   "care": 2016,
-   "wait": 20,
-   "stars": 2,
-   "fail": null,
-   "lit": 0,
-   "acc": null,
-   "stateHash": "a2bd4b86"
+   "stateHash": "29b99605"
   },
   "rn/med/mci": {
    "arrivals": 113,
    "arrivalsHash": "93d30375",
    "seen": 113,
    "dc": 52,
-   "adm": 40,
+   "adm": 37,
    "proc": 9,
-   "tx": 0,
+   "tx": 1,
    "lwbs": 0,
-   "ama": 0,
+   "ama": 1,
    "expired": 0,
    "left": 10,
-   "care": 1810,
-   "wait": 21,
+   "care": 1726,
+   "wait": 20,
    "stars": 2,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "c9bea414"
+   "stateHash": "5e379675"
   },
   "rn/med/board": {
-   "arrivals": 120,
-   "arrivalsHash": "1b1d5a9f",
-   "seen": 120,
-   "dc": 57,
-   "adm": 30,
-   "proc": 6,
+   "arrivals": 117,
+   "arrivalsHash": "11b86d42",
+   "seen": 117,
+   "dc": 52,
+   "adm": 29,
+   "proc": 7,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
-   "expired": 1,
-   "left": 31,
-   "care": 938,
-   "wait": 27,
-   "stars": 1,
+   "expired": 0,
+   "left": 34,
+   "care": 1449,
+   "wait": 23,
+   "stars": 2,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "8a62baaf"
+   "stateHash": "97ea5b70"
   },
   "rn/med/short": {
-   "arrivals": 111,
-   "arrivalsHash": "659ddf48",
-   "seen": 111,
-   "dc": 49,
-   "adm": 37,
+   "arrivals": 112,
+   "arrivalsHash": "9fec1a5c",
+   "seen": 112,
+   "dc": 51,
+   "adm": 38,
    "proc": 8,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 15,
-   "care": 1535,
+   "left": 13,
+   "care": 1625,
    "wait": 18,
    "stars": 2,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "22b5b51a"
+   "stateHash": "236b035e"
   },
   "md/med/board": {
-   "arrivals": 103,
-   "arrivalsHash": "afd61acb",
-   "seen": 103,
-   "dc": 54,
-   "adm": 28,
-   "proc": 7,
+   "arrivals": 114,
+   "arrivalsHash": "04f2f0b2",
+   "seen": 114,
+   "dc": 61,
+   "adm": 26,
+   "proc": 8,
    "tx": 0,
    "lwbs": 0,
-   "ama": 1,
+   "ama": 0,
    "expired": 1,
-   "left": 19,
+   "left": 26,
    "care": 1873,
-   "wait": 20,
+   "wait": 23,
    "stars": 3,
    "fail": null,
-   "lit": 51,
-   "acc": 70,
-   "stateHash": "7aed12b1"
+   "lit": 61,
+   "acc": 69,
+   "stateHash": "44491abc"
   }
  },
  "streams": {
@@ -282,7 +282,7 @@
    "sameWalkIns": true,
    "sameFacts": true,
    "hash": "f7221b69",
-   "walkHash": "874745ee"
+   "walkHash": "ff3558be"
   }
  },
  "codes": [
@@ -788,7 +788,7 @@
    ],
    "treats": [
     "o2",
-    "abx"
+    "abx=ctx+azith/doxy"
    ],
    "dx": "Pneumonia",
    "ok": {
@@ -807,17 +807,26 @@
    ],
    "treats": [
     "nebs",
+    "meds",
+    "abx",
     "bipap"
    ],
    "dx": "COPD flare",
    "ok": {
     "meds": [
      "methylpred",
-     "pred"
+     "pred",
+     "dexa"
     ],
     "nebs": [
      "duoneb",
      "albut"
+    ],
+    "abx": [
+     "azith",
+     "doxy",
+     "amoxclav",
+     "ctx"
     ]
    },
    "also": null,
@@ -1183,17 +1192,19 @@
    ],
    "treats": [
     "fluids",
-    "insulin"
+    "insulin",
+    "meds"
    ],
    "dx": "Diabetic ketoacidosis",
    "ok": {
+    "meds": [
+     "kcl"
+    ],
     "insulin": [
      "insdrip"
     ]
    },
-   "also": [
-    "kcl"
-   ],
+   "also": null,
    "contra": [
     "d50"
    ]
@@ -1209,15 +1220,16 @@
     "meds": [
      "dexa",
      "pred",
-     "methylpred",
-     "mag"
+     "methylpred"
     ],
     "nebs": [
      "albut",
      "duoneb"
     ]
    },
-   "also": null,
+   "also": [
+    "mag"
+   ],
    "contra": [
     "metop"
    ]
@@ -1225,8 +1237,7 @@
   "anaph": {
    "tests": [],
    "treats": [
-    "epi",
-    "meds"
+    "epi"
    ],
    "dx": "Anaphylaxis",
    "ok": {
@@ -1239,7 +1250,17 @@
      "epiim"
     ]
    },
-   "also": null,
+   "also": [
+    "diphen",
+    "methylpred",
+    "famot",
+    "dexa",
+    "pred",
+    "ns",
+    "lr",
+    "albut",
+    "duoneb"
+   ],
    "contra": [
     "epiarr"
    ]
@@ -1356,7 +1377,9 @@
    ],
    "dx": "Splenic laceration, hemorrhagic shock",
    "ok": null,
-   "also": null,
+   "also": [
+    "txa"
+   ],
    "contra": [
     "apixa",
     "asa",
@@ -1417,7 +1440,9 @@
      "ctx"
     ]
    },
-   "also": null,
+   "also": [
+    "txa"
+   ],
    "contra": [
     "apixa",
     "asa",
@@ -1453,7 +1478,7 @@
    "treats": [
     "o2",
     "fluids",
-    "abx",
+    "abx=piptazo/ctx+vanc",
     "pressor"
    ],
    "dx": "Septic shock",
@@ -1464,11 +1489,12 @@
      "ctx"
     ],
     "pressor": [
-     "norepi",
-     "pushepi"
+     "norepi"
     ]
    },
-   "also": null,
+   "also": [
+    "pushepi"
+   ],
    "contra": [
     "furo",
     "labet",
@@ -2319,6 +2345,17 @@
     "midaz",
     "propofol"
    ],
+   "anaph": [
+    "albut",
+    "dexa",
+    "diphen",
+    "duoneb",
+    "famot",
+    "lr",
+    "methylpred",
+    "ns",
+    "pred"
+   ],
    "apapod": [
     "charcoal",
     "ondan"
@@ -2330,6 +2367,9 @@
     "epiarr",
     "lr",
     "ns"
+   ],
+   "asthma": [
+    "mag"
    ],
    "cpmod": [
     "fent",
@@ -2343,9 +2383,6 @@
    ],
    "dissect": [
     "nicard"
-   ],
-   "dka": [
-    "kcl"
    ],
    "ectopic": [
     "rhogam"
@@ -2368,6 +2405,9 @@
     "hydro",
     "morph"
    ],
+   "moto": [
+    "txa"
+   ],
    "mpe": [
     "enox",
     "heparin",
@@ -2375,6 +2415,9 @@
     "norepi",
     "ns",
     "pushepi"
+   ],
+   "mvc": [
+    "txa"
    ],
    "nstemi": [
     "fent",
@@ -2393,6 +2436,9 @@
     "hydro",
     "kcl",
     "morph"
+   ],
+   "shock": [
+    "pushepi"
    ],
    "status": [
     "d50",
@@ -2626,6 +2672,28 @@
      ],
      [
       "vitk"
+     ]
+    ]
+   },
+   "pna": {
+    "abx": [
+     [
+      "ctx"
+     ],
+     [
+      "azith",
+      "doxy"
+     ]
+    ]
+   },
+   "shock": {
+    "abx": [
+     [
+      "piptazo",
+      "ctx"
+     ],
+     [
+      "vanc"
      ]
     ]
    },

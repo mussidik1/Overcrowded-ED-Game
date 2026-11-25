@@ -54,7 +54,7 @@ assert(G.care - c0 === -2 && G.stats.md.ordExtra === 1, `an unneeded CT costs 6:
 
 // 5. Untreated: DKA without insulin gets worse
 const d = seen(room('dka', '5'));
-OC.signOrders(d.id, ['lab'], ['fluids']);
+OC.signOrders(d.id, ['lab'], ['fluids', 'kcl']);   // Phase 3 (R6-15): potassium is required too
 run(120, () => d.txGap && d.txGap.length);
 assert(d.txGap && d.txGap.join() === 'insulin', 'labs back: DKA is not improving without the insulin drip');
 run(25, () => G.stats.md.untreated > 0);
@@ -119,7 +119,7 @@ run(120, () => k1.dsp === 'mddecide');
 assert(k1.dsp === 'mddecide' && Object.values(k1.work).every(w => w.st === 'done'), 'your call comes after every result is back');
 const k2 = OC.pt(OC.trainPatient('dka', 'room', { room: '5' }));
 OC.assign(ME, k2.id); run(40, () => k2.ord === 'need');
-OC.signOrders(k2.id, ['lab'], ['fluids']);
+OC.signOrders(k2.id, ['lab'], ['fluids', 'kcl']);   // Phase 3 (R6-15): potassium too
 run(120, () => k2.dsp === 'mddecide');
 assert(k2.txGap && k2.dsp === 'mddecide', 'not improving at your call');
 const r2 = OC.signOrders(k2.id, [], ['insulin']);

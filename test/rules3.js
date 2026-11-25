@@ -119,7 +119,9 @@ if (gp) {
   assert(right === 'home' ? gp.dsp === 'ready' : gp.dsp === 'board', 'and the plan follows it');
 }
 G = fresh(508);
-const mk = (right) => { const p = OC.inRooms().find(x => x.dsp === 'none' && !x.gray); p.gray = { tool: 'HEART score', score: right === 'obs' ? 5 : 2, band: right === 'obs' ? 'moderate' : 'low', right, ok: right === 'obs' ? ['admit'] : [] }; p.dsp = 'decide'; return p; };
+const mk = (right) => {   // any roomed patient with no plan yet; or one placed for the test, when this seed's shift has none free (seed-independent)
+  let p = OC.inRooms().find(x => x.dsp === 'none' && !x.gray);
+  if (!p) { const r = G.rooms.find(x => !x.pid && /^[0-9]+$/.test(x.id) && x.st === 'clean' && !x.closed && !x.iso); p = OC.pt(OC.trainPatient('cwp', 'room', { room: r.id })); } p.gray = { tool: 'HEART score', score: right === 'obs' ? 5 : 2, band: right === 'obs' ? 'moderate' : 'low', right, ok: right === 'obs' ? ['admit'] : [] }; p.dsp = 'decide'; return p; };
 run(180, () => OC.inRooms().filter(x => x.dsp === 'none' && !x.gray).length >= 4, BOT);
 let gx = mk('home');
 let c1 = G.care; OC.grayDispo(gx.id, 'obs');
