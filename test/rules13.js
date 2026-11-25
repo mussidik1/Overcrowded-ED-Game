@@ -53,6 +53,34 @@ for (let seed = 7300; seed < 7340 && !other; seed++) {   // a seed where the cod
 }
 assert(other && other.expired >= 1 && other.md.died === 0, `another provider's patient's death counts for the department, not as the attending's own (md.died ${other && other.md.died}, dept. ${other && other.expired})`);
 
+// R6.8-01: an own patient who arrived before 07:00 (placed at minute 0, arrived at -25) and died with the body still here counts,
+// own and department; and one whose death fires the attending counts too
+p = mine('cwp', 7400); assert(p.tArrive < 0, `the patient arrived before 07:00 (${p.tArrive})`);
+OC.toArrest(p, 'Arrested in the room');
+for (let i = 0; i < 400 && p.arrest; i++) { OC.G.card = null; OC.step(0.1); }
+endNow();
+assert(OC.G.report.md.died === 1 && OC.G.report.expired >= 1, `an own patient from before 07:00 who died on this shift counts (md.died ${OC.G.report.md.died}, dept. ${OC.G.report.expired})`);
+p = mine('cwp', 7500); OC.G.lit = 62; OC.toArrest(p, 'Arrested in the room');
+for (let i = 0; i < 400 && !OC.G.over; i++) { OC.G.card = null; OC.step(0.1); }
+assert(OC.G.report && OC.G.report.fail === 'fired' && OC.G.report.md.died === 1, `the own death that fires the attending is counted (fail ${OC.G.report && OC.G.report.fail}, md.died ${OC.G.report && OC.G.report.md.died})`);
+
+// a patient of another provider (a real one, not an unassigned patient) who dies isn't the attending's
+p = mine('cwp', 7600, 60); p.mine = false; OC.assign('md2', p.id); OC.toArrest(p, 'Arrested in the room');
+for (let i = 0; i < 600 && p.arrest; i++) { OC.G.card = null; OC.step(0.1); }
+endNow();
+assert(OC.G.report.md.died === 0, `another doctor's patient (md2) who arrests isn't counted as the attending's (md.died ${OC.G.report.md.died}, outcome ${p.dsp || p.loc})`);
+
+// R5.8-03: an own patient still in an unrun arrest at the end of the shift: an M&M line, the penalty, and a count sent on
+p = mine('cwp', 7700, 60); OC.G.t = OC.G.shift - 3; OC.toArrest(p, 'Arrested in the room'); OC.G.card = null;   // 3 minutes before the end: under the 20-minute rule
+const lit0 = OC.G.lit || 0; for (let i = 0; i < 100 && !OC.G.over; i++) { OC.G.card = null; OC.step(0.1); }
+assert(OC.G.report.md.arrestOpen === 1 && OC.G.report.mm.some(x => /nobody was running the code/.test(x.what || x.t || JSON.stringify(x))) && (OC.G.lit || 0) > lit0,
+  `an own arrest left unrun at the end is counted, named in the M&M and costs legal risk (arrestOpen ${OC.G.report.md.arrestOpen}, legal ${lit0} -> ${OC.G.lit})`);
+
+// the UI's "complications" (harm - contra) are exactly the unneeded treatments that went wrong
+let comp = 0, h0 = 0;
+for (let s2 = 0; s2 < 20; s2++) { p = mine('cwp', 8000 + s2); OC.signOrders(p.id, ['ecg', 'trop'], ['ibu', 'insulin']); run(90); comp += (md().harm || 0) - (md().contra || 0); h0 += OC.G.mm ? 0 : 0; }
+assert(comp >= 0 && comp <= 20, `harm minus contraindicated drugs counts only complications of unneeded treatments (${comp} in 20 shifts)`);
+
 // an early end says when
 OC.newGame('easy', 1400, { mode: 'md' }); OC.G.train = null; OC.G.card = null; OC.G.t = 301; OC.G.fireNow = true; OC.step(0.1);
 assert(OC.G.report && OC.G.report.fail === 'fired' && OC.G.report.endMin === 301, `a shift that ends early (fired) records its minute (${OC.G.report && OC.G.report.endMin})`);

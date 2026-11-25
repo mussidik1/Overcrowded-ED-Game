@@ -50,13 +50,14 @@ with sync_playwright() as pw:
     page.locator('#sheet [data-act="codeMake"][data-arg="rush"]').tap(); page.wait_for_timeout(700)
     first = reg[0].get('p_code') if reg else ''
     t = page.locator('#sheet .cc-box').nth(1).inner_text()
-    ok(page.locator('#sheet .cc-code').count() == 0 and 'No class code yet' in t and 'too many requests' in t and page.locator('#sheet [data-act="codeReg"]').count() == 1 and page.locator('#sheet [data-act="codeNoRes"]').count() == 0,
+    ok(page.locator('#sheet .cc-code').count() == 0 and 'No class code yet' in t and 'too many requests' in t and 'mobile data' in t and page.locator('#sheet [data-act="codeReg"]').count() == 1 and page.locator('#sheet [data-act="codeNoRes"]').count() == 0,
        f'busy: no code is shown, the message says why, and Try again is offered; not "Use it without results", since someone else can cause a busy answer and claim the code (audit R3.8-01; {t[-160:]!r})')
     ok(J("getComputedStyle(document.querySelector('#sheet .cb-key.bad small')).color") in ('rgb(165, 29, 47)',) or 'No class code yet' in t, 'the failure reads as an error')
     ok(_re.match(r'^[0-9A-HJKMNP-TV-Z]{16}$', reg[0].get('p_key') or '') and sorted(reg[0].keys()) == sorted(CALL['calls']['cb_class_new'].keys()), f'making a code registers it with a key the game made; the call matches the contract file ({sorted(reg[0].keys())})')
     page.locator('#sheet [data-act="codeReg"]').tap(); page.wait_for_timeout(700)
     t = page.locator('#sheet .cc-box').nth(1).inner_text()
-    ok(len(reg) == 2 and reg[1] == reg[0] and page.locator('#sheet .cc-code').count() == 0 and 'whole game' in t, 'full: still no code, and the message says it\'s the whole service, not this class')
+    ok(len(reg) == 2 and reg[1] == reg[0] and page.locator('#sheet .cc-code').count() == 0 and 'whole game' in t and page.locator('#sheet [data-act="codeNoRes"]').count() == 1,
+       'full: still no code, the message says it\'s the whole service, and "Use it without results" is offered (nobody can register a code while full; R5.8-01)')
     page.locator('#sheet [data-act="codeReg"]').tap(); page.wait_for_timeout(700)
     ok(len(reg) == 3 and page.locator('#sheet .cc-code').count() == 0 and page.locator('#sheet [data-act="codeNoRes"]').count() == 1, 'a server that can\'t be reached: no code yet, with Try again and "Use it without results"')
     page.locator('#sheet [data-act="codeReg"]').tap(); page.wait_for_timeout(700)

@@ -264,12 +264,13 @@ insert into codeblack.classes (code, key_hash, ver, created_at, expires_at) valu
 insert into codeblack.results (code, cid, name, role, level, score, stars, real_sec, stats, ver) values ('PQR-001', gen_random_uuid(), 'Old', 'rn', 'med', 1, 1, 1, '{}', '0.31.0');
 insert into codeblack.classes (code, key_hash, ver, created_at, expires_at) values ('PQR-002', repeat('b', 64), '0.31.0', now() - interval '61 days', now() - interval '31 days');
 insert into codeblack.classes (code, key_hash, ver, created_at, expires_at) values ('PQR-003', repeat('c', 64), '0.31.0', now() - interval '14 days 3 hours', now() - interval '3 hours');   -- an unused class
-select t_ok((cb_health() ->> 'overdue')::int = 3, 'the health call sees results that should have gone hours ago, a code held past its 30 days, and an unused class past its end');
+select t_ok((cb_health() ->> 'overdue')::int = 2, 'the health call sees results that should have gone hours ago, and a code held past its 30 days (an unused class just ended is held, not overdue)');
 insert into codeblack.rate (who, kind, hour, n) values (repeat('a', 64), 'read', now() - interval '3 hours', 1);
 insert into codeblack.salt (day, salt) values (current_date - 3, extensions.gen_random_bytes(32));
 select codeblack.tidy();
 select t_ok(not exists (select 1 from codeblack.results where code = 'PQR-001') and exists (select 1 from codeblack.classes where code = 'PQR-001')
-        and not exists (select 1 from codeblack.classes where code in ('PQR-002', 'PQR-003')) and (cb_health() ->> 'overdue')::int = 0, 'the clean-up deletes ended classes'' results, codes held past their 30 days, and unused classes when they end (only a code that got results is held)');
+        and not exists (select 1 from codeblack.classes where code = 'PQR-002') and exists (select 1 from codeblack.classes where code = 'PQR-003')
+        and (cb_health() ->> 'overdue')::int = 0, 'the clean-up deletes ended classes'' results and codes held past their 30 days; an unused class''s code is held too (a planned code may be known; R5.8-02)');
 select t_ok(not exists (select 1 from codeblack.rate where hour < now() - interval '2 hours' and kind not like '%\_day') and not exists (select 1 from codeblack.salt where day < (now() at time zone 'UTC')::date - 1), 'and old counters and salts');
 select t_ok(exists (select 1 from codeblack.classes where code = 'KTA-80P'), 'and leaves live classes alone');
 
