@@ -36,6 +36,22 @@ for (const c of OC.CASES) {
 }
 assert(!bad.length, `every case, ordered the textbook way, scores clean (${OC.CASES.length - skip.size} cases)${bad.length ? ': ' + bad.join(' | ') : ''}`);
 
+// R6.9-01: a required drug is never filed as "Also reasonable" (optional, not counted), in either order of a combination
+bad = [];
+for (const c of OC.CASES) {
+  if (skip.has(c.k)) continue;
+  for (const rev of [false, true]) {
+    let p; try { p = mine(c.k); } catch (e) { continue; }
+    if (!p || !p.right) continue;
+    const K = key(p); if (rev) K.treats.reverse();
+    OC.signOrders(p.id, K.tests, K.treats);
+    const req = new Set(K.treats.filter(k => OC.DRUGS[k]).map(k => OC.DRUGS[k].n));
+    const fine = ((p.ordLog || {}).fine || []).filter(n => req.has(n));
+    if (fine.length) bad.push(`${c.k}${rev ? ' (reversed)' : ''}: ${fine.join(', ')}`);
+  }
+}
+assert(!bad.length, `no required drug is labelled "Also reasonable" in any case, in either order${bad.length ? ': ' + bad.join(' | ') : ''}`);
+
 // pregnancy tests
 let p = mine('appy', { sex: 'F', age: 28 });
 assert(OC.needOf(p).n.includes('hcg'), 'appendicitis in a woman of 28: the pregnancy test is required');

@@ -540,10 +540,10 @@ const LIT_STEPS = [
   { at: 50, k: 'pip', title: 'Performance improvement plan', who: 'Your group’s medical director', text: 'You’re on a **performance improvement plan (PIP)**: closer chart review and a list of goals. Lawyers have started calling about today’s patients. **Don’t discuss a case with a lawyer.** Send them to risk management.', choices: [{ k: 'ok', label: 'Understood', sub: 'Every chart counts now' }] },
 ];
 function litAdd(n, why, p) {
-  if (G.pre || G.mode !== 'md' || G.train || !n) return;
+  if (G.pre || G.mode !== 'md' || G.train || !n || (G.over && G.fail)) return;   // a fired attending gets no reason added after the firing (R6.9-02)
   G.lit = Math.max(0, Math.min(100, (G.lit || 0) + n));
   if (n > 0) (G.stats.litLog = G.stats.litLog || []).push({ t: G.t, n, why: (p ? p.name + ': ' : '') + why, who: p ? p.name : null });
-  litCheck();
+  if (!G.over) litCheck();   // added at the end of the shift: no call, card or firing after it (audit R5.9-03)
 }
 function litCheck() {
   G.litStage = G.litStage || 0;
@@ -1851,7 +1851,7 @@ function signOrders(pid, tests, treats) {
   }
   const newT = Array.from(new Set(want)).filter(k => (k === 'ecg' ? !p.wk.includes('ecg') : !p.det.includes(k)));
   // v0.28: drugs and procedures resolve to treatments. The right drug fills the need; a wrong one is wasted and counted.
-  const drugX = [], drugOk = [], contraX = [];
+  const drugX = [], drugOk = [], partOk = [], contraX = [];
   if ((treats || []).includes('tnk')) p.tnkOrdered = true;   // R6.3-10: aspirin on the same sheet as a stroke lytic
   p.drugs = p.drugs || [];
   const tk = [];
@@ -1864,7 +1864,7 @@ function signOrders(pid, tests, treats) {
     const D = DRUGS[k];
     { const t = D.tx.find(t => reqOf(p, t) && R.tr.includes(t) && reqOf(p, t).some(g => g.includes(k)));   // one part of a combination
       if (t) { const g = reqOf(p, t), i = g.findIndex(x => x.includes(k)); p.rxg = p.rxg || {}; const got = p.rxg[t] = p.rxg[t] || []; if (!got.includes(i)) got.push(i);
-        if (got.length >= g.length && !p.tr.includes(t) && !tk.includes(t)) tk.push(t); else drugOk.push(D.n); continue; } }
+        if (got.length >= g.length && !p.tr.includes(t) && !tk.includes(t)) tk.push(t); else partOk.push(D.n); continue; } }   // a required drug, not "also reasonable": the rest of its combination shows as missed (audit R6.9-01)
     if ((ALSO[p.ck] || []).includes(k)) { drugOk.push(D.n); continue; }
     const need = D.tx.find(t => R.tr.includes(t) && !p.tr.includes(t) && !tk.includes(t) && rxOk(p, t, k));
     if (need) { tk.push(need); continue; }
@@ -1880,11 +1880,12 @@ function signOrders(pid, tests, treats) {
   }
   if (tk.includes('cardiovert') && cardiovertOk(p) && R.tr.includes('meds') && !p.tr.includes('meds') && !tk.includes('meds')) R.tr = R.tr.filter(k => k !== 'meds');   // R6.3-02: rhythm control instead of rate control
   const newR = Array.from(new Set(tk)).filter(k => TREAT[k] && k !== 'vent' && !p.tr.includes(k));
-  if (!newT.length && !newR.length && !drugX.length && !drugOk.length && !contraX.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
+  if (!newT.length && !newR.length && !drugX.length && !drugOk.length && !partOk.length && !contraX.length && !(first && !detMiss(p).length && !R.tr.length)) return { ok: false, why: 'Pick at least one order' };
   let pts = 0, extra = 0;
   const xl = [], fl = [], OKL = R.ok || [], OKD = R.detOk || [];   // fl: reasonable orders. Not required, not counted against you.
   for (const nm of drugX) { pts -= 3; extra++; S.ordExtra++; xl.push(nm); }
-  for (const k of contraX) { S.harm++; care(-20, 'harm', p); litAdd(10, `given ${DRUGS[k].n.toLowerCase()}, which can hurt them`, p); mm(55, `${p.name} was given ${DRUGS[k].n.toLowerCase()}`, `It can hurt them: ${contraWhy(p, k)}`, true); toast(`${DRUGS[k].n} can hurt ${p.name}: ${contraWhy(p, k)}.`, 'bad'); }
+  const ul = contraX.map(k => `${DRUGS[k].n} (${contraWhy(p, k)})`);   // the unsafe orders, named in the order review (R6.8-04)
+  for (const k of contraX) { S.harm++; S.contra = (S.contra || 0) + 1; care(-20, 'harm', p); litAdd(10, `given ${DRUGS[k].n.toLowerCase()}, which can hurt them`, p); mm(55, `${p.name} was given ${DRUGS[k].n.toLowerCase()}`, `It can hurt them: ${contraWhy(p, k)}`, true); toast(`${DRUGS[k].n} can hurt ${p.name}: ${contraWhy(p, k)}.`, 'bad'); }
   fl.push(...drugOk);
   for (const k of newT) {
     const kind = DET_KIND(k), nm = DET_NAME(k);
@@ -1906,7 +1907,9 @@ function signOrders(pid, tests, treats) {
     else if (treatOkNow(p, k)) { fl.push(trName(p, k)); }   // v0.29.1: tenecteplase for a PE whose pressure has fallen
     else if (k === 'cardiovert' && cardiovertOk(p)) { fl.push(TREAT[k].label); }   // stable A-fib under 48 hours: rhythm control is a fair choice
     else if (OKL.includes(k)) { fl.push(trName(p, k)); }
-    else { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); (p.extraTr = p.extraTr || []).push(k); if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
+    else { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); (p.extraTr = p.extraTr || []).push(k);
+      if (HARM[k] && !p.arrest && !(k === 'cardiovert' && p.ck === 'afib' && cardiovertOk(p))) S.unneeded = (S.unneeded || 0) + 1;   // the unsafe order, counted when ordered, whatever happens next (R6.7-03)
+      if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
   }
   let held = '';
   if (newR.includes('tnk') && R.tr.includes('tnk') && !p.tr.includes('bp') && !bpOkForLytic(p)) {   // the nurse will not push it over the limit
@@ -1917,12 +1920,15 @@ function signOrders(pid, tests, treats) {
   if (first) {
     const miss = detMiss(p).length + R.tr.filter(k => !p.tr.includes(k)).length;
     S.ordMiss += miss;
-    if (!miss && !extra) { pts += 10; S.clean++; }
-    p.ordLog = { name: p.name, dx: p.dx, miss: missNow(p), extra: xl.slice(), fine: fl.slice(), why: (p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck] || '' };
-    if (p.ordLog.miss.length || xl.length) logOrders(S, p);
+    if (!miss && !extra && !contraX.length) { pts += 10; S.clean++; }   // a set with a drug that can hurt isn't clean (audit R1.9-01)
+    p.ordLog = { name: p.name, dx: p.dx, miss: missNow(p), extra: xl.slice(), fine: fl.slice(), unsafe: ul, why: (p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck] || '' };
+    if (p.ordLog.miss.length || xl.length || ul.length) logOrders(S, p);
+  } else if (!p.ordLog && (xl.length || ul.length)) {   // a later order with no first set on record (after a pulse came back): it still reaches the review (audit R6.9-07)
+    p.ordLog = { name: p.name, dx: p.dx, miss: [], extra: xl.slice(), fine: fl.slice(), unsafe: ul, why: ORD_WHY[p.ck] || '' };
+    logOrders(S, p);
   } else if (p.ordLog) {
-    if (xl.length && !p.ordLog.miss.length && !p.ordLog.extra.length) logOrders(S, p);
-    p.ordLog.extra.push(...xl); p.ordLog.fine.push(...fl);
+    if ((xl.length || ul.length) && !p.ordLog.miss.length && !p.ordLog.extra.length && !(p.ordLog.unsafe || []).length) logOrders(S, p);
+    p.ordLog.extra.push(...xl); p.ordLog.fine.push(...fl); (p.ordLog.unsafe = p.ordLog.unsafe || []).push(...ul);
     p.ordLog.miss = missNow(p);   // what is still missing, for the hint and the report
   }
   care(pts, 'orders', p);
@@ -2234,7 +2240,8 @@ function codePick(k, ctx) {
 // The best odds of a pulse coming back with everything done right and fast. Roughly in line with published registries (arrests in
 // hospital: AHA Get With The Guidelines-Resuscitation; out of hospital: CARES), not exact. Pending clinician review.
 const CODE_BASE = { ed: { vf: 0.65, pea: 0.45, asys: 0.25, trauma: 0.15, limb: 0.25 }, field: { vf: 0.45, pea: 0.2, asys: 0.08, trauma: 0.08, limb: 0.15 } };
-const CODE_AI_Q = 0.6;   // a doctor run by the game gets it partly right: running the code well yourself (3 of 3) beats handing it off
+const CODE_AI_Q = 0.6;
+const BOOK_WAIT = 5;   // a code started within 5 game minutes of the arrest counts as prompt: a few real seconds at 4x (audit R5.11-01)   // a doctor run by the game gets it partly right: running the code well yourself (3 of 3) beats handing it off
 const CODE_NAME = { vf: 'VF', pea: 'PEA', asys: 'asystole', trauma: 'traumatic arrest', limb: 'arrest after bleeding' };
 // The odds of a pulse coming back for this code, from its rhythm and setting, the answers (or the game-run doctor's skill), the minutes
 // before a doctor took over, an unshocked VF, and respiratory therapy. A pure function of p, so tests can check the numbers (R2.3-02).
@@ -2264,8 +2271,18 @@ function codeOutcome(p) {
     toast(`A pulse is back (ROSC) in ${roomName(p.room)}! Intubate (attending and RT), then the vent. ${p.dispo === 'transfer' ? 'Then a transfer to ' + p.txTo + '.' : 'Call ' + (SPECS[p.con] ? SPECS[p.con].name : 'Critical Care') + '.'}`, 'good'); sound('good');
     codeEnd(p, true, n);
   } else {
-    p.arrest = false; p.dx = 'Resuscitation unsuccessful'; p.dxK = true; p.dsp = 'family'; p.due = G.t + 15;
-    if (C.me && !G.pre) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
+    p.arrest = false; p.dx = 'Resuscitation unsuccessful'; p.dxK = true; p.dsp = 'family'; p.due = G.t + 15; p.tDied = G.t;
+    // A code the attending ran by the book and lost (every check right, started within BOOK_WAIT minutes) is not the same as an abandoned or
+    // badly run one (audit R6.9-03, R6.11-03). Another doctor's code started at once is no one's fault, but it isn't "by the book" either:
+    // the student didn't run it (R6.11-03). Any other lost code on the attending's own patient, whoever ran it, is a death like any other,
+    // with its M&M line and legal risk (R6.10-01, R6.11-01: a late hand-off doesn't erase it).
+    const book = C.me && C.right >= n && C.wait <= BOOK_WAIT, prompt = !C.me && C.wait <= BOOK_WAIT;
+    if (book) p.codeLost = { right: C.right, n, wait: C.wait };
+    if (prompt) p.codeHanded = { wait: C.wait };
+    const blame = !G.pre && !book && !prompt && (C.me || (p.mine && G.mode === 'md'));
+    if (blame) litAdd(10, C.me ? `died after a code with ${C.right} of ${n} rhythm checks right and the team there ${C.wait} min after the arrest` : `died after a code that started ${C.wait} min after the arrest`, p);
+    if (blame && !C.me) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `the code started ${C.wait} min after the arrest`, true);
+    if (blame && C.me) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
     toast(`Code called at ${clock()} in ${roomName(p.room)}. The chaplain is with the family.`, 'info'); sound('bad');
     codeEnd(p, false, n);
   }
@@ -2309,6 +2326,7 @@ function arrestNoTeam(p) {
     else if (roomed) { care(-40, 'md', p); if (p.prov === G.me || p.mine || !p.prov) litAdd(15, 'died in cardiac arrest and no code was run', p); }   // R5.2-01: never cheaper than running it
     toast(`${p.name} died in cardiac arrest. ${roomed ? 'Nobody ran the code.' : 'They never got a room.'}`, 'alert'); sound('bad');
   }
+  p.tDied = G.t;
   if (roomed) { p.dsp = 'family'; p.due = G.t + 15; } else leave(p, 'expired');
 }
 
@@ -3373,7 +3391,7 @@ function leave(p, outcome) {
   else if (outcome === 'tx') { S.tx++; care(12, 'flow', p); note(`${p.name} transferred to ${p.txTo}`); }
   else if (outcome === 'lwbs') { S.lwbs++; care(-25, 'lwbs'); }
   else if (outcome === 'ama') { S.ama++; care(-15, 'ama'); if (G.mode === 'md' && p.mine) care(-15, 'md'); }
-  else if (outcome === 'expired') S.expired++;
+  else if (outcome === 'expired' && !(p.tDied < 0)) { S.expired++; if (G.mode === 'md' && p.mine && S.md) { S.md.died = (S.md.died || 0) + 1; if (p.codeLost) S.md.codeLost = (S.md.codeLost || 0) + 1; if (p.codeHanded) S.md.handed = (S.md.handed || 0) + 1; } }   // the attending's own patients (R6.6-04); a death before 07:00 belongs to the night shift (R6.8-01)
   if (outcome !== 'expired' && p.tArrive >= 0) {
     if (outcome === 'lwbs') p.px = Math.min(p.px, 20);
     else if (outcome === 'ama') p.px = Math.min(p.px, 30);
@@ -4393,16 +4411,31 @@ function endShift(reason) {
   if (!G.pre && G.stats.returnsLate && G.mode !== 'md') care(-20 * G.stats.returnsLate, 'returns');
   G.over = true; G.running = false; G.fail = reason === 'walkout' || reason === 'fired' ? reason : null;
   const list = G.order.map(id => G.pts[id]).filter(p => p.tArrive >= 0 && p.loc !== 'enroute' && p.loc !== 'new');
+  // the dead still in the department, whenever they arrived (a patient from before 07:00 who died on this shift counts; R6.8-01)
+  const deadHere = G.order.map(id => G.pts[id]).filter(p => p && p.loc !== 'gone' && ['family', 'morgue', 'morguing'].includes(p.dsp) && !(p.tDied < 0));
+  // the attending's own patients still in cardiac arrest with nobody running the code: never cheaper than running it (R5.8-03)
+  const inArrest = G.mode === 'md' && !G.pre ? G.order.map(id => G.pts[id]).filter(p => p && p.mine && p.arrest && p.loc === 'room') : [];
+  const running = p => p.ev === 'doing' || (p.code && p.code.tLeft == null && !p.code.me);
+  const arrestOpen = inArrest.filter(p => !running(p));
+  // a code started (or handed off) 5+ minutes after the arrest, in the last moments of the shift: not an escape from the rule above (R6.11-02)
+  const arrestLate = G.fail ? [] : inArrest.filter(p => running(p) && p.code && p.code.wait > BOOK_WAIT);   // the same line as "by the book": 5 minutes is in time
+  for (const p of arrestLate) { care(-20, 'md', p); litAdd(10, `in cardiac arrest at the end of the shift, with a code that started ${p.code.wait} min after the arrest`, p); mm(60, `${p.name} was in cardiac arrest when the shift ended, and the code started ${p.code.wait} min after the arrest`, 'Start the code at once: every minute without a team lowers the odds.', true); }
+  for (const p of arrestOpen) {   // counted either way; penalised only if it was old enough to have been run, on a shift that ran its course (R6.9-02)
+    const ref = p.code && p.code.tLeft != null ? p.code.tLeft : p.tArrest != null ? p.tArrest : p.tArrive;   // the same clock as arrestNoTeam: an arrival in arrest counts from the door (audit R1.10-02)
+    const age = Math.max(0, Math.round(G.t - ref));
+    p.late = !G.fail && age >= 5;
+    if (p.late) { care(-40, 'md', p); litAdd(15, 'in cardiac arrest at the end of the shift with no code running', p); mm(90, `${p.name} was in cardiac arrest when the shift ended (${age} min), and nobody was running the code`, 'Run the code: an arrest nobody runs is a death', true); }
+  }
   const ems = list.filter(p => p.src === 'ems');
   const walls = ems.map(p => p.tWall != null ? p.tWall : (p.loc === 'wall' ? G.t - p.tArrive : 0));
   const S = G.stats;
   G.report = {
-    level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
+    level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, endMin: Math.round(Math.min(G.t, G.shift || G.t)), realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
     stars: G.fail ? 0 : overallStars(), avg: avgScore(),
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama,
-    expired: S.expired + list.filter(p => p.loc !== 'gone' && ['family', 'morgue', 'morguing'].includes(p.dsp)).length,   // audit R5-02: the dead who haven't left yet count too
+    expired: S.expired + deadHere.length,   // audit R5-02: the dead who haven't left yet count too, whenever they arrived (R6.8-01)
     noTeam: S.noTeam || 0, lyticLate: S.lyticLate || 0,
-    lit: Math.round(G.lit || 0), acc: G.mode === 'md' ? accuracy() : null, dxRight: (S.md && S.md.dxRight) || 0, dxWrong: (S.md && S.md.dxWrong) || 0, dxLog: ((S.md && S.md.dxLog) || []).slice(), litLog: (S.litLog || []).slice(), lawCalls: S.lawCalls || 0, wrongDrug: (S.md && S.md.wrongDrug) || 0,
+    lit: Math.round(G.lit || 0), litStage: G.litStage || 0, acc: G.mode === 'md' ? accuracy() : null, dxRight: (S.md && S.md.dxRight) || 0, dxWrong: (S.md && S.md.dxWrong) || 0, dxLog: ((S.md && S.md.dxLog) || []).slice(), litLog: (S.litLog || []).slice(), lawCalls: S.lawCalls || 0, wrongDrug: (S.md && S.md.wrongDrug) || 0,
     returns: S.returns + S.returnsLate, returnList: (S.returnList || []).slice(), radioLog: (S.radioLog || []).slice(), left: active().length,
     wallAvg: walls.length ? Math.round(walls.reduce((a, b) => a + b, 0) / walls.length) : 0,
     wallMax: walls.length ? Math.round(Math.max(...walls)) : 0, wallOver: walls.filter(w => w > 30).length,
@@ -4417,7 +4450,12 @@ function endShift(reason) {
     mm: S.mm.slice().sort((a, b) => b.sev - a.sev || a.t - b.t).filter((x, i, arr) => arr.findIndex(y => y.what === x.what) === i).slice(0, 3).map(x => Object.assign({}, x, { t: Math.round(x.t) })),
     gray: Object.assign({}, S.gray), obs: S.obs, fcp: S.fcp, chairMoves: S.chairMoves, hallMins: S.hallMins,
     underTriage: S.underTriage, underCaught: S.underCaught, cosign: S.cosign, missedDx: S.missedDx, intub: S.intub, intubNoRT: S.intubNoRT,
-    suspended: S.suspended, quickReg: S.quickReg, mode: G.mode, md: Object.assign({}, S.md, { log: orderLogOf(S.md) }),
+    suspended: S.suspended, quickReg: S.quickReg, mode: G.mode, md: Object.assign({}, S.md, { log: orderLogOf(S.md),
+      died: (S.md.died || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine).length : 0),   // the attending's own dead who haven't left yet count too (as R5-02 for the department)
+      codeLost: (S.md.codeLost || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine && p.codeLost).length : 0),
+      handed: (S.md.handed || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine && p.codeHanded).length : 0),   // of those, after another doctor's prompt code (R6.11-03)
+      codeLate: arrestLate.length,   // of those, after a code the attending ran (R6.9-03)
+      arrestOpen: arrestOpen.length, arrestLeft: arrestOpen.filter(p => p.late).length }),
   };
 }
 

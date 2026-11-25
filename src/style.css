@@ -258,13 +258,14 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 /* ---------- sheets, modals, toasts ---------- */
 .sheet-wrap { position: fixed; inset: 0; z-index: 90; }
 .sheet-bg { position: absolute; inset: 0; background: rgba(18, 24, 32, .38); }
+.sheet:focus { outline: none; }   /* the sheet takes focus when it opens (audit R4.9-03); its buttons keep their own focus ring */
 .sheet { position: absolute; right: 0; bottom: 0; left: 0; display: flex; flex-direction: column; max-height: 84vh; overflow: hidden; border-radius: 18px 18px 0 0; background: var(--paper); font-family: var(--body); font-size: 15px; box-shadow: 0 -10px 30px rgba(0, 0, 0, .22); animation: up .18s ease-out; }
 .sheet-body { overflow: auto; padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; }
 .sheet-x { position: absolute; top: 10px; right: 12px; z-index: 2; }
 .sh-h, .ph { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; padding-right: 44px; }
 .sh-h h3 { margin: 0; font: 700 21px/1.1 var(--display); text-wrap: balance; }
 .sh-sub, .ph-sub { color: var(--ink-2); font-size: 13.5px; }
-.x { flex: none; width: 38px; height: 38px; border: 0; border-radius: 50%; background: #EEF0F3; font-size: 16px; }
+.x { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #EEF0F3; font-size: 16px; }
 .ph-who { display: flex; align-items: center; gap: 10px; font-size: 16px; line-height: 1.3; }
 .ph-em { font-size: 34px; line-height: 1; }
 .ph-cc { display: grid; gap: 5px; margin: 10px 0; padding: 9px 11px; border-radius: 10px; background: #F4F6F8; line-height: 1.35; }
@@ -524,7 +525,7 @@ body.mapmode .pill { flex: 1 1 0; flex-direction: row; align-items: baseline; ga
 body.mapmode .pill b { font-size: 17px; }
 body.mapmode.msgon:not(.msgover) .pill { flex: 0 0 auto; justify-content: center; }   /* a message is up: the scores are five numbers on the left, and it takes the rest */
 body.mapmode.msgon:not(.msgover) .pill span { display: none; }
-body.mapmode .toast.long { -webkit-line-clamp: 3; line-clamp: 3; padding-top: 1px; padding-bottom: 1px; font-size: 12px; line-height: 1.14; }
+body.mapmode.ingame .toast.long { -webkit-line-clamp: 3; line-clamp: 3; padding-top: 1px; padding-bottom: 1px; font-size: 12px; line-height: 1.14; }
 body.mapmode .shiftbar { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; margin: 0; }
 body.mapmode .boxbar { flex: 0 1 auto; min-width: 0; min-height: 0; padding: 5px max(10px, env(safe-area-inset-right)) 6px 12px; border-bottom: 0; border-left: 1px solid rgba(255, 255, 255, .12); }
 body.mapmode .boxbar .bx-btn { height: 36px; }
@@ -539,8 +540,8 @@ body.mapmode .boxbar { margin-right: 46px; }
 body.mapmode .objs { position: fixed; z-index: 27; top: calc(var(--topH, 60px) + 5px); right: calc(var(--railR, 0px) + 5px); flex-direction: column; align-items: flex-end; gap: 3px; max-width: 46vw; padding: 0; overflow: visible; border: 0; background: transparent; pointer-events: none; }
 body.mapmode .objs > * { pointer-events: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
 body.mapmode .selbar { position: fixed; z-index: 28; right: calc(var(--railR, 0px) + 131px); bottom: calc(var(--dockH, 0px) + 3px + env(safe-area-inset-bottom)); left: calc(var(--railL, 0px) + var(--nbW, 0px) + 6px); max-width: 640px; padding: 6px 8px 6px 12px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .32); }
-body.mapmode .toasts { top: env(safe-area-inset-top); right: var(--tsR, 120px); bottom: auto; left: var(--tsL, 230px); display: grid; place-items: center; height: calc(var(--topH, 60px) - env(safe-area-inset-top)); padding: 2px 3px; gap: 0; }
-body.mapmode .toast { grid-area: 1 / 1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; width: 100%; max-width: 620px; max-height: 100%; padding: 4px 12px; border-radius: 9px; font-size: 14px; line-height: 1.22; text-align: center; box-shadow: 0 0 0 2px var(--frame), 0 2px 8px rgba(0, 0, 0, .35); }
+body.mapmode.ingame .toasts { top: env(safe-area-inset-top); right: var(--tsR, 120px); bottom: auto; left: var(--tsL, 230px); display: grid; place-items: center; height: calc(var(--topH, 60px) - env(safe-area-inset-top)); padding: 2px 3px; gap: 0; }
+body.mapmode.ingame .toast { grid-area: 1 / 1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; width: 100%; max-width: 620px; max-height: 100%; padding: 4px 12px; border-radius: 9px; font-size: 14px; line-height: 1.22; text-align: center; box-shadow: 0 0 0 2px var(--frame), 0 2px 8px rgba(0, 0, 0, .35); }
 body.mapmode .coach { right: calc(var(--railR, 0px) + 10px); bottom: calc(var(--dockH, 70px) + 10px + env(safe-area-inset-bottom)); left: auto; width: min(420px, calc(100vw - 24px)); margin: 0; }
 body.mapmode .coach.cleft { right: auto; left: calc(var(--railL, 0px) + 10px); }
 body.mapmode .coach.calt { top: calc(var(--topH, 60px) + 8px); bottom: auto; }
@@ -600,9 +601,9 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
   body.mapmode .selbar { bottom: calc(var(--dockH, 0px) + 2px + env(safe-area-inset-bottom)); padding: 2px 6px 2px 10px; }   /* one short line over the imaging strip, clear of the bottom row of rooms */
   body.mapmode .selbar > span { font-size: 12.5px; }
   body.mapmode .selbar button { height: 28px; padding: 0 10px; font-size: 13px; }
-  body.mapmode .toast { padding: 2px 9px; border-radius: 8px; font-size: 12px; line-height: 1.18; }
-  body.mapmode .toast.long { font-size: 10.5px; line-height: 1.12; }
-  body.mapmode .toasts.tight .toast { padding: 1px 6px; font-size: 10.5px; line-height: 1.12; -webkit-line-clamp: 3; line-clamp: 3; }
+  body.mapmode.ingame .toast { padding: 2px 9px; border-radius: 8px; font-size: 12px; line-height: 1.18; }
+  body.mapmode.ingame .toast.long { font-size: 10.5px; line-height: 1.12; }
+  body.mapmode.ingame .toasts.tight .toast { padding: 1px 6px; font-size: 10.5px; line-height: 1.12; -webkit-line-clamp: 3; line-clamp: 3; }
   body.mapmode .coach.calt { top: auto; bottom: calc(var(--dockH, 0px) + 6px + var(--selH, 0px) + env(safe-area-inset-bottom)); }
   body.mapmode .coach { top: calc(var(--topH, 40px) + 6px); bottom: auto; width: min(280px, calc((100vw - var(--railL, 0px) - var(--railR, 0px)) * .44)); max-height: calc(100vh - var(--topH, 40px) - var(--selH, 0px) - 14px); max-height: calc(100dvh - var(--topH, 40px) - var(--selH, 0px) - 14px); overflow: auto; border-radius: 14px; }
   body.mapmode .coach-c { padding: 8px 10px; }
@@ -690,6 +691,7 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 .t-about .ab-cred { margin-top: 14px; font-size: 15px; }
 .t-about .ab-cred summary { font-weight: 700; cursor: pointer; padding: 6px 0; }
 .t-about .ab-cred ul { padding-left: 18px; margin: 4px 0; }
+.t-about .ab-list { padding-left: 18px; margin: 4px 0 8px; }
 .t-about .ab-cred li { margin: 3px 0; font-size: 14px; }
 .t-about .ab-go { width: 100%; margin-top: 16px; }
 /* the private testing gate */
@@ -707,11 +709,8 @@ body.gated .app, body.gated #title, body.gated .screen { visibility: hidden; }
 .cb-send { margin: 10px 0; padding: 10px 12px; border: 1.5px solid var(--line, #D5DAE1); border-radius: 12px; }
 .cb-send small, .cc-box small.cb-err { display: block; margin: 2px 0 6px; }
 .cb-send.ok { border-color: #12813A; color: #12813A; }
-.cb-err { color: #A51D2F; }
-.cb-name { flex: 1; min-width: 0; font: 400 18px/1.2 var(--ui); padding: 8px 10px; border: 1.5px solid var(--line, #C5CCD6); border-radius: 9px; }
-.cb-tab { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 15px; }
-.cb-tab th, .cb-tab td { padding: 4px 6px; text-align: left; border-bottom: 1px solid var(--line, #E1E5EA); }
-.cb-tab td small { opacity: .7; }
+.cb-err, .cc-box small.cb-err, .cb-send small.cb-err { color: #A51D2F; font-weight: 700; }   /* an error, not help text (audit R4.7-03) */
+.cb-name { flex: 1; min-width: 0; min-height: 44px; font: 400 18px/1.2 var(--ui); padding: 8px 10px; border: 1.5px solid var(--line, #C5CCD6); border-radius: 9px; }
 @media print { .cb-send { display: none; } }
 .ring3d { position: fixed; z-index: 20; pointer-events: none; border-radius: 12px; border: 3px solid #E9A800; background: rgba(242, 194, 48, .14); animation: ring3d 1.1s ease-in-out infinite; }
 .ring3d.needring { border-color: #1E5BC6; background: rgba(30, 91, 198, .12); animation-name: ring3dn; }
@@ -1006,7 +1005,7 @@ body.ingame { touch-action: pan-x pan-y; }
 #viewer .vw-cr a { color: #aeb8c6; }
 
 /* v0.20: class codes */
-.cc-box { display: grid; gap: 6px; margin: 10px 0; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); }
+.cc-box { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 10px 0; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); }   /* minmax: an input's own width can't push the sheet sideways (R4-02) */
 .cc-box small { color: var(--ink-2); font-size: 13px; line-height: 1.3; }
 .cc-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .cc-row .big { flex: 1 1 auto; margin: 0; min-width: 96px; }
@@ -1014,6 +1013,48 @@ body.ingame { touch-action: pan-x pan-y; }
 .cc-lv { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 .cc-made { display: grid; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed #9AA3AD; }
 .cc-code { font: 700 40px/1.1 var(--ui); letter-spacing: .14em; text-align: center; }
+/* v0.31: the instructor key, and deleting results */
+.cb-key { display: grid; gap: 4px; margin-top: 4px; padding: 8px 10px; border: 2px solid #1F5FA8; border-radius: 10px; }
+.cb-key.bad { border-color: #A51D2F; }
+.cb-key-v { font: 700 clamp(16px, 5.2vw, 22px)/1.2 var(--ui); letter-spacing: .04em; text-align: center; white-space: nowrap; user-select: all; -webkit-user-select: all; }
+.cb-keyin { font-size: 16px; letter-spacing: 0; padding: 0 8px; }   /* all 19 characters of a shown key fit at 360 px wide (audit R4.9-02) */
+.cb-keyin.masked { -webkit-text-security: disc; }   /* the key isn't readable on a projected screen (audit R5.6-02) */
+.cc-code.lost { opacity: .35; text-decoration: line-through; }   /* another class has this code (audit R3.7-04) */
+.cb-keyrow { flex-wrap: nowrap; }
+.cb-keyrow .cb-keyin { flex: 1 1 auto; width: auto; min-width: 0; }
+.cb-keyrow .big { flex: 0 0 auto; width: auto; min-width: 72px; padding: 0 14px; }   /* .big is width: 100% elsewhere: here it sits beside the box (audit R4.7-01) */
+@media (max-width: 480px) {   /* an upright phone: the box takes the whole width and Show goes under it, so all 19 characters of a shown key fit (audit R4.9-02) */
+  .cb-keyrow { flex-wrap: wrap; justify-content: flex-end; }
+  .cb-keyrow .cb-keyin { flex: 1 1 100%; font-size: 16px; font-weight: 400; }   /* 16 px: iOS zooms into a smaller text box (audit R4.10-04) */
+}
+.cb-del { flex: 0 0 auto; min-width: 44px; min-height: 44px; padding: 0 10px; border: 1.5px solid var(--line, #C5CCD6); border-radius: 9px; background: var(--paper); font: 600 16px/1 var(--ui); color: var(--ink); }
+.big.danger, .cb-ask .danger { background: #A51D2F; border-color: #A51D2F; color: #fff; }
+.cb-link { min-height: 44px; padding: 0 4px; border: 0; background: none; font: 600 15px/1.2 var(--ui); color: #A51D2F; text-decoration: underline; }
+.cb-key-v.sm { font-size: 18px; text-align: left; }
+.cb-codes { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.cb-codes > li { display: grid; gap: 4px; padding: 8px 0; border-top: 1px solid var(--line, #E1E5EA); }
+.cb-codes .cc-row .big { min-width: 0; flex: 1 1 88px; }
+.cb-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }   /* never wider than its card (audit R4.8-01) */
+.cb-form label { font-weight: 700; }
+.cb-form .cb-rem { font-weight: 400; display: flex; gap: 8px; align-items: center; min-height: 44px; }
+.cb-form .cb-rem input { width: 22px; height: 22px; }
+.cb-head { margin-top: 6px; scroll-margin-top: 60px; }   /* clear of the sheet's close button when scrolled to the top */
+.cb-warn { display: block; }
+.cb-ask { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 10px; border: 2px solid #A51D2F; border-radius: 10px; }
+.cb-ask span { flex: 1 1 100%; font-weight: 700; }
+.cb-ask .big { flex: 1 1 96px; margin: 0; }
+.cb-list { list-style: none; margin: 4px 0; padding: 0; }
+.cb-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 36px 8px 0; border-bottom: 1px solid var(--line, #E1E5EA); }   /* right padding: the sheet's close button sits over the right edge */
+.cb-row .cb-ask { flex: 1 1 100%; }
+.cb-codes > li.open { border-left: 4px solid #1F5FA8; padding-left: 8px; }
+.rep-note { margin: 10px 0 0; font-size: 13px; color: var(--ink-2); }
+.cb-main { flex: 1 1 0; min-width: 0; }   /* beside the ✕; only the confirm takes a line of its own (audit R4.6-03) */
+.cb-del-gap { flex: 0 0 44px; }
+.cb-top { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.cb-nm { font-weight: 700; overflow-wrap: anywhere; }
+.cb-sc { margin-left: auto; white-space: nowrap; }
+.cb-det { display: block; color: var(--ink-2); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .rep-class b { letter-spacing: .08em; }
 
 /* v0.25: the four scores on the shift summary */
@@ -1097,6 +1138,10 @@ button.ob { border: 0; font: inherit; color: inherit; cursor: pointer; }
 .om-sub .om-h b { font-size: 14px; }
 .ob.acc { background: #E6EEF9; color: #22426E; }
 .litbox { margin: 10px 0; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; }
+.litbox summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }   /* a full tap target: the fired verdict points here (audit R4.9-09) */
+.litbox summary::before { content: '▸'; margin-right: 6px; }
+.litbox details[open] summary::before { content: '▾'; }
+.litbox summary::-webkit-details-marker { display: none; }
 .lit-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
 .lit-row b { display: block; font: 700 22px/1.1 var(--ui); }
 .lit-row small { color: var(--ink-2); font-size: 12px; }

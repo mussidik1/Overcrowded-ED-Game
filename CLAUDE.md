@@ -11,23 +11,22 @@ The player runs one shift (07:00 to 19:00) in a 32-bed emergency department, on 
 
 Menu structure: **Play a shift** (Five-Minute Rush, Quiet Tuesday, Manic Monday, Full Moon Friday, plus scenarios, weather and class codes), **Learn** (Orientation with a scripted preceptor, and short per-condition Lessons), **Settings**. It is a teaching tool for nursing and EM classes. The README has the full player-facing description.
 
-Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages.yml` deploys it: on a push to `main` it checks the build, runs `npm test`, and publishes only the game files (`index.html`, `sw.js`, the manifest, icons, `og.jpg`, `img/`, `3d/`). The source, tests, docs and this file stay off the website. A new file the game loads at runtime must be added to that workflow's package step. That site and `*.github.io` show a password gate during private testing (see "Backend" below). The repo is private.
+Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages.yml` deploys it: on a push to `main` it checks the build, runs `npm test`, and publishes only the game files (`index.html`, `sw.js`, the manifest, icons, `apple-touch-icon.png`, `og.jpg`, `img/`, `3d/`, `CNAME`, and `deploy.txt`, which names the commit and run so the live check knows it is testing this deployment). The source, tests, docs and this file stay off the website. A new file the game loads at runtime must be added to that workflow's package step. That site and `*.github.io` show a password gate during private testing (see "Backend" below). The repo is public (since Nov 25, 2026; it was private from Nov 18), so anyone can read the source and this file.
 
 ## Branches and releases
 
 - Work happens on `3d`. It is merged into `main` with `--no-ff`, and `main` deploys to Pages through the workflow (tests first). (A Claude session may be told to use a different branch; follow that.)
-- A release: bump `package.json` `version`, set `PAST_V` in `ui.js` to the version being replaced (one entry only: each entry makes typos more likely to read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
+- A release: bump `package.json` `version`, set `PAST_V` in `ui.js` to the version being replaced (one entry only: each entry makes typos more likely to read as stale), add a paragraph for it to the README, rebuild, run the tests, commit on `3d`, merge into `main`, push. **If the release has a new file in `supabase/migrations/`, the owner applies it to the live project first** (after the Tests workflow, its PostgreSQL 17 database job included, is green on `3d` at that commit; he pastes it from that commit), then its SHA-256 goes into `supabase/migrations/applied.sha256` (an applied migration is frozen: a change goes in a new file); the deploy checks the live database before it publishes and stops if the migration isn't there or one was skipped. The history of record is the status doc in the owner's claude.ai Project, not this repo. A private Claude artifact copy is also republished each release: `node tools/pack3d.js <dir>` makes it, and it needs the claude.ai artifact tools.
 - WebKit CI results: `git fetch origin ci-results && git show FETCH_HEAD:webkit.txt`.
-- **Before a merge into `main`:** the Tests workflow is green on `3d` at the exact commit being merged, and `docs/SMOKE.md` has been run on a phone. The deploy (`pages.yml`) re-runs the build check, `npm test` and stress, then checks the live site: the new version is in `index.html` at the Pages address and at edcodeblack.com, and the source, docs and CLAUDE.md answer 404.
-- **Rolling back:** `git revert -m 1 <merge commit>` on `main` and push: the deploy republishes the previous version. If the live-site check reports a published source file, roll back first, then check Settings > Pages (Source must be "GitHub Actions"; the custom domain edcodeblack.com).
+- **Before a merge into `main`:** the Tests workflow is green on `3d` at the exact commit being merged, and `docs/SMOKE.md` has been run on a phone. The deploy (`pages.yml`, from `main` only) re-runs the build check, `npm test`, stress, the database rules on a local PostgreSQL 17 and `class_test.py`, then checks the live database (`test/db_live.js`; it stops the release if the migration isn't applied), publishes, and checks the live site: `deploy.txt` names this run, the new version and cache name are in `index.html` and `sw.js` at the Pages address and at edcodeblack.com, and the source, docs and CLAUDE.md answer 404. `db_live.js` also stops the release if the live database's fingerprint doesn't match `supabase/tests/fingerprint.json`.
+- **Rolling back:** `git revert -m 1 <merge commit>` on `main` and push: the deploy republishes the previous version. The database stays as it is (a live database ahead of the game passes the deploy's check). (A rollback to v0.30.0 restores that version's deploy workflow, which doesn't check the database.) For a v0.31.0-or-later deploy while Supabase itself is down, run the Deploy workflow by hand from `main` with **skip_db_check** ticked **and a reason**; it also skips the local PostgreSQL and class-results tests (they need outside package servers), which the Tests run on `3d` already passed. If the live-site check reports a published source file, roll back first, then check Settings > Pages (Source must be "GitHub Actions"; the custom domain edcodeblack.com).
 
 ## Working with the owner
 
 The owner is a paramedic and EMS educator. He reads replies on the phone app.
 
 - **Replies:** short, direct, declarative sentences. Put anything he'll copy and paste in one complete block, never in pieces.
-- **Hostile review rule:** after any change bigger than a bug fix, run three subagents, each with exactly this prompt: *"Pretend you are a senior software engineer, and you absolutely HATE this project. What would you critique about this project after a comprehensive review."* Fix their serious findings before shipping. Spawn other subagents only when he asks; this rule counts as asking. Run the "CEO agent" only when he says "run the CEO agent". Never use a subagent to get around a denied action.
-- **Six-reviewer rule (Nov 24, 2026):** at the end of every step (an audit phase, a release), unless the step only fixes bugs, run the six audit reviewers again: R1 architecture, R2 tooling and legal, R3 game tech, security and privacy, R4 UI/UX, R5 player and game design, R6 clinical accuracy (roles and report format in `docs/audit/BRIEF.md` and `docs/PRO_AUDIT.md`). Fix their serious findings before shipping to `main`.
+- **Review rule (the owner's decision, Nov 24, 2026: six reviewers, not nine):** after any change bigger than a bug fix, and at the end of every step (an audit phase, a release), run the six audit reviewers: R1 architecture, R2 tooling and legal, R3 game tech, security and privacy, R4 UI/UX, R5 player and game design, R6 clinical accuracy (roles and report format in `docs/audit/BRIEF.md` and `docs/PRO_AUDIT.md`). Brief each one as a hostile, nitpicky professional in that role who hates the project: assume it is broken, verify every claim in the code and the running game, and report everything down to Nitpick. Fix their serious findings before shipping to `main`. (This replaced the earlier rule of three extra reviewers prompted *"Pretend you are a senior software engineer, and you absolutely HATE this project. What would you critique about this project after a comprehensive review."*: don't run those as well.) Spawn other subagents only when he asks; this rule counts as asking. Run the "CEO agent" only when he says "run the CEO agent". Never use a subagent to get around a denied action.
 - **Privacy:** never send his email to an external service without his explicit approval. The gate password stays out of the repo (it's in his status doc).
 - **Gate:** stays on until he says "launch". Launch is one SQL line: `update public.cb_gate set gate_on = false where id = 1;`
 - **Database changes** to the Supabase project need his approval each time.
@@ -69,22 +68,25 @@ The game is **one self-contained `index.html`**. `build.js` inlines the engine, 
 ## Layout
 
 ```
-src/engine.js            simulation, no DOM (~4,400 lines). Exposes window.OC, or module.exports under Node
-src/ui.js                phone-first UI (~2,800 lines). Reads OC.G, calls OC actions. Exposes window.OCUI
+src/engine.js            simulation, no DOM (~4,900 lines). Exposes window.OC, or module.exports under Node
+src/ui.js                phone-first UI (~3,200 lines). Reads OC.G, calls OC actions. Exposes window.OCUI
+src/backend.json         the Supabase address, publishable key and privacy contact (build.js puts them in the page and its CSP)
+supabase/                the Code Black database: baseline, migrations (applied.sha256 freezes the applied ones), tests
 src/map.js               SVG floor plan. Spliced into ui.js at /*MAP*/ at build time, not a separate file at runtime
 src/style.css            all styles
 src/index.template.html  page shell with /*FONTS*/ /*STYLE*/ /*ENGINE*/ /*UI*/ placeholders
 src3d/map3d.js           3D floor (three.js). esbuild bundles it to 3d/map3d.js
 build.js                 builds index.html and sw.js. Stops if engine.js or ui.js+map.js fails to parse
 build3d.js               esbuild call for the 3D bundle
-test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes
+test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor
 test/golden.js           a change detector: seeded-shift behaviour fingerprints, class sync, class codes, save round trips, answer keys, code cards, drug rules, scripted codes
 test/sim.js, stress.js   simulated shifts, and 188 shifts across every level and scenario
 test/*_test.py           Playwright UI tests against the built index.html (test/_browser.py picks the browser)
 art/blender/             Blender scripts that made the 3D models in 3d/
 docs/em-model/           the plan and parsed item lists for adding conditions from the ABEM 2022 EM Model
 docs/screenshots/        README images
-tools/                   3D asset packing and optimisation scripts
+tools/                   3D asset packing and optimisation scripts; name_ranges.py makes the server name rule's Unicode lists
+test/db_live.js          the live database check the deploy runs before it publishes (not from a Claude container)
 ```
 
 ### Engine (`src/engine.js`)
@@ -128,13 +130,17 @@ When you add anything random that should be the same for every player on a code 
 
 ## Backend (small, optional)
 
-Class results and the testing gate use **Supabase, the same project as Case Room** (`CB` in `ui.js`; the key there is the publishable one, which is meant to be public):
+Class results and the testing gate use **Supabase, the same project as Case Room**. The address, the publishable key (public by design) and an optional privacy contact are in `src/backend.json`; `build.js` puts them in the page (`CB` in `ui.js`) and the CSP. Since v0.31.0 the whole Code Black database is in `supabase/` (`supabase/README.md` explains it), and the results sit in a `codeblack` schema that the API doesn't expose. The functions are the only way in:
 
-- `POST /rest/v1/cb_results`: a student sends their summary for a code (name, score, stars, real time played, a few stats).
-- `rpc/cb_class`: the instructor's "Class results" table for a code.
+- `rpc/cb_class_new`: making a class code registers it with an **instructor key** (16 characters) that the game makes and keeps on that device (`oc-ckeys`, `{ v: 1, c: { code: { k, t, p, s, e, x, g } } }`: the key, when the server made the class, unconfirmed, shown, when it ends, ended, taken by another class). Repeating it is safe; a code another class has comes back `taken`, and the game makes another before showing it. A code shows only once the server has registered it (if the server can't be reached, or class results are full, the instructor may use it without results; not when the network is busy, which someone else can cause). The key stays hidden until the instructor taps Show key, and is masked when typed.
+- `rpc/cb_submit`: a student sends their summary: first name or initials, score 0 to 100, stars, real time played, stats (`client_call.json` lists the keys), the version the shift was played on, and the result's own id (kept once however often it's retried). The name is never stored on the device.
+- `rpc/cb_class_read`, `rpc/cb_class_delete`: the instructor's Class results list, and deleting one result or all. Both need the key. Copy table and Download CSV export it.
+- `rpc/cb_health`: for the deploy's check and the daily watch (`db-watch.yml`): every migration recorded live, whether the clean-up runs, whether callers' addresses are read and public, how full the storage backstops and the held codes are, and a fingerprint of the database's functions, tables and clean-up job (`codeblack.fingerprint()`, which must match `supabase/tests/fingerprint.json`; `run.sh` prints a new one when the unapplied migration changes). No class data.
 - `rpc/cb_gate_on`, `rpc/cb_gate_check`: the password gate, active only on `edcodeblack.com/.net` and `*.github.io` (`GATED`). The password is checked by bcrypt hash in the database, and a device that passed the gate once can play offline.
 
-The table, row-level security and functions live in the Supabase project, not in this repo. Everything else runs offline in the browser.
+A class lasts 14 days until its first result, then 30 days from when it was made; then its results are deleted, and its code is held 30 more days with only its key's hash (so nobody else can take it; past 30,000 held codes a new code is refused as full, and none is released early). A class that ended with no result is started again by a student's first result during that hold, so a code made ahead of a class works up to 44 days after it was made, on the same game version. The device keeps a key 74 days from when its class was made (a class started again by a first result on day 44 lives to day 74). Rate limits are per network, per UTC hour and day, by a daily-salted hash of the address. Every call gives up after 8 seconds (`cbFetch`), and a failure says whether it was the network, a timeout or the server. Everything else runs offline in the browser.
+
+- **Changing the database:** add a new file to `supabase/migrations/`, run `npm run db:test` (a throwaway local Postgres; also a CI job, on PostgreSQL 17 as live; while the newest migration is unapplied, it prints a new `supabase/tests/fingerprint.json` whenever the migration changes, to commit with it), and get the owner's approval before it goes to the live project (he pastes it into the SQL editor, or approves the tool call; the Supabase tool turns `\uXXXX` escapes into characters, so a migration with them must be pasted). **The database goes first, then the game:** the Pages deploy runs `test/db_live.js` before it publishes and stops if the live database doesn't have the release's migration (or a newer one). Each migration refuses to run over a newer one and records its own name in `codeblack.migrations`. Once applied, add its SHA-256 to `supabase/migrations/applied.sha256` (`run.sh` refuses an edited applied migration, or a new one that sorts before an applied one). A migration must keep the previous release's game and its `db_live.js` passing: add first, remove a release later. This container's network can't reach supabase.co, so that check runs in CI. `supabase/tests/client_call.json` is the contract: the calls the game makes, the errors each function gives, the keys of each answer, and the names both sides accept and refuse. Change it, `ui.js` and the SQL together.
 
 ## Running it
 
@@ -149,11 +155,13 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules12.js: engine rule checks in Node (~520 "ok -" lines; any "FAIL:" sets exit 1)
+npm test          # rules.js through rules13.js: engine rule checks in Node (~700 "ok" lines; any "FAIL:" sets exit 1)
                   #   then golden.js: behaviour fingerprints, stream sync, class codes, save round trips, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run sim       # simulated shifts at several player speeds
 npm run stress    # 188 shifts across every level and scenario: stuck states, out-of-range vitals
+npm run db:test   # the Supabase migrations and their rules on a throwaway local Postgres (needs PostgreSQL 15+)
+npm run db:live   # the live project's rules, from outside (not from a Claude cloud container: supabase.co is blocked)
 ```
 
 The UI tests are Python Playwright scripts against the **built** `index.html`, so build first. In this cloud container Chromium is preinstalled; use `python3 -m pip install playwright` if the module is missing, and don't run `playwright install`. Common ones: `test/ui_test.py`, `md_ui_test.py`, `map_test.py`, `train_test.py` (env `MODE=md`, `LESSON=stroke`, `CHAPTER=2`, `VIEW=list`), `finger_test.py`, `class_test.py`, `offline_test.py`, `map3d_test.py`, `imaging_test.py`, `gate_test.py`, `events_test.py`, `about_test.py`. `BROWSER=webkit|firefox` switches engines and `CHROME_PATH` points at a local Chrome (see `test/_browser.py`). Screenshots go to `test/shots/` (gitignored).
@@ -165,7 +173,7 @@ Practical notes:
 - A full lesson sweep is `LESSON=<key> python3 test/train_test.py` for every key. Case lessons are named `c_<case>`.
 - Imaging comes from Wikimedia and Open-i. Credit each picture in `img/credits.json`, and wait 4 to 12 seconds between fetches.
 
-CI (`.github/workflows/tests.yml`): every push to `main` or `3d` builds, fails if the committed build doesn't match the source, then runs `npm test` and `npm run stress`, plus the Chrome UI tests on Ubuntu. The WebKit UI suite runs on macOS only for `main` or a manual run, and writes its results to `webkit.txt` on the `ci-results` branch.
+CI (`.github/workflows/tests.yml`): every push to `main` or `3d` builds, fails if the committed build doesn't match the source, then runs `npm test` and `npm run stress`, the database rules on a local Postgres, and the Chrome UI tests on Ubuntu. The WebKit UI suite runs on macOS for `main` or a manual run, and writes its results to `webkit.txt` on the `ci-results` branch. The repo is public, so these runners cost no Actions minutes; if it goes private again, macOS minutes count ten times against the monthly allowance (the WebKit job used up a month's 3,000 in Nov 2026).
 
 ## Conventions
 

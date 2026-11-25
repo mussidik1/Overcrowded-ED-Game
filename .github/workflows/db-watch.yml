@@ -1,0 +1,53 @@
+# Once a day, the live database check (test/db_live.js) in watch mode: the storage backstops about half full, the clean-up job
+# missing, or a deletion overdue fail the run, and a failure opens a GitHub issue, so the owner hears about it whatever his
+# email settings (audit R3.7-02, R1.8-06). It reads no class data and stores no result. It runs on the default branch (main)
+# only, as scheduled workflows do.
+name: Database watch
+
+on:
+  schedule:
+    - cron: '23 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    name: Live database check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: node test/db_live.js
+        timeout-minutes: 8   # inside the job's 10, so a stalled check still fails the job and the notice below runs (audit R2.9-05c)
+        env:
+          DB_WATCH: '1'
+
+  # Its own job, so only it holds the right to write issues (audit R2.9-05c). One open issue at a time: a later failing day adds
+  # a comment to it instead of opening another.
+  notify:
+    name: Tell the owner
+    needs: watch
+    if: failure()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="The daily database watch failed"
+          open=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --repo "$GITHUB_REPOSITORY" --body "Failed again: $RUN"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "The live database check failed. The run says what failed and how to fix it (supabase/README.md, Releasing): $RUN"
+          fi

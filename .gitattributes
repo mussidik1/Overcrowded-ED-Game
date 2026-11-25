@@ -1,0 +1,3 @@
+# The SQL is pasted into the Supabase editor and its SHA-256 is frozen: keep it byte-for-byte as committed (LF).
+supabase/** text eol=lf
+*.sh text eol=lf

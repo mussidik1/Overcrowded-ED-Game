@@ -1,0 +1,32 @@
+{
+    "fp": "412d46546a658d71b239631b3f119ba7",
+    "parts": {
+        "cron codeblack-tidy": "1cfbd02c956fe399fba1c3c752bf92b4",
+        "f codeblack.allow(text,integer)": "d7d472b8ee7696c31252ec6c7fa843c6",
+        "f codeblack.allow48(text,integer,boolean)": "888ed11f688504caff5b24da5daf6036",
+        "f codeblack.allow_day(text,integer)": "b76d097cb4fba0f7f75da9cd75e42328",
+        "f codeblack.clean_name(text)": "a147320b8e5df98733d3820f00f9e519",
+        "f codeblack.clean_stats(jsonb)": "b8fe9ae43505e356a86bd5486d0ec784",
+        "f codeblack.client_addr()": "cc1c2f9ad1f3622e57b3ffd0efe00d8f",
+        "f codeblack.client_ip()": "421aee457859b2db9311389c379f0cee",
+        "f codeblack.fingerprint()": "b6138f08aa36d4dab0cd404e03fbca83",
+        "f codeblack.fingerprint_parts()": "42388f5c45109419190c89bf8f4c007a",
+        "f codeblack.is_public(inet)": "bbe2c45dcfce9d505e7cb5f5b7b13191",
+        "f codeblack.key_hash(text)": "3e910435f51bae1d0afaab6b0ab16cc9",
+        "f codeblack.keyed_class(text,text)": "70cb10f1f003497f7037f61bf745c363",
+        "f codeblack.norm_code(text)": "c9d4f4bdbda8eea78ae9cece95990110",
+        "f codeblack.norm_key(text)": "fa5bcb704c463ed777fc47ed486a7f4d",
+        "f codeblack.tidy()": "8775d032c2d1031e1a6f795f76210060",
+        "f codeblack.who()": "00d0202f8a25bf24a4d9cb8ddb090496",
+        "f public.cb_class_delete(text,text,uuid,boolean)": "5f7d0b158671a8f31497d76c5219b80c",
+        "f public.cb_class_new(text,text,text)": "7c7d2929935a89ca0c45946833a37071",
+        "f public.cb_class_read(text,text)": "f30630b696541694b9903055bab1a2b9",
+        "f public.cb_health(boolean)": "e5c313ae5857305876cb9fdbb034bcf5",
+        "f public.cb_submit(text,uuid,text,text,text,integer,integer,integer,jsonb,text)": "062a4fe62c7af7d59f65cb1817f5ec6d",
+        "t classes": "50e7a136e45378433b4df7a1a27af57b",
+        "t migrations": "6fc72d3ca0ce4394b18473a00d4f56b4",
+        "t rate": "44a6b4af560eacc69eef910fbd3df3d4",
+        "t results": "4dcf4ae76d42433c2a94463872b7fed6",
+        "t salt": "e6414807cec4ffe86d3bef021a1543fc"
+    }
+}

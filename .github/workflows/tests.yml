@@ -1,7 +1,9 @@
-# Runs on every push to main and the 3d branch: the rule checks (and that the committed build matches the source), stress, and the UI tests in Chrome. The phone-size UI tests in WebKit (the engine behind Safari) run
-# only for main and by hand: since the repo went private (Nov 18), macOS minutes count ten times against the plan's monthly minutes.
+# Runs on every push to main and the 3d branch: the rule checks (and that the committed build matches the source), stress, the database
+# rules, and the UI tests in Chrome. The phone-size UI tests in WebKit (the engine behind Safari) run on macOS for main and by hand.
+# The repo is public (since Nov 25, 2026), so GitHub-hosted runners, macOS included, don't count against the plan's monthly minutes.
+# (While it was private, macOS minutes counted ten times, and this job used up the month's allowance.)
 # The UI tests were written against Chrome; this is the only place they run in Safari's engine.
-# Each run's output is saved as webkit.txt on the ci-results branch, so it can be read without opening Actions.
+# Each WebKit run's output is saved as webkit.txt on the ci-results branch, so it can be read without opening Actions.
 name: Tests (rules + Safari engine)
 
 on:
@@ -10,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # to save the results file on the ci-results branch
+  contents: read   # every job reads; only webkit-save, which pushes the WebKit results file and runs no project code, gets write
 
 concurrency:
   group: tests-${{ github.ref }}
@@ -19,12 +21,15 @@ concurrency:
 jobs:
   rules:
     name: Rule checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
         with:
-          node-version: 20
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
       - run: npm ci
       - run: npm run build
       - name: The committed build matches the source
@@ -32,21 +37,49 @@ jobs:
       - run: npm test
       - run: npm run stress
 
+  database:
+    name: Database rules (local Postgres 17, as live)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      # The live project runs PostgreSQL 17 (en_US.UTF-8). PGDG's apt repository has it for this Ubuntu.
+      - name: PostgreSQL 17 with pgcrypto
+        timeout-minutes: 8
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          apt-cache policy postgresql-17 | grep -q 'Candidate: [0-9]' || { echo "FAIL: apt.postgresql.org is unreachable (no PostgreSQL 17)"; exit 1; }
+          sudo apt-get install -y -q postgresql-17 >/dev/null
+          sudo locale-gen en_US.UTF-8 >/dev/null
+      # The baseline and supabase/migrations on a throwaway local database, then supabase/tests/privacy_test.sql. Nothing reaches the live project.
+      - run: bash supabase/tests/run.sh
+        env:
+          PG_BIN: /usr/lib/postgresql/17/bin
+      # The name rule's Unicode lists in the migrations are Unicode 15.1, which Python 3.13 ships (tools/name_ranges.py).
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: python tools/name_ranges.py --check
+
   chrome:
     name: UI tests in Chrome
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
         with:
-          node-version: 20
-      - uses: actions/setup-python@v5
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - run: npm ci
       - run: npm run build
-      - run: pip install playwright
+      - run: pip install playwright==1.65.2
       - run: python -m playwright install --with-deps chromium
       - name: Run the UI tests
         run: |
@@ -65,16 +98,18 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
         with:
-          node-version: 20
-      - uses: actions/setup-python@v5
+          persist-credentials: false   # npm ci and the tests run without a token that can push (audit R1.6-10)
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - run: npm ci
       - run: npm run build
-      - run: pip install playwright
+      - run: pip install playwright==1.65.2
       - run: python -m playwright install webkit
       - name: Run the UI tests in WebKit
         id: ui
@@ -116,14 +151,38 @@ jobs:
           if [ $fail = 0 ]; then echo "ALL PASS" >> results.txt; else echo "SOME FAILED" >> results.txt; fi
           cat results.txt
           exit $fail
-      - name: Save the results on the ci-results branch
+      - name: Keep the results file for the next job
         if: always()
+        run: '[ -f results.txt ] || echo "no results: the tests did not start ($GITHUB_SHA)" > results.txt'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webkit-results
+          path: results.txt
+          retention-days: 7
+
+  webkit-save:
+    name: Save the WebKit results on the ci-results branch
+    needs: webkit
+    if: ${{ !cancelled() && needs.webkit.result != 'skipped' }}
+    permissions:
+      contents: write   # this job alone can push, and it runs no project code
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        continue-on-error: true   # no results file: the next step says so on the ci-results branch
+        with:
+          name: webkit-results
+          path: ${{ runner.temp }}/webkit
+      - name: Push webkit.txt
         run: |
-          [ -f results.txt ] || echo "no results: the tests did not start ($GITHUB_SHA)" > results.txt
-          cp results.txt "$RUNNER_TEMP/webkit.txt"
+          src="$RUNNER_TEMP/webkit/results.txt"
+          [ -f "$src" ] || echo "no results: the WebKit job ended before it saved any ($GITHUB_SHA)" > "$src"
+          cp "$src" "$RUNNER_TEMP/webkit.txt"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git stash -u -q || true
           # two runs (main and 3d) can finish together: start again from the latest copy and retry
           for try in 1 2 3 4 5; do
             if git fetch -q origin ci-results; then git checkout -q -f -B ci-results FETCH_HEAD; else git checkout -q --orphan ci-results; git rm -rf -q . || true; fi

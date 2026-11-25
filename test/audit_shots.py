@@ -22,6 +22,7 @@ def run(pw, url, size, wh):
     ctx = b.new_context(viewport={'width': wh[0], 'height': wh[1]}, has_touch=True, is_mobile=size.startswith('phone'), device_scale_factor=1)
     ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', { get: () => false })")   # the game skips the first-visit About page for automated browsers; look like a person
     page = ctx.new_page(); page.set_default_timeout(20000)
+    ctx.route('**/rest/v1/**', lambda r: r.abort())   # screenshots never reach the real class-results server (or register real codes)
     errs = []
     page.on('pageerror', lambda e: errs.append('pageerror: ' + str(e)))
     page.on('console', lambda m: errs.append('console.' + m.type + ': ' + m.text[:200]) if m.type == 'error' and 'GL Driver' not in m.text else None)
@@ -61,7 +62,7 @@ def run(pw, url, size, wh):
     J("(() => { const i = document.querySelector('#ccIn'); if (i) { i.value = 'ABC-DEX'; i.dispatchEvent(new Event('input', { bubbles: true })); } })()"); wait(200); shot('class-code-bad-code-error')
     act('codeMake', 'med'); shot('class-code-made')
     J("(() => { const i = document.querySelector('#cbCode'); if (i) i.value = document.querySelector('.cc-code') ? document.querySelector('.cc-code').textContent : 'ABC-DEF'; })()")
-    page.route('**/rest/v1/rpc/cb_class', lambda r: r.fulfill(status=200, content_type='application/json', body='[]'))
+    page.route('**/rest/v1/rpc/cb_class_read', lambda r: r.fulfill(status=200, content_type='application/json', body='{"error": "key"}'))
     act('cbShow'); wait(500); shot('class-results-empty')
     def menu(tab):   # back to the main menu, then open a tab with a real tap (showTitle() would reset the tab)
         J("OCUI.U.sheet = null; OCUI.U.modal = null; OCUI.render()"); act('tmenu', 'main'); act('tmenu', tab); wait(300)
