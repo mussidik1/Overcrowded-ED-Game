@@ -246,7 +246,7 @@ select t_ok(codeblack.client_ip() is null, 'bad headers mean no address, not an 
 select set_config('request.headers', '', false);
 
 -- ---------- 30 days, 7 days, and the clean-up ----------
-update codeblack.classes set expires_at = now() - interval '1 second' where code in ('KTC-80P', 'KMN-000');
+update codeblack.classes set created_at = now() - interval '30 days 1 second', expires_at = now() - interval '1 second' where code in ('KTC-80P', 'KMN-000');   -- classes that got results, now ended
 set role anon;
 select t_net('203.0.113.77');
 select t_ok(cb_class_read('KTC-80P', :'K2') = '{"error": "key"}', 'an expired class can''t be read, even with its key');
@@ -260,15 +260,16 @@ select t_net('203.0.113.78');
 select cb_class_new('KTC-80P', :'K2', :'V')::text as back \gset
 select t_ok(:'back'::jsonb ->> 'ok' = 'true' and (:'back'::jsonb ->> 'expires')::timestamptz > now() + interval '13 days' and cb_class_read('KTC-80P', :'K2') -> 'rows' = '[]', 'its own key turns it back on, as a new, empty class');
 reset role;
-insert into codeblack.classes (code, key_hash, ver, expires_at) values ('PQR-001', repeat('a', 64), '0.31.0', now() - interval '3 hours');
+insert into codeblack.classes (code, key_hash, ver, created_at, expires_at) values ('PQR-001', repeat('a', 64), '0.31.0', now() - interval '30 days 3 hours', now() - interval '3 hours');   -- a class that got results
 insert into codeblack.results (code, cid, name, role, level, score, stars, real_sec, stats, ver) values ('PQR-001', gen_random_uuid(), 'Old', 'rn', 'med', 1, 1, 1, '{}', '0.31.0');
-insert into codeblack.classes (code, key_hash, ver, expires_at) values ('PQR-002', repeat('b', 64), '0.31.0', now() - interval '31 days');
-select t_ok((cb_health() ->> 'overdue')::int = 2, 'the health call sees results that should have gone hours ago, and a code held past its 30 days');
+insert into codeblack.classes (code, key_hash, ver, created_at, expires_at) values ('PQR-002', repeat('b', 64), '0.31.0', now() - interval '61 days', now() - interval '31 days');
+insert into codeblack.classes (code, key_hash, ver, created_at, expires_at) values ('PQR-003', repeat('c', 64), '0.31.0', now() - interval '14 days 3 hours', now() - interval '3 hours');   -- an unused class
+select t_ok((cb_health() ->> 'overdue')::int = 3, 'the health call sees results that should have gone hours ago, a code held past its 30 days, and an unused class past its end');
 insert into codeblack.rate (who, kind, hour, n) values (repeat('a', 64), 'read', now() - interval '3 hours', 1);
 insert into codeblack.salt (day, salt) values (current_date - 3, extensions.gen_random_bytes(32));
 select codeblack.tidy();
 select t_ok(not exists (select 1 from codeblack.results where code = 'PQR-001') and exists (select 1 from codeblack.classes where code = 'PQR-001')
-        and not exists (select 1 from codeblack.classes where code = 'PQR-002') and (cb_health() ->> 'overdue')::int = 0, 'the clean-up deletes ended classes'' results, and codes held past their 30 days');
+        and not exists (select 1 from codeblack.classes where code in ('PQR-002', 'PQR-003')) and (cb_health() ->> 'overdue')::int = 0, 'the clean-up deletes ended classes'' results, codes held past their 30 days, and unused classes when they end (only a code that got results is held)');
 select t_ok(not exists (select 1 from codeblack.rate where hour < now() - interval '2 hours' and kind not like '%\_day') and not exists (select 1 from codeblack.salt where day < (now() at time zone 'UTC')::date - 1), 'and old counters and salts');
 select t_ok(exists (select 1 from codeblack.classes where code = 'KTA-80P'), 'and leaves live classes alone');
 
@@ -304,6 +305,12 @@ select t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60
   'an IPv6 /48 that sent 10,000 results or made 1,000 codes today is refused, from any of its /56 networks');
 select t_net('2001:db8:bb:100::1');
 select t_ok(cb_class_new('DAY-048', :'K1', :'V') ->> 'ok' = 'true', 'another /48 is not held back');
+select t_net('198.51.100.60');
+do $$ declare n int := 0; begin
+  for i in 1..200 loop if cb_class_new('', '', '') = '{"error": "invalid"}' then n := n + 1; end if; end loop;
+  perform t_ok(n = 200 and cb_class_new('FRE-001', '7K2M9QXH4V1R8ZTB', '0.31.0') ->> 'ok' = 'true', 'invalid calls are refused before they count: 200 of them don''t spend a network''s limits (audit R3.8-01)');
+  perform t_ok(cb_class_new('FRE-001', 'ABCDEFGHJKMNPQRS', '0.31.0') = '{"error": "taken"}', 'a code another key holds answers "taken"');
+end $$;
 select t_net('198.51.100.43');
 select t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, '{}', :'V') ->> 'ok' = 'true', 'and IPv4 callers have no /48 limit');
 reset role;

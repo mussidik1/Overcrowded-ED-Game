@@ -1029,7 +1029,7 @@ body.ingame { touch-action: pan-x pan-y; }
 .cb-codes { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
 .cb-codes > li { display: grid; gap: 4px; padding: 8px 0; border-top: 1px solid var(--line, #E1E5EA); }
 .cb-codes .cc-row .big { min-width: 0; flex: 1 1 88px; }
-.cb-form { display: grid; gap: 6px; }
+.cb-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }   /* never wider than its card (audit R4.8-01) */
 .cb-form label { font-weight: 700; }
 .cb-form .cb-rem { font-weight: 400; display: flex; gap: 8px; align-items: center; min-height: 44px; }
 .cb-form .cb-rem input { width: 22px; height: 22px; }

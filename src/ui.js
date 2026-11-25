@@ -2034,7 +2034,7 @@ function classHTML() {
   const typed = (c => (c && !c.stale ? c : null))(E.readCode(U.codeIn || '')), made = U.codeMade ? E.readCode(U.codeMade) : null, R = U.reg, saving = !!(R && R.st === 'saving');
   const lv = ['rush', 'easy', 'med', 'hard'].map(k => `<button type="button" class="cbtn" data-act="codeMake" data-arg="${k}"${saving ? ' disabled' : ''}><b>${esc(E.LEVELS[k].name)}</b></button>`).join('');
   const fail = R && !made && (R.st === 'none' || R.st === 'fail') ? `<div class="cc-made"><div class="cb-key bad" role="alert"><b>${R.st === 'none' ? 'No class code was made.' : 'No class code yet.'}</b><small>${esc(R.why)}${R.st === 'fail' ? ' A code is shown only once its class results are set up, so it never changes in front of a class.' : ''}</small>`
-    + (R.st === 'fail' && !R.hard ? `<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button><button type="button" class="big" data-act="codeNoRes">Use it without results</button></div>` : '') + '</div></div>' : '';
+    + (R.st === 'fail' && !R.hard ? `<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button>${R.net ? '<button type="button" class="big" data-act="codeNoRes">Use it without results</button>' : ''}</div>` : '') + '</div></div>' : '';
   const ask = U.codeAsk && made ? `<div class="cb-ask" id="codeAsk" role="alert"><span>Make a new code for ${esc(E.LEVELS[U.codeAsk].name)}? ${esc(made.code)} goes off the screen${cbKeys()[made.code] ? ' (it stays in your saved codes below)' : ''}.</span><button type="button" class="big act" data-act="codeAskNo">Keep ${esc(made.code)}</button><button type="button" class="big" data-act="codeMakeGo" data-arg="${esc(U.codeAsk)}">New code</button></div>` : '';
   return head('Class code', `Everyone who enters the same code plays the same shift: the same patients and events, at the same times, on the same game version (this is v${GAME_V}). The attending’s radio calls can differ between players. What each player does with the shift is theirs.`)
     + `<div class="cc-box"><label for="ccIn"><b>Play a code</b></label><div class="cc-row"><input id="ccIn" class="cc-in" data-pick="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="9" placeholder="ABC-DEF" value="${esc(U.codeIn || '')}" aria-describedby="ccWhat"><button type="button" class="big act" data-act="codePlay" ${typed ? '' : 'disabled'}>Start</button></div><small id="ccWhat" class="cc-what">${esc(codeHint(U.codeIn || ''))}</small></div>`
@@ -2144,7 +2144,7 @@ function cbRegHTML(code) {
   if (!R) return '';
   if (R.st === 'saving') return '<div class="cb-key"><small role="status">Setting up class results…</small></div>';
   if (R.st === 'lost') return `<div class="cb-key bad" role="alert"><b>${esc(code)} can’t get class results.</b><small>Another class has that code on the server, so a result sent to it would go to that class. <b>Tell students not to tap Send.</b> Make a new code for class results.</small></div>`;
-  if (R.st === 'off') return `<div class="cb-key bad" role="alert"><b>Class results are off for this code.</b><small>${esc(R.why || '')} Students can play it. <b>Tell them not to tap Send</b> until results are set up: a result sent now may not reach you. Try again sets them up for this same code.</small>${R.hard ? '' : '<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button></div>'}</div>`;
+  if (R.st === 'off') return `<div class="cb-key bad" role="alert"><b>Class results are off for this code.</b><small>${esc(R.why || '')} Students can play it. <b>Tell them not to tap Send</b> until results are set up: until then, whoever registers this code first gets what students send. Try again sets results up for this same code.</small>${R.hard ? '' : '<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button></div>'}</div>`;
   const show = U.showKey === code, made = R.made || Date.now();
   return `<div class="cb-key"><b>Class results are on.</b><small>Students’ results come to you (and the game’s developer, who runs the database, can see them). Your <b>instructor key</b> opens them: keep it private, like a password, and don’t show it to the class. ${R.saved ? 'It’s saved on this device' : '<b>This device can’t save it</b>'}; copy it somewhere safe too. A lost key can’t be recovered. Results are deleted on ${esc(cbDate(R.exp || made + 14 * 864e5))} if no student sends one, or on ${esc(cbDate(made + CB_LIFE))} once one does. The code is then held 30 more days with only its key’s hash, so nobody else can take it.</small>`
     + (show ? `<div class="cb-key-v">${esc(cbKeyShow(R.key))}</div>` : '')
@@ -2649,8 +2649,9 @@ const ACT = {
   },
   codeAskNo: () => { U.codeAsk = null; },
   codeReg: () => { const R = U.reg; if (R && R.code && R.key && (R.code === U.codeMade || R.st === 'fail')) cbRegister(R.code, R.key, 0); },   // the same code and key: safe to repeat
-  codeNoRes: () => {   // results couldn't be set up: the class can still play the code; the key is kept, so Try again can still set them up
-    const R = U.reg; if (!R || R.st !== 'fail' || !R.code || !R.key) return;
+  codeNoRes: () => {   // the server couldn't be reached: the class can still play the code; the key is kept, so Try again can still set them up.
+    // Only then: busy and full can be caused by someone else, who could register the code first and receive the class's results (audit R3.8-01).
+    const R = U.reg; if (!R || R.st !== 'fail' || !R.net || !R.code || !R.key) return;
     U.codeMade = R.code; R.st = 'off'; const K = cbKeys()[R.code];
     R.saved = cbKeySave(R.code, Object.assign({ k: R.key, t: Date.now(), p: 1 }, K, { s: 1 }));
   },
@@ -3166,7 +3167,7 @@ function bind() {
     if (el.matches('input[data-pick="cbname"]')) {
       U.cbName = el.value;
       const at = el.getAttribute('data-at'), st = U.cbSent && U.cbSent[at];   // typing again clears the last refusal (audit R4.7-11d)
-      if (st && st !== 'sending' && st !== 'sent') { delete U.cbSent[at]; el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); const e = $('#cbNameErr'); if (e) e.remove(); }
+      if (st && st !== 'sending' && st !== 'sent') { delete U.cbSent[at]; el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); const e = $('#cbNameErr'); if (e) e.remove(); const rep = $('#report'); if (rep) rep._h = null; }   // the summary must redraw on the next refusal, even an identical one (audit R4.8-02)
     }
     else if (el.matches('input[data-pick="cbcode"], input[data-pick="cbkey"]')) {
       // Copy key's whole line ("…class code ABC-DEF: XXXX-XXXX-XXXX-XXXX") pasted into either box fills both (audit R5.6-07)

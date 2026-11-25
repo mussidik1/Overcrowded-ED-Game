@@ -39,6 +39,7 @@ with sync_playwright() as pw:
     def on_new(route):
         a = _json.loads(route.request.post_data or '{}'); reg.append(a); step = reg_plan.pop(0) if reg_plan else 'ok'
         if step == 'fail': route.fulfill(status=503, body='')
+        elif step == 'abort': route.abort(); return
         elif step in ('taken', 'busy', 'full', 'invalid'): route.fulfill(status=200, content_type='application/json', body=_json.dumps({'error': step}))
         else: route.fulfill(status=200, content_type='application/json', body=_json.dumps({'ok': True, 'expires': '2026-12-08T16:00:00+00:00', 'created': CREATED}))   # 14 days: what the real function says for a new class
     ok(sorted(['ok', 'expires', 'created']) == sorted(CALL['responses']['cb_class_new']), 'the stubbed registration answer has the keys the contract lists')
@@ -49,8 +50,8 @@ with sync_playwright() as pw:
     page.locator('#sheet [data-act="codeMake"][data-arg="rush"]').tap(); page.wait_for_timeout(700)
     first = reg[0].get('p_code') if reg else ''
     t = page.locator('#sheet .cc-box').nth(1).inner_text()
-    ok(page.locator('#sheet .cc-code').count() == 0 and 'No class code yet' in t and 'too many requests' in t and page.locator('#sheet [data-act="codeReg"]').count() == 1 and page.locator('#sheet [data-act="codeNoRes"]').count() == 1,
-       f'busy: no code is shown until the instructor chooses; the message says why; Try again and "Use it without results" are offered ({t[-160:]!r})')
+    ok(page.locator('#sheet .cc-code').count() == 0 and 'No class code yet' in t and 'too many requests' in t and page.locator('#sheet [data-act="codeReg"]').count() == 1 and page.locator('#sheet [data-act="codeNoRes"]').count() == 0,
+       f'busy: no code is shown, the message says why, and Try again is offered; not "Use it without results", since someone else can cause a busy answer and claim the code (audit R3.8-01; {t[-160:]!r})')
     ok(J("getComputedStyle(document.querySelector('#sheet .cb-key.bad small')).color") in ('rgb(165, 29, 47)',) or 'No class code yet' in t, 'the failure reads as an error')
     ok(_re.match(r'^[0-9A-HJKMNP-TV-Z]{16}$', reg[0].get('p_key') or '') and sorted(reg[0].keys()) == sorted(CALL['calls']['cb_class_new'].keys()), f'making a code registers it with a key the game made; the call matches the contract file ({sorted(reg[0].keys())})')
     page.locator('#sheet [data-act="codeReg"]').tap(); page.wait_for_timeout(700)
@@ -147,6 +148,9 @@ with sync_playwright() as pw:
     page.keyboard.press('Backspace'); page.keyboard.press('Backspace'); page.wait_for_timeout(100)
     ok(page.locator('#report input.cb-name').input_value() == 'Sam' and J("document.activeElement && document.activeElement.id") == 'cbName' and J("document.getElementById('cbName').getAttribute('aria-invalid')") is None and page.locator('#cbNameErr').count() == 0,
        f'after a refusal the box keeps focus with the caret at the end, and fixing the name clears the refusal ({page.locator("#report input.cb-name").input_value()!r})')
+    page.locator('#report input.cb-name').press_sequentially(' 2', delay=30); page.locator('#report input.cb-name').press('Enter'); page.wait_for_timeout(250)
+    ok(page.locator('#cbNameErr').count() == 1 and 'No numbers' in page.locator('#cbNameErr').inner_text(), 'the same refused name sent again shows its refusal again (audit R4.8-02)')
+    page.locator('#report input.cb-name').fill('')
     page.locator('#report input.cb-name').fill('  Sam   R ')
     with page.expect_request('**/rpc/cb_submit'): page.locator('#report input.cb-name').press('Enter')
     page.wait_for_timeout(400)
@@ -273,6 +277,11 @@ with sync_playwright() as pw:
     ok(J("getComputedStyle(document.getElementById('cbKey')).webkitTextSecurity") == 'disc', 'the key box hides what is typed (a projected classroom screen)')
     kb = J("(() => { const k = document.getElementById('cbKey').getBoundingClientRect(), b = document.querySelector('#sheet [data-act=\"cbKeyVis\"]').getBoundingClientRect(), c = document.querySelector('#sheet .cb-res').getBoundingClientRect(); return { kw: Math.round(k.width), cw: Math.round(c.width), bIn: b.right <= c.right + 0.5 && b.left >= k.right, sx: document.getElementById('sheet').scrollWidth - document.getElementById('sheet').clientWidth }; })()")
     ok(kb['kw'] >= kb['cw'] * 0.5 and kb['bIn'] and kb['sx'] <= 0, f'the key box has room to type in, with Show beside it inside the card, and nothing scrolls sideways (audit R4.7-01; {kb})')
+    for vw, vh in [(390, 844), (360, 640)]:   # phones held upright, where the form was wider than its card (audit R4.8-01)
+        page.set_viewport_size({'width': vw, 'height': vh}); page.wait_for_timeout(300)
+        lay = J("(() => { const c = document.querySelector('#sheet .cb-res').getBoundingClientRect(), f = document.querySelector('#sheet .cb-form').getBoundingClientRect(), k = document.getElementById('cbKey').getBoundingClientRect(), b = document.querySelector('#sheet [data-act=\"cbKeyVis\"]').getBoundingClientRect(), sh = document.getElementById('sheet'); return { inCard: f.left >= c.left - 0.5 && f.right <= c.right + 0.5 && b.right <= c.right + 0.5, kw: Math.round(k.width), sx: sh.scrollWidth - sh.clientWidth, left: Math.round(c.left) }; })()")
+        ok(lay['inCard'] and lay['kw'] >= 150 and lay['sx'] <= 0 and lay['left'] >= 0, f'at {vw}x{vh} the form and the key row fit the card, with room to type, and nothing scrolls sideways ({lay})')
+    page.set_viewport_size({'width': 844, 'height': 390}); page.wait_for_timeout(300)
     # typed key by key, then Enter (the phone's Go): the answer shows while the box still has focus (audit R4.6-01)
     page.locator('#sheet #cbCode').press_sequentially(code.lower().replace('-', ''), delay=25); page.keyboard.press('Tab')
     page.keyboard.type('ABCD-EFGH-JKMN-PQRS', delay=25)
@@ -303,6 +312,18 @@ with sync_playwright() as pw:
     page.locator('#sheet #cbCode').fill(oldc); page.locator('#sheet #cbKey').fill(KEY); page.locator('.cb-rem input').check()
     with page.expect_request('**/rpc/cb_class_read') as rq: page.locator('#sheet .cb-res [data-act="cbShow"]').first.tap()
     ok(rq.value.post_data_json == {'p_code': oldc, 'p_key': KEY}, f'a code the game can no longer play (another version) still goes to the server with its key ({oldc})')
+    # used without results (the server unreachable), then set up from its row: the code on screen says results are on (audit R4.8-03)
+    J("OCUI.U.sheet = null; OCUI.U.reg = null; OCUI.U.codeMade = null; OCUI.render()"); page.wait_for_timeout(200)
+    J("document.querySelector('#title [data-act=\"classCode\"]').click()"); page.wait_for_timeout(400)
+    reg_plan[:] = ['abort', 'ok']
+    page.locator('#sheet [data-act="codeMake"][data-arg="easy"]').tap(); page.wait_for_timeout(700)
+    page.locator('#sheet [data-act="codeNoRes"]').tap(); page.wait_for_timeout(300)
+    off_code = page.locator('#sheet .cc-code').inner_text().strip()
+    off_txt = page.locator('#sheet .cc-made').inner_text()
+    page.locator(f'#sheet .cb-codes [data-act="codeRegSaved"][data-arg="{off_code}"]').tap(); page.wait_for_timeout(700)
+    on_txt = page.locator('#sheet .cc-made').inner_text()
+    ok('results are off' in off_txt and 'whoever registers this code first' in off_txt and 'Class results are on' in on_txt and 'not to tap Send' not in on_txt,
+       f'a code used without results, then set up from its row, says results are on in its panel too ({off_code})')
     # the privacy notice says where names go
     J("OCUI.U.sheet = null; OCUI.render()"); page.wait_for_timeout(200)
     J("OCUI.showTitle()"); page.wait_for_timeout(300)

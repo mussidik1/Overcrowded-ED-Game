@@ -15,9 +15,11 @@
 --     them (U+0600 to U+0DFF: Arabic, Syriac, Thaana and the Indic scripts through Sinhala), and before a letter; a
 --     joiner may also end a Malayalam word (a chillu typed as virama and joiner). The Tibetan tsheg (U+0F0B) separates
 --     syllables inside a word. scen is no longer kept (the code names the scenario). tools/name_ranges.py makes the Unicode lists (here, Unicode 15.1).
---   * When a class ends, its results are deleted at once, and its code is held 30 more days with only its key's hash (no
---     student data): another key gets "taken", so nobody who knows the code (every student does) can take it over and
---     receive late results; the same key turns it back on, empty (audit R1.7-08). cb_class_new also returns when the
+--   * When a class ends, its results are deleted at once. If it received any, its code is held 30 more days with only its
+--     key's hash (no student data): another key gets "taken", so nobody who knows the code (every student does) can take it
+--     over and receive late results; the same key turns it back on, empty (audit R1.7-08). An unused class goes when it
+--     ends (R3.8-02). A code another key holds answers "taken" before "full", and invalid calls are refused before they
+--     count against a network's limits (R3.8-01). cb_class_new also returns when the
 --     class was made. The clean-up job is scheduled again here, so re-running the newest migration restores it.
 --   * cb_class_read returns results in the order they came in (the game shows them unranked), and when the class was
 --     made. cb_submit's "full" says whether the class or all of class results is full.
@@ -51,7 +53,7 @@ do $$ declare c text; begin   -- the rate kinds: the daily ones join
   end loop;
 end $$;
 alter table codeblack.rate add constraint rate_kind_check
-  check (kind in ('class', 'submit', 'read', 'badkey', 'health', 'probe', 'class_day', 'submit_day', 'class_day48', 'submit_day48', 'submit_hour48'));
+  check (kind in ('class', 'submit', 'read', 'badkey', 'health', 'probe', 'class_day', 'submit_day', 'class_day48', 'submit_day48', 'submit_hour48', 'health48'));
 alter table codeblack.results add constraint results_stats_check check (jsonb_typeof(stats) = 'object' and pg_column_size(stats) < 1000);
 
 -- ---------- helpers ----------
@@ -203,7 +205,8 @@ create or replace function codeblack.tidy()
  returns void language sql set search_path to pg_catalog, pg_temp set timezone to 'UTC'
 as $$
   delete from codeblack.results r using codeblack.classes c where r.code = c.code and c.expires_at <= now();   -- an ended class's results go at once
-  delete from codeblack.classes where expires_at <= now() - interval '30 days';   -- its code is held 30 more days (no student data)
+  -- a class that got results is held 30 more days (its code and key hash only, no student data); an unused one goes when it ends
+  delete from codeblack.classes c where c.expires_at <= now() and (c.expires_at < c.created_at + interval '30 days' or c.expires_at <= now() - interval '30 days');
   delete from codeblack.rate where hour < now() - interval '2 hours' and kind not in ('class_day', 'submit_day', 'class_day48', 'submit_day48');
   delete from codeblack.rate where hour < now() - interval '26 hours';
   delete from codeblack.salt where day < (now() at time zone 'UTC')::date - 1;
@@ -221,20 +224,26 @@ begin
   if coalesce(octet_length(p_code) > 32 or octet_length(p_key) > 64 or octet_length(p_ver) > 16, false) then
     return jsonb_build_object('error', 'invalid');
   end if;
-  if not codeblack.allow('class', 60) then return jsonb_build_object('error', 'busy'); end if;
-  if not codeblack.allow_day('class_day', 200) then return jsonb_build_object('error', 'busy'); end if;
-  if not codeblack.allow48('class_day48', 1000, true) then return jsonb_build_object('error', 'busy'); end if;
+  -- checked before anything is counted, so junk calls can't spend a network's limits (audit R3.8-01)
   v_code := codeblack.norm_code(p_code); v_key := codeblack.norm_key(p_key);
   if v_code is null or v_key is null or coalesce(p_ver !~ '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$', true) then
     return jsonb_build_object('error', 'invalid');
   end if;
-  -- every new code also clears ended classes' results and codes held past their 30 days, so deletion doesn't rest on the job alone
+  if not codeblack.allow('class', 60) then return jsonb_build_object('error', 'busy'); end if;
+  if not codeblack.allow_day('class_day', 200) then return jsonb_build_object('error', 'busy'); end if;
+  if not codeblack.allow48('class_day48', 1000, true) then return jsonb_build_object('error', 'busy'); end if;
+  -- every new code also clears ended classes' results, unused classes that ended and codes held past their 30 days, so deletion
+  -- doesn't rest on the job alone
   delete from codeblack.results r where r.code in (select x.code from codeblack.classes x where x.expires_at <= now() and exists (select 1 from codeblack.results y where y.code = x.code) limit 500);
-  delete from codeblack.classes c where c.code in (select x.code from codeblack.classes x where x.expires_at <= now() - interval '30 days' limit 500);
-  if (select count(*) from (select 1 from codeblack.classes c where c.expires_at > now() limit 100001) x) > 100000 then   -- live classes only, not held codes (R1.8-04)
-    return jsonb_build_object('error', 'full');   -- a storage backstop (live classes about 15 MB, with held codes up to about 45), far above any real use and far below the free plan's 500 MB
-  end if;
+  delete from codeblack.classes c where c.code in (select x.code from codeblack.classes x where x.expires_at <= now()
+    and (x.expires_at < x.created_at + interval '30 days' or x.expires_at <= now() - interval '30 days') limit 500);
   v_hash := codeblack.key_hash(v_key);
+  -- a code another key holds is "taken" before the storage backstop is looked at, so "full" never hides it (audit R3.8-01)
+  if exists (select 1 from codeblack.classes c where c.code = v_code and c.key_hash <> v_hash) then return jsonb_build_object('error', 'taken'); end if;
+  if not exists (select 1 from codeblack.classes c where c.code = v_code)   -- a retry of this instructor's own code isn't refused as full
+     and (select count(*) from (select 1 from codeblack.classes c where c.expires_at > now() limit 100001) x) > 100000 then   -- live classes only, not held codes (R1.8-04)
+    return jsonb_build_object('error', 'full');   -- a storage backstop (about 15 MB of live classes), far above any real use and far below the free plan's 500 MB
+  end if;
   insert into codeblack.classes (code, key_hash, ver) values (v_code, v_hash, p_ver)
     on conflict (code) do nothing returning expires_at, created_at into v_exp, v_made;
   if v_exp is null then   -- the code exists: with the same key it is this instructor's, otherwise it's taken (live, or held after it ended)
@@ -360,13 +369,15 @@ begin
     return jsonb_build_object('ok', true);
   end if;
   if not codeblack.allow('health', 120) then return jsonb_build_object('error', 'busy'); end if;
+  if not codeblack.allow48('health48', 1000, false) then return jsonb_build_object('error', 'busy'); end if;   -- and per IPv6 /48 (R3.8-02)
   return jsonb_build_object(
     'db', (select m.name from codeblack.migrations m order by m.name desc limit 1),
     'migs', (select jsonb_agg(m.name order by m.name) from codeblack.migrations m),
     'fp', codeblack.fingerprint(),
-    'overdue', (select count(*) from codeblack.classes c where c.expires_at < now() - interval '30 days 2 hours')   -- two indexed counts, not one scan (R1.8-04)
+    'overdue', (select count(*) from codeblack.classes c where c.expires_at < now() - interval '30 days 2 hours')   -- indexed counts over held codes only, not one scan (R1.8-04, R3.8-02)
+               + (select count(*) from codeblack.classes c where c.expires_at < now() - interval '2 hours' and c.expires_at < c.created_at + interval '30 days')
                + (select count(*) from codeblack.classes c where c.expires_at < now() - interval '2 hours' and c.expires_at >= now() - interval '30 days 2 hours'
-                    and exists (select 1 from codeblack.results r where r.code = c.code)),
+                    and c.expires_at >= c.created_at + interval '30 days' and exists (select 1 from codeblack.results r where r.code = c.code)),
     'cron', exists (select 1 from cron.job j where j.jobname = 'codeblack-tidy' and j.active),
     'addr', v_a is not null,
     'public', codeblack.is_public(v_a),
