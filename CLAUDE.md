@@ -11,7 +11,7 @@ The player runs one shift (07:00 to 19:00) in a 32-bed emergency department, on 
 
 Menu structure: **Play a shift** (Five-Minute Rush, Quiet Tuesday, Manic Monday, Full Moon Friday, plus scenarios, weather and class codes), **Learn** (Orientation with a scripted preceptor, and short per-condition Lessons), **Settings**. It is a teaching tool for nursing and EM classes. The README has the full player-facing description.
 
-Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages.yml` deploys it: on a push to `main` it checks the build, runs `npm test`, and publishes only the game files (`index.html`, `sw.js`, the manifest, icons, `apple-touch-icon.png`, `og.jpg`, `img/`, `3d/`, `CNAME`, and `deploy.txt`, which names the commit and run so the live check knows it is testing this deployment). The source, tests, docs and this file stay off the website. A new file the game loads at runtime must be added to that workflow's package step. That site and `*.github.io` show a password gate during private testing (see "Backend" below). The repo is private.
+Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages.yml` deploys it: on a push to `main` it checks the build, runs `npm test`, and publishes only the game files (`index.html`, `sw.js`, the manifest, icons, `apple-touch-icon.png`, `og.jpg`, `img/`, `3d/`, `CNAME`, and `deploy.txt`, which names the commit and run so the live check knows it is testing this deployment). The source, tests, docs and this file stay off the website. A new file the game loads at runtime must be added to that workflow's package step. That site and `*.github.io` show a password gate during private testing (see "Backend" below). The repo is public (since Nov 25, 2026; it was private from Nov 18), so anyone can read the source and this file.
 
 ## Branches and releases
 
@@ -173,7 +173,7 @@ Practical notes:
 - A full lesson sweep is `LESSON=<key> python3 test/train_test.py` for every key. Case lessons are named `c_<case>`.
 - Imaging comes from Wikimedia and Open-i. Credit each picture in `img/credits.json`, and wait 4 to 12 seconds between fetches.
 
-CI (`.github/workflows/tests.yml`): every push to `main` or `3d` builds, fails if the committed build doesn't match the source, then runs `npm test` and `npm run stress`, the database rules on a local Postgres, and the Chrome UI tests on Ubuntu. The WebKit UI suite runs on macOS only for `main` or a manual run, and writes its results to `webkit.txt` on the `ci-results` branch.
+CI (`.github/workflows/tests.yml`): every push to `main` or `3d` builds, fails if the committed build doesn't match the source, then runs `npm test` and `npm run stress`, the database rules on a local Postgres, and the Chrome UI tests on Ubuntu. The WebKit UI suite runs on macOS for `main` or a manual run, and writes its results to `webkit.txt` on the `ci-results` branch. The repo is public, so these runners cost no Actions minutes; if it goes private again, macOS minutes count ten times against the monthly allowance (the WebKit job used up a month's 3,000 in Nov 2026).
 
 ## Conventions
 
