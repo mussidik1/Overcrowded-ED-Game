@@ -17,7 +17,7 @@ which is unchanged since v0.30.0. Every serious finding a checker re-ran (9 of 1
   a planned code free it for someone else in two calls. Now no held code is released early: past 30,000 held, a new code is
   `full`. `privacy_test.sql` floods 30,001 older codes and checks the planned code stays "taken" to another key.
 - **The name rule's spaces weren't covered by the fingerprint (R1.11-02).** Migration 3 hashes function bodies exactly. The live
-  `clean_name` was already checked exact after its repair (md5 `f8adf6a0…`, `supabase/applied/2026-11-25_round6.md`), and
+  `clean_name` was already checked exact after its repair (md5 `f8adf6a0…`, `supabase/applied/2026-11-25.md`), and
   `db_live.js` now sends a two-word name ("Ana Maria") that must pass the name rule.
 - **A late hand-off erased an unrun arrest (R6.11-01 High).** A lost code on the attending's own patient that started 5 or more
   minutes after the arrest brings the M&M line and legal risk, whoever ran it.
