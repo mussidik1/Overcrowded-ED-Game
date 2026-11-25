@@ -19,11 +19,14 @@ function morph(el, h) {
   // it is brought up to date, so an answer, an error or a list shows while the box keeps focus (audit R4.6-01).
   const ae = document.activeElement, typing = ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || (ae.tagName === 'INPUT' && !/^(checkbox|radio|button|submit)$/.test(ae.type)));
   const tpl = document.createElement('template'); tpl.innerHTML = h;
-  const btn = !typing && ae && el.contains(ae) && ae.getAttribute && ae.getAttribute('data-act') ? [ae.getAttribute('data-act'), ae.getAttribute('data-arg')] : null;
+  // a focused button that gets redrawn hands its focus to its replacement: the same action and argument, and the same one of
+  // those in order (Refresh and a row's Results share both; audit R4.7-09, R1.8-02)
+  const same = (b, a) => b.getAttribute('data-act') === a.getAttribute('data-act') && b.getAttribute('data-arg') === a.getAttribute('data-arg');
+  const btn = !typing && ae && el.contains(ae) && ae.getAttribute && ae.getAttribute('data-act') ? ae : null;
+  const nth = btn ? Array.from(el.querySelectorAll('[data-act]')).filter(b => same(b, btn)).indexOf(btn) : -1;
   morphKids(el, Array.from(tpl.content.childNodes), typing ? ae : null);
   el._h = h;
-  // a button that was redrawn hands its focus to its replacement, so a keyboard or screen-reader user stays in place (audit R4.7-09)
-  if (btn && !el.contains(ae)) { const nb = Array.from(el.querySelectorAll('[data-act]')).find(b => b.getAttribute('data-act') === btn[0] && b.getAttribute('data-arg') === btn[1]); if (nb) try { nb.focus({ preventScroll: true }); } catch (e) { /* old browsers */ } }
+  if (btn && !el.contains(btn)) { const nb = Array.from(el.querySelectorAll('[data-act]')).filter(b => same(b, btn))[nth]; if (nb) try { nb.focus({ preventScroll: true }); } catch (e) { /* old browsers */ } }
 }
 const morphSame = (c, n) => c && n && c.nodeType === 1 && n.nodeType === 1 && c.tagName === n.tagName && c.id === n.id && c.getAttribute('class') === n.getAttribute('class');
 function morphHeld(c, n, ae, src) {   // the element that holds the focused box: patched in place, down to the box, whose typed value stays
@@ -2143,7 +2146,7 @@ function cbRegHTML(code) {
   if (R.st === 'lost') return `<div class="cb-key bad" role="alert"><b>${esc(code)} can’t get class results.</b><small>Another class has that code on the server, so a result sent to it would go to that class. <b>Tell students not to tap Send.</b> Make a new code for class results.</small></div>`;
   if (R.st === 'off') return `<div class="cb-key bad" role="alert"><b>Class results are off for this code.</b><small>${esc(R.why || '')} Students can play it. <b>Tell them not to tap Send</b> until results are set up: a result sent now may not reach you. Try again sets them up for this same code.</small>${R.hard ? '' : '<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button></div>'}</div>`;
   const show = U.showKey === code, made = R.made || Date.now();
-  return `<div class="cb-key"><b>Class results are on.</b><small>Students’ results come to you (and the game’s developer, who runs the database, can see them). Your <b>instructor key</b> opens them: keep it private, like a password, and don’t show it to the class. ${R.saved ? 'It’s saved on this device' : '<b>This device can’t save it</b>'}; copy it somewhere safe too. A lost key can’t be recovered. The code and its results are deleted on ${esc(cbDate(R.exp || made + 14 * 864e5))} if no student sends one, or on ${esc(cbDate(made + CB_LIFE))} once one does.</small>`
+  return `<div class="cb-key"><b>Class results are on.</b><small>Students’ results come to you (and the game’s developer, who runs the database, can see them). Your <b>instructor key</b> opens them: keep it private, like a password, and don’t show it to the class. ${R.saved ? 'It’s saved on this device' : '<b>This device can’t save it</b>'}; copy it somewhere safe too. A lost key can’t be recovered. Results are deleted on ${esc(cbDate(R.exp || made + 14 * 864e5))} if no student sends one, or on ${esc(cbDate(made + CB_LIFE))} once one does. The code is then held 30 more days with only its key’s hash, so nobody else can take it.</small>`
     + (show ? `<div class="cb-key-v">${esc(cbKeyShow(R.key))}</div>` : '')
     + `<div class="cc-row"><button type="button" class="big" data-act="keyShow" data-arg="${esc(code)}" aria-expanded="${show}">${show ? 'Hide key' : 'Show key'}</button><button type="button" class="big" data-act="keyCopy" data-arg="${esc(code)}">Copy key</button></div><small class="cb-warn"><b>Not for grading:</b> scores are self-reported, and no licensed clinician has reviewed the game. Class results, below, says more.</small></div>`;
 }
@@ -2657,7 +2660,11 @@ const ACT = {
     const mine = () => RR[c] && RR[c].seq === seq && cbKeys()[c];
     cbRpc('cb_class_new', { p_code: c, p_key: K.k, p_ver: GAME_V }).then(x => {
       if (!mine()) return;
-      if (x.ok) { cbKeySave(c, { k: K.k, t: Date.parse(x.created) || K.t, e: Date.parse(x.expires) || 0, s: 1 }); delete RR[c]; res({ ok: true, msg: `Class results are on for ${c}` }); }
+      if (x.ok) {
+        const made = Date.parse(x.created) || K.t, saved = cbKeySave(c, { k: K.k, t: made, e: Date.parse(x.expires) || 0, s: 1 }); delete RR[c];
+        if (U.reg && U.reg.code === c) U.reg = { code: c, key: K.k, st: 'ok', exp: x.expires, made, saved };   // the code on screen says so too (audit R1.8-03)
+        res({ ok: true, msg: `Class results are on for ${c}` });
+      }
       else RR[c] = { st: 'fail', seq, why: x.error === 'taken' ? `Another class has ${c} on the server now. Forget it and make a new code.` : x.error === 'busy' ? CB_BUSY : x.error === 'full' ? CB_FULL : 'The server turned this code down. Make a new one.' };
       render();
     }).catch(e => { if (!mine()) return; RR[c] = { st: 'fail', seq, why: cbNet(e) }; render(); });
@@ -2723,7 +2730,7 @@ const ACT = {
         const saved = !typed && r.error === 'key' ? cbKeys()[code] : null;
         if (saved) cbKeySave(code, Object.assign({}, saved, { x: 1, p: 0 }));   // this device's own key no longer opens it: the class has ended
         U.cbList = { code, typed, err: r.error === 'busy' ? CB_BUSY : saved ? `The server has no class for ${code} now: it ended, or its results were never set up. Turn results back on to use the code again.`
-          : 'That code and key don’t match, or the class has ended (a code and its results are deleted 30 days after it was made, or 14 if nobody sent a result).' };
+          : 'That code and key don’t match, or the class has ended (its results are deleted 30 days after the code was made, or 14 if nobody sent one).' };
         U.cbKeyVis = false; cbScroll('#cbErr');
       }
       render();

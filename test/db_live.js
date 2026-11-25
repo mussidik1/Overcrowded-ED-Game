@@ -12,7 +12,11 @@ const MIGS = fs.readdirSync(path.join(__dirname, '..', 'supabase', 'migrations')
 const LATEST = MIGS[MIGS.length - 1];
 // The migrations the repo says are live (supabase/migrations/applied.sha256): the deploy checks this list against the live project, so a
 // migration applied but not frozen in the repo, or frozen but not applied, stops the release (audit R1.7-03).
-const APPLIED = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', 'applied.sha256'), 'utf8').split('\n').filter(l => l.trim()).map(l => (/^[0-9a-f]{64} {2}(\d{14}_[a-z0-9_]+)\.sql$/.exec(l) || [])[1] || '?' + l);
+const APPLIED_LINES = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', 'applied.sha256'), 'utf8').split('\n').filter(l => l.trim());
+const APPLIED = APPLIED_LINES.map(l => (/^[0-9a-f]{64} {2}(\d{14}_[a-z0-9_]+)\.sql$/.exec(l) || [])[1]).filter(Boolean);
+const MALFORMED = APPLIED_LINES.filter(l => !/^[0-9a-f]{64} {2}\d{14}_[a-z0-9_]+\.sql$/.test(l));
+// What the repo's migrations make the functions into (supabase/tests/fingerprint.txt, checked by run.sh): the live project must match.
+const FP = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'tests', 'fingerprint.txt'), 'utf8').trim();
 const WATCH = process.env.DB_WATCH === '1';   // the daily watch (.github/workflows/db-watch.yml): storage past half full fails, so someone hears
 let fails = 0;
 const ok = (c, msg) => { console.log((c ? 'ok   ' : 'FAIL ') + msg); if (!c) fails++; };
@@ -48,7 +52,10 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     : hj.db > LATEST ? `the live database has a newer migration than this release (live ${hj.db}, release ${LATEST}): fine for a rollback`
     : `the live database is behind this release (live ${hj.db}, release ${LATEST}). Apply the migration in the Supabase SQL editor first (supabase/README.md, "Releasing"), then re-run the deploy.`);
   const round6 = hj.db >= '20261125120000';   // from this migration on, health also says these: they can't quietly go missing (R2.7-09g)
-  if (round6) ok(Array.isArray(hj.migs) && typeof hj.classes === 'number' && typeof hj.results === 'number', 'the health check lists the migrations and how full the backstops are');
+  if (round6) ok(Array.isArray(hj.migs) && typeof hj.classes === 'number' && typeof hj.results === 'number' && typeof hj.fp === 'string', 'the health check lists the migrations, how full the backstops are and the functions\' fingerprint');
+  if (hj.db === LATEST) ok(hj.fp === FP, hj.fp === FP ? `the live functions are exactly what the repo's migrations make (fingerprint ${FP})`
+    : `the live functions differ from what the repo's migrations make (live ${hj.fp}, repo ${FP}): an older draft was applied, or something was changed by hand. Re-apply the repo's newest migration from the green commit, then re-run.`);
+  ok(!MALFORMED.length, MALFORMED.length ? `malformed line(s) in supabase/migrations/applied.sha256 (want: the hash, two spaces, the file name): ${MALFORMED.map(l => JSON.stringify(l.slice(0, 100))).join(', ')}` : 'applied.sha256 is well formed');
   if (Array.isArray(hj.migs)) {   // since 20261125120000: every migration up to the live one must be there, none skipped (audit R1.6-04)
     const skipped = MIGS.filter(m => m <= hj.db && !hj.migs.includes(m));
     ok(!skipped.length, skipped.length ? `the live database skipped ${skipped.join(', ')}: apply it (supabase/README.md), then re-run` : `no migration was skipped (${hj.migs.length} recorded)`);
@@ -60,12 +67,12 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   // deploy (audit R2.7-05). A class overdue for deletion, or the backstops past half full, warn (and fail the daily watch).
   const warn = (c, good, bad) => { if (c) console.log('ok   ' + good); else console.log('::warning::' + bad); };
   ok(hj.cron === true, hj.cron === true ? 'the hourly clean-up job is scheduled and active'
-    : 'the hourly clean-up job is NOT scheduled or NOT active, so network counters and daily salts are never deleted. Fix: enable pg_cron (Database > Extensions), then re-run the newest migration in the SQL editor (it schedules and turns the job on), and re-run the deploy.');
+    : 'the hourly clean-up job is NOT scheduled or NOT active, so network counters and daily salts are never deleted. Fix: enable pg_cron (Database > Extensions), then in the SQL editor: select cron.schedule(\'codeblack-tidy\', \'41 * * * *\', \'select codeblack.tidy()\'); and, if it is paused, select cron.alter_job(jobid, active := true) from cron.job where jobname = \'codeblack-tidy\'; then re-run the deploy.');
   (WATCH ? (c, g, b) => ok(c, c ? g : b) : warn)(hj.overdue === 0, 'no deletion is more than two hours late',
     `${hj.overdue} class(es) are more than two hours past a deletion that should have happened: is the clean-up job running? (select * from cron.job_run_details order by start_time desc limit 5)`);
   if (typeof hj.classes === 'number') {   // since 20261125120000: how full the backstops are (0 to 1)
-    (WATCH ? (c, g, b) => ok(c, c ? g : b) : warn)(hj.classes < 0.5 && hj.results < 0.5, `the storage backstops are under half full (classes ${hj.classes}, results ${hj.results})`,
-      `the storage backstops are MORE than half full (classes ${hj.classes}, results ${hj.results}): someone may be filling them. See supabase/README.md, "Backstops".`);
+    (WATCH ? (c, g, b) => ok(c, c ? g : b) : warn)(hj.classes < 0.5 && hj.results < 0.5, `the storage backstops are under about half full (classes ${hj.classes}, results ${hj.results}, to a tenth)`,
+      `the storage backstops are about half full or more (classes ${hj.classes}, results ${hj.results}, to a tenth): someone may be filling them. See supabase/README.md, "Backstops".`);
   }
   ok(hj.addr === true && hj.public === true, `the database reads each caller's public address (addr ${hj.addr}, public ${hj.public}); otherwise everyone would share one rate limit. If not: Supabase's gateway changed its headers (codeblack.client_addr).`);
   const oldGet = await call('/rest/v1/cb_results?select=*&limit=1');
@@ -77,7 +84,8 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(oldRead.status === 404, `reading results by class code alone is gone (HTTP ${oldRead.status})`);
   for (const t of ['results', 'classes', 'salt', 'rate', 'migrations']) {
     const r = await call(`/rest/v1/${t}?select=*&limit=1`, { headers: { 'Accept-Profile': 'codeblack' } });
-    ok([400, 404, 406].includes(r.status), `the private ${t} table isn't reachable through the API (HTTP ${r.status}; 401 or 429 would only mean the check itself was refused)`);
+    ok([400, 404, 406].includes(r.status), [400, 404, 406].includes(r.status) ? `the private ${t} table isn't reachable through the API (HTTP ${r.status})`
+      : `couldn't confirm the private ${t} table is unreachable: the API answered HTTP ${r.status} (401: the key changed; 429: rate-limited), not 404 or 406`);
   }
   const read = await rpc('cb_class_read', { p_code: 'ZZZ-ZZZ', p_key: BAD });
   ok(read.status === 200 && (json(read.body) || {}).error === 'key', `a made-up key reads nothing (${read.status} ${read.body})`);

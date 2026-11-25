@@ -31,7 +31,9 @@ jobs:
     if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-24.04
     steps:
-      - run: 'echo "FAIL: the Deploy workflow publishes only from main (this run is on ${{ github.ref_name }}). Nothing was published."; exit 1'
+      - env:
+          REF: ${{ github.ref_name }}
+        run: 'echo "FAIL: the Deploy workflow publishes only from main (this run is on $REF). Nothing was published."; exit 1'
 
   # The database rules on a throwaway PostgreSQL 17 (as live) and the game's side of the contract (supabase/tests/client_call.json):
   # the same checks as the Tests workflow, in their own job, so nothing they install (apt, PyPI, Playwright's browser) runs where the
@@ -72,7 +74,7 @@ jobs:
     name: Check and package
     needs: contract
     # from main only (a manual run from another branch publishes nothing); the contract job must pass, unless this is an emergency deploy
-    if: always() && github.ref == 'refs/heads/main' && (needs.contract.result == 'success' || (needs.contract.result == 'skipped' && inputs.skip_db_check))
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && (needs.contract.result == 'success' || (needs.contract.result == 'skipped' && inputs.skip_db_check)) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -106,6 +108,7 @@ jobs:
       - name: Package the game files only
         run: |
           mkdir _site
+          echo "$GITHUB_SHA $GITHUB_RUN_ID $GITHUB_RUN_ATTEMPT" > _site/deploy.txt   # names this deployment, whatever changed (R2.8-02)
           cp index.html sw.js manifest.webmanifest apple-touch-icon.png og.jpg CNAME _site/
           cp -r icons 3d _site/
           mkdir _site/img && cp img/*.jpg img/CREDITS.md _site/img/
@@ -118,7 +121,7 @@ jobs:
   deploy:
     name: Deploy
     needs: build
-    if: always() && github.ref == 'refs/heads/main' && needs.build.result == 'success'
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
     timeout-minutes: 30
     permissions:
       contents: read
@@ -148,8 +151,9 @@ jobs:
         run: |
           ver=$(node -p "require('./package.json').version")
           [ -n "$ver" ] || { echo "FAIL: no version in package.json"; exit 1; }
-          cache=$(grep -o "overcrowded-[0-9.]*-[0-9a-f]*" sw.js | head -1)   # the version and the build's hash: names this exact deployment (R2.7-09o)
+          cache=$(grep -o "overcrowded-[0-9.]*-[0-9a-f]*" sw.js | head -1)   # the version and the build's hash
           [ -n "$cache" ] || { echo "FAIL: no cache name in sw.js"; exit 1; }
+          mark="$GITHUB_SHA $GITHUB_RUN_ID"   # deploy.txt, written by the build job of this run: names this deployment (R2.8-02)
           sites="${SITE%/}"; dom=$(tr -d ' \n\r' < CNAME 2>/dev/null || true); [ -n "$dom" ] && [ "${sites#https://}" != "$dom" ] && sites="$sites https://$dom"   # the Pages address is the custom domain once one is set: check it once
           gone() {   # gone <url>: a source file must answer 404. 200 fails at once; anything else (5xx, no answer) is retried, then reported as unchecked (R2.7-09n)
             for i in 1 2 3 4 5 6; do
@@ -171,7 +175,8 @@ jobs:
           }
           fail=0
           for site in $sites; do
-            want 30 200 "$site/index.html" "\"$ver\"" || { fail=1; continue; }   # this deployment is the one being served
+            want 30 200 "$site/deploy.txt" "$mark" || { fail=1; continue; }   # this deployment is the one being served, then everything else
+            want 6 200 "$site/index.html" "\"$ver\"" || fail=1
             for f in CLAUDE.md README.md src/engine.js src/ui.js src/backend.json test/golden.js docs/PRO_AUDIT.md docs/audit/BRIEF.md package.json build.js supabase/README.md supabase/migrations/applied.sha256; do gone "$site/$f" || fail=1; done
             want 6 200 "$site/sw.js" "$cache" || fail=1
             want 6 200 "$site/3d/map3d.js" || fail=1

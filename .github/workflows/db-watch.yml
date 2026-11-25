@@ -1,6 +1,7 @@
-# Once a day, the live database check (test/db_live.js) in watch mode: the storage backstops past half full, the clean-up job
-# missing, or classes overdue for deletion fail the run, so GitHub emails the repo's owner (audit R3.7-02). It reads no class
-# data and stores no result. It runs on the default branch (main) only, as scheduled workflows do.
+# Once a day, the live database check (test/db_live.js) in watch mode: the storage backstops about half full, the clean-up job
+# missing, or a deletion overdue fail the run, and a failure opens a GitHub issue, so the owner hears about it whatever his
+# email settings (audit R3.7-02, R1.8-06). It reads no class data and stores no result. It runs on the default branch (main)
+# only, as scheduled workflows do.
 name: Database watch
 
 on:
@@ -10,11 +11,12 @@ on:
 
 permissions:
   contents: read
+  issues: write   # to open an issue when the watch fails
 
 jobs:
   watch:
     name: Live database check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -26,3 +28,10 @@ jobs:
       - run: node test/db_live.js
         env:
           DB_WATCH: '1'
+      - name: Open an issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "The daily database watch failed" --body "The live database check failed. The run says what failed and how to fix it (supabase/README.md, Releasing): $RUN"

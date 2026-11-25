@@ -35,7 +35,7 @@ done
 echo "ok - the applied migrations are unchanged ($(echo "$applied" | wc -l | tr -d ' ') listed in applied.sha256)"
 # Only ASCII outside comments: a paste into the SQL editor can drop or change an invisible character (audit R2.7-01). Write \uXXXX.
 if grep -nv '^[[:space:]]*--' "$here"/../migrations/[0-9]*.sql | LC_ALL=C grep -n '[^[:print:][:space:]]' >/dev/null; then
-  echo "FAIL: a migration has a character outside ASCII in its code (write it as \\uXXXX):"; grep -nv '^[[:space:]]*--' "$here"/../migrations/[0-9]*.sql | LC_ALL=C grep '[^[:print:][:space:]]' | cut -c1-120; exit 1
+  echo "FAIL: a migration has a character outside ASCII in its code (write it as \\uXXXX):"; grep -nv '^[[:space:]]*--' "$here"/../migrations/[0-9]*.sql | LC_ALL=C grep '[^[:print:][:space:]]' | sed 's|.*/||' | cut -c1-200; exit 1
 fi
 echo "ok - the migrations' code is plain ASCII"
 work="$(mktemp -d)"; chmod 700 "$work"
@@ -90,6 +90,13 @@ q fresh -f stubs.sql
 for f in $migs; do q fresh -f "$f"; done
 q fresh -c "do \$\$ begin if to_regprocedure('public.cb_class_new(text,text,text)') is null or to_regprocedure('public.cb_submit(text,uuid,text,text,text,int,int,int,jsonb,text)') is null or to_regprocedure('public.cb_class_read(text,text)') is null or to_regprocedure('public.cb_class_delete(text,text,uuid,boolean)') is null or to_regprocedure('public.cb_health(boolean)') is null or to_regnamespace('codeblack') is null then raise exception 'FAIL: fresh project'; end if; end \$\$"
 echo "ok - the migrations alone build a fresh project"
+# What the functions are (audit R1.8-01): the fresh project's fingerprint must be the committed one, and the same as the
+# baseline-plus-migrations database's. test/db_live.js checks the live project against the same file.
+q fresh -At -o fp_fresh.txt -c "select codeblack.fingerprint()"; q postgres -At -o fp_main.txt -c "select codeblack.fingerprint()"
+fp=$(cat "$work/fp_fresh.txt"); want=""; [ -f "$here/fingerprint.txt" ] && want=$(tr -d ' \n\r' < "$here/fingerprint.txt")
+[ "$fp" = "$(cat "$work/fp_main.txt")" ] || { echo "FAIL: a fresh project and the migrated baseline have different functions"; exit 1; }
+[ "$fp" = "$want" ] || { echo "FAIL: the migrations' functions have changed (fingerprint $fp, committed ${want:-none}). If that's intended and the newest migration isn't applied yet, write $fp to supabase/tests/fingerprint.txt."; exit 1; }
+echo "ok - the functions' fingerprint is the committed one ($fp)"
 (cd "$work" && "${as[@]}" "$bin/psql" -X -q -o /dev/null -v ON_ERROR_STOP=1 -h "$work" -p "$port" -U postgres -d postgres -v latest="${last%.sql}" -f privacy_test.sql) 2>&1 | sed -e 's/^psql:[^ ]* NOTICE:  //' -e 's/^NOTICE:  //'
 # The newest migration once more, over a database full of classes, results and counters, as on the live project (R1.7-12b).
 count="select (select count(*) from codeblack.classes) || '/' || (select count(*) from codeblack.results)"

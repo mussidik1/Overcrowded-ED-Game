@@ -26,7 +26,7 @@ let credits = {}; try { credits = JSON.parse(fs.readFileSync(path.join(__dirname
 const credit = {}; for (const [k, c] of Object.entries(credits)) credit[k] = typeof c === 'string' ? { t: c } : { t: `${c.author}, ${c.license}, ${c.source || 'Wikimedia Commons'}`, u: c.url || '', f: c.file || '' };
 let html = src('index.template.html')
   .replace('/*FONTS*/', () => fonts).replace('/*STYLE*/', () => src('style.css'))
-  .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js').replace('/*MAP*/', () => src('map.js')).replace('/*IMGCREDIT*/{}', () => JSON.stringify(credit)).replace("'/*BACKEND*/'", () => JSON.stringify(BACKEND).replace(/</g, '\\u003c')).replace("'/*GAMEV*/'", () => JSON.stringify(require('./package.json').version)));
+  .replace('/*ENGINE*/', () => src('engine.js')).replace('/*UI*/', () => src('ui.js').replace('/*MAP*/', () => src('map.js')).replace('/*IMGCREDIT*/{}', () => JSON.stringify(credit).replace(/</g, '\\u003c')).replace("'/*BACKEND*/'", () => JSON.stringify(BACKEND).replace(/</g, '\\u003c')).replace("'/*GAMEV*/'", () => JSON.stringify(require('./package.json').version)));
 // v0.29.1: a Content Security Policy. Only the page's own two inline scripts run (allowed by their sha256), plus scripts
 // from this site (the 3D floor). 'wasm-unsafe-eval' is for the 3D models' meshopt decoder. The only outside address is the
 // class results database. tools/pack3d.js takes this out of the private Claude copy, whose host adds its own scripts.

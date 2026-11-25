@@ -45,14 +45,21 @@ jobs:
           persist-credentials: false
       # The live project runs PostgreSQL 17 (en_US.UTF-8). PGDG's apt repository has it for this Ubuntu.
       - name: PostgreSQL 17 with pgcrypto
+        timeout-minutes: 8
         run: |
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          apt-cache policy postgresql-17 | grep -q 'Candidate: [0-9]' || { echo "FAIL: apt.postgresql.org is unreachable (no PostgreSQL 17)"; exit 1; }
           sudo apt-get install -y -q postgresql-17 >/dev/null
           sudo locale-gen en_US.UTF-8 >/dev/null
       # The baseline and supabase/migrations on a throwaway local database, then supabase/tests/privacy_test.sql. Nothing reaches the live project.
       - run: bash supabase/tests/run.sh
         env:
           PG_BIN: /usr/lib/postgresql/17/bin
+      # The name rule's Unicode lists in the migrations are Unicode 15.1, which Python 3.13 ships (tools/name_ranges.py).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python tools/name_ranges.py --check
 
   chrome:
     name: UI tests in Chrome
@@ -163,6 +170,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
+        continue-on-error: true   # no results file: the next step says so on the ci-results branch
         with:
           name: webkit-results
           path: ${{ runner.temp }}/webkit

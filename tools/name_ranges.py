@@ -55,7 +55,7 @@ def newest_clean_name():
     return files[-1]
 
 
-UNICODE = '15.1.0'   # the version the lists in the migrations were made from: Python 3.12 and 3.13 ship it
+UNICODE = '15.1.0'   # the version the lists in the migrations were made from: Python 3.13 ships it (3.12 has 15.0)
 
 
 if __name__ == '__main__':

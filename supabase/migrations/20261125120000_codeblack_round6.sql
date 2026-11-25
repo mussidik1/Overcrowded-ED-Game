@@ -231,8 +231,8 @@ begin
   -- every new code also clears ended classes' results and codes held past their 30 days, so deletion doesn't rest on the job alone
   delete from codeblack.results r where r.code in (select x.code from codeblack.classes x where x.expires_at <= now() and exists (select 1 from codeblack.results y where y.code = x.code) limit 500);
   delete from codeblack.classes c where c.code in (select x.code from codeblack.classes x where x.expires_at <= now() - interval '30 days' limit 500);
-  if (select c.reltuples from pg_catalog.pg_class c where c.oid = 'codeblack.classes'::regclass) > 100000 then
-    return jsonb_build_object('error', 'full');   -- a storage backstop (about 15 MB), far above any real use and far below the free plan's 500 MB
+  if (select count(*) from (select 1 from codeblack.classes c where c.expires_at > now() limit 100001) x) > 100000 then   -- live classes only, not held codes (R1.8-04)
+    return jsonb_build_object('error', 'full');   -- a storage backstop (live classes about 15 MB, with held codes up to about 45), far above any real use and far below the free plan's 500 MB
   end if;
   v_hash := codeblack.key_hash(v_key);
   insert into codeblack.classes (code, key_hash, ver) values (v_code, v_hash, p_ver)
@@ -282,7 +282,7 @@ begin
     return jsonb_build_object('error', 'full', 'scope', 'class');
   end if;
   if (select c.reltuples from pg_catalog.pg_class c where c.oid = 'codeblack.results'::regclass) > 300000 then
-    return jsonb_build_object('error', 'full', 'scope', 'all');   -- a storage backstop (about 150 MB), far above any real use and below the free plan's 500 MB
+    return jsonb_build_object('error', 'full', 'scope', 'all');   -- a storage backstop (about 150 MB, up to about 250 with the most stats), far above any real use and below the free plan's 500 MB
   end if;
   insert into codeblack.results (code, cid, name, role, level, score, stars, real_sec, stats, ver)
     values (v_code, p_cid, v_name, p_role, p_level, p_score, p_stars, p_real_sec, v_stats, p_ver);
@@ -330,9 +330,26 @@ begin
   return jsonb_build_object('deleted', v_n);
 end $$;
 
+-- What the live functions are, not what they're called (audit R1.8-01): an md5 over every codeblack function and every cb_ API
+-- function but the gate's, of its signature, its body with the whitespace taken out (a paste can change line endings), its
+-- settings and whether it runs as its owner. run.sh compares it with supabase/tests/fingerprint.txt, made from the repo's
+-- migrations, and test/db_live.js compares the live project with the same file: a stale or edited draft can't pass.
+create or replace function codeblack.fingerprint()
+ returns text language sql stable set search_path to pg_catalog, pg_temp
+as $$
+  select md5(string_agg(x, '|' order by x)) from (
+    select p.oid::pg_catalog.regprocedure::text || ':' || md5(regexp_replace(p.prosrc, '\s+', '', 'g')) || ':'
+           || lower(regexp_replace(coalesce(array_to_string(p.proconfig, ','), ''), '\s+', '', 'g')) || ':' || p.prosecdef::text as x
+    from pg_catalog.pg_proc p
+    where p.pronamespace = 'codeblack'::regnamespace
+       or (p.pronamespace = 'public'::regnamespace and p.proname like 'cb\_%' and p.proname not like 'cb\_gate%')) y;
+$$;
+revoke all on function codeblack.fingerprint() from public, anon, authenticated;
+
 -- For the deploy's check (test/db_live.js): the live migration and every recorded one, how many classes are more than
 -- two hours past a deletion that should have happened (results of an ended class, or a code held past its 30 days; should be 0), whether the clean-up job is scheduled, whether this call's address
--- was read and is a public one, and how full the two storage backstops are (0 to 1). No class data, and not the address.
+-- was read and is a public one, how full the two storage backstops are (0 to 1; live classes only), and the functions'
+-- fingerprint. No class data, and not the address.
 create or replace function public.cb_health(p_probe boolean default false)
  returns jsonb language plpgsql volatile security definer set search_path to pg_catalog, pg_temp set timezone to 'UTC'
 as $$
@@ -346,12 +363,14 @@ begin
   return jsonb_build_object(
     'db', (select m.name from codeblack.migrations m order by m.name desc limit 1),
     'migs', (select jsonb_agg(m.name order by m.name) from codeblack.migrations m),
-    'overdue', (select count(*) from codeblack.classes c where c.expires_at < now() - interval '30 days 2 hours'
-                 or (c.expires_at < now() - interval '2 hours' and exists (select 1 from codeblack.results r where r.code = c.code))),
+    'fp', codeblack.fingerprint(),
+    'overdue', (select count(*) from codeblack.classes c where c.expires_at < now() - interval '30 days 2 hours')   -- two indexed counts, not one scan (R1.8-04)
+               + (select count(*) from codeblack.classes c where c.expires_at < now() - interval '2 hours' and c.expires_at >= now() - interval '30 days 2 hours'
+                    and exists (select 1 from codeblack.results r where r.code = c.code)),
     'cron', exists (select 1 from cron.job j where j.jobname = 'codeblack-tidy' and j.active),
     'addr', v_a is not null,
     'public', codeblack.is_public(v_a),
-    'classes', round(greatest((select c.reltuples from pg_catalog.pg_class c where c.oid = 'codeblack.classes'::regclass), 0)::numeric / 100000, 1),
+    'classes', round((select count(*) from (select 1 from codeblack.classes c where c.expires_at > now() limit 100001) x)::numeric / 100000, 1),
     'results', round(greatest((select c.reltuples from pg_catalog.pg_class c where c.oid = 'codeblack.results'::regclass), 0)::numeric / 300000, 1));   -- to a tenth: enough for the deploy, not a usage count
 end $$;
 
