@@ -9,10 +9,10 @@
 | 0–7 Define, design | Not run (retrofit after release) | `CLAUDE.md`, `README.md`, `docs/PRO_AUDIT.md`, `supabase/README.md` stand in for intake, spec and architecture. |
 | 10 Automated gates | PASS at 405f4bc; pending at 04a1c0b | CI on `3d`: build matches source, `npm test` (720), stress (188 shifts), database rules on PostgreSQL 17, Chrome UI tests. |
 | 11–14 Reviews | PASS | Audit rounds 6–11, six hostile reviewers each, serious findings independently re-run; `spec/FINDINGS.md`. |
-| 15 QA | Pending | The owner's phone check, `docs/SMOKE.md`. |
+| 15 QA | Skipped by the owner (Nov 25, 2026) | The owner chose to release without the phone check; testers only, behind the gate. |
 | 16 Drift check | PASS after fixes | Fresh agent found 9 mismatches (0 Critical, 1 High in docs, 3 Medium, 5 Low): all fixed in text or code, none needed a migration. F-039 to F-047. |
 | 17 CTO review | GO WITH CONDITIONS (testers); NO-GO (students) | Memo below. |
-| 18 Publish | Waiting | Needs the owner's "release". |
+| 18 Publish | In progress | Merged into `main` (`aa308d1`); the first deploy stopped at the forged-header probe (Cloudflare refuses forged headers: a check fix, `85a3d0d` on `3d`). Nothing published yet. |
 
 ## CTO memo (Stage 17, Nov 25, 2026, at 04a1c0b)
 
