@@ -96,3 +96,20 @@ for (let i = 0; i < 90; i++) {
 }
 assert(n16 > 40 && sums, `every risk score is the sum of the parts listed on the card (${n16} patients)`);
 assert(ages, "every risk score's age part matches the patient's age");
+
+// R6-18 the first order set is graded against the presenting complaint, not the hidden diagnosis
+let clean18 = [], harm18 = [];
+for (const [g, w] of Object.entries(OC.WORKUP)) for (const k of w.cases) {
+  const s18 = sign(k, w.det, w.rx);
+  if (s18.extra || s18.wrong) clean18.push(`${k}: extra ${s18.extra}, wrong ${s18.wrong}`);
+  if (s18.harm) harm18.push(k);
+}
+assert(!clean18.length, `every case's first sheet with its complaint's standard workup has no extras and no wrong drugs${clean18.length ? ': ' + clean18.join('; ') : ''}`);
+console.log('ok -   (harm still counts on the first sheet where a workup drug can hurt: ' + (harm18.join(', ') || 'none') + ')');
+// after the first sheet, the case's own key applies again: a chest-pain test ordered later for a belly patient is an extra
+let p18 = mine('appy'); OC.signOrders(p18.id, OC.needOf(p18).n, []); const x18 = md().ordExtra || 0;
+OC.signOrders(p18.id, ['trop'], []);
+assert((md().ordExtra || 0) === x18 + 1, 'after the first sheet, an order outside the case\'s own key is an extra again');
+// a needed order still fills its need on the first sheet
+p18 = mine('migraine'); OC.signOrders(p18.id, [], ['prochlor']);
+assert(p18.tr.includes('meds'), 'a workup drug that is also the needed drug still fills the need');

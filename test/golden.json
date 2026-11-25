@@ -113,13 +113,13 @@
    "ama": 0,
    "expired": 0,
    "left": 5,
-   "care": 1706,
+   "care": 1718,
    "wait": 18,
    "stars": 3,
    "fail": null,
    "lit": 66,
    "acc": 69,
-   "stateHash": "ba8dc63c"
+   "stateHash": "6a4d3fed"
   },
   "md/med/none": {
    "arrivals": 111,
@@ -133,13 +133,13 @@
    "ama": 1,
    "expired": 0,
    "left": 10,
-   "care": 2059,
+   "care": 2071,
    "wait": 20,
    "stars": 3,
    "fail": null,
    "lit": 39,
-   "acc": 72,
-   "stateHash": "478f3030"
+   "acc": 73,
+   "stateHash": "7ad4ac2e"
   },
   "md/hard/none": {
    "arrivals": 128,
@@ -153,13 +153,13 @@
    "ama": 1,
    "expired": 0,
    "left": 26,
-   "care": 1947,
+   "care": 1949,
    "wait": 24,
    "stars": 3,
    "fail": null,
    "lit": 49,
-   "acc": 73,
-   "stateHash": "8ab565da"
+   "acc": 74,
+   "stateHash": "4ce8fb1b"
   },
   "rn/med/ct": {
    "arrivals": 107,

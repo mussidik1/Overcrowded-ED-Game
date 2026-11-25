@@ -1863,6 +1863,19 @@ function missNow(p, testsOnly) { const R = p.right; return R ? detMiss(p).map(DE
 // in two on resume and the report would show stale orders. The report reads each patient's ordLog at the end of the shift.
 function logOrders(S, p) { const L = S.log = S.log || []; if (!L.includes(p.id)) L.push(p.id); }
 const orderLogOf = S => (S.log || []).map(x => (typeof x === 'string' ? (G.pts[x] || {}).ordLog : x)).filter(Boolean);   // old saves kept the objects
+// Phase 3 (R6-18): the first order set is graded against the presenting complaint, not the hidden diagnosis. Before any result is
+// back, these orders are fine for every case that shares the complaint: never extra, never wrong. Harm still counts (CONTRA runs
+// first), and a needed order still fills its need. After the first sheet, the case's own answer key applies, as before. The lists
+// were checked by the owner, an EMS educator, as the project's clinical consultant (Nov 25, 2026).
+const WORKUP = {
+  chest: { cases: ['cpmod', 'cwp', 'nstemi', 'stemi', 'pe', 'dissect', 'ptx'], det: ['ecg', 'trop', 'cbc', 'bmp', 'cxr', 'coag'], rx: ['asa', 'apap'] },
+  sob: { cases: ['copd', 'chf', 'asthma', 'mpe', 'salod'], det: ['cxr', 'vbg', 'bnp', 'ecg', 'cbc', 'bmp', 'trop'], rx: ['albut', 'duoneb'] },
+  belly: { cases: ['gastro', 'appy', 'chole', 'ectopic', 'sbo', 'mesisch', 'ovtorsion'], det: ['cbc', 'bmp', 'lft', 'lip', 'ua', 'lact'], rx: ['ns', 'ondan', 'morph', 'fent'] },
+  headache: { cases: ['migraine', 'sah', 'mening'], det: ['cbc', 'bmp', 'cthead', 'bcx'], rx: ['apap', 'prochlor', 'reglan', 'ns'] },
+  weak: { cases: ['tia', 'dehyd', 'strokew', 'stroke', 'lvo', 'hyperk'], det: ['gluc', 'ecg', 'cbc', 'bmp', 'coag', 'cthead'], rx: [] },
+};
+const WORKUP_OF = {}; for (const [g, w] of Object.entries(WORKUP)) for (const k of w.cases) WORKUP_OF[k] = g;
+const workupOk = (p, k) => { const w = WORKUP[WORKUP_OF[p.ck]]; return !!w && (w.det.includes(k) || w.rx.includes(k)); };
 function signOrders(pid, tests, treats) {
   const p = pt(pid);
   if (!p || !mdMine(p)) return { ok: false, why: 'That isn’t your patient' };
@@ -1895,6 +1908,7 @@ function signOrders(pid, tests, treats) {
     if ((ALSO[p.ck] || []).includes(k)) { drugOk.push(D.n); continue; }
     const need = D.tx.find(t => R.tr.includes(t) && !p.tr.includes(t) && !tk.includes(t) && rxOk(p, t, k));
     if (need) { tk.push(need); continue; }
+    if (first && workupOk(p, k)) { drugOk.push(D.n); continue; }   // the complaint's first workup (R6-18)
     const wrong = D.tx.find(t => R.tr.includes(t) && !rxOk(p, t, k));
     const fine = D.tx.find(t => (R.tr.includes(t) && rxOk(p, t, k)) || ((R.ok || []).includes(t) && ((RXOK[p.ck] || {})[t] || []).includes(k)));
     if (fine) { drugOk.push(D.n); continue; }
@@ -1920,7 +1934,7 @@ function signOrders(pid, tests, treats) {
     if (!p.wk.includes(kind)) p.wk.push(kind);
     else if (p.work[kind] && p.work[kind].st !== 'todo') delete p.work[kind];   // more of a kind after the first draw or scan: another one
     const need = k === 'ecg' ? R.wk.includes('ecg') : R.det.includes(k);
-    const fine = k === 'ecg' ? OKL.includes('ecg') : OKD.includes(k) || (k === 'hcg' && p.sex === 'F' && p.age >= 12 && p.age <= 55);
+    const fine = (k === 'ecg' ? OKL.includes('ecg') : OKD.includes(k) || (k === 'hcg' && p.sex === 'F' && p.age >= 12 && p.age <= 55)) || (first && workupOk(p, k));   // R6-18
     if (need) { pts += DET_RIGHT[kind] || 1; S.ordRight++; }
     else if (fine) { fl.push(nm); if (!p.find[kind]) p.find[kind] = NORMAL[kind]; }
     else { pts -= DET_EXTRA[kind] || 2; extra++; S.ordExtra++; xl.push(nm); if (!p.find[kind]) p.find[kind] = NORMAL[kind]; }
@@ -4938,7 +4952,7 @@ const OC = {
   startOutage, sickEnough, looksSick, classCode, readCode, setCodeVersion, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   lintCases, HCG_CASES, hcgDue, CONTRA_IF, REQ_AGE, NEVER_WRONG, SAME_CLASS_OK, sameClassAlt, signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME, DRUGS, DRUG_CLASS, RXOK, RXREQ, ALSO, BLEED_RISK, contraOf, drugFor, drugsFor, reqLeft, rxOk, ORDER_MENUS, PROC, DDX, MUST, dxPick, dxName, DXQ, NODX, accuracy, litAdd, LIT_STEPS,
-  LESSON_CASE, CONTRA, contraWhy, strokeSetup, ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, lyticWindowOk, ARREST_NO_TEAM, CODE_Q, CODE_CAUSE, codeSteps, codeRhythm, codeCause, kgOf, lintCode, CODE_AI_Q, codeOdds, codeFill, monthsOf, CODE_CAUSE, CODE_WHY, CAUSE_OF, afOnset, contraWhy, CONTRA_WHY, staffGone, CODE_GAP, CODE_BASE, toArrest, harmCheck, inStream, CRASH, needsTx, strokeSetup, DX_PLAIN,
+  LESSON_CASE, CONTRA, contraWhy, WORKUP, workupOk, strokeSetup, ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, lyticWindowOk, ARREST_NO_TEAM, CODE_Q, CODE_CAUSE, codeSteps, codeRhythm, codeCause, kgOf, lintCode, CODE_AI_Q, codeOdds, codeFill, monthsOf, CODE_CAUSE, CODE_WHY, CAUSE_OF, afOnset, contraWhy, CONTRA_WHY, staffGone, CODE_GAP, CODE_BASE, toArrest, harmCheck, inStream, CRASH, needsTx, strokeSetup, DX_PLAIN,
   crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k] && EV[k].fire) fireEv(k); }, eventKeys: () => Object.keys(EV), eventReady: k => !!(EV[k] && EV[k].fire && EV[k].w && EV[k].w() > 0),
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };
