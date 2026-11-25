@@ -103,16 +103,28 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   // The rate limit must hold however a caller dresses up its address: 31 probe calls (a bucket of 30 an hour), each claiming a
   // different address. Not across the top of the hour, when the counter restarts.
   if (new Date().getUTCMinutes() >= 55) { const ms = Math.ceil(Date.now() / 36e5) * 36e5 - Date.now() + 5000; console.log(`waiting ${Math.round(ms / 1000)} s for the next hour`); await wait(ms); }
-  let last = null, busy = 0, lost = 0;
-  for (let i = 0; i < 31; i++) {
-    const ip = `203.0.113.${i + 1}`;
-    // half the calls ask for a time zone at a quarter past the hour: a database that followed it would count them in a second bucket (audit R3.7-07)
-    last = await rpc('cb_health', { p_probe: true }, Object.assign({ 'X-Forwarded-For': ip, 'X-Real-IP': ip, 'CF-Connecting-IP': ip, 'True-Client-IP': ip }, i % 2 ? { Prefer: 'timezone=Asia/Kathmandu' } : {}));
-    if (last.status !== 200) lost++;
-    if ((json(last.body) || {}).error === 'busy') busy++;
-  }
-  if (lost) ok(false, `${lost} of the 31 probe calls didn't answer (last: HTTP ${last.status} ${last.body.slice(0, 120)}): the network or Supabase, not the rate limit. Re-run.`);
-  else ok((json(last.body) || {}).error === 'busy', `forged address headers and another time zone don't get round the rate limit (call 31: ${last.body}; ${busy} refused)`);
+  // Cloudflare, in front of Supabase, may refuse a request that forges its own address header outright (an HTML 403 page): then the forged
+  // header never reaches the database, which is stronger than the limit. The time-zone half is then checked with plain calls (Nov 25, 2026).
+  const probe = async forge => {
+    let last = null, busy = 0, lost = 0, edge = 0;
+    for (let i = 0; i < 31; i++) {
+      const ip = `203.0.113.${i + 1}`;
+      // half the calls ask for a time zone at a quarter past the hour: a database that followed it would count them in a second bucket (audit R3.7-07)
+      last = await rpc('cb_health', { p_probe: true }, Object.assign(forge ? { 'X-Forwarded-For': ip, 'X-Real-IP': ip, 'CF-Connecting-IP': ip, 'True-Client-IP': ip } : {}, i % 2 ? { Prefer: 'timezone=Asia/Kathmandu' } : {}));
+      if (last.status !== 200) lost++;
+      if (last.status === 403 && /^\s*<!doctype html/i.test(last.body)) edge++;
+      if ((json(last.body) || {}).error === 'busy') busy++;
+    }
+    return { last, busy, lost, edge };
+  };
+  let pr = await probe(true);
+  if (pr.edge === 31) {
+    ok(true, 'forged address headers are refused at the edge (Cloudflare, HTTP 403): they never reach the database');
+    pr = await probe(false);
+    if (pr.lost) ok(false, `${pr.lost} of the 31 plain probe calls didn't answer (last: HTTP ${pr.last.status} ${pr.last.body.slice(0, 120)}): the network or Supabase. Re-run after the hour.`);
+    else ok((json(pr.last.body) || {}).error === 'busy', `another time zone doesn't get round the rate limit (call 31: ${pr.last.body}; ${pr.busy} refused)`);
+  } else if (pr.lost) ok(false, `${pr.lost} of the 31 probe calls didn't answer (last: HTTP ${pr.last.status} ${pr.last.body.slice(0, 120)}): the network or Supabase, not the rate limit. Re-run.`);
+  else ok((json(pr.last.body) || {}).error === 'busy', `forged address headers and another time zone don't get round the rate limit (call 31: ${pr.last.body}; ${pr.busy} refused)`);
   console.log(fails ? `${fails} FAILED` : 'All live database checks passed.');
   process.exit(fails ? 1 : 0);
 })().catch(e => { console.log('FAIL: ' + (e && e.message)); process.exit(1); });
