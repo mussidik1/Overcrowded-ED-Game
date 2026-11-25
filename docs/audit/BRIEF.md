@@ -121,3 +121,11 @@ npm test                           # Node rule checks (about 1 minute)
 - `npm test` now includes `test/rules13.js`; `npm run db:test` runs about 207 checks; `python3 test/class_test.py` about 91.
 - **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
 - Rules are the same as round 1, except reports go to `docs/audit/round8/` and scratch to `scratchpad/round8/rN/`.
+
+## Round 9 (Nov 25, 2026): the round-8 fixes, at v0.31.0, second migration still not live
+- Branch `claude/sleepy-rubin-jot35n` at the commit this section was added in (`git log -1 -- docs/audit/BRIEF.md`). Still unreleased (`main` is v0.30.0).
+- The first migration is live and frozen. **The second, `20261125120000_codeblack_round6.sql`, is still not applied** and changed again in round 8. `supabase/tests/fingerprint.txt` is the md5 of the functions it makes (`codeblack.fingerprint()`).
+- Read `docs/audit/round8/STATUS.md` first (fixed, partly fixed with reasons, owner decisions).
+- What changed since round 8 began: `git diff 87c9c13..HEAD -- src supabase test tools .github build.js package.json CLAUDE.md README.md docs/SMOKE.md` (the round-8 reports are docs only). In short: the fingerprint; live-class backstop; validation before limits and "taken" before "full"; every ended code held 30 days; /48 health limit; `mdArrestOpen`; names (U+2027, maqaf, Bengali joiner); the form width; "Use it without results" for unreachable or full only; deaths counted whenever the patient arrived; the unrun-arrest penalty; verdict wording; the order review's unsafe drugs; the device keeping keys 60 days; the deploy's `deploy.txt` marker; the daily watch opening an issue.
+- **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
+- Rules are the same as round 1, except reports go to `docs/audit/round9/` and scratch to `scratchpad/round9/rN/`.
