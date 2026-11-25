@@ -138,3 +138,11 @@ npm test                           # Node rule checks (about 1 minute)
 - `npm test` includes new `rules13.js` checks; `npm run db:test` runs about 230 checks; `python3 test/class_test.py` about 107.
 - **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
 - Rules are the same as round 1, except reports go to `docs/audit/round10/` and scratch to `scratchpad/round10/rN/`.
+
+## Round 11 (Nov 25, 2026): the release review of v0.31.0, second migration now live
+- Branch `claude/sleepy-rubin-jot35n` and `3d` at `e3fbeec` (Tests green there). `main` is still v0.30.0; this is the commit to be released.
+- **Both migrations are now applied to the live project and frozen** (`supabase/migrations/applied.sha256`). A finding in a migration now needs a new migration file. The live fingerprint matches `supabase/tests/fingerprint.json`.
+- Read `docs/audit/round10/STATUS.md` first.
+- What changed since round 10 began: `git diff 1ab6fa9..e3fbeec -- src supabase test tools .github build.js package.json CLAUDE.md README.md docs/SMOKE.md`. Review the release as a whole too: would you ship v0.31.0 to students today?
+- **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
+- Reports go to `docs/audit/round11/`, scratch to `scratchpad/round11/rN/`.
