@@ -36,7 +36,8 @@
     "contra": 1,
     "unneeded": 0,
     "endMin": 720,
-    "mdArrestOpen": 0
+    "mdArrestOpen": 0,
+    "mdCodeLost": 0
    },
    "p_ver": "0.31.0"
   },
@@ -115,6 +116,7 @@
    "cron",
    "db",
    "fp",
+   "held",
    "migs",
    "overdue",
    "public",

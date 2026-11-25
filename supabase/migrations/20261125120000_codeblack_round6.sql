@@ -170,7 +170,7 @@ declare o jsonb := '{}'::jsonb; k text; v jsonb; n numeric;
 begin
   if p is null or jsonb_typeof(p) <> 'object' or pg_column_size(p) > 1000 then return null; end if;
   foreach k in array array['wait', 'lwbs', 'seen', 'ama', 'expired', 'bedFirst', 'fired', 'walkout', 'fast', 'dxRight', 'dxWrong',
-                           'mdSeen', 'harm', 'radioRight', 'radioWrong', 'radioMiss', 'mdDied', 'contra', 'unneeded', 'endMin', 'mdArrestOpen'] loop
+                           'mdSeen', 'harm', 'radioRight', 'radioWrong', 'radioMiss', 'mdDied', 'contra', 'unneeded', 'endMin', 'mdArrestOpen', 'mdCodeLost'] loop
     v := p -> k;
     if v is not null and jsonb_typeof(v) = 'number' then
       n := v::numeric;   -- a jsonb number casts without printing it: 0e-16383 has scale 16383 and is dropped
@@ -236,6 +236,9 @@ begin
   -- every new code also clears ended classes' results and codes held past their 30 days, so deletion doesn't rest on the job alone
   delete from codeblack.results r where r.code in (select x.code from codeblack.classes x where x.expires_at <= now() and exists (select 1 from codeblack.results y where y.code = x.code) limit 500);
   delete from codeblack.classes c where c.code in (select x.code from codeblack.classes x where x.expires_at <= now() - interval '30 days' limit 500);
+  if (select count(*) from (select 1 from codeblack.classes x where x.expires_at <= now() limit 30001) y) > 30000 then   -- at most 30,000 held codes, oldest let go first (R3.9-01)
+    delete from codeblack.classes c where c.code in (select x.code from codeblack.classes x where x.expires_at <= now() order by x.expires_at limit 1000);
+  end if;
   v_hash := codeblack.key_hash(v_key);
   -- a code another key holds is "taken" before the storage backstop is looked at, so "full" never hides it (audit R3.8-01)
   if exists (select 1 from codeblack.classes c where c.code = v_code and c.key_hash <> v_hash) then return jsonb_build_object('error', 'taken'); end if;
@@ -269,10 +272,6 @@ begin
               or octet_length(p_ver) > 16 or pg_column_size(p_stats) > 1000, false) then
     return jsonb_build_object('error', 'invalid', 'field', 'size');
   end if;
-  if not codeblack.allow('submit', 600) then return jsonb_build_object('error', 'busy'); end if;
-  if not codeblack.allow_day('submit_day', 3000) then return jsonb_build_object('error', 'busy'); end if;
-  if not codeblack.allow48('submit_hour48', 2000, false) then return jsonb_build_object('error', 'busy'); end if;
-  if not codeblack.allow48('submit_day48', 10000, true) then return jsonb_build_object('error', 'busy'); end if;
   v_code := codeblack.norm_code(p_code); v_name := codeblack.clean_name(p_name); v_stats := codeblack.clean_stats(p_stats);
   v_bad := case when v_code is null then 'code' when p_cid is null then 'cid' when v_name is null then 'name'
     when coalesce(p_role not in ('rn', 'md'), true) then 'role' when coalesce(p_level not in ('easy', 'med', 'hard', 'rush'), true) then 'level'
@@ -280,8 +279,18 @@ begin
     when coalesce(p_real_sec not between 0 and 86400, true) then 'time' when v_stats is null then 'stats'
     when coalesce(p_ver !~ '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$', true) then 'ver' end;
   if v_bad is not null then return jsonb_build_object('error', 'invalid', 'field', v_bad); end if;
+  -- counted only once the call is valid, so junk sends can't spend a campus's limits (audit R5.9-05)
+  if not codeblack.allow('submit', 600) then return jsonb_build_object('error', 'busy'); end if;
+  if not codeblack.allow_day('submit_day', 3000) then return jsonb_build_object('error', 'busy'); end if;
+  if not codeblack.allow48('submit_hour48', 2000, false) then return jsonb_build_object('error', 'busy'); end if;
+  if not codeblack.allow48('submit_day48', 10000, true) then return jsonb_build_object('error', 'busy'); end if;
   perform pg_advisory_xact_lock(hashtext('codeblack:' || v_code));   -- one result at a time per class: the cap holds
   select c.code, c.ver into v_cls, v_cver from codeblack.classes c where c.code = v_code and c.expires_at > now();
+  if v_cls is null then   -- a code made ahead that nobody sent to ended at 14 days, but is held for its key: its first result turns it back on (R5.9-01)
+    update codeblack.classes c set created_at = now(), expires_at = now() + interval '30 days'
+      where c.code = v_code and c.ver = p_ver and c.expires_at <= now() and c.expires_at > now() - interval '30 days' and c.expires_at < c.created_at + interval '30 days'
+      returning c.code, c.ver into v_cls, v_cver;
+  end if;
   if v_cls is null or v_cver <> p_ver then return jsonb_build_object('error', 'unknown'); end if;
   if exists (select 1 from codeblack.results r where r.code = v_code and r.cid = p_cid) then
     return jsonb_build_object('ok', true, 'dup', true);
@@ -338,20 +347,60 @@ begin
   return jsonb_build_object('deleted', v_n);
 end $$;
 
--- What the live functions are, not what they're called (audit R1.8-01): an md5 over every codeblack function and every cb_ API
--- function but the gate's, of its signature, its body with the whitespace taken out (a paste can change line endings), its
--- settings and whether it runs as its owner. run.sh compares it with supabase/tests/fingerprint.txt, made from the repo's
--- migrations, and test/db_live.js compares the live project with the same file: a stale or edited draft can't pass.
-create or replace function codeblack.fingerprint()
- returns text language sql stable set search_path to pg_catalog, pg_temp
+-- What the live database is, not what its migrations are called (audit R1.8-01, R1.9-02): an md5 of each Code Black function
+-- (body with its whitespace runs read as one space, settings, rights, strictness, volatility, return type, arguments and defaults, grants), each
+-- codeblack table (columns, defaults, row-level security, constraints, indexes, grants) and the clean-up job. run.sh compares
+-- them with supabase/tests/fingerprint.json, made from the repo's migrations, and test/db_live.js compares the live project's
+-- total with the same file: a stale or edited draft, or a hand edit to anything here, can't pass. Every list is sorted in the
+-- C collation, so the live project's locale can't change the result (audit R2.9-05e).
+create or replace function codeblack.fingerprint_parts()
+ returns jsonb language sql stable set search_path to pg_catalog, pg_temp
 as $$
-  select md5(string_agg(x, '|' order by x)) from (
-    select p.oid::pg_catalog.regprocedure::text || ':' || md5(regexp_replace(p.prosrc, '\s+', '', 'g')) || ':'
-           || lower(regexp_replace(coalesce(array_to_string(p.proconfig, ','), ''), '\s+', '', 'g')) || ':' || p.prosecdef::text as x
+  with acl(oid, kind, a) as (   -- the grants that matter: to the API roles and PUBLIC
+    select q.oid, 'f', string_agg(q.g, ',' order by q.g collate "C") from (
+      select p.oid, case a.grantee when 0 then 'public' else r.rolname end || '=' || a.privilege_type as g
+      from pg_catalog.pg_proc p cross join lateral pg_catalog.aclexplode(coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))) a
+        left join pg_catalog.pg_roles r on r.oid = a.grantee
+      where a.grantee = 0 or r.rolname in ('anon', 'authenticated')) q group by q.oid
+  )
+  select jsonb_object_agg(k, v) from (
+    -- every codeblack function and every cb_ API function but the gate's: body (each run of whitespace read as one space, so a
+    -- re-indented paste passes but a changed string doesn't; audit R3.9-03), settings, rights,
+    -- strictness, volatility, return type, argument names and defaults, and who may run it
+    select 'f ' || p.oid::pg_catalog.regprocedure::text as k,
+           md5(btrim(regexp_replace(p.prosrc, '\s+', ' ', 'g')) || '|' || lower(regexp_replace(coalesce(array_to_string(p.proconfig, ','), ''), '\s+', '', 'g'))
+               || '|' || p.prosecdef::text || p.proisstrict::text || p.provolatile::text || '|' || p.prorettype::pg_catalog.regtype::text
+               || '|' || coalesce(array_to_string(p.proargnames, ','), '') || '|' || coalesce(regexp_replace(pg_catalog.pg_get_expr(p.proargdefaults, 0), '\s+', '', 'g'), '')
+               || '|' || coalesce((select a from acl where acl.oid = p.oid), '')) as v
     from pg_catalog.pg_proc p
     where p.pronamespace = 'codeblack'::regnamespace
-       or (p.pronamespace = 'public'::regnamespace and p.proname like 'cb\_%' and p.proname not like 'cb\_gate%')) y;
+       or (p.pronamespace = 'public'::regnamespace and p.proname like 'cb\_%' and p.proname not like 'cb\_gate%')
+    union all
+    -- every codeblack table: columns, row-level security, check constraints, indexes, and grants to the API roles
+    select 't ' || c.relname, md5(
+      coalesce((select string_agg(a.attname || ':' || pg_catalog.format_type(a.atttypid, a.atttypmod) || ':' || a.attnotnull::text || ':'
+                                  || coalesce(regexp_replace(pg_catalog.pg_get_expr(d.adbin, d.adrelid), '\s+', '', 'g'), ''), ',' order by a.attnum)
+                from pg_catalog.pg_attribute a left join pg_catalog.pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum
+                where a.attrelid = c.oid and a.attnum > 0 and not a.attisdropped), '')
+      || '|' || c.relrowsecurity::text
+      || '|' || coalesce((select string_agg(x.d, ',' order by x.d collate "C") from (select regexp_replace(pg_catalog.pg_get_constraintdef(o.oid), '\s+', '', 'g') as d from pg_catalog.pg_constraint o where o.conrelid = c.oid) x), '')
+      || '|' || coalesce((select string_agg(x.d, ',' order by x.d collate "C") from (select regexp_replace(pg_catalog.pg_get_indexdef(i.indexrelid), '\s+', '', 'g') as d from pg_catalog.pg_index i where i.indrelid = c.oid) x), '')
+      || '|' || coalesce((select string_agg(x.g, ',' order by x.g collate "C") from (select case a.grantee when 0 then 'public' else r.rolname end || '=' || a.privilege_type as g
+                          from pg_catalog.aclexplode(coalesce(c.relacl, pg_catalog.acldefault('r', c.relowner))) a left join pg_catalog.pg_roles r on r.oid = a.grantee
+                          where a.grantee = 0 or r.rolname in ('anon', 'authenticated')) x), ''))
+    from pg_catalog.pg_class c where c.relnamespace = 'codeblack'::regnamespace and c.relkind = 'r'
+    union all
+    -- the clean-up job's schedule and command
+    select 'cron codeblack-tidy', md5(coalesce((select j.schedule || '|' || j.command from cron.job j where j.jobname = 'codeblack-tidy'), ''))
+  ) y;
 $$;
+revoke all on function codeblack.fingerprint_parts() from public, anon, authenticated;
+
+-- One md5 over all of it, for the deploy. In the SQL editor, select codeblack.fingerprint_parts(); and compare with
+-- supabase/tests/fingerprint.json to see which object differs.
+create or replace function codeblack.fingerprint()
+ returns text language sql stable set search_path to pg_catalog, pg_temp
+as $$ select md5((select string_agg(e.key || '=' || (e.value #>> '{}'), '|' order by e.key collate "C") from jsonb_each(codeblack.fingerprint_parts()) e)); $$;
 revoke all on function codeblack.fingerprint() from public, anon, authenticated;
 
 -- For the deploy's check (test/db_live.js): the live migration and every recorded one, how many classes are more than
@@ -380,7 +429,8 @@ begin
     'addr', v_a is not null,
     'public', codeblack.is_public(v_a),
     'classes', round((select count(*) from (select 1 from codeblack.classes c where c.expires_at > now() limit 100001) x)::numeric / 100000, 1),
-    'results', round(greatest((select c.reltuples from pg_catalog.pg_class c where c.oid = 'codeblack.results'::regclass), 0)::numeric / 300000, 1));   -- to a tenth: enough for the deploy, not a usage count
+    'results', round(greatest((select c.reltuples from pg_catalog.pg_class c where c.oid = 'codeblack.results'::regclass), 0)::numeric / 300000, 1),
+    'held', round((select count(*) from (select 1 from codeblack.classes c where c.expires_at <= now() limit 30001) x)::numeric / 30000, 1));   -- to a tenth: enough for the deploy, not a usage count
 end $$;
 
 drop function if exists public.cb_health();   -- an early draft's zero-argument version, if a database has it

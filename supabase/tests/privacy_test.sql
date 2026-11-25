@@ -315,6 +315,48 @@ end $$;
 select t_net('198.51.100.43');
 select t_ok(cb_submit('KTA-80P', gen_random_uuid(), 'Al', 'rn', 'med', 50, 1, 60, '{}', :'V') ->> 'ok' = 'true', 'and IPv4 callers have no /48 limit');
 reset role;
+-- junk sends are refused before they count: a campus's limit is spent only by real sends (audit R5.9-05)
+set role anon;
+select t_net('198.51.100.61');
+do $$ declare n int := 0; begin
+  for i in 1..700 loop if cb_submit('KTA-80P', gen_random_uuid(), 'Bob1', 'rn', 'med', 50, 1, 60, '{}', '0.31.0') ->> 'field' = 'name' then n := n + 1; end if; end loop;
+  perform t_ok(n = 700 and cb_submit('KTA-80P', gen_random_uuid(), 'Nadia', 'rn', 'med', 50, 1, 60, '{}', '0.31.0') ->> 'ok' = 'true',
+    '700 sends with a refused name from one network (over its 600 an hour) don''t stop a classmate''s real send');
+end $$;
+reset role;
+-- the backstops in order (audit R1.9-04): over 100,000 live classes a new code is full, but a code someone holds is "taken" (live
+-- or held), its own key's retry and turning it back on still work, and held codes don't count toward the 100,000
+insert into codeblack.classes (code, key_hash, ver, created_at, expires_at)
+  select 'Z' || substr(a, (i >> 20) % 32 + 1, 1) || substr(a, (i >> 15) % 32 + 1, 1) || '-' || substr(a, (i >> 10) % 32 + 1, 1) || substr(a, (i >> 5) % 32 + 1, 1) || substr(a, i % 32 + 1, 1), codeblack.key_hash('ZZZZZZZZZZZZZZZZ'), '0.31.0', now(), now() + interval '14 days'
+  from generate_series(1, 100001) i, (select '0123456789ABCDEFGHJKMNPQRSTVWXYZ'::text as a) x;
+insert into codeblack.classes (code, key_hash, ver, created_at, expires_at)
+  select 'Y' || substr(a, (i >> 20) % 32 + 1, 1) || substr(a, (i >> 15) % 32 + 1, 1) || '-' || substr(a, (i >> 10) % 32 + 1, 1) || substr(a, (i >> 5) % 32 + 1, 1) || substr(a, i % 32 + 1, 1), codeblack.key_hash('ZZZZZZZZZZZZZZZZ'), '0.31.0', now() - interval '20 days', now() - interval '6 days'
+  from generate_series(1, 500) i, (select '0123456789ABCDEFGHJKMNPQRSTVWXYZ'::text as a) x;
+insert into codeblack.classes (code, key_hash, ver, created_at, expires_at)
+  values ('HQD-001', codeblack.key_hash(:'K2'), :'V', now() - interval '20 days', now() - interval '6 days');
+set role anon;
+select t_net('198.51.100.62');
+select t_ok(cb_class_new('BKS-001', :'K1', :'V') = '{"error": "full"}', 'over 100,000 live classes, a new code is refused as full');
+select t_ok(cb_class_new('FRE-001', :'K2', :'V') = '{"error": "taken"}', 'a live code under another key is "taken", not "full"');
+select t_ok(cb_class_new('HQD-001', :'K1', :'V') = '{"error": "taken"}', 'a held code under another key is "taken", not "full"');
+select t_ok(cb_class_new('FRE-001', :'K1', :'V') ->> 'ok' = 'true', 'the own key''s retry of a live class still works when full');
+select t_ok(cb_class_new('HQD-001', :'K2', :'V') ->> 'ok' = 'true', 'and turning a held class back on with its key still works when full');
+select t_ok((cb_health() ->> 'classes')::numeric = 1.0 and (cb_health() ->> 'held')::numeric < 0.1, 'the health check says the live classes are full and the held codes are not');
+reset role;
+delete from codeblack.classes where key_hash = codeblack.key_hash('ZZZZZZZZZZZZZZZZ');
+set role anon;
+select t_net('198.51.100.62');
+select t_ok(cb_class_new('BKS-001', :'K1', :'V') ->> 'ok' = 'true', 'below 100,000 again, the new code registers');
+reset role;
+-- the health check's IPv6 /48 limit (R3.8-02): a /48 that called it 1,000 times this hour is refused, from any of its /56 networks
+insert into codeblack.rate (who, kind, hour, n) values
+  (encode(extensions.hmac(convert_to('/48 ' || network(set_masklen('2001:db8:cc::1'::inet, 48))::text, 'UTF8'), (select salt from codeblack.salt where day = (now() at time zone 'UTC')::date), 'sha256'), 'hex'), 'health48', date_trunc('hour', now(), 'UTC'), 1000);
+set role anon;
+select t_net('2001:db8:cc:4400::1');
+select t_ok(cb_health() = '{"error": "busy"}', 'a /48 that called the health check 1,000 times this hour is refused');
+select t_net('2001:db8:dd:4400::1');
+select t_ok(cb_health() ? 'db', 'another /48 is not');
+reset role;
 insert into codeblack.rate (who, kind, hour, n) values (repeat('b', 64), 'class_day', date_trunc('day', now(), 'UTC') - interval '2 days', 5);
 select codeblack.tidy();
 select t_ok(exists (select 1 from codeblack.rate where kind = 'class_day' and who = :'w41') and not exists (select 1 from codeblack.rate where who = repeat('b', 64)), 'the clean-up keeps today''s daily counters and deletes older ones');
@@ -340,6 +382,24 @@ do $$ declare v text; begin
     perform t_ok(codeblack.is_public(v::inet), format('%s is a public address', v));
   end loop;
 end $$;
+-- R5.9-01: a code made ahead that nobody sent to ends at 14 days but is held; its first result turns it back on, for its own instructor
+set role anon;
+select t_net('198.51.100.70');
+select t_ok(cb_class_new('PQN-001', :'K3', :'V') ->> 'ok' = 'true', 'a code made ahead for a later lesson');
+reset role;
+update codeblack.classes set created_at = now() - interval '20 days', expires_at = now() - interval '6 days' where code = 'PQN-001';
+set role anon;
+select t_ok(cb_submit('PQN-001', gen_random_uuid(), 'Lee', 'rn', 'med', 70, 2, 600, '{}', :'V') = '{"ok": true}', 'six days after it ended unused, a student''s result turns it back on');
+select t_ok(jsonb_array_length(cb_class_read('PQN-001', :'K3') -> 'rows') = 1 and (cb_class_read('PQN-001', :'K3') ->> 'expires')::timestamptz > now() + interval '29 days', 'and the result is the instructor''s, in a class that now lasts 30 days');
+reset role;
+update codeblack.classes set created_at = now() - interval '60 days', expires_at = now() - interval '30 days' where code = 'PQN-001';
+delete from codeblack.results where code = 'PQN-001';
+set role anon;
+select cb_submit('PQN-001', gen_random_uuid(), 'Lee', 'rn', 'med', 70, 2, 600, '{}', :'V')::text as pl2 \gset
+select t_ok(:'pl2'::jsonb = '{"error": "unknown"}', 'a class that got results and ended stays ended (no revival): ' || :'pl2');
+reset role;
+-- R3.9-01: at most 30,000 held codes, the oldest let go first, and the health check reports how many
+select t_ok((cb_health(false) ? 'held'), 'the health check reports how full the held codes are');
 select set_config('request.headers', '{"cf-connecting-ip":"::1"}', false);
 select t_ok(cb_health() ->> 'public' = 'false', 'the health check reads the address before grouping it: IPv6 loopback isn''t public');
 select set_config('request.headers', '{"x-forwarded-for":"198.51.100.44"}', false);

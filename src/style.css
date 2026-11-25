@@ -258,6 +258,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 /* ---------- sheets, modals, toasts ---------- */
 .sheet-wrap { position: fixed; inset: 0; z-index: 90; }
 .sheet-bg { position: absolute; inset: 0; background: rgba(18, 24, 32, .38); }
+.sheet:focus { outline: none; }   /* the sheet takes focus when it opens (audit R4.9-03); its buttons keep their own focus ring */
 .sheet { position: absolute; right: 0; bottom: 0; left: 0; display: flex; flex-direction: column; max-height: 84vh; overflow: hidden; border-radius: 18px 18px 0 0; background: var(--paper); font-family: var(--body); font-size: 15px; box-shadow: 0 -10px 30px rgba(0, 0, 0, .22); animation: up .18s ease-out; }
 .sheet-body { overflow: auto; padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; }
 .sheet-x { position: absolute; top: 10px; right: 12px; z-index: 2; }
@@ -1016,12 +1017,16 @@ body.ingame { touch-action: pan-x pan-y; }
 .cb-key { display: grid; gap: 4px; margin-top: 4px; padding: 8px 10px; border: 2px solid #1F5FA8; border-radius: 10px; }
 .cb-key.bad { border-color: #A51D2F; }
 .cb-key-v { font: 700 clamp(16px, 5.2vw, 22px)/1.2 var(--ui); letter-spacing: .04em; text-align: center; white-space: nowrap; user-select: all; -webkit-user-select: all; }
-.cb-keyin { font-size: 18px; letter-spacing: .06em; }
+.cb-keyin { font-size: 16px; letter-spacing: 0; padding: 0 8px; }   /* all 19 characters of a shown key fit at 360 px wide (audit R4.9-02) */
 .cb-keyin.masked { -webkit-text-security: disc; }   /* the key isn't readable on a projected screen (audit R5.6-02) */
 .cc-code.lost { opacity: .35; text-decoration: line-through; }   /* another class has this code (audit R3.7-04) */
 .cb-keyrow { flex-wrap: nowrap; }
 .cb-keyrow .cb-keyin { flex: 1 1 auto; width: auto; min-width: 0; }
 .cb-keyrow .big { flex: 0 0 auto; width: auto; min-width: 72px; padding: 0 14px; }   /* .big is width: 100% elsewhere: here it sits beside the box (audit R4.7-01) */
+@media (max-width: 480px) {   /* an upright phone: the box takes the whole width and Show goes under it, so all 19 characters of a shown key fit (audit R4.9-02) */
+  .cb-keyrow { flex-wrap: wrap; justify-content: flex-end; }
+  .cb-keyrow .cb-keyin { flex: 1 1 100%; font-size: 14px; }
+}
 .cb-del { flex: 0 0 auto; min-width: 44px; min-height: 44px; padding: 0 10px; border: 1.5px solid var(--line, #C5CCD6); border-radius: 9px; background: var(--paper); font: 600 16px/1 var(--ui); color: var(--ink); }
 .big.danger, .cb-ask .danger { background: #A51D2F; border-color: #A51D2F; color: #fff; }
 .cb-link { min-height: 44px; padding: 0 4px; border: 0; background: none; font: 600 15px/1.2 var(--ui); color: #A51D2F; text-decoration: underline; }
@@ -1133,6 +1138,10 @@ button.ob { border: 0; font: inherit; color: inherit; cursor: pointer; }
 .om-sub .om-h b { font-size: 14px; }
 .ob.acc { background: #E6EEF9; color: #22426E; }
 .litbox { margin: 10px 0; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; }
+.litbox summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }   /* a full tap target: the fired verdict points here (audit R4.9-09) */
+.litbox summary::before { content: '▸'; margin-right: 6px; }
+.litbox details[open] summary::before { content: '▾'; }
+.litbox summary::-webkit-details-marker { display: none; }
 .lit-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
 .lit-row b { display: block; font: 700 22px/1.1 var(--ui); }
 .lit-row small { color: var(--ink-2); font-size: 12px; }

@@ -7,6 +7,13 @@
    The Pages deploy runs it before it publishes, so the site can't go live ahead of its database. */
 'use strict';
 const fs = require('fs'), path = require('path');
+// The emergency skip comes before anything is read, so a missing or broken file can't stop it (audit R2.9-05g).
+if (process.env.SKIP_DB_CHECK === '1') {   // only for an emergency deploy, such as a rollback while Supabase is down: say so loudly
+  const why = (process.env.SKIP_REASON || '').replace(/[\r\n]+/g, ' ').replace(/::/g, ': ').trim();   // one line, no workflow command inside it
+  if (!why) { console.log('FAIL: skip_db_check needs a reason (the skip_reason box on the Deploy run). Nothing was published.'); process.exit(1); }
+  console.log(`::warning::The live database check was SKIPPED for this deploy: ${why.slice(0, 200)}. Run npm run db:live as soon as you can.`);
+  console.log('SKIPPED: the live database was not checked.'); process.exit(0);
+}
 const { url: URL, key: KEY } = require('../src/backend.json');
 const MIGS = fs.readdirSync(path.join(__dirname, '..', 'supabase', 'migrations')).filter(f => /^\d{14}_.*\.sql$/.test(f)).sort().map(f => f.replace(/\.sql$/, ''));
 const LATEST = MIGS[MIGS.length - 1];
@@ -15,8 +22,8 @@ const LATEST = MIGS[MIGS.length - 1];
 const APPLIED_LINES = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', 'applied.sha256'), 'utf8').split('\n').filter(l => l.trim());
 const APPLIED = APPLIED_LINES.map(l => (/^[0-9a-f]{64} {2}(\d{14}_[a-z0-9_]+)\.sql$/.exec(l) || [])[1]).filter(Boolean);
 const MALFORMED = APPLIED_LINES.filter(l => !/^[0-9a-f]{64} {2}\d{14}_[a-z0-9_]+\.sql$/.test(l));
-// What the repo's migrations make the functions into (supabase/tests/fingerprint.txt, checked by run.sh): the live project must match.
-const FP = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'tests', 'fingerprint.txt'), 'utf8').trim();
+// What the repo's migrations make (supabase/tests/fingerprint.json, checked by run.sh): the live project must match.
+const FP = require('../supabase/tests/fingerprint.json').fp;
 const WATCH = process.env.DB_WATCH === '1';   // the daily watch (.github/workflows/db-watch.yml): storage past half full fails, so someone hears
 let fails = 0;
 const ok = (c, msg) => { console.log((c ? 'ok   ' : 'FAIL ') + msg); if (!c) fails++; };
@@ -33,12 +40,6 @@ const BAD = Array.from(require('crypto').randomBytes(16), b => '0123456789ABCDEF
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  if (process.env.SKIP_DB_CHECK === '1') {   // only for an emergency deploy, such as a rollback while Supabase is down: say so loudly
-    const why = (process.env.SKIP_REASON || '').replace(/[\r\n]+/g, ' ').replace(/::/g, ': ').trim();   // one line, no workflow command inside it
-    if (!why) { console.log('FAIL: skip_db_check needs a reason (the skip_reason box on the Deploy run). Nothing was published.'); process.exit(1); }
-    console.log(`::warning::The live database check was SKIPPED for this deploy: ${why.slice(0, 200)}. Run npm run db:live as soon as you can.`);
-    console.log('SKIPPED: the live database was not checked.'); process.exit(0);
-  }
   const h = await rpc('cb_health', { p_probe: false }), hj = json(h.body) || {};
   if (hj.error === 'busy') { console.log(`FAIL: this network has used its health checks for this hour. Re-run after ${new Date(Math.ceil(Date.now() / 36e5) * 36e5).toISOString().slice(11, 16)} UTC; the database itself may be fine.`); process.exit(1); }
   if (h.status !== 200 || typeof hj.db !== 'string') {   // one diagnosis, not a page of failures
@@ -54,7 +55,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const round6 = hj.db >= '20261125120000';   // from this migration on, health also says these: they can't quietly go missing (R2.7-09g)
   if (round6) ok(Array.isArray(hj.migs) && typeof hj.classes === 'number' && typeof hj.results === 'number' && typeof hj.fp === 'string', 'the health check lists the migrations, how full the backstops are and the functions\' fingerprint');
   if (hj.db === LATEST) ok(hj.fp === FP, hj.fp === FP ? `the live functions are exactly what the repo's migrations make (fingerprint ${FP})`
-    : `the live functions differ from what the repo's migrations make (live ${hj.fp}, repo ${FP}): an older draft was applied, or something was changed by hand. Re-apply the repo's newest migration from the green commit, then re-run.`);
+    : `the live functions differ from what the repo's migrations make (live ${hj.fp}, repo ${FP}): an older draft was applied, or something was changed by hand. In the SQL editor, select codeblack.fingerprint_parts(); and compare it with supabase/tests/fingerprint.json to see which object differs; re-create it from the migration that makes it (the newest one, pasted from the green commit, for most), then re-run.`);
   ok(!MALFORMED.length, MALFORMED.length ? `malformed line(s) in supabase/migrations/applied.sha256 (want: the hash, two spaces, the file name): ${MALFORMED.map(l => JSON.stringify(l.slice(0, 100))).join(', ')}` : 'applied.sha256 is well formed');
   if (Array.isArray(hj.migs)) {   // since 20261125120000: every migration up to the live one must be there, none skipped (audit R1.6-04)
     const skipped = MIGS.filter(m => m <= hj.db && !hj.migs.includes(m));
@@ -73,6 +74,10 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   if (typeof hj.classes === 'number') {   // since 20261125120000: how full the backstops are (0 to 1)
     (WATCH ? (c, g, b) => ok(c, c ? g : b) : warn)(hj.classes < 0.5 && hj.results < 0.5, `the storage backstops are under about half full (classes ${hj.classes}, results ${hj.results}, to a tenth)`,
       `the storage backstops are about half full or more (classes ${hj.classes}, results ${hj.results}, to a tenth): someone may be filling them. See supabase/README.md, "Backstops".`);
+  }
+  if (typeof hj.held === 'number') {   // since round 9: held codes have their own cap of 30,000 (audit R3.9-01)
+    (WATCH ? (c, g, b) => ok(c, c ? g : b) : warn)(hj.held < 0.5, `held codes are under about half their cap (${hj.held}, to a tenth)`,
+      `held codes are about half their cap of 30,000 or more (${hj.held}, to a tenth): someone may be making codes to hold them. Past the cap the oldest held codes are released early. See supabase/README.md, "Backstops".`);
   }
   ok(hj.addr === true && hj.public === true, `the database reads each caller's public address (addr ${hj.addr}, public ${hj.public}); otherwise everyone would share one rate limit. If not: Supabase's gateway changed its headers (codeblack.client_addr).`);
   const oldGet = await call('/rest/v1/cb_results?select=*&limit=1');

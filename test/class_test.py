@@ -34,11 +34,12 @@ with sync_playwright() as pw:
     import json as _json, re as _re
     CALL = _json.load(open(os.path.join(os.path.dirname(__file__), '..', 'supabase', 'tests', 'client_call.json')))
     ctx.route('**/rest/v1/**', lambda r: r.abort())   # nothing reaches a real server: every call the test doesn't answer fails
-    reg, reg_plan = [], ['busy', 'full', 'fail', 'ok', 'taken', 'ok']
+    reg, reg_plan = [], ['busy', 'full', 'abort', 'ok', 'taken', 'ok']
     CREATED = '2026-11-24T16:00:00+00:00'
     def on_new(route):
         a = _json.loads(route.request.post_data or '{}'); reg.append(a); step = reg_plan.pop(0) if reg_plan else 'ok'
         if step == 'fail': route.fulfill(status=503, body='')
+        elif step == '429': route.fulfill(status=429, body='')
         elif step == 'abort': route.abort(); return
         elif step in ('taken', 'busy', 'full', 'invalid'): route.fulfill(status=200, content_type='application/json', body=_json.dumps({'error': step}))
         else: route.fulfill(status=200, content_type='application/json', body=_json.dumps({'ok': True, 'expires': '2026-12-08T16:00:00+00:00', 'created': CREATED}))   # 14 days: what the real function says for a new class
@@ -206,7 +207,10 @@ with sync_playwright() as pw:
     page.locator('[data-act="tmenu"][data-arg="play"]').first.tap(); page.wait_for_timeout(300)
     page.locator('[data-act="classCode"]').first.tap(); page.wait_for_timeout(400)
     ok(page.locator(f'#sheet .cb-codes [data-act="cbShow"][data-arg="{code}"]').count() == 1 and page.locator(f'#sheet .cb-codes [data-act="cbShow"][data-arg="{first}"]').count() == 1, 'the instructor\'s device lists all its codes under Class results')
-    page.locator(f'#sheet .cb-codes [data-act="keyShow"][data-arg="{code}"]').tap(); page.wait_for_timeout(200)
+    if J("OCUI.U.codeMade") == code:   # the code still on screen: its key buttons are with the code, not in its row (audit R4.9-10)
+        ok(page.locator(f'#sheet .cb-codes [data-act="keyShow"][data-arg="{code}"]').count() == 0 and page.locator('#sheet .cc-made [data-act="keyShow"]').count() == 1, 'the code on screen has one Show key, with the code, not a second in its row')
+        page.locator('#sheet .cc-made [data-act="keyShow"]').tap(); page.wait_for_timeout(200)
+    else: page.locator(f'#sheet .cb-codes [data-act="keyShow"][data-arg="{code}"]').tap(); page.wait_for_timeout(200)
     ok(KEY in page.locator('#sheet').inner_text().replace('-', '') and page.locator('#sheet .cb-key-v').count() == 1, 'Show key shows a saved code\'s key again, after the sheet was closed (once, not twice)')
     page.locator(f'#sheet .cb-codes [data-act="cbShow"][data-arg="{code}"]').tap(); page.wait_for_timeout(600)
     lst = page.locator('#sheet .cb-list')
@@ -282,6 +286,10 @@ with sync_playwright() as pw:
         page.set_viewport_size({'width': vw, 'height': vh}); page.wait_for_timeout(300)
         lay = J("(() => { const c = document.querySelector('#sheet .cb-res').getBoundingClientRect(), f = document.querySelector('#sheet .cb-form').getBoundingClientRect(), k = document.getElementById('cbKey').getBoundingClientRect(), b = document.querySelector('#sheet [data-act=\"cbKeyVis\"]').getBoundingClientRect(), sh = document.getElementById('sheet'); return { inCard: f.left >= c.left - 0.5 && f.right <= c.right + 0.5 && b.right <= c.right + 0.5, kw: Math.round(k.width), sx: sh.scrollWidth - sh.clientWidth, left: Math.round(c.left) }; })()")
         ok(lay['inCard'] and lay['kw'] >= 150 and lay['sx'] <= 0 and lay['left'] >= 0, f'at {vw}x{vh} the form and the key row fit the card, with room to type, and nothing scrolls sideways ({lay})')
+        page.locator('#sheet #cbKey').fill('WWWW-WWWW-WWWW-WWWW'); page.locator('#sheet [data-act="cbKeyVis"]').tap(); page.wait_for_timeout(250)
+        fit = J("(() => { const k = document.getElementById('cbKey'); return { vis: !k.classList.contains('masked'), cw: k.clientWidth, sw: k.scrollWidth }; })()")
+        ok(fit['vis'] and fit['sw'] <= fit['cw'], f'at {vw}x{vh} a whole 19-character key shows at once after Show, even in its widest letters (audit R4.9-02; {fit})')
+        page.locator('#sheet [data-act="cbKeyVis"]').tap(); page.locator('#sheet #cbKey').fill(''); page.wait_for_timeout(200)
     page.set_viewport_size({'width': 844, 'height': 390}); page.wait_for_timeout(300)
     # typed key by key, then Enter (the phone's Go): the answer shows while the box still has focus (audit R4.6-01)
     page.locator('#sheet #cbCode').press_sequentially(code.lower().replace('-', ''), delay=25); page.keyboard.press('Tab')
@@ -325,6 +333,61 @@ with sync_playwright() as pw:
     on_txt = page.locator('#sheet .cc-made').inner_text()
     ok('results are off' in off_txt and 'whoever registers this code first' in off_txt and 'Class results are on' in on_txt and 'not to tap Send' not in on_txt,
        f'a code used without results, then set up from its row, says results are on in its panel too ({off_code})')
+    # an error status from in front of the server (503, 429) can be caused by someone else: no "Use it without results" (audit R3.9-02)
+    for st_, word in (('fail', 'had a problem'), ('429', 'too many requests')):
+        J("OCUI.U.sheet = null; OCUI.U.reg = null; OCUI.U.codeMade = null; OCUI.render()"); page.wait_for_timeout(200)
+        J("document.querySelector('#title [data-act=\"classCode\"]').click()"); page.wait_for_timeout(400)
+        reg_plan[:] = [st_]
+        page.locator('#sheet [data-act="codeMake"][data-arg="easy"]').tap(); page.wait_for_timeout(700)
+        tx = page.locator('#sheet .cc-box').nth(1).inner_text()
+        ok(page.locator('#sheet .cc-code').count() == 0 and page.locator('#sheet [data-act="codeNoRes"]').count() == 0 and page.locator('#sheet [data-act="codeReg"]').count() == 1 and word in tx,
+           f'an HTTP {"503" if st_ == "fail" else "429"} from the server: no code, Try again, and no "Use it without results" ({word!r})')
+    # the row refused (busy), then the panel's Try again answered ok: the row's old refusal goes (audit R1.9-03)
+    J("OCUI.U.sheet = null; OCUI.U.reg = null; OCUI.U.codeMade = null; OCUI.render()"); page.wait_for_timeout(200)
+    J("document.querySelector('#title [data-act=\"classCode\"]').click()"); page.wait_for_timeout(400)
+    reg_plan[:] = ['abort', 'busy', 'ok']
+    page.locator('#sheet [data-act="codeMake"][data-arg="med"]').tap(); page.wait_for_timeout(700)
+    page.locator('#sheet [data-act="codeNoRes"]').tap(); page.wait_for_timeout(300)
+    sp_code = page.locator('#sheet .cc-code').inner_text().strip()
+    page.locator(f'#sheet .cb-codes [data-act="codeRegSaved"][data-arg="{sp_code}"]').tap(); page.wait_for_timeout(600)
+    row_err = page.locator(f'#sheet .cb-codes li:has([data-arg="{sp_code}"]) .cb-err').count()
+    page.locator('#sheet .cc-made [data-act="codeReg"]').tap(); page.wait_for_timeout(700)
+    row_after = page.locator(f'#sheet .cb-codes li:has([data-arg="{sp_code}"]) .cb-err').count()
+    ok(row_err == 1 and row_after == 0 and 'Class results are on' in page.locator('#sheet .cc-made').inner_text(),
+       f'a row refused as busy, then the panel set up: the panel says on and the row\'s refusal is gone ({sp_code}: {row_err} -> {row_after})')
+    # the verdict is built from what happened (audit R4.9-07, R6.9-03)
+    V = lambda r: J(f"OCUI.verdictOf({r})")
+    v1 = V("{mode:'md', stars:2, md:{seen:6, died:1, codeLost:1}, mm:[]}")
+    v2 = V("{mode:'md', stars:2, md:{seen:6, died:1, codeLost:0}, mm:[{t:1}]}")
+    v3 = V("{mode:'md', stars:2, md:{seen:6, died:2, codeLost:1, arrestLeft:1}, mm:[{t:1}]}")
+    v4 = V("{mode:'md', stars:1, md:{seen:6, died:0, arrestLeft:1}, mm:[{t:1}]}")
+    v5 = V("{mode:'md', stars:3, md:{seen:6, dxWrong:1, contra:1, dispoWrong:2}, mm:[]}")
+    ok(v1.startswith('You ran the code and lost a patient') and v2 == 'One of your own patients died. Read the M&M below.'
+       and v3 == '2 of your own patients died (1 after a code you ran), and one was still in cardiac arrest at the end, with no code running. Read the M&M below.'
+       and v4 == 'One of your own patients was still in cardiac arrest at the end, with no code running. Read the M&M below.'
+       and 'Diagnoses to review</b>, above' in v5 and 'Orders to review</b>, below' in v5 and '2 wrong dispositions' in v5,
+       f'the verdict says what happened: a lost code, a death, both with an arrest left, an arrest alone, and the sections to read ({[v1, v2, v3, v4, v5]})')
+    # keyboard only: the sheet takes the focus, is named, keeps Tab inside, and confirms don't drop the focus (audit R4.9-03)
+    J("OCUI.U.sheet = null; OCUI.U.cbOpen = false; OCUI.U.cbForget = null; OCUI.render()"); page.wait_for_timeout(250)
+    J("document.querySelector('#title [data-act=\"classCode\"]').focus()"); page.keyboard.press('Enter'); page.wait_for_timeout(400)
+    fo = J("(() => { const b = document.getElementById('sheetBox'), a = document.activeElement; return { inside: b.contains(a), label: b.getAttribute('aria-label') }; })()")
+    ok(fo['inside'] and fo['label'] and fo['label'] != 'Details', f'opened from the keyboard, the class sheet takes the focus and is named after its heading ({fo})')
+    out = []
+    for i in range(40):
+        page.keyboard.press('Tab'); out.append(J("document.getElementById('sheetBox').contains(document.activeElement)"))
+    page.keyboard.press('Shift+Tab'); page.keyboard.press('Shift+Tab'); out.append(J("document.getElementById('sheetBox').contains(document.activeElement)"))
+    ok(all(out), f'Tab and Shift+Tab stay inside the open sheet, a modal dialog ({out.count(False)} of {len(out)} left it)')
+    page.keyboard.press('Escape'); page.wait_for_timeout(300)
+    ok(J("document.getElementById('sheetWrap').hidden && document.activeElement && document.activeElement.getAttribute('data-act')") == 'classCode', 'Escape closes it, and the focus goes back to Class code')
+    page.keyboard.press('Enter'); page.wait_for_timeout(400)
+    J("document.querySelector('#sheet [data-act=\"cbOpen\"]').focus()"); page.keyboard.press('Enter'); page.wait_for_timeout(300)
+    ok(J("document.activeElement && document.activeElement.id") == 'cbCode', 'A code made on another device puts the focus in the Class code box')
+    J(f"document.querySelector('#sheet [data-act=\"keyForget\"][data-arg=\"{off_code}\"]').focus()"); page.keyboard.press('Enter'); page.wait_for_timeout(300)
+    f1 = J("(() => { const a = document.activeElement; return a && document.getElementById('sheet').contains(a) ? a.getAttribute('data-act') || a.tagName : 'outside: ' + (a && a.tagName); })()")
+    J("document.querySelector('#sheet [data-act=\"keyForgetNo\"]').focus()"); page.keyboard.press('Enter'); page.wait_for_timeout(300)
+    f2 = J("(() => { const a = document.activeElement; return a && document.getElementById('sheet').contains(a) ? a.getAttribute('data-act') || a.tagName : 'outside: ' + (a && a.tagName); })()")
+    ok(not f1.startswith('outside') and not f2.startswith('outside'), f'Forget this key, then Keep, leave the focus in the sheet, not at the top of the page ({f1}, {f2})')
+    J("OCUI.U.cbOpen = false; OCUI.render()")
     # the privacy notice says where names go
     J("OCUI.U.sheet = null; OCUI.render()"); page.wait_for_timeout(200)
     J("OCUI.showTitle()"); page.wait_for_timeout(300)

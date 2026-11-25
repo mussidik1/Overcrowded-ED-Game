@@ -11,7 +11,6 @@ on:
 
 permissions:
   contents: read
-  issues: write   # to open an issue when the watch fails
 
 jobs:
   watch:
@@ -26,12 +25,29 @@ jobs:
         with:
           node-version: 22
       - run: node test/db_live.js
+        timeout-minutes: 8   # inside the job's 10, so a stalled check still fails the job and the notice below runs (audit R2.9-05c)
         env:
           DB_WATCH: '1'
-      - name: Open an issue
-        if: failure()
-        env:
+
+  # Its own job, so only it holds the right to write issues (audit R2.9-05c). One open issue at a time: a later failing day adds
+  # a comment to it instead of opening another.
+  notify:
+    name: Tell the owner
+    needs: watch
+    if: failure()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - env:
           GH_TOKEN: ${{ github.token }}
           RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          gh issue create --repo "$GITHUB_REPOSITORY" --title "The daily database watch failed" --body "The live database check failed. The run says what failed and how to fix it (supabase/README.md, Releasing): $RUN"
+          title="The daily database watch failed"
+          open=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --repo "$GITHUB_REPOSITORY" --body "Failed again: $RUN"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "The live database check failed. The run says what failed and how to fix it (supabase/README.md, Releasing): $RUN"
+          fi

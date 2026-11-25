@@ -141,10 +141,11 @@ jobs:
             package.json
             CNAME
             sw.js
-      # After the deploy (audit R2.2-06, R2.3-03, R2.6-07): first the live page is this release (its version is in index.html), so the
-      # checks after it test this deployment, not the last one; then the source, tests, docs and CLAUDE.md are not published. Checked
-      # at the Pages address and at the custom domain (CNAME). The site can take a few minutes to update, so the version check retries
-      # for up to about 15 minutes per address (30 tries of up to 20 s, 10 s apart). If this fails, roll back: see "Rolling back" in CLAUDE.md.
+      # After the deploy (audit R2.2-06, R2.3-03, R2.6-07, R2.8-02): first deploy.txt names this run (the commit and run id; nothing
+      # private), so the checks after it test this deployment, not the last one; it retries for up to about 15 minutes per address (30
+      # tries of up to 20 s, 10 s apart). Then the version and the service worker's cache name, then the source, tests, docs and
+      # CLAUDE.md answer 404. Checked at the Pages address and at the custom domain (CNAME). If this fails, roll back: see "Rolling
+      # back" in CLAUDE.md.
       - name: Check the live site
         env:
           SITE: ${{ steps.deployment.outputs.page_url }}

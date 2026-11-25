@@ -85,7 +85,7 @@ if [ "$first" != "$last" ]; then
   grep -q 'first' "$work/pre.txt" || { echo "FAIL: $last failed without its predecessor, but not with its own message:"; cat "$work/pre.txt"; exit 1; }
   echo "ok - the newest migration refuses to run without the ones before it"
 fi
-q postgres -c "create database fresh"
+q postgres -c "create database fresh template template0 encoding 'UTF8' locale 'C'"   # another locale than the cluster's (en_US, as live): the fingerprint must not depend on it (audit R2.9-05e)
 q fresh -f stubs.sql
 for f in $migs; do q fresh -f "$f"; done
 q fresh -c "do \$\$ begin if to_regprocedure('public.cb_class_new(text,text,text)') is null or to_regprocedure('public.cb_submit(text,uuid,text,text,text,int,int,int,jsonb,text)') is null or to_regprocedure('public.cb_class_read(text,text)') is null or to_regprocedure('public.cb_class_delete(text,text,uuid,boolean)') is null or to_regprocedure('public.cb_health(boolean)') is null or to_regnamespace('codeblack') is null then raise exception 'FAIL: fresh project'; end if; end \$\$"
@@ -93,10 +93,21 @@ echo "ok - the migrations alone build a fresh project"
 # What the functions are (audit R1.8-01): the fresh project's fingerprint must be the committed one, and the same as the
 # baseline-plus-migrations database's. test/db_live.js checks the live project against the same file.
 q fresh -At -o fp_fresh.txt -c "select codeblack.fingerprint()"; q postgres -At -o fp_main.txt -c "select codeblack.fingerprint()"
-fp=$(cat "$work/fp_fresh.txt"); want=""; [ -f "$here/fingerprint.txt" ] && want=$(tr -d ' \n\r' < "$here/fingerprint.txt")
-[ "$fp" = "$(cat "$work/fp_main.txt")" ] || { echo "FAIL: a fresh project and the migrated baseline have different functions"; exit 1; }
-[ "$fp" = "$want" ] || { echo "FAIL: the migrations' functions have changed (fingerprint $fp, committed ${want:-none}). If that's intended and the newest migration isn't applied yet, write $fp to supabase/tests/fingerprint.txt."; exit 1; }
-echo "ok - the functions' fingerprint is the committed one ($fp)"
+q fresh -At -o fp_fresh.json -c "select jsonb_pretty(jsonb_build_object('fp', codeblack.fingerprint(), 'parts', codeblack.fingerprint_parts()))"
+fp=$(cat "$work/fp_fresh.txt")
+[ "$fp" = "$(cat "$work/fp_main.txt")" ] || { echo "FAIL: a fresh project and the migrated baseline differ (fingerprint)"; exit 1; }
+want=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["fp"])' "$here/fingerprint.json" 2>/dev/null || true)
+if [ "$fp" != "$want" ]; then
+  echo "FAIL: what the migrations make has changed (fingerprint $fp, committed ${want:-none}). The objects that differ:"
+  python3 -c 'import json,sys
+new=json.load(open(sys.argv[1]))["parts"]
+try: old=json.load(open(sys.argv[2]))["parts"]
+except Exception: old={}
+for k in sorted(set(new)|set(old)):
+    if new.get(k)!=old.get(k): print("  ", k)' "$work/fp_fresh.json" "$here/fingerprint.json"
+  echo "If that is intended and the newest migration isn't applied yet, replace supabase/tests/fingerprint.json with:"; cat "$work/fp_fresh.json"; exit 1
+fi
+echo "ok - the fingerprint of what the migrations make (functions, tables, the clean-up job) is the committed one ($fp)"
 (cd "$work" && "${as[@]}" "$bin/psql" -X -q -o /dev/null -v ON_ERROR_STOP=1 -h "$work" -p "$port" -U postgres -d postgres -v latest="${last%.sql}" -f privacy_test.sql) 2>&1 | sed -e 's/^psql:[^ ]* NOTICE:  //' -e 's/^NOTICE:  //'
 # The newest migration once more, over a database full of classes, results and counters, as on the live project (R1.7-12b).
 count="select (select count(*) from codeblack.classes) || '/' || (select count(*) from codeblack.results)"
