@@ -2240,7 +2240,8 @@ function codePick(k, ctx) {
 // The best odds of a pulse coming back with everything done right and fast. Roughly in line with published registries (arrests in
 // hospital: AHA Get With The Guidelines-Resuscitation; out of hospital: CARES), not exact. Pending clinician review.
 const CODE_BASE = { ed: { vf: 0.65, pea: 0.45, asys: 0.25, trauma: 0.15, limb: 0.25 }, field: { vf: 0.45, pea: 0.2, asys: 0.08, trauma: 0.08, limb: 0.15 } };
-const CODE_AI_Q = 0.6;   // a doctor run by the game gets it partly right: running the code well yourself (3 of 3) beats handing it off
+const CODE_AI_Q = 0.6;
+const BOOK_WAIT = 5;   // a code started within 5 game minutes of the arrest counts as prompt: a few real seconds at 4x (audit R5.11-01)   // a doctor run by the game gets it partly right: running the code well yourself (3 of 3) beats handing it off
 const CODE_NAME = { vf: 'VF', pea: 'PEA', asys: 'asystole', trauma: 'traumatic arrest', limb: 'arrest after bleeding' };
 // The odds of a pulse coming back for this code, from its rhythm and setting, the answers (or the game-run doctor's skill), the minutes
 // before a doctor took over, an unshocked VF, and respiratory therapy. A pure function of p, so tests can check the numbers (R2.3-02).
@@ -2271,12 +2272,17 @@ function codeOutcome(p) {
     codeEnd(p, true, n);
   } else {
     p.arrest = false; p.dx = 'Resuscitation unsuccessful'; p.dxK = true; p.dsp = 'family'; p.due = G.t + 15; p.tDied = G.t;
-    // a code run by the book and lost (every check right, a doctor there within 3 min; or, for a code another doctor ran, no delay) is not the
-    // same as an abandoned or badly run one (audit R6.9-03); a badly run code is a death like any other, with its M&M line and legal risk (R6.10-01)
-    const book = C.wait <= 3 && (!C.me || C.right >= n);
-    if (book) p.codeLost = { right: C.right, n, wait: C.wait, me: !!C.me };
-    if (C.me && !G.pre && !book) litAdd(10, `died after a code with ${C.right} of ${n} rhythm checks right and the team there ${C.wait} min after the arrest`, p);
-    if (C.me && !G.pre && !book) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
+    // A code the attending ran by the book and lost (every check right, started within BOOK_WAIT minutes) is not the same as an abandoned or
+    // badly run one (audit R6.9-03, R6.11-03). Another doctor's code started at once is no one's fault, but it isn't "by the book" either:
+    // the student didn't run it (R6.11-03). Any other lost code on the attending's own patient, whoever ran it, is a death like any other,
+    // with its M&M line and legal risk (R6.10-01, R6.11-01: a late hand-off doesn't erase it).
+    const book = C.me && C.right >= n && C.wait <= BOOK_WAIT, prompt = !C.me && C.wait <= BOOK_WAIT;
+    if (book) p.codeLost = { right: C.right, n, wait: C.wait };
+    if (prompt) p.codeHanded = { wait: C.wait };
+    const blame = !G.pre && !book && !prompt && (C.me || (p.mine && G.mode === 'md'));
+    if (blame) litAdd(10, C.me ? `died after a code with ${C.right} of ${n} rhythm checks right and the team there ${C.wait} min after the arrest` : `died after a code that started ${C.wait} min after the arrest`, p);
+    if (blame && !C.me) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `the code started ${C.wait} min after the arrest`, true);
+    if (blame && C.me) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
     toast(`Code called at ${clock()} in ${roomName(p.room)}. The chaplain is with the family.`, 'info'); sound('bad');
     codeEnd(p, false, n);
   }
@@ -3385,7 +3391,7 @@ function leave(p, outcome) {
   else if (outcome === 'tx') { S.tx++; care(12, 'flow', p); note(`${p.name} transferred to ${p.txTo}`); }
   else if (outcome === 'lwbs') { S.lwbs++; care(-25, 'lwbs'); }
   else if (outcome === 'ama') { S.ama++; care(-15, 'ama'); if (G.mode === 'md' && p.mine) care(-15, 'md'); }
-  else if (outcome === 'expired' && !(p.tDied < 0)) { S.expired++; if (G.mode === 'md' && p.mine && S.md) { S.md.died = (S.md.died || 0) + 1; if (p.codeLost) S.md.codeLost = (S.md.codeLost || 0) + 1; } }   // the attending's own patients (R6.6-04); a death before 07:00 belongs to the night shift (R6.8-01)
+  else if (outcome === 'expired' && !(p.tDied < 0)) { S.expired++; if (G.mode === 'md' && p.mine && S.md) { S.md.died = (S.md.died || 0) + 1; if (p.codeLost) S.md.codeLost = (S.md.codeLost || 0) + 1; if (p.codeHanded) S.md.handed = (S.md.handed || 0) + 1; } }   // the attending's own patients (R6.6-04); a death before 07:00 belongs to the night shift (R6.8-01)
   if (outcome !== 'expired' && p.tArrive >= 0) {
     if (outcome === 'lwbs') p.px = Math.min(p.px, 20);
     else if (outcome === 'ama') p.px = Math.min(p.px, 30);
@@ -4408,7 +4414,12 @@ function endShift(reason) {
   // the dead still in the department, whenever they arrived (a patient from before 07:00 who died on this shift counts; R6.8-01)
   const deadHere = G.order.map(id => G.pts[id]).filter(p => p && p.loc !== 'gone' && ['family', 'morgue', 'morguing'].includes(p.dsp) && !(p.tDied < 0));
   // the attending's own patients still in cardiac arrest with nobody running the code: never cheaper than running it (R5.8-03)
-  const arrestOpen = G.mode === 'md' && !G.pre ? G.order.map(id => G.pts[id]).filter(p => p && p.mine && p.arrest && p.loc === 'room' && p.ev !== 'doing') : [];
+  const inArrest = G.mode === 'md' && !G.pre ? G.order.map(id => G.pts[id]).filter(p => p && p.mine && p.arrest && p.loc === 'room') : [];
+  const running = p => p.ev === 'doing' || (p.code && p.code.tLeft == null && !p.code.me);
+  const arrestOpen = inArrest.filter(p => !running(p));
+  // a code started (or handed off) 5+ minutes after the arrest, in the last moments of the shift: not an escape from the rule above (R6.11-02)
+  const arrestLate = G.fail ? [] : inArrest.filter(p => running(p) && p.code && p.code.wait >= BOOK_WAIT);
+  for (const p of arrestLate) { litAdd(10, `in cardiac arrest at the end of the shift, with a code that started ${p.code.wait} min after the arrest`, p); mm(60, `${p.name} was in cardiac arrest when the shift ended, and the code started ${p.code.wait} min after the arrest`, 'Start the code at once: every minute without a team lowers the odds.', true); }
   for (const p of arrestOpen) {   // counted either way; penalised only if it was old enough to have been run, on a shift that ran its course (R6.9-02)
     const ref = p.code && p.code.tLeft != null ? p.code.tLeft : p.tArrest != null ? p.tArrest : p.tArrive;   // the same clock as arrestNoTeam: an arrival in arrest counts from the door (audit R1.10-02)
     const age = Math.max(0, Math.round(G.t - ref));
@@ -4441,7 +4452,9 @@ function endShift(reason) {
     underTriage: S.underTriage, underCaught: S.underCaught, cosign: S.cosign, missedDx: S.missedDx, intub: S.intub, intubNoRT: S.intubNoRT,
     suspended: S.suspended, quickReg: S.quickReg, mode: G.mode, md: Object.assign({}, S.md, { log: orderLogOf(S.md),
       died: (S.md.died || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine).length : 0),   // the attending's own dead who haven't left yet count too (as R5-02 for the department)
-      codeLost: (S.md.codeLost || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine && p.codeLost).length : 0),   // of those, after a code the attending ran (R6.9-03)
+      codeLost: (S.md.codeLost || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine && p.codeLost).length : 0),
+      handed: (S.md.handed || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine && p.codeHanded).length : 0),   // of those, after another doctor's prompt code (R6.11-03)
+      codeLate: arrestLate.length,   // of those, after a code the attending ran (R6.9-03)
       arrestOpen: arrestOpen.length, arrestLeft: arrestOpen.filter(p => p.late).length }),
   };
 }

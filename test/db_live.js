@@ -96,8 +96,8 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(read.status === 200 && (json(read.body) || {}).error === 'key', `a made-up key reads nothing (${read.status} ${read.body})`);
   const del = await rpc('cb_class_delete', { p_code: 'ZZZ-ZZZ', p_key: BAD, p_all: true });
   ok(del.status === 200 && (json(del.body) || {}).error === 'key', `or deletes anything (${del.status} ${del.body})`);
-  const sub = await rpc('cb_submit', { p_code: 'ZZZ-ZZZ', p_cid: '00000000-0000-4000-8000-000000000000', p_name: 'Probe', p_role: 'rn', p_level: 'x', p_score: 1, p_stars: 0, p_real_sec: 0, p_stats: {}, p_ver: '0.0.0' });
-  ok(sub.status === 200 && (json(sub.body) || {}).field === 'level', `an invalid result is refused and names the field (${sub.status} ${sub.body})`);
+  const sub = await rpc('cb_submit', { p_code: 'ZZZ-ZZZ', p_cid: '00000000-0000-4000-8000-000000000000', p_name: 'Ana Maria', p_role: 'rn', p_level: 'x', p_score: 1, p_stars: 0, p_real_sec: 0, p_stats: {}, p_ver: '0.0.0' });
+  ok(sub.status === 200 && (json(sub.body) || {}).field === 'level', `an invalid result is refused and names the field: the level, not the two-word name, which the live name rule accepts (audit R1.11-02; ${sub.status} ${sub.body})`);
   const reg = await rpc('cb_class_new', { p_code: 'ZZZ-ZZZ', p_key: BAD, p_ver: 'x' });
   ok(reg.status === 200 && (json(reg.body) || {}).error === 'invalid', `registering with a bad version is refused (${reg.status} ${reg.body})`);
   // The rate limit must hold however a caller dresses up its address: 31 probe calls (a bucket of 30 an hour), each claiming a

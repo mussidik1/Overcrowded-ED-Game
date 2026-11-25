@@ -158,6 +158,27 @@ let ai = null;
 for (let sd = 8300; sd < 8360 && !ai; sd++) {
   p = mine('cwp', sd, 60); OC.toArrest(p, 'Arrested in the room'); OC.assign('md2', p.id);
   for (let i = 0; i < 400 && p.arrest; i++) { OC.G.card = null; OC.step(0.1); }
-  if (p.dsp === 'family' && !p.rosc) { endNow(); ai = { r: OC.G.report, cl: p.codeLost }; }
+  if (p.dsp === 'family' && !p.rosc) { endNow(); ai = { r: OC.G.report, cl: p.codeLost, h: p.codeHanded }; }
 }
-assert(ai && ai.cl && ai.cl.me === false && ai.r.md.codeLost === ai.r.md.died, `another doctor's prompt code on an own patient, lost, counts as after a code run by the book (${JSON.stringify(ai && ai.cl)})`);
+assert(ai && !ai.cl && ai.h && ai.r.md.codeLost === 0 && ai.r.md.handed === ai.r.md.died && !ai.r.mm.some(x => /died after a/.test(JSON.stringify(x))),
+  `another doctor's prompt code on an own patient, lost: no blame, and not labelled "by the book", which the student didn't run (audit R6.11-03; handed ${ai && ai.r.md.handed})`);
+
+// R6.11-01: an own arrest left unrun, then handed to another doctor late, and lost: the delay still counts
+let lateH = null;
+for (let sd = 8400; sd < 8460 && !lateH; sd++) {
+  p = mine('cwp', sd, 60); OC.toArrest(p, 'Arrested in the room'); const l0 = OC.G.lit || 0;
+  for (let i = 0; i < 100; i++) { OC.G.card = null; OC.step(0.1); }   // 10 minutes with nobody running it
+  OC.assign('md2', p.id);
+  for (let i = 0; i < 400 && p.arrest; i++) { OC.G.card = null; OC.step(0.1); }
+  if (p.dsp === 'family' && !p.rosc && p.code && !p.code.me) { const l1 = OC.G.lit || 0; endNow(); lateH = { r: OC.G.report, dl: l1 - l0, h: p.codeHanded, w: p.code.wait }; }
+}
+assert(lateH && !lateH.h && lateH.dl >= 10 && lateH.r.mm.some(x => /died after a/.test(JSON.stringify(x))),
+  `an own arrest handed to another doctor ${lateH && lateH.w} min late and lost: M&M line and legal risk (legal +${lateH && lateH.dl})`);
+
+// R6.11-02: an own arrest left 10 minutes, then started in the last minute of the shift, doesn't escape the end-of-shift rule
+p = mine('cwp', 8500, 60); OC.G.t = OC.G.shift - 11; OC.toArrest(p, 'Arrested in the room'); OC.G.card = null;
+for (let i = 0; i < 100; i++) { OC.G.card = null; OC.step(0.1); }
+OC.assign('md2', p.id); let litE = OC.G.lit || 0;
+for (let i = 0; i < 200 && !OC.G.over; i++) { OC.G.card = null; OC.step(0.1); }
+assert(OC.G.over && (!p.arrest || OC.G.report.md.codeLate === 1) && (!p.arrest || (OC.G.lit || 0) > litE),
+  `a code started 10 min late in the last minute of the shift is counted at the end (codeLate ${OC.G.report.md.codeLate}, legal ${litE} -> ${OC.G.lit}, still in arrest ${p.arrest})`);

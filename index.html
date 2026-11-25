@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-gpYCAwSjql06EP6gjmFRfXMwEzA6kVTfDvFFG2SwnDM=' 'sha256-StT8+pu4Bb2Zwn2K+P9+LJxZ2SUxQ5l82dDeuv78kfE=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-GbTPA6XpXj4sS/QWPc44FHoUWsPRZqvvQTjy3w9+tW4=' 'sha256-hVjX+2Gvi9ui4N/3qkkKxxt4nQ0KJf9A6acuQAiyj4I=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1B2230">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3502,7 +3502,8 @@ function codePick(k, ctx) {
 // The best odds of a pulse coming back with everything done right and fast. Roughly in line with published registries (arrests in
 // hospital: AHA Get With The Guidelines-Resuscitation; out of hospital: CARES), not exact. Pending clinician review.
 const CODE_BASE = { ed: { vf: 0.65, pea: 0.45, asys: 0.25, trauma: 0.15, limb: 0.25 }, field: { vf: 0.45, pea: 0.2, asys: 0.08, trauma: 0.08, limb: 0.15 } };
-const CODE_AI_Q = 0.6;   // a doctor run by the game gets it partly right: running the code well yourself (3 of 3) beats handing it off
+const CODE_AI_Q = 0.6;
+const BOOK_WAIT = 5;   // a code started within 5 game minutes of the arrest counts as prompt: a few real seconds at 4x (audit R5.11-01)   // a doctor run by the game gets it partly right: running the code well yourself (3 of 3) beats handing it off
 const CODE_NAME = { vf: 'VF', pea: 'PEA', asys: 'asystole', trauma: 'traumatic arrest', limb: 'arrest after bleeding' };
 // The odds of a pulse coming back for this code, from its rhythm and setting, the answers (or the game-run doctor's skill), the minutes
 // before a doctor took over, an unshocked VF, and respiratory therapy. A pure function of p, so tests can check the numbers (R2.3-02).
@@ -3533,12 +3534,17 @@ function codeOutcome(p) {
     codeEnd(p, true, n);
   } else {
     p.arrest = false; p.dx = 'Resuscitation unsuccessful'; p.dxK = true; p.dsp = 'family'; p.due = G.t + 15; p.tDied = G.t;
-    // a code run by the book and lost (every check right, a doctor there within 3 min; or, for a code another doctor ran, no delay) is not the
-    // same as an abandoned or badly run one (audit R6.9-03); a badly run code is a death like any other, with its M&M line and legal risk (R6.10-01)
-    const book = C.wait <= 3 && (!C.me || C.right >= n);
-    if (book) p.codeLost = { right: C.right, n, wait: C.wait, me: !!C.me };
-    if (C.me && !G.pre && !book) litAdd(10, `died after a code with ${C.right} of ${n} rhythm checks right and the team there ${C.wait} min after the arrest`, p);
-    if (C.me && !G.pre && !book) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
+    // A code the attending ran by the book and lost (every check right, started within BOOK_WAIT minutes) is not the same as an abandoned or
+    // badly run one (audit R6.9-03, R6.11-03). Another doctor's code started at once is no one's fault, but it isn't "by the book" either:
+    // the student didn't run it (R6.11-03). Any other lost code on the attending's own patient, whoever ran it, is a death like any other,
+    // with its M&M line and legal risk (R6.10-01, R6.11-01: a late hand-off doesn't erase it).
+    const book = C.me && C.right >= n && C.wait <= BOOK_WAIT, prompt = !C.me && C.wait <= BOOK_WAIT;
+    if (book) p.codeLost = { right: C.right, n, wait: C.wait };
+    if (prompt) p.codeHanded = { wait: C.wait };
+    const blame = !G.pre && !book && !prompt && (C.me || (p.mine && G.mode === 'md'));
+    if (blame) litAdd(10, C.me ? `died after a code with ${C.right} of ${n} rhythm checks right and the team there ${C.wait} min after the arrest` : `died after a code that started ${C.wait} min after the arrest`, p);
+    if (blame && !C.me) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `the code started ${C.wait} min after the arrest`, true);
+    if (blame && C.me) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
     toast(`Code called at ${clock()} in ${roomName(p.room)}. The chaplain is with the family.`, 'info'); sound('bad');
     codeEnd(p, false, n);
   }
@@ -4647,7 +4653,7 @@ function leave(p, outcome) {
   else if (outcome === 'tx') { S.tx++; care(12, 'flow', p); note(`${p.name} transferred to ${p.txTo}`); }
   else if (outcome === 'lwbs') { S.lwbs++; care(-25, 'lwbs'); }
   else if (outcome === 'ama') { S.ama++; care(-15, 'ama'); if (G.mode === 'md' && p.mine) care(-15, 'md'); }
-  else if (outcome === 'expired' && !(p.tDied < 0)) { S.expired++; if (G.mode === 'md' && p.mine && S.md) { S.md.died = (S.md.died || 0) + 1; if (p.codeLost) S.md.codeLost = (S.md.codeLost || 0) + 1; } }   // the attending's own patients (R6.6-04); a death before 07:00 belongs to the night shift (R6.8-01)
+  else if (outcome === 'expired' && !(p.tDied < 0)) { S.expired++; if (G.mode === 'md' && p.mine && S.md) { S.md.died = (S.md.died || 0) + 1; if (p.codeLost) S.md.codeLost = (S.md.codeLost || 0) + 1; if (p.codeHanded) S.md.handed = (S.md.handed || 0) + 1; } }   // the attending's own patients (R6.6-04); a death before 07:00 belongs to the night shift (R6.8-01)
   if (outcome !== 'expired' && p.tArrive >= 0) {
     if (outcome === 'lwbs') p.px = Math.min(p.px, 20);
     else if (outcome === 'ama') p.px = Math.min(p.px, 30);
@@ -5670,7 +5676,12 @@ function endShift(reason) {
   // the dead still in the department, whenever they arrived (a patient from before 07:00 who died on this shift counts; R6.8-01)
   const deadHere = G.order.map(id => G.pts[id]).filter(p => p && p.loc !== 'gone' && ['family', 'morgue', 'morguing'].includes(p.dsp) && !(p.tDied < 0));
   // the attending's own patients still in cardiac arrest with nobody running the code: never cheaper than running it (R5.8-03)
-  const arrestOpen = G.mode === 'md' && !G.pre ? G.order.map(id => G.pts[id]).filter(p => p && p.mine && p.arrest && p.loc === 'room' && p.ev !== 'doing') : [];
+  const inArrest = G.mode === 'md' && !G.pre ? G.order.map(id => G.pts[id]).filter(p => p && p.mine && p.arrest && p.loc === 'room') : [];
+  const running = p => p.ev === 'doing' || (p.code && p.code.tLeft == null && !p.code.me);
+  const arrestOpen = inArrest.filter(p => !running(p));
+  // a code started (or handed off) 5+ minutes after the arrest, in the last moments of the shift: not an escape from the rule above (R6.11-02)
+  const arrestLate = G.fail ? [] : inArrest.filter(p => running(p) && p.code && p.code.wait >= BOOK_WAIT);
+  for (const p of arrestLate) { litAdd(10, `in cardiac arrest at the end of the shift, with a code that started ${p.code.wait} min after the arrest`, p); mm(60, `${p.name} was in cardiac arrest when the shift ended, and the code started ${p.code.wait} min after the arrest`, 'Start the code at once: every minute without a team lowers the odds.', true); }
   for (const p of arrestOpen) {   // counted either way; penalised only if it was old enough to have been run, on a shift that ran its course (R6.9-02)
     const ref = p.code && p.code.tLeft != null ? p.code.tLeft : p.tArrest != null ? p.tArrest : p.tArrive;   // the same clock as arrestNoTeam: an arrival in arrest counts from the door (audit R1.10-02)
     const age = Math.max(0, Math.round(G.t - ref));
@@ -5703,7 +5714,9 @@ function endShift(reason) {
     underTriage: S.underTriage, underCaught: S.underCaught, cosign: S.cosign, missedDx: S.missedDx, intub: S.intub, intubNoRT: S.intubNoRT,
     suspended: S.suspended, quickReg: S.quickReg, mode: G.mode, md: Object.assign({}, S.md, { log: orderLogOf(S.md),
       died: (S.md.died || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine).length : 0),   // the attending's own dead who haven't left yet count too (as R5-02 for the department)
-      codeLost: (S.md.codeLost || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine && p.codeLost).length : 0),   // of those, after a code the attending ran (R6.9-03)
+      codeLost: (S.md.codeLost || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine && p.codeLost).length : 0),
+      handed: (S.md.handed || 0) + (G.mode === 'md' ? deadHere.filter(p => p.mine && p.codeHanded).length : 0),   // of those, after another doctor's prompt code (R6.11-03)
+      codeLate: arrestLate.length,   // of those, after a code the attending ran (R6.9-03)
       arrestOpen: arrestOpen.length, arrestLeft: arrestOpen.filter(p => p.late).length }),
   };
 }
@@ -8352,7 +8365,7 @@ function cbRegHTML(code) {
   if (R.st === 'lost') return `<div class="cb-key bad" role="alert"><b>${esc(code)} can’t get class results.</b><small>Another class has that code on the server, so a result sent to it would go to that class. <b>Tell students not to tap Send.</b> Make a new code for class results.</small></div>`;
   if (R.st === 'off') return `<div class="cb-key bad" role="alert"><b>Class results are off for this code.</b><small>${esc(R.why || '')} Students can play it. <b>Tell them not to tap Send</b> until results are set up: until then, whoever registers this code first gets what students send. Try again sets results up for this same code.</small>${R.hard ? '' : '<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button></div>'}</div>`;
   const show = U.showKey === code, made = R.made || Date.now();
-  return `<div class="cb-key"><b>Class results are on.</b><small>Students’ results come to you (and the game’s developer, who runs the database, can see them). Your <b>instructor key</b> opens them: keep it private, like a password, and don’t show it to the class. ${R.saved ? 'It’s saved on this device' : '<b>This device can’t save it</b>'}; copy it somewhere safe too. A lost key can’t be recovered. Results are deleted on ${esc(cbDate(made + CB_LIFE))} once a student sends one. If none has by ${esc(cbDate(Date.parse(R.exp) || made + 14 * 864e5))}, the class ends, but a student’s first result before ${esc(cbDate((Date.parse(R.exp) || made + 14 * 864e5) + 30 * 864e5))} starts it again for 30 days: a code made ahead of a class still works then. Once a class ends, its code is held 30 days with only its key’s hash, so nobody else can take it.</small>`
+  return `<div class="cb-key"><b>Class results are on.</b><small>Students’ results come to you (and the game’s developer, who runs the database, can see them). Your <b>instructor key</b> opens them: keep it private, like a password, and don’t show it to the class. ${R.saved ? 'It’s saved on this device' : '<b>This device can’t save it</b>'}; copy it somewhere safe too. A lost key can’t be recovered. Results are deleted on ${esc(cbDate(made + CB_LIFE))} once a student sends one. If none has by ${esc(cbDate(Date.parse(R.exp) || made + 14 * 864e5))}, the class ends, but a student’s first result before ${esc(cbDate((Date.parse(R.exp) || made + 14 * 864e5) + 30 * 864e5))} starts it again for 30 days: a code made ahead of a class still works then, on this version of the game (v${esc(GAME_V)}; a game update needs a new code). Once a class ends, its code is held 30 days with only its key’s hash, so another class can’t simply take it over.</small>`
     + (show ? `<div class="cb-key-v">${esc(cbKeyShow(R.key))}</div>` : '')
     + `<div class="cc-row"><button type="button" class="big" data-act="keyShow" data-arg="${esc(code)}" aria-expanded="${show}">${show ? 'Hide key' : 'Show key'}</button><button type="button" class="big" data-act="keyCopy" data-arg="${esc(code)}">Copy key</button></div><small class="cb-warn"><b>Not for grading:</b> scores are self-reported, and no licensed clinician has reviewed the game. Class results, below, says more.</small></div>`;
 }
@@ -8376,7 +8389,7 @@ function cbRows(L) {
   L._of = L.rows; L._rows = rows; return rows;
 }
 const CB_NOTE = 'Not for grading: scores are self-reported, anyone with the code can send a result under any name (a repeated name may be a retry or another student), and no licensed clinician has reviewed the game’s clinical content.';
-const CB_MDNOTE = 'Attending: the score and stars mostly reflect the department the computer runs. The attending’s own work is the patients they saw (and how many of them died), their diagnoses, unsafe orders and radio calls. Radio calls differ between players, and complications are partly chance. Many patients who arrest die even after a well-run code (the list says which deaths came after a code run by the book: every rhythm check right, a doctor there within 3 minutes).';
+const CB_MDNOTE = 'Attending: the score and stars mostly reflect the department the computer runs. The attending’s own work is the patients they saw (and how many of them died), their diagnoses, unsafe orders and radio calls. Radio calls differ between players, and complications are partly chance. Many patients who arrest die even after a well-run code (the list says which deaths came after a code run by the book: every rhythm check right, the code started within 5 minutes).';
 const cbClock = m => { const t = 7 * 60 + (m || 0); return String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
 function cbDet(r) {   // the second line of a result: the student's own numbers first
   const q = v => (v == null ? '?' : v), parts = [`${r.min} min played${r.fast ? ` (${r.fast}% sped up)` : ''}`];
@@ -8459,8 +8472,8 @@ function cbArgs(R, name, cid) {
     p_ver: /^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(R.ver || '') ? R.ver : GAME_V };
 }
 const cbWhat = R => `score ${Math.max(0, Math.min(100, Math.round(+R.avg || 0)))}/100 · ${'★'.repeat(R.stars | 0)}${'☆'.repeat(3 - (R.stars | 0))} · ${Math.round((R.realSec || 0) / 60)} min played`;
-const cbWhatAll = R => (R.mode === 'md' ? 'your patients (how many died, how many of those after a code run by the book (every rhythm check right, a doctor there within 3 minutes), and how many were left in cardiac arrest), diagnoses, unsafe and unneeded orders, complications, and radio calls; ' : '')   // every number sent (audit R2.9-03)
-  + 'the department’s mean door-to-provider wait, how quickly the sickest patients were seen, arrivals, patients who left without being seen or against advice, patients bedded before registration, and deaths; whether the shift ended early (and when); how much was sped up; and the game version';
+const cbWhatAll = R => (R.mode === 'md' ? 'your patients (how many died, how many of those after a code run by the book (every rhythm check right, the code started within 5 minutes), and how many were left in cardiac arrest), diagnoses, unsafe and unneeded orders, complications, and radio calls; ' : '')   // every number sent (audit R2.9-03)
+  + 'the department’s mean door-to-provider wait, arrivals, patients who left without being seen or against advice, patients bedded before registration, and deaths; whether the shift ended early (and when); how much was sped up; and the game version';
 const CB_WHO = 'Only they, and the game’s developer who runs the database, can see it. It’s deleted when the class ends, within 30 days of the class’s first result.';
 function cbSendHTML(R, at) {
   if (!R.code || R.level === 'train' || at == null) return '';
@@ -8966,6 +8979,7 @@ const ACT = {
     const fail = (now, msg) => { if (!now) return; if (all) { now.err = msg; cbScroll('#cbErr'); } else { now.delErr = { id: a, msg }; cbScroll('#cbDelErr'); } };   // the message where the finger is
     cbRpc('cb_class_delete', all ? { p_code: L.code, p_key: L.key, p_all: true } : { p_code: L.code, p_key: L.key, p_id: a, p_all: false }).then(r => {
       const now = U.cbList && U.cbList.code === L.code ? U.cbList : null; if (now) now.deleting = null;
+      U.focusTo = '#cbHead';   // the answer redraws the heading: the focus goes back to it, not to the page (audit R4.11-01)
       if (typeof r.deleted === 'number') {
         if (now && now.rows) now.rows = all ? [] : now.rows.filter(x => x.id !== a);   // removed in place: the list keeps its scroll
         res({ ok: true, msg: r.deleted === 1 ? 'Deleted 1 result' : `Deleted ${r.deleted} results` });
@@ -9192,7 +9206,7 @@ function aboutHTML(head) {
     + `<p><b>Class results.</b> After a class-code shift, <b>Send</b> sends:</p><ul class="ab-list">`
     + `<li><b>You:</b> your first name or initials (not kept on this device).</li>`
     + `<li><b>Your result:</b> the class code, role, shift, score, stars, minutes played, how much was sped up, and whether and when the shift ended early (fired, or the staff walked out).</li>`
-    + `<li><b>The department:</b> mean door-to-provider wait, how quickly the sickest patients were seen, arrivals, patients who left without being seen or against advice, patients bedded before registration, and deaths.</li>`
+    + `<li><b>The department:</b> mean door-to-provider wait, arrivals, patients who left without being seen or against advice, patients bedded before registration, and deaths.</li>`
     + `<li><b>An attending’s own work:</b> patients seen, how many died (and how many of those after a code run by the book), how many were left in cardiac arrest at the end, diagnoses right and wrong, unsafe and unneeded orders, complications, and radio calls right, wrong and missed.</li>`
     + `<li><b>Bookkeeping:</b> the game version, a random id for the result, and the time it arrived.</li></ul>`
     + `<p><b>Who sees it:</b> in the game, only the instructor who made the code, with its instructor key. The game’s developer runs the database (on Supabase, in the US) and can see it too. It’s used only to show the instructor the class’s results; copies the instructor makes are theirs.</p>`
@@ -9235,13 +9249,13 @@ function start(lvl, lesson, chapter, code) {
 const verdictOf = R => {   // the stars are the owner's scoring; the words mustn't praise what went wrong (audit R6.6-09, R5.8-05, R6.8-05)
   const m = R.mode === 'md' && R.md;
   if (m && !m.seen) return 'You saw no patients this shift: the stars come from the radio calls and the department the computer ran.';
-  const d = m ? m.died || 0 : 0, cl = m ? m.codeLost || 0 : 0, left = m ? m.arrestLeft || 0 : 0, see = (R.mm || []).length ? 'Read the M&M below.' : 'Read the worst moments below.';
-  if (m && (d - cl > 0 || left)) {   // built from what happened, so one patient doesn't read as two (audit R4.9-07)
+  const d = m ? m.died || 0 : 0, cl = m ? m.codeLost || 0 : 0, hd = m ? m.handed || 0 : 0, left = m ? (m.arrestLeft || 0) + (m.codeLate || 0) : 0, see = (R.mm || []).length ? 'Read the M&M below.' : 'Read the worst moments below.';
+  if (m && (d - cl - hd > 0 || left)) {   // a death after another doctor's prompt code isn't the student's (R6.11-03); a late code at the end is (R6.11-02)   // built from what happened, so one patient doesn't read as two (audit R4.9-07)
     const a = d ? `${d === 1 ? 'One of your own patients' : `${d} of your own patients`} died${cl ? ` (${cl === d ? (d === 1 ? 'after a code run by the book' : 'all after codes run by the book') : `${cl} after a code run by the book`})` : ''}` : '';
     const b = left ? (a ? `, and ${left === 1 ? 'one was' : `${left} were`}` : `${left === 1 ? 'One of your own patients was' : `${left} of your own patients were`}`) + ' still in cardiac arrest at the end, with no code running' : '';
     return `${a}${b}. ${see}`;
   }
-  if (m && cl && R.stars >= 2) return `${cl === 1 ? 'A patient' : `${cl} patients`} died after a code run by the book: many arrests don’t come back, even when the code is run well.`;
+  if (m && (cl || hd) && R.stars >= 2) return `${cl + hd === 1 ? 'A patient' : `${cl + hd} patients`} died after ${cl ? 'a code run by the book' : 'a code another doctor started at once'}${cl && hd ? ' or one another doctor started at once' : ''}: many arrests don’t come back, even when the code is run well.`;
   if (m && R.stars === 3) {   // name the sections to read (audit R4.9-07)
     const go = [m.dxWrong ? '<b>Diagnoses to review</b>, above' : '', (m.contra || m.unneeded || m.untreated) ? '<b>Orders to review</b>, below' : '', m.dispoWrong ? `your ${m.dispoWrong === 1 ? 'wrong disposition' : `${m.dispoWrong} wrong dispositions`}` : ''].filter(Boolean);
     if (go.length) return `Three stars. Now read ${go.length > 1 ? go.slice(0, -1).join(', ') + ' and ' + go[go.length - 1] : go[0]}.`;
@@ -9274,7 +9288,7 @@ function reportHTML(R, ledger, at) {
   const LED = { md: 'Patients you saw', orders: 'Orders', harm: 'Unsafe orders, complications and untreated patients', dispo: 'Disposition calls', flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration <small>goals executives set, and requests you refused</small>', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood', transfer: 'Transfers', gray: 'Gray-zone calls', chair: 'Admitted patients in chairs', experience: 'Complaints' };
   const rows = Object.entries(led).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LED[k] || k}</td><td class="${v < 0 ? 'neg' : 'pos'}">${v > 0 ? '+' : ''}${Math.round(v)}</td></tr>`).join('');
   const t = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
-  return `<div class="card rep"><h2>${R.fail === 'fired' ? 'Your group let you go' : R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2>${scoreCardsHTML(R, led, LED)}${litHTML(R)}<p class="verdict">${R.fail === 'fired' ? 'Legal risk reached 75%, and the group ended your contract mid-shift. "What raised your legal risk", above, lists every reason.' : R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.expired ? `${R.expired} patient${R.expired === 1 ? '' : 's'} died in the department. ${R.stars >= 2 && !(R.mode === 'md' && R.md && (!R.md.seen || R.md.died || R.md.arrestLeft || R.md.codeLost || R.md.dxWrong || R.md.dispoWrong || R.md.contra || R.md.unneeded || R.md.untreated)) ? 'The numbers were good; read the worst moments below.' : verdictOf(R)}` : verdictOf(R))} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
+  return `<div class="card rep"><h2>${R.fail === 'fired' ? 'Your group let you go' : R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2>${scoreCardsHTML(R, led, LED)}${litHTML(R)}<p class="verdict">${R.fail === 'fired' ? 'Legal risk reached 75%, and the group ended your contract mid-shift. "What raised your legal risk", above, lists every reason.' : R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.expired ? `${R.expired} patient${R.expired === 1 ? '' : 's'} died in the department. ${R.stars >= 2 && !(R.mode === 'md' && R.md && (!R.md.seen || R.md.died || R.md.arrestLeft || R.md.codeLost || R.md.handed || R.md.codeLate || R.md.dxWrong || R.md.dispoWrong || R.md.contra || R.md.unneeded || R.md.untreated)) ? 'The numbers were good; read the worst moments below.' : verdictOf(R)}` : verdictOf(R))} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
 <p class="rep-meta">${R.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${esc(L.name)}${R.scen && R.scen !== 'none' ? ' · ' + esc(E.SCENS[R.scen].name) : ''} · ${new Date(at || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · Name: <span class="rep-name">&nbsp;</span></p>${R.code || R.realSec ? `<p class="rep-meta rep-class">${R.code ? `Class code <b>${esc(R.code)}</b>` : ''}${R.code && R.realSec ? ' · ' : ''}${R.realSec ? esc(realTxt(R).replace(/^played/, 'Played')) : ''}${R.bedFirst ? ` · ${R.bedFirst} bedded before registration` : ''}</p>` : ''}
 <p class="rep-note">A teaching game, not clinical guidance. No licensed clinician has reviewed its clinical content yet.</p>
 ${cbSendHTML(R, at)}${mmHTML(R)}${mdReportHTML(R, t)}
