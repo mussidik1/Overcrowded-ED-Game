@@ -10,7 +10,7 @@
 | 10 Automated gates | PASS | CI on `3d`: build matches source, `npm test` (720), stress (188 shifts), database rules on PostgreSQL 17, Chrome UI tests. |
 | 11–14 Reviews | PASS | Audit rounds 6–11, six hostile reviewers each, serious findings independently re-run; `spec/FINDINGS.md`. |
 | 15 QA | Pending | The owner's phone check, `docs/SMOKE.md`. |
-| 16 Drift check | Running | Fresh agent: the built game against what v0.31.0 promises (README, About, CLAUDE.md, RELEASE.md). |
+| 16 Drift check | PASS after fixes | Fresh agent found 9 mismatches (0 Critical, 1 High in docs, 3 Medium, 5 Low): all fixed in text or code, none needed a migration. F-039 to F-047. |
 | 17 CTO review | Running | Fresh agent: GO or NO-GO memo. |
 | 18 Publish | Waiting | Needs the owner's "release". |
 

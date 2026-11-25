@@ -2072,7 +2072,7 @@ function classHTML() {
    results are deleted when the class ends: 30 days after the code was made, or 14 if nobody sends a result (a student's first result in
    the 30-day hold that follows starts it again). An ended code is held 30 days for its key. supabase/tests/client_call.json is the contract:
    the calls, the errors each can give, and the names both sides accept. */
-const CB = '/*BACKEND*/', CB_WAIT = 8000, CB_ABC = '0123456789ABCDEFGHJKMNPQRSTVWXYZ', CB_LIFE = 30 * 864e5, CB_KEEP = 60 * 864e5;   // a class's longest life; how long the device keeps its key (the life plus the server's 30-day hold)
+const CB = '/*BACKEND*/', CB_WAIT = 8000, CB_ABC = '0123456789ABCDEFGHJKMNPQRSTVWXYZ', CB_LIFE = 30 * 864e5, CB_KEEP = 74 * 864e5;   // a class's longest life; how long the device keeps its key (the life plus the server's 30-day hold)
 // Every call gives up after 8 seconds, so no screen says "Sending…" forever. A failure says which kind it was (for the message).
 function cbFetch(path, body) {
   const ctl = typeof AbortController === 'function' ? new AbortController() : null; let timer = 0;
@@ -2121,8 +2121,8 @@ const cbDate = (at, time) => { const d = new Date(at); if (isNaN(d)) return ''; 
 function storeOk(k, v) { try { localStorage.setItem(k, v); return localStorage.getItem(k) === v; } catch (e) { return false; } }
 // Instructor keys kept on this device: oc-ckeys = { v: 1, c: { code: { k: key, t: when the server made the class (ms), p: 1 while
 // registration is unconfirmed, s: 1 once the code was shown, e: when the server last said the class ends (ms), x: 1 once the server
-// said the class has ended, g: 1 once the server said another class has its code } } }. A key is kept 60 days after its class was made: the longest a class lives (30), then the 30 days
-// the server holds its code for this key (so Turn results back on still works, and the instructor sees that the class ended).
+// said the class has ended, g: 1 once the server said another class has its code } } }. A key is kept 74 days after its class was made: a first result up to day 44 can start an unused class again for 30
+// days (audit drift check); the server holds an ended class's code 30 days for this key (so Turn results back on still works, and the instructor sees that the class ended).
 function cbKeys() {
   let o = null; try { o = JSON.parse(store('oc-ckeys') || 'null'); } catch (e) { o = null; }
   const c = o && typeof o === 'object' && o.v === 1 && o.c && typeof o.c === 'object' ? o.c : {}, out = {};
@@ -2280,7 +2280,7 @@ function cbArgs(R, name, cid) {
     p_ver: /^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(R.ver || '') ? R.ver : GAME_V };
 }
 const cbWhat = R => `score ${Math.max(0, Math.min(100, Math.round(+R.avg || 0)))}/100 · ${'★'.repeat(R.stars | 0)}${'☆'.repeat(3 - (R.stars | 0))} · ${Math.round((R.realSec || 0) / 60)} min played`;
-const cbWhatAll = R => (R.mode === 'md' ? 'your patients (how many died, how many of those after a code run by the book (every rhythm check right, the code started within 5 minutes), and how many were left in cardiac arrest), diagnoses, unsafe and unneeded orders, complications, and radio calls; ' : '')   // every number sent (audit R2.9-03)
+const cbWhatAll = R => (R.mode === 'md' ? 'your role and shift; your patients (how many died, how many of those after a code run by the book (every rhythm check right, the code started within 5 minutes), and how many were left in cardiac arrest 5+ minutes with no code running), diagnoses, unsafe and unneeded orders, complications, and radio calls; ' : '')   // every number sent (audit R2.9-03)
   + 'the department’s mean door-to-provider wait, arrivals, patients who left without being seen or against advice, patients bedded before registration, and deaths; whether the shift ended early (and when); how much was sped up; and the game version';
 const CB_WHO = 'Only they, and the game’s developer who runs the database, can see it. It’s deleted when the class ends, within 30 days of the class’s first result.';
 function cbSendHTML(R, at) {
@@ -2772,7 +2772,7 @@ const ACT = {
         const unused = saved && saved.e && saved.e - saved.t < 20 * 864e5 && Date.now() < saved.e + 30 * 864e5;
         if (saved && !unused) cbKeySave(code, Object.assign({}, saved, { x: 1, p: 0 }));   // this device's own key no longer opens it: the class has ended
         U.cbList = { code, typed, err: r.error === 'busy' ? CB_BUSY : saved ? `The server has no class for ${code} now: it ended, or its results were never set up. Turn results back on to use the code again.`
-          : 'That code and key don’t match, or the class has ended (its results are deleted 30 days after the code was made, or 14 if nobody sent one).' };
+          : 'That code and key don’t match, or the class has ended (its results are deleted 30 days after the code was made, or 14 if nobody sent one, unless a student’s first result started it again).' };
         U.cbKeyVis = false; cbScroll('#cbErr');
       }
       render();
@@ -3015,7 +3015,7 @@ function aboutHTML(head) {
     + `<li><b>You:</b> your first name or initials (not kept on this device).</li>`
     + `<li><b>Your result:</b> the class code, role, shift, score, stars, minutes played, how much was sped up, and whether and when the shift ended early (fired, or the staff walked out).</li>`
     + `<li><b>The department:</b> mean door-to-provider wait, arrivals, patients who left without being seen or against advice, patients bedded before registration, and deaths.</li>`
-    + `<li><b>An attending’s own work:</b> patients seen, how many died (and how many of those after a code run by the book), how many were left in cardiac arrest at the end, diagnoses right and wrong, unsafe and unneeded orders, complications, and radio calls right, wrong and missed.</li>`
+    + `<li><b>An attending’s own work:</b> patients seen, how many died (and how many of those after a code run by the book), how many were left in cardiac arrest at the end 5+ minutes with no code running, diagnoses right and wrong, unsafe and unneeded orders, complications, and radio calls right, wrong and missed.</li>`
     + `<li><b>Bookkeeping:</b> the game version, a random id for the result, and the time it arrived.</li></ul>`
     + `<p><b>Who sees it:</b> in the game, only the instructor who made the code, with its instructor key. The game’s developer runs the database (on Supabase, in the US) and can see it too. It’s used only to show the instructor the class’s results; copies the instructor makes are theirs.</p>`
     + `<p><b>How long:</b> deleted when the class ends: 30 days after the code was made, or, for a code first used more than 14 days after it was made, 30 days after that first result. Either way, within 30 days of the class’s first result. <b>Sooner:</b> ask your instructor, who can delete any result${CB.contact ? `, or write to ${esc(CB.contact)}` : ''}.</p>`

@@ -69,3 +69,17 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 | F-036 | Medium | The WebKit (Safari engine) UI tests haven't run on v0.31.0 | Accepted-Risk (pending sign-off) | They run on the merge into `main` (report only), and the phone check covers iOS by hand. |
 | F-037 | Low | Validation before limits holds only for malformed calls (R3.9-06.2) | Accepted-Risk | A well-formed fake code still spends a network's code limit; the limits are per network. |
 | F-038 | Low | Lows and nitpicks in the round 9–11 reports | Accepted-Risk | None is a correctness or privacy failure; queued for the next pass. |
+
+## Stage 16 drift check (Nov 25, 2026)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-039 | 16 | High | supabase/README said a send to a dead or wrong-version code is refused before it counts; only malformed calls are | Fixed | text corrected |
+| F-040 | 16 | Medium | Rollback text: v0.30.0's deploy has no database check and no skip_db_check | Fixed | RELEASE.md and CLAUDE.md corrected |
+| F-041 | 16 | Medium | The device dropped a key at 60 days while a class started again on day 44 lives to day 74 | Fixed | key kept 74 days |
+| F-042 | 16 | Medium | A late code still running at the end cost no points, though the notes said so | Fixed | care -20 added |
+| F-043 | 16 | Low | "left in cardiac arrest" sent counts only unrun arrests of 5+ min | Fixed | wording says so in the Send box, About and README |
+| F-044 | 16 | Low | A code at exactly 5 minutes counted in time when lost but late at the end | Fixed | late is > 5 min |
+| F-045 | 16 | Low | The sheet's close button was 38 px | Fixed | 44 px |
+| F-046 | 16 | Low | The Send box didn't name role and shift | Fixed | added |
+| F-047 | 16 | Low | The wrong-key message left out the restart; RELEASE named a stale commit | Fixed | text corrected |

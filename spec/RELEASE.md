@@ -1,7 +1,7 @@
 # Release v0.31.0: private class results
 
 - **Version:** 0.31.0 (semantic: new features, no breaking change to saves; class codes from v0.30.0 read as stale, by design).
-- **Commit to release:** the head of `3d` once the Tests workflow is green there (now `405f4bc`).
+- **Commit to release:** the head of `3d` once the Tests workflow is green at that exact commit.
 - **Replaces:** v0.30.0 on `main` (`815e279`).
 
 ## Release notes
@@ -13,7 +13,7 @@
   and its code held 30 more days for its key. A planned code's first result in that hold starts it again.
 - **Sending.** First name or initials only, checked on both sides; a summary can't be sent twice or lost by a reload.
 - **Attending scoring.** Required drugs in combinations must be ordered; a set with a harmful drug isn't "clean"; lost codes are
-  "by the book" only when the student ran them right and in time; unrun or late arrests at the end cost points, legal risk and
+  "by the book" only when the student ran them right and in time; unrun or late-started arrests at the end cost points, legal risk and
   an M&M line. Patient flow and the charge nurse's game are unchanged.
 - **Accessibility.** The class sheet works by keyboard and screen reader; text boxes are 16 px; tap targets 44 px.
 - **Behind the scenes.** The database is in the repo with three frozen migrations, a fingerprint the deploy checks against the
@@ -36,12 +36,13 @@ Nothing more is applied at release.
 
 ## Rollback
 
-- **Game:** `git revert -m 1 <merge commit>` on `main` and push; the deploy republishes v0.30.0. The live database stays as it
-  is (a database ahead of the game passes the deploy's check).
+- **Game:** `git revert -m 1 <merge commit>` on `main` and push; the deploy republishes v0.30.0. The revert also restores
+  v0.30.0's deploy workflow, which doesn't check the database at all, so a rollback doesn't need Supabase. The live database
+  stays as it is.
 - **What breaks on rollback:** v0.30.0's Send and Class results don't work against the new database (they used the old open
   table, which migration 1 removed). The gate is on and nobody uses them yet, so the impact is testers only.
 - **Database:** migrations aren't rolled back. A fix goes in a new migration.
-- **Supabase down during a rollback:** run the Deploy workflow by hand with `skip_db_check` and a reason.
+- **`skip_db_check`** (a manual Deploy run with a reason) applies only to v0.31.0 and later, for example a re-deploy while Supabase is down.
 
 ## Known limits (accepted risks, `spec/FINDINGS.md`)
 

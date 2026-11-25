@@ -4418,8 +4418,8 @@ function endShift(reason) {
   const running = p => p.ev === 'doing' || (p.code && p.code.tLeft == null && !p.code.me);
   const arrestOpen = inArrest.filter(p => !running(p));
   // a code started (or handed off) 5+ minutes after the arrest, in the last moments of the shift: not an escape from the rule above (R6.11-02)
-  const arrestLate = G.fail ? [] : inArrest.filter(p => running(p) && p.code && p.code.wait >= BOOK_WAIT);
-  for (const p of arrestLate) { litAdd(10, `in cardiac arrest at the end of the shift, with a code that started ${p.code.wait} min after the arrest`, p); mm(60, `${p.name} was in cardiac arrest when the shift ended, and the code started ${p.code.wait} min after the arrest`, 'Start the code at once: every minute without a team lowers the odds.', true); }
+  const arrestLate = G.fail ? [] : inArrest.filter(p => running(p) && p.code && p.code.wait > BOOK_WAIT);   // the same line as "by the book": 5 minutes is in time
+  for (const p of arrestLate) { care(-20, 'md', p); litAdd(10, `in cardiac arrest at the end of the shift, with a code that started ${p.code.wait} min after the arrest`, p); mm(60, `${p.name} was in cardiac arrest when the shift ended, and the code started ${p.code.wait} min after the arrest`, 'Start the code at once: every minute without a team lowers the odds.', true); }
   for (const p of arrestOpen) {   // counted either way; penalised only if it was old enough to have been run, on a shift that ran its course (R6.9-02)
     const ref = p.code && p.code.tLeft != null ? p.code.tLeft : p.tArrest != null ? p.tArrest : p.tArrive;   // the same clock as arrestNoTeam: an arrival in arrest counts from the door (audit R1.10-02)
     const age = Math.max(0, Math.round(G.t - ref));
