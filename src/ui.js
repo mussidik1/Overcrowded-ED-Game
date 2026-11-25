@@ -942,14 +942,18 @@ function ptSheet(G, p) {
   else if (dx) kv.push(['Diagnosis', `<b>${esc(dx)}</b>${E.DX_PLAIN[dx] ? `<small class="dxp">${esc(E.DX_PLAIN[dx])}</small>` : ''}`]); else if (p.alertOn && p.alert) kv.push(['Working', `${esc(E.ALERTS[p.alert].name)} alert`]);
   if (p.ev === 'done' && E.examOf(p) && p.loc !== 'gone') kv.push(['Exam', esc(E.examOf(p))]);
   if (p.tag) kv.push(['Field tag', `${cap(p.tag)}: ${{ red: 'immediate', yellow: 'can wait a little', green: 'walking wounded' }[p.tag]}`]);
-  if (p.lkwT != null && p.alertOn) kv.push(['Onset', `Last known well <b>${E.clock(p.lkwT)}</b> · the thrombolytic has to be in by ${E.clock(p.lkwT + E.LYTIC_WINDOW)}`]);
+  if (p.alert === 'stroke' && (p.alertOn || p.ev === 'done')) {   // walk-in strokes too, once seen (Phase 3, R6-02)
+    if (p.lkwT != null) kv.push(['Onset', `Last known well <b>${E.clock(p.lkwT)}</b> · the thrombolytic has to be in by ${E.clock(p.lkwT + E.LYTIC_WINDOW)}`]);
+    else kv.push(['Onset', 'Last known well <b>unknown</b>: woke up with it']);
+    if (p.anticoag) kv.push(['Home meds', `Takes <b>${esc(p.anticoag)}</b> (a blood thinner)`]);
+  }
   if (p.ck === 'afib' && p.dxK) { const h = E.afOnset(p); kv.push(['Onset', h != null ? `Started about <b>${h} hours</b> ago` : 'Not sure when it started: <b>at least a few days</b>']); }
   if (p.iso && p.screen !== 'pending') kv.push(['Isolation', p.iso === 'air' ? 'Airborne. Room 8 or 16.' : 'Droplet. Mask, and a room with a door.']);
   if (p.sitter) kv.push(['Safety', 'Needs a safe room (19 or 20) or a 1:1 sitter']);
   if (p.bleed === 'mtp') kv.push(['Bleeding', p.bb ? 'Massive transfusion activated' : '<b>Hemorrhage. Activate MTP.</b>']);
   else if (p.bleed === 'prbc' && (!MD() || p.treat.blood)) kv.push(['Blood', p.treat.blood && p.treat.blood.st === 'done' ? 'Transfusion given' : MD() ? 'Transfusion ordered' : 'Needs a transfusion']);   // the attending decides that for themselves
   if (p.ret) kv.push(['Return', 'Seen here earlier today and back sicker']);
-  if (p.gray && p.ev === 'done' && p.dxK) kv.push(['Risk', `${esc(p.gray.tool)} ${p.gray.score} · ${esc(p.gray.band)} risk`]);
+  if (p.gray && p.ev === 'done' && p.dxK) kv.push(['Risk', `${esc(p.gray.tool)} ${p.gray.score} · ${esc(p.gray.band)} risk${(p.gray.parts || []).length ? `<small> (${p.gray.parts.map(esc).join(', ')})</small>` : ''}`]);   // the parts, so the number can be checked (Phase 3, R6-16)
   if (['room', 'waiting', 'wall', 'triage'].includes(p.loc)) { const px = Math.round(Math.max(0, Math.min(100, p.px))); kv.push(['Experience', `<span class="pxv ${px >= 70 ? 'ok' : px >= 45 ? 'warn' : 'bad'}">${px}%</span> · ${p.lastUpdate != null ? (G.t - p.lastUpdate < 1 ? 'updated just now' : `updated <span data-el="${p.lastUpdate}"></span> ago`) : 'no update yet'}${PLAIN() ? '<small class="dxp">how they feel about the visit; an update raises it</small>' : ''}`]); }
   h += `<div class="ph-cc">${kv.map(([k, v]) => `<div><span>${k}</span><div>${v}</div></div>`).join('')}</div>`;
   if (MD() && p.ck && E.rxName && p.tr.includes('meds') && mine(p)) kv.push(['Medications', esc(E.rxName(p))]);

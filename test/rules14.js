@@ -64,3 +64,35 @@ for (let i = 0; i < 60; i++) {   // the risk score comes from the dice: many see
   low++; if (g.right === 'home' && g.ok.includes('obs')) both++;
 }
 assert(low > 0 && both === low, `TIA with ABCD2 0 to 3: home is right and observation is also accepted (${both} of ${low})`);
+
+// R6-02 strokes: not every stroke is a candidate for the clot buster, and the reason is on the patient
+const kinds = { in: 0, late: 0, wake: 0, thin: 0 }; let okKey = true, harmOk = true;
+for (let i = 0; i < 120; i++) {
+  OC.newGame('easy', 7000 + i, { mode: 'md' }); OC.G.train = null; OC.G.card = null;
+  const k = ['strokew', 'stroke', 'lvo'][i % 3];
+  const p = OC.pt(OC.trainPatient(k, 'room', { room: roomFree() })); p.hk = 'stroke-test-' + i; OC.strokeSetup(p); kinds[p.strokeKind]++;   // set up as a real arrival is, from its id
+  const canLyse = p.tr.includes('tnk');
+  if ((p.strokeKind === 'in') !== canLyse) okKey = false;
+  if (p.strokeKind === 'thin' && (!p.anticoag || !OC.contraWhy(p, 'tnk').includes('blood thinner'))) harmOk = false;
+  if (p.strokeKind === 'wake' && p.lkwT != null) okKey = false;
+}
+assert(kinds.in > 50 && kinds.late > 5 && kinds.wake > 5 && kinds.thin > 5, `strokes vary: inside the window, late, woke up with it, on a blood thinner (${JSON.stringify(kinds)})`);
+assert(okKey, 'only a stroke inside the window has the clot buster in its answer key; a wake-up stroke has no last-known-well time');
+assert(harmOk, 'a stroke on a blood thinner: the clot buster is harm, and the reason says so without naming the diagnosis');
+const scripted = OC.pt((OC.newGame('train', 31, {}), OC.trainPatient('stroke', 'alert', { lkw: 40, eta: 2 })));
+assert(scripted.strokeKind === 'in' && scripted.tr.includes('tnk') && !scripted.anticoag, 'a scripted stroke (Orientation, lessons) stays a clot-buster candidate');
+
+// R6-16 risk scores: the number is the sum of the parts on the card, and the age part matches the patient's age
+let sums = true, ages = true, n16 = 0;
+for (let i = 0; i < 90; i++) {
+  OC.newGame('easy', 8800 + i, { mode: 'md' }); OC.G.train = null; OC.G.card = null;
+  const p = OC.pt(OC.trainPatient(['pnalow', 'cwp', 'cpmod', 'tia'][i % 4], 'room', { room: roomFree() })), g = p.gray; if (!g) continue; n16++;
+  const total = g.parts.reduce((a, x) => a + (+((/\((\d+)\)$/.exec(x) || [])[1]) || 0), 0);
+  if (total !== g.score) sums = false;
+  const agePart = g.parts.find(x => /^age/.test(x));
+  if (g.tool === 'CURB-65' && !!agePart !== (p.age >= 65)) ages = false;
+  if (g.tool === 'ABCD2 score' && !!agePart !== (p.age >= 60)) ages = false;
+  if (g.tool === 'HEART score' && (p.age >= 45) !== !!agePart) ages = false;
+}
+assert(n16 > 40 && sums, `every risk score is the sum of the parts listed on the card (${n16} patients)`);
+assert(ages, "every risk score's age part matches the patient's age");

@@ -430,7 +430,7 @@ const CONTRA_IF = { pe: { tnk: p => { const v = p.id && G ? vRaw(p, G.t).v : nul
 const STROKE_CASES = ['stroke', 'strokew', 'lvo'];
 for (const k of STROKE_CASES) CONTRA[k].push('asa');
 const addContraIf = (k, rules) => { CONTRA_IF[k] = Object.assign(CONTRA_IF[k] || {}, rules); };   // merge: a second rule never erases the first
-for (const k of STROKE_CASES) addContraIf(k, { tnk: p => !p.id || !lyticWindowOk(p), asa: p => !!p.id && ((p.tr || []).includes('tnk') || !!p.tnkOrdered) });   // an unknown onset time is outside the window; no aspirin on top of the lytic
+for (const k of STROKE_CASES) addContraIf(k, { tnk: p => !p.id || !lyticWindowOk(p) || !!p.anticoag, asa: p => !!p.id && ((p.tr || []).includes('tnk') || !!p.tnkOrdered) });   // an unknown onset time is outside the window; no aspirin on top of the lytic
 // Audit phase 1 (R6-08): nitroglycerin is out when the pressure is under 90. NSAIDs (ibuprofen, ketorolac) are out in chest pain until the
 // labs, with the troponin, are back (ACC/AHA: NSAIDs other than aspirin are harmful in ACS; this case's troponin is negative). Aspirin is the first drug for chest pain.
 const sbpUnder = (p, n) => { const v = p.id && G ? vRaw(p, G.t).v : null; return !!(v && v.sbp < n); };
@@ -489,6 +489,7 @@ const CONTRA_WHY = {
 for (const k of ['strokew', 'lvo']) CONTRA_WHY[k] = CONTRA_WHY.stroke;
 for (const k of ['nstemi', 'stemi']) CONTRA_WHY[k] = CONTRA_WHY.cpmod;
 function contraWhy(p, k) {
+  if (STROKE_CASES.includes(p.ck) && k === 'tnk' && p.anticoag) return `they take ${p.anticoag}, a blood thinner, so a clot buster could make them bleed`;   // R6-02
   if (STROKE_CASES.includes(p.ck) && k === 'tnk' && p.lkwT == null) return 'nobody knows when they were last known well, so the 4.5-hour window can\'t be confirmed';   // R1.3-04
   const own = (CONTRA_WHY[p.ck] || {})[k]; if (own) return own;
   if ((CONTRA[p.ck] || []).includes('@bleed') && BLEED_RISK.includes(k)) return CONTRA_WHY_DRUG[k] || 'it makes bleeding worse';   // the bleeding-risk class, only where bleeding is the reason
@@ -1156,7 +1157,7 @@ function makePatient(c, src) {
     lang: age < 2 ? null : pickLang(), interp: 'none', interpDue: 0,
     bb: null, shock: false, pitSeen: false, pitQ: false, pitDcQ: false, ret: false, amaSafe: 0,
     reg: 'none', regBy: null, tri: 'none', triBy: null, offload: false, needCC: c.ift === 'cct', iftLevel: null, xBy: null,
-    con2x: c.con2 || null, px: 85, esiT: null, hardAirway: HARD_AIRWAY.has(c.k), screen: c.iso ? 'pending' : null, gray: c.gray ? grayScore(c) : null, grayPick: null, cosign: null, lastUpdate: null, lastRecheck: null, quick: false, missedDx: null, outHit: null,
+    con2x: c.con2 || null, px: 85, esiT: null, hardAirway: HARD_AIRWAY.has(c.k), screen: c.iso ? 'pending' : null, gray: c.gray ? grayScore(c, age) : null, grayPick: null, cosign: null, lastUpdate: null, lastRecheck: null, quick: false, missedDx: null, outHit: null,
   };
   if (p.alert) for (const g of ALERTS[p.alert].goals) p.goals[g] = null;
   if (p.ecg10 && !('ecg10' in p.goals)) p.goals.ecg10 = null;
@@ -1179,8 +1180,16 @@ function lyticWindowOk(p) { if (!p || !G || !STROKE_CASES.includes(p.ck)) return
 function strokeSetup(p, o) {
   o = o || {};
   const over = o.over != null ? !!o.over : vhash(pkey(p) + 'bp') < 0.45;
-  p.lkw = o.lkw != null ? o.lkw : 35 + Math.round(vhash(pkey(p) + 'lkw') * 110);   // minutes before they reached us
-  p.lkwT = G.t - p.lkw;
+  // Phase 3 (R6-02): not every stroke is a candidate for the clot buster. From the patient's id (the same patient on every device on a
+  // class code): most arrive inside the window; some arrive 5 to 10 hours out, some woke up with it (onset unknown), and some take a
+  // blood thinner. Those three must not get tenecteplase (AHA/ASA 2019; the 2026 update's imaging-selected late window isn't modeled).
+  const kind = o.lkw != null ? 'in' : (h => (h < 0.62 ? 'in' : h < 0.77 ? 'late' : h < 0.89 ? 'wake' : 'thin'))(vhash(pkey(p) + 'lkwk'));
+  p.strokeKind = kind;
+  p.lkw = o.lkw != null ? o.lkw : kind === 'late' ? 300 + Math.round(vhash(pkey(p) + 'lkw') * 300) : kind === 'wake' ? null : 35 + Math.round(vhash(pkey(p) + 'lkw') * 110);   // minutes before they reached us
+  p.lkwT = p.lkw == null ? null : G.t - p.lkw;
+  p.anticoag = kind === 'thin' ? 'apixaban' : null;
+  if (kind !== 'in') p.tr = p.tr.filter(k => k !== 'tnk');
+  else if (!p.tr.includes('tnk') && (CASES.find(c => c.k === p.ck) || { tr: [] }).tr.includes('tnk')) p.tr.push('tnk');   // a scripted stroke set up again over a random one
   const a = vhash(pkey(p) + 'bq'), b = vhash(pkey(p) + 'br');
   p.bp0 = over ? [192 + Math.round(a * 20), 100 + Math.round(b * 14)] : [158 + Math.round(a * 16), 86 + Math.round(b * 10)];
   p.tr = p.tr.filter(k => k !== 'bp');
@@ -1205,15 +1214,29 @@ function npo(p) {
     || ['bipap', 'intub', 'vent'].some(k => p.treat[k]);
 }
 /* Gray-zone patients: a validated risk score, the usual right call, and calls that are also defensible. */
-function grayScore(c) {
-  const g = (tool, score, band, right, ok) => ({ tool, short: { 'HEART score': 'HEART', 'Canadian Syncope Risk Score': 'CSRS', 'ABCD2 score': 'ABCD2', 'CURB-65': 'CURB-65' }[tool], score, band, right, ok: ok || [] });
-  if (c.gray === 'pna') { const s = chance(0.7) ? randi(0, 1) : 2; return s <= 1 ? g('CURB-65', s, 'low', 'home') : g('CURB-65', s, 'moderate', 'obs', ['admit']); }   // v0.26: confusion, BUN, breathing rate, blood pressure, age 65 or more
-  if (c.gray === 'chest') { const s = c.k === 'cpmod' ? randi(4, 6) : randi(1, 3); return s <= 3 ? g('HEART score', s, 'low', 'home') : g('HEART score', s, 'moderate', 'obs', ['admit']); }
+// Phase 3 (R6-16): each score is the sum of parts this patient shows (age from their age; the case's vitals and exam), listed on the
+// card, so a score never contradicts the patient. Parts the card doesn't show (BUN, risk factors, diabetes) come from the dice.
+function grayScore(c, age) {
+  age = age == null ? 50 : age;
+  const g = (tool, score, band, right, ok, parts) => ({ tool, short: { 'HEART score': 'HEART', 'Canadian Syncope Risk Score': 'CSRS', 'ABCD2 score': 'ABCD2', 'CURB-65': 'CURB-65' }[tool], score, band, right, ok: ok || [], parts: (parts || []).filter(Boolean) });
+  if (c.gray === 'pna') {   // CURB-65: confusion, BUN over 19, breathing 30 or more, low pressure, age 65 or more. This case: alert, RR 20, normal pressure
+    const bun = chance(0.3), a = age >= 65, s = (bun ? 1 : 0) + (a ? 1 : 0), parts = [bun && 'BUN 24 (1)', a && 'age 65 or more (1)'];
+    return s <= 1 ? g('CURB-65', s, 'low', 'home', [], parts) : g('CURB-65', s, 'moderate', 'obs', ['admit'], parts);
+  }
+  if (c.gray === 'chest') {   // HEART: history, ECG, age, risk factors, troponin (negative here)
+    const ap = age >= 65 ? 2 : age >= 45 ? 1 : 0, mod = c.k === 'cpmod';
+    const h = mod ? randi(1, 2) : 0, e = mod ? 1 : 0, r = mod ? randi(1, 2) : (chance(0.4) ? 1 : 0), s = h + e + ap + r;
+    const parts = [h && `history ${h === 2 ? 'highly' : 'moderately'} suspicious (${h})`, e && 'ECG nonspecific changes (1)', ap && `age ${ap === 2 ? '65 or more' : '45 to 64'} (${ap})`, r && `risk factors (${r})`, 'troponin normal (0)'];
+    return s <= 3 ? g('HEART score', s, 'low', 'home', [], parts) : s <= 6 ? g('HEART score', s, 'moderate', 'obs', ['admit'], parts) : g('HEART score', s, 'high', 'admit', ['obs'], parts);
+  }
   if (c.gray === 'syncope') {
     if (c.k !== 'synchigh') return g('Canadian Syncope Risk Score', randi(-2, 0), 'low', 'home');
     const s = randi(4, 7); return s <= 5 ? g('Canadian Syncope Risk Score', s, 'high', 'obs', ['admit']) : g('Canadian Syncope Risk Score', s, 'very high', 'admit', ['obs']);
   }
-  if (c.gray === 'tia') { const s = randi(2, 6); return s <= 3 ? g('ABCD2 score', s, 'low', 'home', ['obs']) : s <= 5 ? g('ABCD2 score', s, 'moderate', 'obs', ['admit']) : g('ABCD2 score', s, 'high', 'admit', ['obs']); }
+  if (c.gray === 'tia') {   // ABCD2: age 60 or more, BP 140/90 or more (this case: 172/96), clinical (numbness only: 0), duration (20 minutes: 1), diabetes
+    const a = age >= 60, dm = chance(0.25), s = (a ? 1 : 0) + 1 + 0 + 1 + (dm ? 1 : 0), parts = [a && 'age 60 or more (1)', 'BP 140/90 or more (1)', 'numbness only (0)', 'lasted 20 minutes (1)', dm && 'diabetes (1)'];
+    return s <= 3 ? g('ABCD2 score', s, 'low', 'home', ['obs'], parts) : s <= 5 ? g('ABCD2 score', s, 'moderate', 'obs', ['admit'], parts) : g('ABCD2 score', s, 'high', 'admit', ['obs'], parts);
+  }
   return null;
 }
 const vEsi = p => (p.esiT != null ? p.esiT : p.esi);
@@ -4915,7 +4938,7 @@ const OC = {
   startOutage, sickEnough, looksSick, classCode, readCode, setCodeVersion, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   lintCases, HCG_CASES, hcgDue, CONTRA_IF, REQ_AGE, NEVER_WRONG, SAME_CLASS_OK, sameClassAlt, signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME, DRUGS, DRUG_CLASS, RXOK, RXREQ, ALSO, BLEED_RISK, contraOf, drugFor, drugsFor, reqLeft, rxOk, ORDER_MENUS, PROC, DDX, MUST, dxPick, dxName, DXQ, NODX, accuracy, litAdd, LIT_STEPS,
-  LESSON_CASE, CONTRA, ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, lyticWindowOk, ARREST_NO_TEAM, CODE_Q, CODE_CAUSE, codeSteps, codeRhythm, codeCause, kgOf, lintCode, CODE_AI_Q, codeOdds, codeFill, monthsOf, CODE_CAUSE, CODE_WHY, CAUSE_OF, afOnset, contraWhy, CONTRA_WHY, staffGone, CODE_GAP, CODE_BASE, toArrest, harmCheck, inStream, CRASH, needsTx, strokeSetup, DX_PLAIN,
+  LESSON_CASE, CONTRA, contraWhy, strokeSetup, ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, lyticWindowOk, ARREST_NO_TEAM, CODE_Q, CODE_CAUSE, codeSteps, codeRhythm, codeCause, kgOf, lintCode, CODE_AI_Q, codeOdds, codeFill, monthsOf, CODE_CAUSE, CODE_WHY, CAUSE_OF, afOnset, contraWhy, CONTRA_WHY, staffGone, CODE_GAP, CODE_BASE, toArrest, harmCheck, inStream, CRASH, needsTx, strokeSetup, DX_PLAIN,
   crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k] && EV[k].fire) fireEv(k); }, eventKeys: () => Object.keys(EV), eventReady: k => !!(EV[k] && EV[k].fire && EV[k].w && EV[k].w() > 0),
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };
