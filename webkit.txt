@@ -1,5 +1,5 @@
-commit 815e27964caa47924316f1b3a978779bae5bb9a0
-date   2026-11-24 14:51 UTC
+commit aa308d1908a98b4dca91628fb6a6341892032a73
+date   2026-11-25 23:21 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -13,8 +13,8 @@ No errors.
 
 === python test/ui_test.py ===
 PASS
-1:report {"care": 1399, "wait": 11, "sat": 57, "stars": 2, "seen": 113, "dc": 36, "adm": 28, "lwbs": 0, "ama": 1, "returns": 2, "mtp": 4, "interp": 18, "pitSeen": 0}
-53:No errors.
+1:report {"care": 1576, "wait": 11, "sat": 57, "stars": 2, "seen": 112, "dc": 36, "adm": 30, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 4, "interp": 18, "pitSeen": 0}
+52:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 2039, 'stars': 3, 'wait': 21, 'left': 16} {'seen': 43, 'fast': 19, 'ordRight': 163, 'ordExtra': 7, 'ordMiss': 10, 'clean': 29, 'gaps': 3, 'harm': 0, 'untreated': 0, 'dispoRight': 36, 'dispoWrong': 1, 'dxRight': 18, 'dxWrong': 13, 'dxLog': [{'name': 'Jim W.', 'said': 'Knee dislocation', 'dx': 'Closed femur fracture', 'must': False}, {'name': 'Lucia R.', 'said': 'Shoulder strain', 'dx': 'Neck strain', 'must': False}, {'name': 'Joyce D.', 'said': 'Pneumothorax', 'dx': 'COPD flare', 'must': False}, {'name': 'Earl G.', 'said': 'Constipation', 'dx': 'Small bowel obstruction', 'must': False}, {'name': 'Dorothy N.', 'said': 'Miscarriage', 'dx': 'Ruptured ectopic pregnancy', 'must': True}, {'name': 'Frank F.', 'said': 'Mononucleosis', 'dx': 'Strep throat', 'must': False}, {'name': 'Earl G.', 'said': 'Gastroenteritis', 'dx': 'Small bowel obstruction, worse', 'must': False}, {'name': 'Carmen S.', 'said': 'Subarachnoid hemorrhage', 'dx': 'Migraine', 'must': False}, {'name': 'Helen V.', 'said': 'Achilles tendon rupture', 'dx': 'Ankle sprain', 'must': False}, {'name': 'Aria J.', 'said': 'Mastoiditis', 'dx': 'Ear infection', 'must': False}, {'name': 'Frank K.', 'said': 'Pneumonia', 'dx': 'Pulmonary embolism', 'must': True}, {'name': 'Mei M.', 'said': 'Biliary colic', 'dx': 'Cholecystitis', 'must': False}, {'name': 'Maria H.', 'said': 'Pericarditis', 'dx': 'Aortic dissection', 'must': True}], 'altDrug': 1, 'log': [{'name': 'Jen R.', 'dx': 'Appendicitis', 'miss': [], 'extra': [], 'fine': ['Ibuprofen (works, but not the first choice)'], 'why': 'Labs and a CT find the appendix. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Ana D.', 'dx': 'Deep vein thrombosis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Ultrasound finds the clot. Labs check the kidneys. Then a blood thinner.'}, {'name': 'Rosa N.', 'dx': 'Hip fracture', 'miss': [], 'extra': ['Ketorolac (wrong drug)'], 'fine': [], 'why': 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.'}, {'name': 'Nadia D.', 'dx': 'Ruptured ectopic pregnancy', 'miss': [], 'extra': [], 'fine': [], 'why': 'A pregnancy test and bedside ultrasound with free fluid: ruptured ectopic until proven otherwise. Massive transfusion, type and screen, OB/GYN to the OR.'}, {'name': 'Dorothy N.', 'dx': 'Ruptured ectopic pregnancy', 'miss': [], 'extra': [], 'fine': [], 'why': 'A pregnancy test and bedside ultrasound with free fluid: ruptured ectopic until proven otherwise. Massive transfusion, type and screen, OB/GYN to the OR.'}, {'name': 'Frank F.', 'dx': 'Strep throat', 'miss': [], 'extra': ['Doxycycline (wrong drug)'], 'fine': [], 'why': 'A rapid strep swab proves it. Then penicillin.'}, {'name': 'Minh A.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Sofia G.', 'dx': 'Anterior STEMI', 'miss': [], 'extra': [], 'fine': ['Aspirin'], 'why': 'The ECG is the diagnosis. Labs go, but don’t wait for the troponin. Aspirin and heparin. Cardiology and the cath lab.'}, {'name': 'Fatima R.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': [], 'fine': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Andre B.', 'dx': 'Kidney stone', 'miss': [], 'extra': [], 'fine': ['Acetaminophen'], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Ruth K.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Aspirin until the troponin is back; then ibuprofen for the chest wall, and home.'}, {'name': 'Kwame H.', 'dx': 'Hip fracture', 'miss': [], 'extra': ['Lidocaine (wrong drug)', 'CT head'], 'fine': [], 'why': 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.'}, {'name': 'Ruth D.', 'dx': 'Subdural hematoma', 'miss': [], 'extra': [], 'fine': ['4-factor PCC'], 'why': 'Head CT finds the bleed. Labs with an INR show the blood thinner. Reverse it. Neurosurgery.'}], 'wrongDrug': 3}
+1:report {'care': 1799, 'stars': 3, 'wait': 25, 'left': 24} {'seen': 40, 'fast': 14, 'ordRight': 111, 'ordExtra': 11, 'ordMiss': 9, 'clean': 24, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 35, 'dispoWrong': 1, 'dxRight': 20, 'wrongDrug': 7, 'log': [{'name': 'Brenda H.', 'dx': 'Septic shock', 'miss': [], 'extra': ['Metronidazole (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.'}, {'name': 'Ivan T.', 'dx': 'Diabetic ketoacidosis', 'miss': [], 'extra': ['Regular insulin 10 units IV (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Labs show the sugar, the acid, and the potassium. Fluids first. Insulin once the potassium is known. ICU.'}, {'name': 'Helen E.', 'dx': 'Spontaneous pneumothorax', 'miss': [], 'extra': ['CT head'], 'fine': [], 'unsafe': [], 'why': 'The chest X-ray shows it. A large one needs a chest tube (or a small catheter) and oxygen.'}, {'name': 'Tyler N.', 'dx': 'Cellulitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Nadia B.', 'dx': 'Hip fracture', 'miss': [], 'extra': ['Ketorolac (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.'}, {'name': 'Jen T.', 'dx': 'Contact dermatitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'No tests. A contact rash gets a steroid cream and an antihistamine.'}, {'name': 'Jen S.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['Lidocaine (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Yara A.', 'dx': 'Ankle sprain', 'miss': [], 'extra': ['Hydromorphone (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}, {'name': 'Thi H.', 'dx': 'Status epilepticus', 'miss': [], 'extra': [], 'fine': [], 'unsafe': [], 'why': 'Check the sugar first. Lorazepam IV now, then a second drug (levetiracetam). Then look for the cause.'}, {'name': 'Jim R.', 'dx': 'Pneumonia', 'miss': [], 'extra': [], 'fine': [], 'unsafe': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Carmen H.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['Lidocaine (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Earl N.', 'dx': 'Behavioral health emergency', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Labs look for a medical cause. Then Psychiatry.'}, {'name': 'Brenda F.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Meclizine (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}], 'dxWrong': 4, 'dxLog': [{'name': 'Jen S.', 'said': 'Inferior MI', 'dx': 'Cholecystitis', 'must': False}, {'name': 'Yara A.', 'said': 'Achilles tendon rupture', 'dx': 'Ankle sprain', 'must': False}, {'name': 'Mei P.', 'said': 'Scaphoid fracture', 'dx': 'Wrist fracture', 'must': False}, {'name': 'Jamal B.', 'said': 'Pancreatitis', 'dx': 'Gastroenteritis', 'must': False}], 'codeRight': 2, 'died': 1, 'codeLost': 1, 'handed': 0, 'codeLate': 0, 'arrestOpen': 0, 'arrestLeft': 0}
 36:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (average of the four: 89)
+ok   best score kept for the attending (average of the four: 88)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 74:No errors.
 68/69 k3
 69/69 end
-taps: 78, game clock: 10:31, care 147, cards read 72, words 1765, longest 48
+taps: 78, game clock: 10:33, care 147, cards read 72, words 1765, longest 48
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 74:No errors.
 68/69 k3
 69/69 end
-taps: 79, game clock: 10:32, care 147, cards read 72, words 1764, longest 48
+taps: 79, game clock: 10:31, care 147, cards read 72, words 1764, longest 48
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 11, game clock: 07:40, care 131, cards read 8, words 213, longest 36
+taps: 11, game clock: 07:41, care 131, cards read 8, words 213, longest 36
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -76,7 +76,7 @@ No errors.
 === python test/offline_test.py ===
 PASS
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.30.0-b7e4f8d0bb']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.31.0-ef72dcf995']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
 9:No errors.
 ok   it keeps a copy of the game (6 files)
 ok   with the network off, the game still loads
@@ -84,11 +84,12 @@ ok   and a shift starts offline
 No errors.
 
 === python test/map3d_test.py ===
-FAIL
+PASS
+19:No errors.
 ok   3D detail moves from battery saver to balanced in the menu
 ok   and comes round to battery saver, and is saved
 ok   turning the 3D floor off shows the flat map
-CHECK FAILED: a new ambulance drives in from down the road and its last move is in reverse ({'legs': 3, 'rev': [False, False, True], 'y': -4.972999999999997})
+No errors.
 
 === python test/imaging_test.py ===
 PASS
@@ -118,16 +119,15 @@ No errors.
 PASS
 16:No errors.
 ok   the bell opens Events, and the arrivals are listed there
-ok   an icon that needs you shakes every couple of seconds (4 now)
+ok   an icon that needs you shakes every couple of seconds (2 now)
 ok   and the others keep still
 No errors.
 
 === python test/class_test.py ===
-PASS
-21:No errors.
-ok   Class results lists what was sent for the code, best first ([{'p_code': '66Z-R1W'}])
-ok   a hostile result row shows as text: nothing in it runs or becomes markup
-ok   the result carries the game version (0.30.0)
-No errors.
+FAIL
+ok   Forget this key puts the focus on Keep, and Keep puts it back on Forget, never on another class's Show key (audit R3.10-03; keyForgetNo, keyForget)
+ok   the About page says who can read class results (the developer too), for how long, what is kept about networks, and that no licensed clinician has reviewed the content
+ok   the Lessons page says no licensed clinician has reviewed them (audit R6.6-11)
+CHECK FAILED: Tab and Shift+Tab stay inside the open sheet, a modal dialog (13 of 41 left it)
 
 SOME FAILED
