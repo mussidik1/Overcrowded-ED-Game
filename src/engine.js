@@ -2271,8 +2271,12 @@ function codeOutcome(p) {
     codeEnd(p, true, n);
   } else {
     p.arrest = false; p.dx = 'Resuscitation unsuccessful'; p.dxK = true; p.dsp = 'family'; p.due = G.t + 15; p.tDied = G.t;
-    if (C.me) p.codeLost = { right: C.right, n, wait: C.wait };   // the attending ran it: not the same as an abandoned code (audit R6.9-03)
-    if (C.me && !G.pre && (C.right < n || C.wait > 3)) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
+    // a code run by the book and lost (every check right, a doctor there within 3 min; or, for a code another doctor ran, no delay) is not the
+    // same as an abandoned or badly run one (audit R6.9-03); a badly run code is a death like any other, with its M&M line and legal risk (R6.10-01)
+    const book = C.wait <= 3 && (!C.me || C.right >= n);
+    if (book) p.codeLost = { right: C.right, n, wait: C.wait, me: !!C.me };
+    if (C.me && !G.pre && !book) litAdd(10, `died after a code with ${C.right} of ${n} rhythm checks right and the team there ${C.wait} min after the arrest`, p);
+    if (C.me && !G.pre && !book) mm(60, `${p.name} died after a ${CODE_NAME[C.r]}`, `${C.right} of ${n} rhythm checks right; the team got there ${C.wait} min after the arrest`, true);
     toast(`Code called at ${clock()} in ${roomName(p.room)}. The chaplain is with the family.`, 'info'); sound('bad');
     codeEnd(p, false, n);
   }
@@ -4406,7 +4410,8 @@ function endShift(reason) {
   // the attending's own patients still in cardiac arrest with nobody running the code: never cheaper than running it (R5.8-03)
   const arrestOpen = G.mode === 'md' && !G.pre ? G.order.map(id => G.pts[id]).filter(p => p && p.mine && p.arrest && p.loc === 'room' && p.ev !== 'doing') : [];
   for (const p of arrestOpen) {   // counted either way; penalised only if it was old enough to have been run, on a shift that ran its course (R6.9-02)
-    const age = Math.max(0, Math.round(G.t - (p.tArrest != null ? p.tArrest : G.t)));
+    const ref = p.code && p.code.tLeft != null ? p.code.tLeft : p.tArrest != null ? p.tArrest : p.tArrive;   // the same clock as arrestNoTeam: an arrival in arrest counts from the door (audit R1.10-02)
+    const age = Math.max(0, Math.round(G.t - ref));
     p.late = !G.fail && age >= 5;
     if (p.late) { care(-40, 'md', p); litAdd(15, 'in cardiac arrest at the end of the shift with no code running', p); mm(90, `${p.name} was in cardiac arrest when the shift ended (${age} min), and nobody was running the code`, 'Run the code: an arrest nobody runs is a death', true); }
   }

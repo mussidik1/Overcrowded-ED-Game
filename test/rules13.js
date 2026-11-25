@@ -137,3 +137,27 @@ for (let sd = 7900; sd < 7960 && !back; sd++) {
 if (back) { back.ordLog = null; OC.G.card = null; OC.signOrders(back.id, [], ['ibu']); }
 const logged = back && (md().log || []).map(id => OC.pt(id)).filter(Boolean).some(x => x.id === back.id && (x.ordLog.unsafe || []).some(u => /ibu/i.test(JSON.stringify(u))));
 assert(back && (md().contra || 0) >= 1 && logged, `ibuprofen ordered after a pulse came back is counted and listed in Orders to review (contra ${md().contra}, listed ${logged})`);
+
+// R1.10-02: a patient who arrived in cardiac arrest and was left unrun counts from the door, like any other unrun arrest
+p = mine('arrest', 8100, 60); OC.G.t = OC.G.shift - 15; p.tArrive = OC.G.t; p.arrest = true; p.tArrest = undefined; p.code = null; OC.G.card = null;
+let litA = OC.G.lit || 0; for (let i = 0; i < 300 && !OC.G.over; i++) { OC.G.card = null; OC.step(0.1); }
+assert(OC.G.report.md.arrestLeft === 1 && (OC.G.lit || 0) > litA, `an arrival in arrest left unrun 15 min at the end is penalised like any other (arrestLeft ${OC.G.report.md.arrestLeft}, legal ${litA} -> ${OC.G.lit})`);
+
+// R6.10-01: a code run with wrong calls and lost is a death like any other: no "by the book", an M&M line and legal risk
+let bad = null;
+for (let sd = 8200; sd < 8260 && !bad; sd++) {
+  p = mine('cwp', sd, 60); OC.toArrest(p, 'Arrested in the room'); OC.assign(OC.G.me, p.id); const l0 = OC.G.lit || 0;
+  for (let i = 0; i < 400 && p.arrest; i++) { if (OC.G.card && OC.G.card.eid === 'code') { const c = OC.G.card, q = OC.codeSteps(p)[c.ctx.step], wi = q.c.findIndex(x => !x[2]); OC.chooseCard(String(wi)); } else if (OC.G.card) OC.G.card = null; OC.step(0.1); }
+  if (p.dsp === 'family' && !p.rosc) { const l1 = OC.G.lit || 0; endNow(); bad = { r: OC.G.report, dl: l1 - l0, cl: p.codeLost }; }
+}
+assert(bad && bad.r.md.died === 1 && bad.r.md.codeLost === 0 && !bad.cl && bad.dl >= 10 && bad.r.mm.some(x => /died after a/.test(JSON.stringify(x))),
+  `a code with every call wrong and lost isn't "by the book": an M&M line and legal risk (codeLost ${bad && bad.r.md.codeLost}, legal +${bad && bad.dl})`);
+
+// R6.10-02: an own patient's code run at once by another doctor and lost is labelled by the book, not as an unexplained death
+let ai = null;
+for (let sd = 8300; sd < 8360 && !ai; sd++) {
+  p = mine('cwp', sd, 60); OC.toArrest(p, 'Arrested in the room'); OC.assign('md2', p.id);
+  for (let i = 0; i < 400 && p.arrest; i++) { OC.G.card = null; OC.step(0.1); }
+  if (p.dsp === 'family' && !p.rosc) { endNow(); ai = { r: OC.G.report, cl: p.codeLost }; }
+}
+assert(ai && ai.cl && ai.cl.me === false && ai.r.md.codeLost === ai.r.md.died, `another doctor's prompt code on an own patient, lost, counts as after a code run by the book (${JSON.stringify(ai && ai.cl)})`);

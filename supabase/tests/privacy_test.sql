@@ -348,6 +348,24 @@ set role anon;
 select t_net('198.51.100.62');
 select t_ok(cb_class_new('BKS-001', :'K1', :'V') ->> 'ok' = 'true', 'below 100,000 again, the new code registers');
 reset role;
+-- the held-code cap lets the most recently ended go first, never the code being registered (audit R1.10-01, R3.10-01): a planned code
+-- held for its instructor can't be pushed out by a newer flood, nor freed and taken in one call
+insert into codeblack.classes (code, key_hash, ver, created_at, expires_at)
+  values ('REA-R00', codeblack.key_hash(:'K2'), :'V', now() - interval '20 days', now() - interval '6 days');
+insert into codeblack.classes (code, key_hash, ver, created_at, expires_at)
+  select 'X' || substr(a, (i >> 20) % 32 + 1, 1) || substr(a, (i >> 15) % 32 + 1, 1) || '-' || substr(a, (i >> 10) % 32 + 1, 1) || substr(a, (i >> 5) % 32 + 1, 1) || substr(a, i % 32 + 1, 1), codeblack.key_hash('ZZZZZZZZZZZZZZZZ'), '0.31.0', now() - interval '15 days', now() - interval '1 day'
+  from generate_series(1, 30001) i, (select '0123456789ABCDEFGHJKMNPQRSTVWXYZ'::text as a) x;
+set role anon;
+select t_net('198.51.100.63');
+select t_ok(cb_class_new('REA-R00', :'K1', :'V') = '{"error": "taken"}', 'past 30,000 held codes, another key still gets "taken" for an older held code');
+reset role;
+select t_ok(exists (select 1 from codeblack.classes where code = 'REA-R00')
+  and (select count(*) from codeblack.classes where key_hash = codeblack.key_hash('ZZZZZZZZZZZZZZZZ')) between 29001 and 29999,
+  'and the release let the newest held codes go (the flood, and a few test classes that ended later), not the older held code');
+set role anon;
+select t_ok(cb_class_new('REA-R00', :'K2', :'V') ->> 'ok' = 'true', 'its own key still turns it back on');
+reset role;
+delete from codeblack.classes where key_hash = codeblack.key_hash('ZZZZZZZZZZZZZZZZ') or code = 'REA-R00';
 -- the health check's IPv6 /48 limit (R3.8-02): a /48 that called it 1,000 times this hour is refused, from any of its /56 networks
 insert into codeblack.rate (who, kind, hour, n) values
   (encode(extensions.hmac(convert_to('/48 ' || network(set_masklen('2001:db8:cc::1'::inet, 48))::text, 'UTF8'), (select salt from codeblack.salt where day = (now() at time zone 'UTC')::date), 'sha256'), 'hex'), 'health48', date_trunc('hour', now(), 'UTC'), 1000);

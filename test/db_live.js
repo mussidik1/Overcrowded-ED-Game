@@ -77,7 +77,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   }
   if (typeof hj.held === 'number') {   // since round 9: held codes have their own cap of 30,000 (audit R3.9-01)
     (WATCH ? (c, g, b) => ok(c, c ? g : b) : warn)(hj.held < 0.5, `held codes are under about half their cap (${hj.held}, to a tenth)`,
-      `held codes are about half their cap of 30,000 or more (${hj.held}, to a tenth): someone may be making codes to hold them. Past the cap the oldest held codes are released early. See supabase/README.md, "Backstops".`);
+      `held codes are about half their cap of 30,000 or more (${hj.held}, to a tenth): someone may be making codes to hold them. Past the cap the most recently ended held codes are released early. See supabase/README.md, "Backstops".`);
   }
   ok(hj.addr === true && hj.public === true, `the database reads each caller's public address (addr ${hj.addr}, public ${hj.public}); otherwise everyone would share one rate limit. If not: Supabase's gateway changed its headers (codeblack.client_addr).`);
   const oldGet = await call('/rest/v1/cb_results?select=*&limit=1');

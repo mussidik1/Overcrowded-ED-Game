@@ -46,7 +46,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: PostgreSQL 17 with pgcrypto
@@ -60,7 +60,7 @@ jobs:
         run: bash supabase/tests/run.sh
         env:
           PG_BIN: /usr/lib/postgresql/17/bin
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: The class-results UI test (the committed index.html)
@@ -86,10 +86,10 @@ jobs:
         env:
           SKIP_REASON: ${{ inputs.skip_reason }}
         run: '[ -n "$(echo "$SKIP_REASON" | tr -d "[:space:]")" ] || { echo "FAIL: skip_db_check needs a reason (the skip_reason box). Nothing was published."; exit 1; }'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: npm ci
@@ -134,7 +134,7 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
           sparse-checkout: |

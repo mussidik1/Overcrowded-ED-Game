@@ -236,8 +236,12 @@ begin
   -- every new code also clears ended classes' results and codes held past their 30 days, so deletion doesn't rest on the job alone
   delete from codeblack.results r where r.code in (select x.code from codeblack.classes x where x.expires_at <= now() and exists (select 1 from codeblack.results y where y.code = x.code) limit 500);
   delete from codeblack.classes c where c.code in (select x.code from codeblack.classes x where x.expires_at <= now() - interval '30 days' limit 500);
-  if (select count(*) from (select 1 from codeblack.classes x where x.expires_at <= now() limit 30001) y) > 30000 then   -- at most 30,000 held codes, oldest let go first (R3.9-01)
-    delete from codeblack.classes c where c.code in (select x.code from codeblack.classes x where x.expires_at <= now() order by x.expires_at limit 1000);
+  -- At most 30,000 held codes (R3.9-01). The most recently ended go first: a flood made to fill the hold ends after the real classes it
+  -- would push out, so it goes before them; never the code being registered, so one call can't free a code and take it (audit R1.10-01,
+  -- R3.10-01); and the end is checked again after the row lock, so a class a student's result just revived stays (R1.10-01).
+  if (select count(*) from (select 1 from codeblack.classes x where x.expires_at <= now() limit 30001) y) > 30000 then
+    delete from codeblack.classes c where c.code in (select x.code from codeblack.classes x where x.expires_at <= now() and x.code <> v_code order by x.expires_at desc limit 1000)
+      and c.expires_at <= now();
   end if;
   v_hash := codeblack.key_hash(v_key);
   -- a code another key holds is "taken" before the storage backstop is looked at, so "full" never hides it (audit R3.8-01)
@@ -383,7 +387,7 @@ as $$
                 from pg_catalog.pg_attribute a left join pg_catalog.pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum
                 where a.attrelid = c.oid and a.attnum > 0 and not a.attisdropped), '')
       || '|' || c.relrowsecurity::text
-      || '|' || coalesce((select string_agg(x.d, ',' order by x.d collate "C") from (select regexp_replace(pg_catalog.pg_get_constraintdef(o.oid), '\s+', '', 'g') as d from pg_catalog.pg_constraint o where o.conrelid = c.oid) x), '')
+      || '|' || coalesce((select string_agg(x.d, ',' order by x.d collate "C") from (select regexp_replace(pg_catalog.pg_get_constraintdef(o.oid), '\s+', '', 'g') as d from pg_catalog.pg_constraint o where o.conrelid = c.oid and o.contype <> 'n') x), '')
       || '|' || coalesce((select string_agg(x.d, ',' order by x.d collate "C") from (select regexp_replace(pg_catalog.pg_get_indexdef(i.indexrelid), '\s+', '', 'g') as d from pg_catalog.pg_index i where i.indrelid = c.oid) x), '')
       || '|' || coalesce((select string_agg(x.g, ',' order by x.g collate "C") from (select case a.grantee when 0 then 'public' else r.rolname end || '=' || a.privilege_type as g
                           from pg_catalog.aclexplode(coalesce(c.relacl, pg_catalog.acldefault('r', c.relowner))) a left join pg_catalog.pg_roles r on r.oid = a.grantee

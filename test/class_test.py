@@ -286,9 +286,9 @@ with sync_playwright() as pw:
         page.set_viewport_size({'width': vw, 'height': vh}); page.wait_for_timeout(300)
         lay = J("(() => { const c = document.querySelector('#sheet .cb-res').getBoundingClientRect(), f = document.querySelector('#sheet .cb-form').getBoundingClientRect(), k = document.getElementById('cbKey').getBoundingClientRect(), b = document.querySelector('#sheet [data-act=\"cbKeyVis\"]').getBoundingClientRect(), sh = document.getElementById('sheet'); return { inCard: f.left >= c.left - 0.5 && f.right <= c.right + 0.5 && b.right <= c.right + 0.5, kw: Math.round(k.width), sx: sh.scrollWidth - sh.clientWidth, left: Math.round(c.left) }; })()")
         ok(lay['inCard'] and lay['kw'] >= 150 and lay['sx'] <= 0 and lay['left'] >= 0, f'at {vw}x{vh} the form and the key row fit the card, with room to type, and nothing scrolls sideways ({lay})')
-        page.locator('#sheet #cbKey').fill('WWWW-WWWW-WWWW-WWWW'); page.locator('#sheet [data-act="cbKeyVis"]').tap(); page.wait_for_timeout(250)
-        fit = J("(() => { const k = document.getElementById('cbKey'); return { vis: !k.classList.contains('masked'), cw: k.clientWidth, sw: k.scrollWidth }; })()")
-        ok(fit['vis'] and fit['sw'] <= fit['cw'], f'at {vw}x{vh} a whole 19-character key shows at once after Show, even in its widest letters (audit R4.9-02; {fit})')
+        page.locator('#sheet #cbKey').fill('MWMW-HNKD-QG0W-8MHN'); page.locator('#sheet [data-act="cbKeyVis"]').tap(); page.wait_for_timeout(250)
+        fit = J("(() => { const k = document.getElementById('cbKey'); return { vis: !k.classList.contains('masked'), cw: k.clientWidth, sw: k.scrollWidth, fs: parseFloat(getComputedStyle(k).fontSize) }; })()")
+        ok(fit['vis'] and fit['sw'] <= fit['cw'] and fit['fs'] >= 16, f'at {vw}x{vh} a whole 19-character key of wide letters shows at once after Show, at 16 px so iOS does not zoom (audit R4.9-02, R4.10-04; {fit})')
         page.locator('#sheet [data-act="cbKeyVis"]').tap(); page.locator('#sheet #cbKey').fill(''); page.wait_for_timeout(200)
     page.set_viewport_size({'width': 844, 'height': 390}); page.wait_for_timeout(300)
     # typed key by key, then Enter (the phone's Go): the answer shows while the box still has focus (audit R4.6-01)
@@ -333,15 +333,16 @@ with sync_playwright() as pw:
     on_txt = page.locator('#sheet .cc-made').inner_text()
     ok('results are off' in off_txt and 'whoever registers this code first' in off_txt and 'Class results are on' in on_txt and 'not to tap Send' not in on_txt,
        f'a code used without results, then set up from its row, says results are on in its panel too ({off_code})')
-    # an error status from in front of the server (503, 429) can be caused by someone else: no "Use it without results" (audit R3.9-02)
+    # a 429 can be caused by someone else: no "Use it without results" (audit R3.9-02); a 503 is an outage: offered (audit R4.10-05)
     for st_, word in (('fail', 'had a problem'), ('429', 'too many requests')):
         J("OCUI.U.sheet = null; OCUI.U.reg = null; OCUI.U.codeMade = null; OCUI.render()"); page.wait_for_timeout(200)
         J("document.querySelector('#title [data-act=\"classCode\"]').click()"); page.wait_for_timeout(400)
         reg_plan[:] = [st_]
         page.locator('#sheet [data-act="codeMake"][data-arg="easy"]').tap(); page.wait_for_timeout(700)
         tx = page.locator('#sheet .cc-box').nth(1).inner_text()
-        ok(page.locator('#sheet .cc-code').count() == 0 and page.locator('#sheet [data-act="codeNoRes"]').count() == 0 and page.locator('#sheet [data-act="codeReg"]').count() == 1 and word in tx,
-           f'an HTTP {"503" if st_ == "fail" else "429"} from the server: no code, Try again, and no "Use it without results" ({word!r})')
+        nores = page.locator('#sheet [data-act="codeNoRes"]').count()
+        ok(page.locator('#sheet .cc-code').count() == 0 and page.locator('#sheet [data-act="codeReg"]').count() == 1 and word in tx and nores == (1 if st_ == 'fail' else 0),
+           f'an HTTP {"503 (the service down, which a classmate can\'t cause): Try again and Use it without results" if st_ == "fail" else "429 (which a classmate can cause): Try again only"} ({word!r}, {nores})')
     # the row refused (busy), then the panel's Try again answered ok: the row's old refusal goes (audit R1.9-03)
     J("OCUI.U.sheet = null; OCUI.U.reg = null; OCUI.U.codeMade = null; OCUI.render()"); page.wait_for_timeout(200)
     J("document.querySelector('#title [data-act=\"classCode\"]').click()"); page.wait_for_timeout(400)
@@ -362,8 +363,8 @@ with sync_playwright() as pw:
     v3 = V("{mode:'md', stars:2, md:{seen:6, died:2, codeLost:1, arrestLeft:1}, mm:[{t:1}]}")
     v4 = V("{mode:'md', stars:1, md:{seen:6, died:0, arrestLeft:1}, mm:[{t:1}]}")
     v5 = V("{mode:'md', stars:3, md:{seen:6, dxWrong:1, contra:1, dispoWrong:2}, mm:[]}")
-    ok(v1.startswith('You ran the code and lost a patient') and v2 == 'One of your own patients died. Read the M&M below.'
-       and v3 == '2 of your own patients died (1 after a code you ran), and one was still in cardiac arrest at the end, with no code running. Read the M&M below.'
+    ok(v1.startswith('A patient died after a code run by the book') and v2 == 'One of your own patients died. Read the M&M below.'
+       and v3 == '2 of your own patients died (1 after a code run by the book), and one was still in cardiac arrest at the end, with no code running. Read the M&M below.'
        and v4 == 'One of your own patients was still in cardiac arrest at the end, with no code running. Read the M&M below.'
        and 'Diagnoses to review</b>, above' in v5 and 'Orders to review</b>, below' in v5 and '2 wrong dispositions' in v5,
        f'the verdict says what happened: a lost code, a death, both with an arrest left, an arrest alone, and the sections to read ({[v1, v2, v3, v4, v5]})')
@@ -386,7 +387,7 @@ with sync_playwright() as pw:
     f1 = J("(() => { const a = document.activeElement; return a && document.getElementById('sheet').contains(a) ? a.getAttribute('data-act') || a.tagName : 'outside: ' + (a && a.tagName); })()")
     J("document.querySelector('#sheet [data-act=\"keyForgetNo\"]').focus()"); page.keyboard.press('Enter'); page.wait_for_timeout(300)
     f2 = J("(() => { const a = document.activeElement; return a && document.getElementById('sheet').contains(a) ? a.getAttribute('data-act') || a.tagName : 'outside: ' + (a && a.tagName); })()")
-    ok(not f1.startswith('outside') and not f2.startswith('outside'), f'Forget this key, then Keep, leave the focus in the sheet, not at the top of the page ({f1}, {f2})')
+    ok(f1 == 'keyForgetNo' and f2 == 'keyForget', f'Forget this key puts the focus on Keep, and Keep puts it back on Forget, never on another class\'s Show key (audit R3.10-03; {f1}, {f2})')
     J("OCUI.U.cbOpen = false; OCUI.render()")
     # the privacy notice says where names go
     J("OCUI.U.sheet = null; OCUI.render()"); page.wait_for_timeout(200)

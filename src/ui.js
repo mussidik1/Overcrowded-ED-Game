@@ -2161,7 +2161,8 @@ function cbRegister(code, key, tries) {
     if (seq !== U.regSeq) return;
     // only a network that can't reach the server offers "Use it without results": an error status from the platform in front of it (a 429
     // or 503) is the kind of answer someone else can cause, like busy (audit R3.9-02)
-    const net = !!e && (e.kind === 'network' || e.kind === 'timeout'), busy = !!e && e.kind === 'http' && e.status === 429;
+    // a 5xx is the service down, which a classmate can't cause: the fallback is offered then too, so a class still gets its code (R4.10-05)
+    const net = !!e && (e.kind === 'network' || e.kind === 'timeout' || (e.kind === 'http' && e.status >= 500)), busy = !!e && e.kind === 'http' && e.status === 429;
     U.reg = { code, key, st: shown ? 'off' : 'fail', net, why: busy ? why('busy') : cbNet(e) }; render(); cbScroll();
   });
 }
@@ -2172,7 +2173,7 @@ function cbRegHTML(code) {
   if (R.st === 'lost') return `<div class="cb-key bad" role="alert"><b>${esc(code)} can’t get class results.</b><small>Another class has that code on the server, so a result sent to it would go to that class. <b>Tell students not to tap Send.</b> Make a new code for class results.</small></div>`;
   if (R.st === 'off') return `<div class="cb-key bad" role="alert"><b>Class results are off for this code.</b><small>${esc(R.why || '')} Students can play it. <b>Tell them not to tap Send</b> until results are set up: until then, whoever registers this code first gets what students send. Try again sets results up for this same code.</small>${R.hard ? '' : '<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button></div>'}</div>`;
   const show = U.showKey === code, made = R.made || Date.now();
-  return `<div class="cb-key"><b>Class results are on.</b><small>Students’ results come to you (and the game’s developer, who runs the database, can see them). Your <b>instructor key</b> opens them: keep it private, like a password, and don’t show it to the class. ${R.saved ? 'It’s saved on this device' : '<b>This device can’t save it</b>'}; copy it somewhere safe too. A lost key can’t be recovered. Results are deleted on ${esc(cbDate(made + CB_LIFE))} once a student sends one. If none has by ${esc(cbDate(R.exp || made + 14 * 864e5))}, the class ends, but a student’s first result before ${esc(cbDate((R.exp || made + 14 * 864e5) + 30 * 864e5))} starts it again for 30 days: a code made ahead of a class still works then. Once a class ends, its code is held 30 days with only its key’s hash, so nobody else can take it.</small>`
+  return `<div class="cb-key"><b>Class results are on.</b><small>Students’ results come to you (and the game’s developer, who runs the database, can see them). Your <b>instructor key</b> opens them: keep it private, like a password, and don’t show it to the class. ${R.saved ? 'It’s saved on this device' : '<b>This device can’t save it</b>'}; copy it somewhere safe too. A lost key can’t be recovered. Results are deleted on ${esc(cbDate(made + CB_LIFE))} once a student sends one. If none has by ${esc(cbDate(Date.parse(R.exp) || made + 14 * 864e5))}, the class ends, but a student’s first result before ${esc(cbDate((Date.parse(R.exp) || made + 14 * 864e5) + 30 * 864e5))} starts it again for 30 days: a code made ahead of a class still works then. Once a class ends, its code is held 30 days with only its key’s hash, so nobody else can take it.</small>`
     + (show ? `<div class="cb-key-v">${esc(cbKeyShow(R.key))}</div>` : '')
     + `<div class="cc-row"><button type="button" class="big" data-act="keyShow" data-arg="${esc(code)}" aria-expanded="${show}">${show ? 'Hide key' : 'Show key'}</button><button type="button" class="big" data-act="keyCopy" data-arg="${esc(code)}">Copy key</button></div><small class="cb-warn"><b>Not for grading:</b> scores are self-reported, and no licensed clinician has reviewed the game. Class results, below, says more.</small></div>`;
 }
@@ -2196,13 +2197,13 @@ function cbRows(L) {
   L._of = L.rows; L._rows = rows; return rows;
 }
 const CB_NOTE = 'Not for grading: scores are self-reported, anyone with the code can send a result under any name (a repeated name may be a retry or another student), and no licensed clinician has reviewed the game’s clinical content.';
-const CB_MDNOTE = 'Attending: the score and stars mostly reflect the department the computer runs. The attending’s own work is the patients they saw (and how many of them died), their diagnoses, unsafe orders and radio calls. Radio calls differ between players, and complications are partly chance. Many patients who arrest die even after a well-run code (the list says which deaths came after a code they ran).';
+const CB_MDNOTE = 'Attending: the score and stars mostly reflect the department the computer runs. The attending’s own work is the patients they saw (and how many of them died), their diagnoses, unsafe orders and radio calls. Radio calls differ between players, and complications are partly chance. Many patients who arrest die even after a well-run code (the list says which deaths came after a code run by the book: every rhythm check right, a doctor there within 3 minutes).';
 const cbClock = m => { const t = 7 * 60 + (m || 0); return String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
 function cbDet(r) {   // the second line of a result: the student's own numbers first
   const q = v => (v == null ? '?' : v), parts = [`${r.min} min played${r.fast ? ` (${r.fast}% sped up)` : ''}`];
   if (r.md) {
     const calls = (r.rR || 0) + (r.rW || 0) + (r.rM || 0);
-    parts.push(`saw ${q(r.seen)} patient${r.seen === 1 ? '' : 's'}${r.mdDied ? ` (${r.mdDied} of them died${r.codeLost ? `, ${r.codeLost === r.mdDied ? '' : r.codeLost + ' '}after a code they ran` : ''})` : ''}${r.arrOpen ? `, ${r.arrOpen} left in cardiac arrest 5+ min with no code running at the end` : ''}`, `diagnoses ${q(r.dxR)} right, ${q(r.dxW)} wrong`,
+    parts.push(`saw ${q(r.seen)} patient${r.seen === 1 ? '' : 's'}${r.mdDied ? ` (${r.mdDied} of them died${r.codeLost ? `, ${r.codeLost === r.mdDied ? '' : r.codeLost + ' '}after a code run by the book` : ''})` : ''}${r.arrOpen ? `, ${r.arrOpen} left in cardiac arrest 5+ min with no code running at the end` : ''}`, `diagnoses ${q(r.dxR)} right, ${q(r.dxW)} wrong`,
       r.contra == null && r.unneeded == null ? `harm from orders ${q(r.harm)}` : `unsafe orders ${(r.contra || 0) + (r.unneeded || 0)}${r.harm != null && r.harm - (r.contra || 0) > 0 ? ` (complications, partly chance: ${r.harm - (r.contra || 0)})` : ''}`,
       `radio calls ${q(r.rR)} of ${calls} right${r.rW ? `, ${r.rW} wrong` : ''}${r.rM ? `, ${r.rM} missed` : ''}`,
       `department: mean door-to-provider wait ${q(r.wait)} min (all arrivals), ${q(r.lwbs)} left without being seen, ${q(r.died)} died`);
@@ -2224,7 +2225,8 @@ function cbListHTML() {
       : K.e && K.e <= now ? `<b>ended ${esc(cbDate(K.e))} with no results</b>, unless a student has sent one since${gone ? ` (the code was released ${esc(cbDate(K.e + 30 * 864e5))} if not)` : ` (a first result before ${esc(cbDate(K.e + 30 * 864e5))} starts it again)`}: Results checks`
       : K.e ? `results until ${esc(cbDate(K.e))}${used ? '' : ` (${esc(cbDate(K.t + CB_LIFE))} once a student sends)`}` : '';
     const main = ended || K.p ? (old || K.g || (row && row.taken) ? '' : `<button type="button" class="big act" data-act="codeRegSaved" data-arg="${esc(c)}"${row && row.st === 'saving' ? ' disabled' : ''}>${K.p ? 'Set up results' : 'Turn results back on'}</button>`)
-      : `<button type="button" class="big act" data-act="cbShow" data-arg="${esc(c)}">Results</button>`;
+      : `<button type="button" class="big act" data-act="cbShow" data-arg="${esc(c)}">Results</button>`
+        + (K.e && K.e <= now && !old && !K.g && !(row && row.taken) ? `<button type="button" class="big" data-act="codeRegSaved" data-arg="${esc(c)}"${row && row.st === 'saving' ? ' disabled' : ''}>Turn results back on</button>` : '');   // an unused class past its end: check, or start it again yourself (audit R5.10-01)
     return `<li class="${open ? 'open' : ''}"${open ? ' aria-current="true"' : ''}><div><b>${esc(c)}</b> <small>${r && !r.stale ? esc(codeDesc(r)) : r ? `v${esc(r.stale)} · ${esc(codeDesc(r))}` : 'an older version of the game'} · made ${esc(cbDate(K.t, true))}${when ? ' · ' + when : ''}</small></div>${show ? `<div class="cb-key-v sm">${esc(cbKeyShow(K.k))}</div>` : ''}`
       + (row && row.st === 'saving' ? '<small role="status">Setting up class results…</small>' : row && row.why ? `<small class="cb-err" role="alert">${esc(row.why)}</small>` : '')
       + (old && (K.x || K.p) ? '<small>Made on an older version of the game: make a new code.</small>' : '')
@@ -2242,7 +2244,7 @@ function cbListHTML() {
   if (L && L.rows) {
     const c = E.readCode(L.code), rows = cbRows(L), ask = L.ask, n = rows.length, md = (c && !c.stale && c.mode === 'md') || rows.some(r => r.md);
     const conf = (what, arg, id) => `<div class="cb-ask" id="${id || 'cbAskRow'}" role="alert"><span>${what}</span><button type="button" class="big" data-act="cbDelNo">Keep</button><button type="button" class="big danger" data-act="cbDelGo" data-arg="${esc(arg)}">Delete</button></div>`;
-    h += `<div class="cb-head" id="cbHead" role="status"><b>Results for ${esc(L.code)}</b>${c && !c.stale ? ' · ' + esc(codeDesc(c)) : ''} · ${n ? `${n} result${n === 1 ? '' : 's'}, in the order they came in` : 'no results'}${L.ended ? '' : L.exp ? ' · deleted on ' + esc(cbDate(L.exp)) : ''}${L.loading ? ' · loading…' : ''}</div>`
+    h += `<div class="cb-head" id="cbHead" role="status" tabindex="-1"><b>Results for ${esc(L.code)}</b>${c && !c.stale ? ' · ' + esc(codeDesc(c)) : ''} · ${n ? `${n} result${n === 1 ? '' : 's'}, in the order they came in` : 'no results'}${L.ended ? '' : L.exp ? ' · deleted on ' + esc(cbDate(L.exp)) : ''}${L.loading ? ' · loading…' : ''}</div>`
       + (L.ended ? `<small class="cb-err" role="alert">The class has ended, and the server has deleted its results. Below is the copy this screen loaded: Copy table or Download CSV keeps it.</small>` : '')
       + `<small class="cb-warn"><b>${esc(CB_NOTE.split(':')[0])}:</b>${esc(CB_NOTE.slice(CB_NOTE.indexOf(':') + 1))}${md ? ' ' + esc(CB_MDNOTE) : ''}</small>`;
     if (n) h += `<ol class="cb-list">${rows.map(r => `<li class="cb-row">${r.id && !L.ended ? `<button type="button" class="cb-del" data-act="cbDel" data-arg="${esc(r.id)}" aria-label="Delete ${esc(r.name)}’s result">✕</button>` : '<span class="cb-del-gap"></span>'}<div class="cb-main"><div class="cb-top"><span class="cb-nm">${esc(r.name)}${r.of > 1 ? ` <small>(${r.nth} of ${r.of} under this name)</small>` : ''}</span>${r.ver && r.ver !== GAME_V ? ` <small>v${esc(r.ver)}</small>` : ''}<span class="cb-sc">${r.score == null ? '' : r.score}<small>/100</small> <span aria-label="${r.stars} stars">${'★'.repeat(r.stars)}${'☆'.repeat(3 - r.stars)}</span></span></div>`
@@ -2251,14 +2253,14 @@ function cbListHTML() {
       + (L.deleting === r.id ? '<small role="status">Deleting…</small>' : '')
       + (L.delErr && L.delErr.id === r.id ? `<small class="cb-err" id="cbDelErr" role="alert">${esc(L.delErr.msg)}</small>` : '') + '</li>').join('')}</ol>`   // ✕ on the left: the sheet's close button sits over the right edge
       + err
-      + `<div class="cc-row"><button type="button" class="big" data-act="cbShow" data-arg="${esc(L.code)}">Refresh</button><button type="button" class="big" data-act="cbCopyTab">Copy table</button><button type="button" class="big" data-act="cbCsv">Download CSV</button><button type="button" class="big" data-act="cbClose">Close results</button></div>`
+      + `<div class="cc-row">${L.ended ? '' : `<button type="button" class="big" data-act="cbShow" data-arg="${esc(L.code)}">Refresh</button>`}<button type="button" class="big" data-act="cbCopyTab">Copy table</button><button type="button" class="big" data-act="cbCsv">Download CSV</button><button type="button" class="big" data-act="cbClose">Close results</button></div>`
       + (L.ended ? '' : ask === 'all' ? conf(`Delete every result for ${esc(L.code)}, including any sent since you opened the list?`, 'all', 'cbAskAll') : `<div class="cc-row"><button type="button" class="cb-link" data-act="cbDel" data-arg="all">Delete all results for ${esc(L.code)}</button></div>`);
     else h += `${err}<p class="hint">No results for this code right now.</p><div class="cc-row"><button type="button" class="big" data-act="cbShow" data-arg="${esc(L.code)}">Refresh</button><button type="button" class="big" data-act="cbClose">Close results</button></div>`;
   }
   return h + '</div>';
 }
 function cbTable(L) {   // for Copy table and Download CSV: the caveats travel with the data
-  const head = ['Name', 'Same name (n of total)', 'Role', 'Score (0-100)', 'Stars', 'Minutes played', 'Sped up %', 'Patients seen (attending)', 'Own patients died (attending)', 'Of them, after a code they ran', 'Own patients left in an unrun arrest 5+ min (attending)', 'Diagnoses right', 'Diagnoses wrong', 'Unsafe orders', 'Complications (partly chance)', 'Radio right', 'Radio wrong', 'Radio missed',
+  const head = ['Name', 'Same name (n of total)', 'Role', 'Score (0-100)', 'Stars', 'Minutes played', 'Sped up %', 'Patients seen (attending)', 'Own patients died (attending)', 'Of them, after a code run by the book', 'Own patients left in an unrun arrest 5+ min (attending)', 'Diagnoses right', 'Diagnoses wrong', 'Unsafe orders', 'Complications (partly chance)', 'Radio right', 'Radio wrong', 'Radio missed',
     'Arrivals (dept.)', 'Mean door-to-provider wait, all arrivals (min, dept.)', 'Left without being seen (dept.)', 'Left against advice (dept.)', 'Bedded before registration (dept.)', 'Died (dept.)', 'Ended early', 'Ended at', 'Version', 'Sent (UTC)'];
   const a = (r, v) => (r.md ? v : '');
   return [[`Code Black class results for ${L.code}. ${CB_NOTE}${L.rows.some(r => r.role === 'md') ? ' ' + CB_MDNOTE : ''}`], [], head]
@@ -2278,7 +2280,7 @@ function cbArgs(R, name, cid) {
     p_ver: /^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(R.ver || '') ? R.ver : GAME_V };
 }
 const cbWhat = R => `score ${Math.max(0, Math.min(100, Math.round(+R.avg || 0)))}/100 · ${'★'.repeat(R.stars | 0)}${'☆'.repeat(3 - (R.stars | 0))} · ${Math.round((R.realSec || 0) / 60)} min played`;
-const cbWhatAll = R => (R.mode === 'md' ? 'your patients (how many died, how many of those after a code you ran, and how many were left in cardiac arrest), diagnoses, unsafe and unneeded orders, complications, and radio calls; ' : '')   // every number sent (audit R2.9-03)
+const cbWhatAll = R => (R.mode === 'md' ? 'your patients (how many died, how many of those after a code run by the book (every rhythm check right, a doctor there within 3 minutes), and how many were left in cardiac arrest), diagnoses, unsafe and unneeded orders, complications, and radio calls; ' : '')   // every number sent (audit R2.9-03)
   + 'the department’s mean door-to-provider wait, how quickly the sickest patients were seen, arrivals, patients who left without being seen or against advice, patients bedded before registration, and deaths; whether the shift ended early (and when); how much was sped up; and the game version';
 const CB_WHO = 'Only they, and the game’s developer who runs the database, can see it. It’s deleted when the class ends, within 30 days of the class’s first result.';
 function cbSendHTML(R, at) {
@@ -2671,7 +2673,7 @@ const ACT = {
   },
   codeMake: lvl => {   // the code shows once the server has registered it: it never changes after the class has seen it
     if (U.reg && U.reg.st === 'saving') return;
-    if (U.codeMade) { U.codeAsk = lvl; cbScroll('#codeAsk'); return; }   // a code is on the screen: ask before replacing it
+    if (U.codeMade) { U.codeAsk = lvl; U.focusTo = '#codeAsk [data-act="codeAskNo"]'; cbScroll('#codeAsk'); return; }   // the focus goes to the question, not the next button (audit R4.10-03)   // a code is on the screen: ask before replacing it
     ACT.codeMakeGo(lvl);
   },
   codeMakeGo: lvl => {
@@ -2680,7 +2682,7 @@ const ACT = {
     U.codeAsk = null; U.codeMade = null; U.showKey = null;
     cbRegister(cbDraw({ mode: U.mode, level: lvl, scen: U.scen, pack: U.pack }), cbNewKey(), 0); cbScroll();
   },
-  codeAskNo: () => { U.codeAsk = null; },
+  codeAskNo: () => { if (U.codeAsk) U.focusTo = `#sheet [data-act="codeMake"][data-arg="${U.codeAsk}"]`; U.codeAsk = null; },
   codeReg: () => { const R = U.reg; if (R && R.code && R.key && (R.code === U.codeMade || R.st === 'fail')) cbRegister(R.code, R.key, 0); },   // the same code and key: safe to repeat
   codeNoRes: () => {   // the server couldn't be reached: the class can still play the code; the key is kept, so Try again can still set them up.
     // Or when class results are full, when nobody can register a code. Not for busy: someone else can cause it, then register the code
@@ -2707,10 +2709,10 @@ const ACT = {
   },
   keyShow: c => { U.showKey = U.showKey === c ? null : c; },
   keyCopy: c => { const k = cbKeyOf(c); if (k) copyText(`Code Black instructor key for class code ${c}: ${cbKeyShow(k)}`).then(ok => { if (ok) U.keyCopied = c; res(ok ? { ok: true, msg: `Copied the instructor key for ${c}, with its code. Keep it private.` } : { ok: false, why: 'Copy didn’t work here. Tap Show key and write it down.' }); render(); }); },
-  keyForget: c => { U.cbForget = c; },
-  keyForgetNo: () => { U.cbForget = null; },
+  keyForget: c => { U.cbForget = c; U.focusTo = '#sheet .cb-codes .cb-ask [data-act="keyForgetNo"]'; },   // the focus goes to the question (audit R3.10-03)
+  keyForgetNo: () => { if (U.cbForget) U.focusTo = `#sheet [data-act="keyForget"][data-arg="${U.cbForget}"]`; U.cbForget = null; },
   keyForgetGo: c => {   // forgotten everywhere on this device: storage, the open results, the code just made, and any answer on its way
-    cbKeySave(c, null); U.cbForget = null; U.showKey = null;
+    cbKeySave(c, null); U.cbForget = null; U.showKey = null; U.focusTo = '#sheetBox';   // the row is gone: the focus goes to the sheet, not another class's Show key (audit R3.10-03)
     if (U.keyCopied === c) { U.keyCopied = null; copyText(' '); }   // the key this page copied leaves the clipboard too (a shared computer; audit R5.7-04)
     if (U.cbList && U.cbList.code === c) { U.cbList = null; U.cbSeq = (U.cbSeq || 0) + 1; }
     if (U.reg && U.reg.code === c) { U.reg = null; U.codeMade = null; U.codeAsk = null; U.regSeq = (U.regSeq || 0) + 1; }
@@ -2766,7 +2768,9 @@ const ACT = {
       } else if (r.error === 'busy' && prev) U.cbList = Object.assign({}, prev, { loading: false, err: CB_BUSY });   // a refused refresh keeps the list
       else {
         const saved = !typed && r.error === 'key' ? cbKeys()[code] : null;
-        if (saved) cbKeySave(code, Object.assign({}, saved, { x: 1, p: 0 }));   // this device's own key no longer opens it: the class has ended
+        // an unused class in its hold isn't marked ended: a student's first result can still start it again, and Results checks (audit R5.10-01)
+        const unused = saved && saved.e && saved.e - saved.t < 20 * 864e5 && Date.now() < saved.e + 30 * 864e5;
+        if (saved && !unused) cbKeySave(code, Object.assign({}, saved, { x: 1, p: 0 }));   // this device's own key no longer opens it: the class has ended
         U.cbList = { code, typed, err: r.error === 'busy' ? CB_BUSY : saved ? `The server has no class for ${code} now: it ended, or its results were never set up. Turn results back on to use the code again.`
           : 'That code and key don’t match, or the class has ended (its results are deleted 30 days after the code was made, or 14 if nobody sent one).' };
         U.cbKeyVis = false; cbScroll('#cbErr');
@@ -2775,11 +2779,11 @@ const ACT = {
     }).catch(e => { if (seq !== U.cbSeq) return; U.cbKeyVis = false; U.cbList = { code, key, typed, exp: prev && prev.exp, rows: prev && prev.rows, err: cbNet(e) }; render(); cbScroll('#cbErr'); });
   },
   cbClose: () => { U.cbList = null; U.cbSeq = (U.cbSeq || 0) + 1; },
-  cbDel: a => { const L = U.cbList; if (L && L.rows) { L.ask = a; L.askAt = Date.now(); L.delErr = null; cbScroll(a === 'all' ? '#cbAskAll' : '#cbAskRow'); } },
-  cbDelNo: () => { if (U.cbList) U.cbList.ask = null; },
+  cbDel: a => { const L = U.cbList; if (L && L.rows) { L.ask = a; L.askAt = Date.now(); L.delErr = null; U.focusTo = `${a === 'all' ? '#cbAskAll' : '#cbAskRow'} [data-act="cbDelNo"]`; cbScroll(a === 'all' ? '#cbAskAll' : '#cbAskRow'); } },   // the focus goes to Keep, never to another student's ✕ (audit R4.10-03)
+  cbDelNo: () => { const L = U.cbList; if (L && L.ask) U.focusTo = `#sheet [data-act="cbDel"][data-arg="${L.ask}"]`; if (L) L.ask = null; },
   cbDelGo: a => {
     const L = U.cbList; if (!L || !L.key || L.ask !== a || Date.now() - (L.askAt || 0) < 450) return;   // a double tap on ✕ doesn't also tap Delete
-    L.ask = null; L.err = null; L.delErr = null; L.deleting = a; const all = a === 'all';
+    L.ask = null; L.err = null; L.delErr = null; L.deleting = a; const all = a === 'all'; U.focusTo = '#cbHead';
     const fail = (now, msg) => { if (!now) return; if (all) { now.err = msg; cbScroll('#cbErr'); } else { now.delErr = { id: a, msg }; cbScroll('#cbDelErr'); } };   // the message where the finger is
     cbRpc('cb_class_delete', all ? { p_code: L.code, p_key: L.key, p_all: true } : { p_code: L.code, p_key: L.key, p_id: a, p_all: false }).then(r => {
       const now = U.cbList && U.cbList.code === L.code ? U.cbList : null; if (now) now.deleting = null;
@@ -3010,7 +3014,7 @@ function aboutHTML(head) {
     + `<li><b>You:</b> your first name or initials (not kept on this device).</li>`
     + `<li><b>Your result:</b> the class code, role, shift, score, stars, minutes played, how much was sped up, and whether and when the shift ended early (fired, or the staff walked out).</li>`
     + `<li><b>The department:</b> mean door-to-provider wait, how quickly the sickest patients were seen, arrivals, patients who left without being seen or against advice, patients bedded before registration, and deaths.</li>`
-    + `<li><b>An attending’s own work:</b> patients seen, how many died (and how many of those after a code the attending ran), how many were left in cardiac arrest at the end, diagnoses right and wrong, unsafe and unneeded orders, complications, and radio calls right, wrong and missed.</li>`
+    + `<li><b>An attending’s own work:</b> patients seen, how many died (and how many of those after a code run by the book), how many were left in cardiac arrest at the end, diagnoses right and wrong, unsafe and unneeded orders, complications, and radio calls right, wrong and missed.</li>`
     + `<li><b>Bookkeeping:</b> the game version, a random id for the result, and the time it arrived.</li></ul>`
     + `<p><b>Who sees it:</b> in the game, only the instructor who made the code, with its instructor key. The game’s developer runs the database (on Supabase, in the US) and can see it too. It’s used only to show the instructor the class’s results; copies the instructor makes are theirs.</p>`
     + `<p><b>How long:</b> deleted when the class ends: 30 days after the code was made, or, for a code first used more than 14 days after it was made, 30 days after that first result. Either way, within 30 days of the class’s first result. <b>Sooner:</b> ask your instructor, who can delete any result${CB.contact ? `, or write to ${esc(CB.contact)}` : ''}.</p>`
@@ -3054,11 +3058,11 @@ const verdictOf = R => {   // the stars are the owner's scoring; the words mustn
   if (m && !m.seen) return 'You saw no patients this shift: the stars come from the radio calls and the department the computer ran.';
   const d = m ? m.died || 0 : 0, cl = m ? m.codeLost || 0 : 0, left = m ? m.arrestLeft || 0 : 0, see = (R.mm || []).length ? 'Read the M&M below.' : 'Read the worst moments below.';
   if (m && (d - cl > 0 || left)) {   // built from what happened, so one patient doesn't read as two (audit R4.9-07)
-    const a = d ? `${d === 1 ? 'One of your own patients' : `${d} of your own patients`} died${cl ? ` (${cl === d ? (d === 1 ? 'after a code you ran' : 'all after codes you ran') : `${cl} after a code you ran`})` : ''}` : '';
+    const a = d ? `${d === 1 ? 'One of your own patients' : `${d} of your own patients`} died${cl ? ` (${cl === d ? (d === 1 ? 'after a code run by the book' : 'all after codes run by the book') : `${cl} after a code run by the book`})` : ''}` : '';
     const b = left ? (a ? `, and ${left === 1 ? 'one was' : `${left} were`}` : `${left === 1 ? 'One of your own patients was' : `${left} of your own patients were`}`) + ' still in cardiac arrest at the end, with no code running' : '';
     return `${a}${b}. ${see}`;
   }
-  if (m && cl && R.stars >= 2) return `You ran the code and lost ${cl === 1 ? 'a patient' : `${cl} patients`}: many arrests don’t come back, even when the code is run well.`;
+  if (m && cl && R.stars >= 2) return `${cl === 1 ? 'A patient' : `${cl} patients`} died after a code run by the book: many arrests don’t come back, even when the code is run well.`;
   if (m && R.stars === 3) {   // name the sections to read (audit R4.9-07)
     const go = [m.dxWrong ? '<b>Diagnoses to review</b>, above' : '', (m.contra || m.unneeded || m.untreated) ? '<b>Orders to review</b>, below' : '', m.dispoWrong ? `your ${m.dispoWrong === 1 ? 'wrong disposition' : `${m.dispoWrong} wrong dispositions`}` : ''].filter(Boolean);
     if (go.length) return `Three stars. Now read ${go.length > 1 ? go.slice(0, -1).join(', ') + ' and ' + go[go.length - 1] : go[0]}.`;
@@ -3154,7 +3158,7 @@ function returnsHTML(R) {
 function mdReportHTML(R, t) {
   if (R.mode !== 'md' || !R.md) return returnsHTML(R);
   const m = R.md;
-  return ordLogHTML(m) + radioLogHTML(R) + returnsHTML(R) + `<h4>Your patients</h4><table>${t('Patients you saw', m.seen)}${t('ESI 1 and 2 seen within 10 min of a room', m.fast)}${t('Orders right / extra / missed', `${m.ordRight} / ${m.ordExtra} / ${m.ordMiss}`)}${t('Clean order sets', m.clean)}${t('Workups you had to add to', m.gaps)}${t('Unsafe orders (a drug that can hurt this patient, or a risky treatment with no reason for it)', (m.contra || 0) + (m.unneeded || 0))}${t('Complications (partly chance)', Math.max(0, (m.harm || 0) - (m.contra || 0)))}${t('Your own patients who died', m.died || 0)}${m.codeLost ? t('Of them, after a code you ran', m.codeLost) : ''}${m.arrestOpen ? t('Your own patients still in cardiac arrest at the end, with no code running', m.arrestOpen) : ''}${t('Patients who got worse untreated', m.untreated)}${t('Disposition calls right / wrong', `${m.dispoRight} / ${m.dispoWrong}`)}${t('Medical direction calls answered', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Medical direction calls right (of those you answered)', `${R.boxC.right} of ${R.boxC.ans}`)}</table>`;
+  return ordLogHTML(m) + radioLogHTML(R) + returnsHTML(R) + `<h4>Your patients</h4><table>${t('Patients you saw', m.seen)}${t('ESI 1 and 2 seen within 10 min of a room', m.fast)}${t('Orders right / extra / missed', `${m.ordRight} / ${m.ordExtra} / ${m.ordMiss}`)}${t('Clean order sets', m.clean)}${t('Workups you had to add to', m.gaps)}${t('Unsafe orders (a drug that can hurt this patient, or a risky treatment with no reason for it)', (m.contra || 0) + (m.unneeded || 0))}${t('Complications (partly chance)', Math.max(0, (m.harm || 0) - (m.contra || 0)))}${t('Your own patients who died', m.died || 0)}${m.codeLost ? t('Of them, after a code run by the book', m.codeLost) : ''}${m.arrestOpen ? t('Your own patients still in cardiac arrest at the end, with no code running', m.arrestOpen) : ''}${t('Patients who got worse untreated', m.untreated)}${t('Disposition calls right / wrong', `${m.dispoRight} / ${m.dispoWrong}`)}${t('Medical direction calls answered', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Medical direction calls right (of those you answered)', `${R.boxC.right} of ${R.boxC.ans}`)}</table>`;
 }
 function mmHTML(R) {
   if (!R.mm) return '';
@@ -3267,7 +3271,7 @@ function bind() {
     }
     if (e.key === 'Escape') {   // a question open in the class sheet is answered "no" first; then the sheet closes
       if (U.sel) U.sel = null;
-      else if (U.sheet && U.sheet.type === 'class' && ((U.cbList && U.cbList.ask) || U.cbForget || U.codeAsk)) { if (U.cbList) U.cbList.ask = null; U.cbForget = null; U.codeAsk = null; }
+      else if (U.sheet && U.sheet.type === 'class' && ((U.cbList && U.cbList.ask) || U.cbForget || U.codeAsk)) { if (U.cbList && U.cbList.ask) ACT.cbDelNo(); else if (U.cbForget) ACT.keyForgetNo(); else ACT.codeAskNo(); }
       else if (U.sheet) U.sheet = null;
       render();
     }
