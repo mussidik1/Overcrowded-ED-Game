@@ -32,9 +32,10 @@ const b0 = OC.vitalsOf(lo, G.t + 10);
 lo.treat = { tnk: { st: 'done', tDone: G.t + 20 } };
 const b1 = OC.vitalsOf(lo, G.t + 90);
 assert(Math.abs(b1.sbp - b0.sbp) <= 8 && b1.sbp <= 180, `the thrombolytic does not treat blood pressure (${b0.sbp}/${b0.dbp} before, ${b1.sbp}/${b1.dbp} ninety minutes on)`);
-let overN = 0, n = 0, worst = [0, 0], worstUnder = [0, 0];
-for (let i = 0; i < 400; i++) { const p = { id: 'p' + (5000 + i), alert: 'stroke', tr: ['tnk'] }; OC.strokeSetup(p); n++; if (p.tr[0] === 'bp') { overN++; worst = [Math.max(worst[0], p.bp0[0]), Math.max(worst[1], p.bp0[1])]; } else worstUnder = [Math.max(worstUnder[0], p.bp0[0]), Math.max(worstUnder[1], p.bp0[1])]; }
+let badBp = 0, overN = 0, n = 0, worst = [0, 0], worstUnder = [0, 0];
+for (let i = 0; i < 400; i++) { const p = { id: 'p' + (5000 + i), alert: 'stroke', tr: ['tnk'] }; OC.strokeSetup(p); n++; if ((p.bp0[0] > 185) !== (p.tr[0] === 'bp') && p.strokeKind === 'in') badBp++; if (p.strokeKind !== 'in' && p.tr.includes('bp')) badBp++; if (p.bp0[0] > 185) { overN++; worst = [Math.max(worst[0], p.bp0[0]), Math.max(worst[1], p.bp0[1])]; } else worstUnder = [Math.max(worstUnder[0], p.bp0[0]), Math.max(worstUnder[1], p.bp0[1])]; }
 assert(overN > n * 0.3 && overN < n * 0.6 && worstUnder[0] <= 174 && worstUnder[1] <= 96, `arrival pressure varies around the limit: ${overN} of ${n} strokes come in over it (highest ${worst.join('/')}; highest under ${worstUnder.join('/')})`);
+assert(badBp === 0, `a pressure order only for an eligible stroke over the limit; a stroke that can't have the thrombolytic is left under 220/120 (${badBp} wrong)`);
 
 // 3. The attending orders the thrombolytic over the limit: held, and it costs points until the pressure is treated
 OC.newGame('train', 33, { mode: 'md' }); G = OC.G;

@@ -1,4 +1,4 @@
-// Phase 3 (v0.32.0): the high-priority clinical content, after a licensed clinician's review (Nov 25, 2026).
+// Phase 3 (v0.32.0): the high-priority clinical content (the owner as clinical consultant, with a clinician's answers to three questions; Nov 25, 2026).
 // Each check signs real orders on a real case, as a student would.
 const OC = require('../src/engine.js');
 const assert = (c, m) => { if (!c) { console.error('FAIL:', m); process.exitCode = 1; } else console.log('ok -', m); };
@@ -100,8 +100,10 @@ assert(ages, "every risk score's age part matches the patient's age");
 // R6-18 the first order set is graded against the presenting complaint, not the hidden diagnosis
 let clean18 = [], harm18 = [];
 for (const [g, w] of Object.entries(OC.WORKUP)) for (const k of w.cases) {
-  const s18 = sign(k, w.det, w.rx);
-  if (s18.extra || s18.wrong) clean18.push(`${k}: extra ${s18.extra}, wrong ${s18.wrong}`);
+  const s18 = sign(k, w.det, w.rx), lowBp = OC.vitalsOf(s18.p).sbp < 90, opi = w.rx.filter(d => ['morph', 'fent', 'hydro'].includes(d)).length;
+  if (lowBp && s18.extra > opi) clean18.push(`${k}: extra ${s18.extra} with a low pressure`);
+  if (lowBp && opi && !s18.extra) clean18.push(`${k}: an opioid on a low pressure passed as the workup`);   // round 12, R3.12-04
+  if (!lowBp && (s18.extra || s18.wrong)) clean18.push(`${k}: extra ${s18.extra}, wrong ${s18.wrong}`);
   if (s18.harm) harm18.push(k);
 }
 assert(!clean18.length, `every case's first sheet with its complaint's standard workup has no extras and no wrong drugs${clean18.length ? ': ' + clean18.join('; ') : ''}`);
@@ -113,3 +115,39 @@ assert((md().ordExtra || 0) === x18 + 1, 'after the first sheet, an order outsid
 // a needed order still fills its need on the first sheet
 p18 = mine('migraine'); OC.signOrders(p18.id, [], ['prochlor']);
 assert(p18.tr.includes('meds'), 'a workup drug that is also the needed drug still fills the need');
+
+// Round 12 (the release review)
+// R6.12-01: a stroke that can't have the thrombolytic has no door-to-needle goal and no pressure order (permissive hypertension);
+// a large-vessel stroke over the limit keeps it (clot removal); the teaching line doesn't promise the drug
+{ let bad = 0, seen = {};
+  for (let i = 0; i < 300; i++) for (const ck of ['stroke', 'strokew', 'lvo']) {
+    const p = { id: 'r12s' + i, ck, alert: 'stroke', tr: ['tnk'], goals: { ct25: null, dtn60: null } }; OC.strokeSetup(p); seen[p.strokeKind] = 1;
+    const over = p.bp0[0] > 185, cand = p.strokeKind === 'in' || ck === 'lvo';
+    if (p.strokeKind !== 'in' && ('dtn60' in p.goals || p.tr.includes('tnk'))) bad++;
+    if (p.strokeKind === 'in' && !('dtn60' in p.goals)) bad++;
+    if (p.tr.includes('bp') !== (over && cand)) bad++;
+    if (p.strokeKind !== 'in' && /Then the clot-busting drug/.test(OC.ordWhy(p))) bad++;
+  }
+  assert(bad === 0 && seen.late && seen.wake && seen.thin && seen.in, `strokes outside the window: no door-to-needle goal, no pressure order unless a large-vessel stroke, no promise of the drug (${bad} wrong)`);
+}
+// R1.12-02: a needed drug that is also an add-on fills the need (IV fluids in anaphylactic shock)
+{ const p = mine('anaph'); p.right.tr.push('fluids'); OC.signOrders(p.id, [], ['epiim', 'ns']);
+  assert(p.tr.includes('fluids') && !OC.missNow(p).length, 'anaphylactic shock: normal saline fills the fluids it needs, not just "also reasonable"'); }
+// R6.12: cefepime is a broad antibiotic for septic shock, with vancomycin
+s = sign('shock', null, ['o2', 'ns', 'cefepime', 'vanc', 'norepi']);
+assert(s.miss.length === 0 && s.extra === 0 && s.wrong === 0, 'septic shock: cefepime and vancomycin fill the antibiotics');
+// R6.12-07: the HEART risk-factor part matches the exam (diabetes and high blood pressure: 1 point), so cpmod is never "high"
+{ let bad = 0;
+  for (let i = 0; i < 200; i++) { OC.newGame('easy', 7000 + i, {}); const p = OC.pt(OC.trainPatient('cpmod', 'walk', { age: 45 + (i % 31) }));
+    const g = p.gray; if (!g.parts.some(x => /risk factors: diabetes, high blood pressure \(1\)/.test(x)) || g.score > 6 || g.band === 'high') bad++; }
+  assert(bad === 0, `chest pain, moderate risk: risk factors score 1, and the HEART score stays 6 or under (${bad} wrong)`); }
+// Grace (Orientation, age 58): the score uses the age she shows, so observation is the call
+OC.newGame('train', 3, {}); { const g = OC.pt(OC.trainPatient('cpmod', 'walk', { name: 'Grace T.', age: 58, sex: 'F' })).gray;
+  assert(g.parts.some(x => /age 45 to 64 \(1\)/.test(x)) && g.right === 'obs', `Grace's HEART score counts age 58 and reads observation (${g.score}, ${g.right})`); }
+// R1.12-06: the whole complaint list on the first sheet is allowed, but it isn't a clean set
+{ const p = mine('migraine'); const c0 = md().clean || 0; OC.signOrders(p.id, ['cbc', 'bmp', 'cthead'], ['prochlor']);
+  assert((md().clean || 0) === c0, 'the complaint workup beyond the case\'s own key earns no clean-set bonus'); }
+// R5.12-08: the CURB-65 card's BUN matches the BMP
+{ let bad = 0; for (let i = 0; i < 60; i++) { OC.newGame('easy', 8100 + i, {}); const p = OC.pt(OC.trainPatient('pnalow', 'walk', {}));
+    const hi = (p.gray.parts || []).some(x => /^BUN 24/.test(x)), b = OC.detResult ? OC.detResult(p, 'bmp')[0] : null; if (b && hi !== /BUN 24/.test(b)) bad++; }
+  assert(bad === 0, `the BMP shows the BUN the CURB-65 card counts (${bad} wrong)`); }

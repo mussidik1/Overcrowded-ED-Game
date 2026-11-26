@@ -262,6 +262,7 @@ for (const [ks, t] of [[['stroke', 'strokew', 'lvo', 'dka', 'syncope', 'synchigh
 function detResult(p, id) {
   if (POC_RES[id] && POC_RES[id][p.ck]) return [POC_RES[id][p.ck], null];
   const r = (RES[p.ck] || {})[id];
+  if (id === 'bmp' && typeof r === 'string' && p.gray && (p.gray.parts || []).some(x => /^BUN 24/.test(x))) return [r.replace(/BUN \d+/, 'BUN 24'), null];   // the lab agrees with the risk score (round 12, R5.12-08)
   if (r) return Array.isArray(r) ? r : [r, null];
   if (id === 'hcg' && p.sex === 'M') return ['Not done: male patient', null];
   if (LABS[id]) return [LAB_NORMAL[id], null];
@@ -364,7 +365,7 @@ const DRUGS = {
   mag: { n: 'Magnesium sulfate', c: 'resp', tx: ['meds'], p: 'Severe asthma; torsades' },
   insdrip: { n: 'Insulin drip', c: 'endo', tx: ['insulin'], p: 'For DKA, after potassium is checked' },
   d50: { n: 'Dextrose', c: 'endo', tx: ['meds'], p: 'Low blood sugar' },
-  kcl: { n: 'Potassium', c: 'endo', tx: ['meds'], p: 'Low potassium' },
+  kcl: { n: 'Potassium', c: 'endo', tx: ['meds'], p: 'Replace when low, and in DKA' },
   nalox: { n: 'Naloxone', c: 'tox', tx: ['nalox'], p: 'Reverses opioids' },
   nac: { n: 'N-acetylcysteine', c: 'tox', tx: ['meds'], p: 'Acetaminophen overdose' },
   charcoal: { n: 'Activated charcoal', c: 'tox', tx: ['meds'], p: 'Binds some pills in the gut, early only' },
@@ -413,7 +414,7 @@ const RXOK = {
   asthma: { meds: ['dexa', 'pred', 'methylpred'], nebs: ['albut', 'duoneb'] }, anaph: { meds: ['diphen', 'methylpred', 'famot'], epi: ['epiim'] },
   sepsisw: { abx: ['ctx', 'piptazo'] }, stemi: { meds: ['asa', 'heparin'] }, burn: { meds: ['fent', 'morph', 'ketamine'] },
   mciyel: { meds: ['fent', 'morph', 'hydro'] }, mcimin: { meds: ['ibu', 'apap'] }, mciwr: { meds: ['ibu', 'apap', 'ketor'] },
-  moto: { meds: ['fent', 'morph', 'hydro', 'ketamine'], abx: ['cefaz', 'ctx'] }, shock: { abx: ['piptazo', 'vanc', 'ctx'], pressor: ['norepi'] },
+  moto: { meds: ['fent', 'morph', 'hydro', 'ketamine'], abx: ['cefaz', 'ctx'] }, shock: { abx: ['piptazo', 'vanc', 'ctx', 'cefepime'], pressor: ['norepi'] },
   tfall: { reverse: ['pcc', 'vitk'] }, chb: { pace: ['atropine'] }, vip: { meds: ['mecliz'] }, dka: { meds: ['kcl'] },
 };
 // The drug a preceptor or a bot picks for a treatment: the case's first right drug, or the usual one.
@@ -448,7 +449,7 @@ const DRUG_DEF = { fluids: 'ns', nebs: 'albut', epi: 'epiim', nalox: 'nalox', in
 // v0.29.1: some treatments need more than one drug (aspirin AND heparin). RXREQ[case][tx] lists groups: one drug from every group.
 // ALSO[case]: standard add-ons that are fine to give (albuterol in hyperkalemia), never counted as extra or wrong.
 const RXREQ = { stemi: { meds: [['asa'], ['heparin', 'enox']] }, nstemi: { meds: [['asa'], ['heparin', 'enox']] }, tfall: { reverse: [['pcc'], ['vitk']] },
-  pna: { abx: [['ctx'], ['azith', 'doxy']] }, shock: { abx: [['piptazo', 'ctx'], ['vanc']] } };   // Phase 3 (R6-14): IDSA/ATS 2019 CAP inpatient; SSC 2021 shock with an unknown source
+  pna: { abx: [['ctx'], ['azith', 'doxy']] }, shock: { abx: [['piptazo', 'ctx', 'cefepime'], ['vanc']] } };   // Phase 3 (R6-14): IDSA/ATS 2019 CAP inpatient; SSC 2021 shock with an unknown source
 const ALSO = { arrest: ['epiarr', 'amio', 'calc', 'bicarb', 'ns', 'lr'], afib: ['heparin', 'enox', 'apixa', 'midaz', 'ketamine', 'fent', 'propofol', 'etomidate'],   // R6.2-16: anticoagulation; R6.3-01: sedation for a cardioversion (not an intubation)   // v0.29.1: potassium in DKA (K 4.8) is reasonable, not required
   // Audit phase 1 (R6-08): in suspected ACS, nitroglycerin for ongoing pain is standard care (ACC/AHA NSTE-ACS, Class I). Morphine and a
   // beta-blocker are judgment calls (morphine IIb; IV beta-blockade harms patients at risk of shock): neutral, pending clinician review.
@@ -1193,7 +1194,11 @@ function strokeSetup(p, o) {
   const a = vhash(pkey(p) + 'bq'), b = vhash(pkey(p) + 'br');
   p.bp0 = over ? [192 + Math.round(a * 20), 100 + Math.round(b * 14)] : [158 + Math.round(a * 16), 86 + Math.round(b * 10)];
   p.tr = p.tr.filter(k => k !== 'bp');
-  if (over) p.tr.unshift('bp');
+  // Round 12 (R6.12-01): lowering the pressure is for the thrombolytic (under 185/110) or clot removal (a large-vessel stroke). A stroke
+  // that can't have either is left alone under 220/120 (permissive hypertension), and has no door-to-needle goal.
+  const cand = kind === 'in' || p.ck === 'lvo';
+  if (over && cand) p.tr.unshift('bp');
+  if (p.goals) { if (kind !== 'in') delete p.goals.dtn60; else if (p.alert === 'stroke' && !('dtn60' in p.goals) && Object.keys(p.goals).length) p.goals.dtn60 = null; }
 }
 /* Is the pressure low enough for the thrombolytic right now? A small margin, so the number on the card never disagrees. */
 function bpOkForLytic(p) {
@@ -1225,8 +1230,8 @@ function grayScore(c, age) {
   }
   if (c.gray === 'chest') {   // HEART: history, ECG, age, risk factors, troponin (negative here)
     const ap = age >= 65 ? 2 : age >= 45 ? 1 : 0, mod = c.k === 'cpmod';
-    const h = mod ? randi(1, 2) : 0, e = mod ? 1 : 0, r = mod ? randi(1, 2) : (chance(0.4) ? 1 : 0), s = h + e + ap + r;
-    const parts = [h && `history ${h === 2 ? 'highly' : 'moderately'} suspicious (${h})`, e && 'ECG nonspecific changes (1)', ap && `age ${ap === 2 ? '65 or more' : '45 to 64'} (${ap})`, r && `risk factors (${r})`, 'troponin normal (0)'];
+    const h = mod ? randi(1, 2) : 0, e = mod ? 1 : 0, r = mod ? 1 : (chance(0.4) ? 1 : 0), s = h + e + ap + r;
+    const parts = [h && `history ${h === 2 ? 'highly' : 'moderately'} suspicious (${h})`, e && 'ECG nonspecific changes (1)', ap && `age ${ap === 2 ? '65 or more' : '45 to 64'} (${ap})`, (mod ? 'risk factors: diabetes, high blood pressure (1)' : r && 'a risk factor (1)'), 'troponin normal (0)'];
     return s <= 3 ? g('HEART score', s, 'low', 'home', [], parts) : s <= 6 ? g('HEART score', s, 'moderate', 'obs', ['admit'], parts) : g('HEART score', s, 'high', 'admit', ['obs'], parts);
   }
   if (c.gray === 'syncope') {
@@ -1693,7 +1698,7 @@ const ORD_WHY = {
   pna: 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.',
   flu: 'A respiratory swab confirms flu. Fever medicine and fluids at home. Mask and an isolation room while they are here.',
   pnalow: 'Chest X-ray finds it. The BUN from the labs feeds the CURB-65 score. Antibiotics; most go home on pills.',
-  copd: 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments and BiPAP. A steroid is reasonable.',
+  copd: 'X-ray rules out pneumonia. A blood gas shows CO2 building up. Breathing treatments, a steroid, an antibiotic for a flare, and BiPAP.',
   chf: 'ECG looks for a heart attack as the cause. X-ray shows the fluid. Labs check the heart and kidneys. BiPAP, nitroglycerin, and a water pill.',
   stone: 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.',
   dvt: 'Ultrasound finds the clot. Labs check the kidneys. Then a blood thinner.',
@@ -1705,7 +1710,7 @@ const ORD_WHY = {
   cell: 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.',
   syncope: 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.',
   synchigh: 'Every faint gets an ECG. Labs look for another cause. A new block with no warning is the heart until proven otherwise: observe.',
-  tia: 'CT rules out a bleed. ECG looks for A-fib. Labs check the sugar. Observe: stroke risk is highest in the first two days. Aspirin is reasonable.',
+  tia: 'CT rules out a bleed. ECG looks for A-fib. Labs check the sugar. A low ABCD2 with normal tests: home with a clinic visit in a day or two, or observation for more imaging. Aspirin is reasonable.',
   dehyd: 'Labs show the kidneys are dry. Fluids fix it.',
   cpmod: 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.',
   cwp: 'ECG, troponin, and a chest X-ray: all normal. Aspirin until the troponin is back; then ibuprofen for the chest wall, and home.',
@@ -1713,7 +1718,7 @@ const ORD_WHY = {
   afib: 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.',
   chb: 'ECG shows the block. Labs check the potassium. Pace now. Cardiology.',
   gib: 'Labs with a blood type. Fluids, then blood. GI for a scope.',
-  dka: 'Labs show the sugar, the acid, and the potassium. Fluids first. Insulin once the potassium is known. ICU.',
+  dka: 'Labs show the sugar, the acid, and the potassium. Fluids first. Insulin once the potassium is known. Potassium replaced: insulin drives it into the cells. ICU.',
   asthma: 'No tests. Breathing treatments and a steroid. Then watch that the wheezing stays away.',
   anaph: 'No tests. Epinephrine first. Then an antihistamine and a steroid. Then watch: the reaction can come back.',
   sepsisw: 'Labs with a lactate. Fluids and antibiotics inside the hour.',
@@ -1725,7 +1730,7 @@ const ORD_WHY = {
   tfall: 'Head CT finds the bleed. Labs with an INR show the blood thinner. Reverse it. Neurosurgery.',
   moto: 'X-ray shows the break. Labs with a blood type. Early antibiotics for bone through skin. Blood. Trauma and the OR.',
   arrest: 'No orders. Run the code.',
-  shock: 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.',
+  shock: 'Lactate. Oxygen, fluids, two antibiotics (one broad, plus vancomycin). Norepinephrine when fluids aren’t enough. ICU.',
   rsv: 'A blood gas shows the baby is tiring. High-flow oxygen. Transfer to a children\'s hospital.',
   burn: 'Secure the airway before it swells shut: intubate, then the ventilator. Labs check for carbon monoxide. Fluids and pain control. Burn center.',
   mcired: 'X-ray and bedside ultrasound look for blood in the chest and belly. Labs and a blood type. Massive transfusion. CT only if the pressure comes up. If not, the OR.',
@@ -1867,15 +1872,31 @@ const orderLogOf = S => (S.log || []).map(x => (typeof x === 'string' ? (G.pts[x
 // back, these orders are fine for every case that shares the complaint: never extra, never wrong. Harm still counts (CONTRA runs
 // first), and a needed order still fills its need. After the first sheet, the case's own answer key applies, as before. The lists
 // were checked by the owner, an EMS educator, as the project's clinical consultant (Nov 25, 2026).
+/* The teaching line for a patient. A stroke outside the clot-buster window (late, woke up with it, or on a blood thinner) reads differently
+   (round 12, R6.12-01). */
+const STROKE_NO_LYTIC = {
+  late: 'too late for the clot-busting drug (over 4.5 hours since last known well)', wake: 'woke up with it: last known well is unknown, so no clot-busting drug',
+  thin: 'takes a blood thinner (apixaban): no clot-busting drug',
+};
+function ordWhy(p) {
+  if (p && STROKE_CASES.includes(p.ck) && p.strokeKind && p.strokeKind !== 'in') {
+    const w = STROKE_NO_LYTIC[p.strokeKind] || 'not a candidate for the clot-busting drug';
+    return p.ck === 'lvo' ? `CT rules out a bleed. A CT angiogram finds the blocked artery. Glucose rules out a mimic. This patient ${w}. Transfer to a center that pulls clots: the pressure under 185/110 for it.`
+      : `CT rules out a bleed. Glucose rules out a mimic. This patient ${w}. Let the pressure run up to 220/120. Neurology. An ECG is reasonable.`;
+  }
+  return (p && ORD_WHY[p.ck]) || '';
+}
 const WORKUP = {
   chest: { cases: ['cpmod', 'cwp', 'nstemi', 'stemi', 'pe', 'dissect', 'ptx'], det: ['ecg', 'trop', 'cbc', 'bmp', 'cxr', 'coag'], rx: ['asa', 'apap'] },
   sob: { cases: ['copd', 'chf', 'asthma', 'mpe', 'salod'], det: ['cxr', 'vbg', 'bnp', 'ecg', 'cbc', 'bmp', 'trop'], rx: ['albut', 'duoneb'] },
-  belly: { cases: ['gastro', 'appy', 'chole', 'ectopic', 'sbo', 'mesisch', 'ovtorsion'], det: ['cbc', 'bmp', 'lft', 'lip', 'ua', 'lact'], rx: ['ns', 'ondan', 'morph', 'fent'] },
+  belly: { cases: ['gastro', 'appy', 'chole', 'ectopic', 'sbo', 'mesisch', 'ovtorsion', 'ttorsion'], det: ['cbc', 'bmp', 'lft', 'lip', 'ua', 'lact'], rx: ['ns', 'ondan', 'morph', 'fent'] },
   headache: { cases: ['migraine', 'sah', 'mening'], det: ['cbc', 'bmp', 'cthead', 'bcx'], rx: ['apap', 'prochlor', 'reglan', 'ns'] },
-  weak: { cases: ['tia', 'dehyd', 'strokew', 'stroke', 'lvo', 'hyperk'], det: ['gluc', 'ecg', 'cbc', 'bmp', 'coag', 'cthead'], rx: [] },
+  weak: { cases: ['tia', 'dehyd', 'strokew', 'stroke', 'lvo', 'hyperk', 'chb', 'hypogly'], det: ['gluc', 'ecg', 'cbc', 'bmp', 'coag', 'cthead'], rx: [] },
 };
 const WORKUP_OF = {}; for (const [g, w] of Object.entries(WORKUP)) for (const k of w.cases) WORKUP_OF[k] = g;
-const workupOk = (p, k) => { const w = WORKUP[WORKUP_OF[p.ck]]; return !!w && (w.det.includes(k) || w.rx.includes(k)); };
+const OPIOIDS = new Set(['morph', 'fent', 'hydro']);
+const workupOk = (p, k) => { const w = WORKUP[WORKUP_OF[p.ck]]; if (OPIOIDS.has(k) && sbpUnder(p, 90)) return false;   // no opioid on a low pressure (round 12, R3.12-04)
+  return !!w && (w.det.includes(k) || w.rx.includes(k)); };
 function signOrders(pid, tests, treats) {
   const p = pt(pid);
   if (!p || !mdMine(p)) return { ok: false, why: 'That isn’t your patient' };
@@ -1891,7 +1912,7 @@ function signOrders(pid, tests, treats) {
   }
   const newT = Array.from(new Set(want)).filter(k => (k === 'ecg' ? !p.wk.includes('ecg') : !p.det.includes(k)));
   // v0.28: drugs and procedures resolve to treatments. The right drug fills the need; a wrong one is wasted and counted.
-  const drugX = [], drugOk = [], partOk = [], contraX = [];
+  const drugX = [], drugOk = [], partOk = [], contraX = []; let grace = 0;   // grace: first-sheet orders accepted only as the complaint's workup
   if ((treats || []).includes('tnk')) p.tnkOrdered = true;   // R6.3-10: aspirin on the same sheet as a stroke lytic
   p.drugs = p.drugs || [];
   const tk = [];
@@ -1905,10 +1926,10 @@ function signOrders(pid, tests, treats) {
     { const t = D.tx.find(t => reqOf(p, t) && R.tr.includes(t) && reqOf(p, t).some(g => g.includes(k)));   // one part of a combination
       if (t) { const g = reqOf(p, t), i = g.findIndex(x => x.includes(k)); p.rxg = p.rxg || {}; const got = p.rxg[t] = p.rxg[t] || []; if (!got.includes(i)) got.push(i);
         if (got.length >= g.length && !p.tr.includes(t) && !tk.includes(t)) tk.push(t); else partOk.push(D.n); continue; } }   // a required drug, not "also reasonable": the rest of its combination shows as missed (audit R6.9-01)
-    if ((ALSO[p.ck] || []).includes(k)) { drugOk.push(D.n); continue; }
     const need = D.tx.find(t => R.tr.includes(t) && !p.tr.includes(t) && !tk.includes(t) && rxOk(p, t, k));
-    if (need) { tk.push(need); continue; }
-    if (first && workupOk(p, k)) { drugOk.push(D.n); continue; }   // the complaint's first workup (R6-18)
+    if (need) { tk.push(need); continue; }   // a needed drug fills its need first, even when it is also an add-on (IV fluids in anaphylactic shock; round 12)
+    if ((ALSO[p.ck] || []).includes(k)) { drugOk.push(D.n); continue; }
+    if (first && workupOk(p, k)) { drugOk.push(D.n); grace++; continue; }   // the complaint's first workup (R6-18)
     const wrong = D.tx.find(t => R.tr.includes(t) && !rxOk(p, t, k));
     const fine = D.tx.find(t => (R.tr.includes(t) && rxOk(p, t, k)) || ((R.ok || []).includes(t) && ((RXOK[p.ck] || {})[t] || []).includes(k)));
     if (fine) { drugOk.push(D.n); continue; }
@@ -1934,7 +1955,9 @@ function signOrders(pid, tests, treats) {
     if (!p.wk.includes(kind)) p.wk.push(kind);
     else if (p.work[kind] && p.work[kind].st !== 'todo') delete p.work[kind];   // more of a kind after the first draw or scan: another one
     const need = k === 'ecg' ? R.wk.includes('ecg') : R.det.includes(k);
-    const fine = (k === 'ecg' ? OKL.includes('ecg') : OKD.includes(k) || (k === 'hcg' && p.sex === 'F' && p.age >= 12 && p.age <= 55)) || (first && workupOk(p, k));   // R6-18
+    const own = k === 'ecg' ? OKL.includes('ecg') : OKD.includes(k) || (k === 'hcg' && p.sex === 'F' && p.age >= 12 && p.age <= 55);
+    const fine = own || (first && workupOk(p, k));   // R6-18
+    if (!need && !own && fine) grace++;
     if (need) { pts += DET_RIGHT[kind] || 1; S.ordRight++; }
     else if (fine) { fl.push(nm); if (!p.find[kind]) p.find[kind] = NORMAL[kind]; }
     else { pts -= DET_EXTRA[kind] || 2; extra++; S.ordExtra++; xl.push(nm); if (!p.find[kind]) p.find[kind] = NORMAL[kind]; }
@@ -1961,11 +1984,11 @@ function signOrders(pid, tests, treats) {
   if (first) {
     const miss = detMiss(p).length + R.tr.filter(k => !p.tr.includes(k)).length;
     S.ordMiss += miss;
-    if (!miss && !extra && !contraX.length) { pts += 10; S.clean++; }   // a set with a drug that can hurt isn't clean (audit R1.9-01)
-    p.ordLog = { name: p.name, dx: p.dx, miss: missNow(p), extra: xl.slice(), fine: fl.slice(), unsafe: ul, why: (p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck] || '' };
+    if (!miss && !extra && !contraX.length && !grace) { pts += 10; S.clean++; }   // ordering the whole complaint list isn't a clean set (round 12, R1.12-06)   // a set with a drug that can hurt isn't clean (audit R1.9-01)
+    p.ordLog = { name: p.name, dx: p.dx, miss: missNow(p), extra: xl.slice(), fine: fl.slice(), unsafe: ul, why: (p.crash && (CRASH[p.ck] || {}).why) || ordWhy(p) };
     if (p.ordLog.miss.length || xl.length || ul.length) logOrders(S, p);
   } else if (!p.ordLog && (xl.length || ul.length)) {   // a later order with no first set on record (after a pulse came back): it still reaches the review (audit R6.9-07)
-    p.ordLog = { name: p.name, dx: p.dx, miss: [], extra: xl.slice(), fine: fl.slice(), unsafe: ul, why: ORD_WHY[p.ck] || '' };
+    p.ordLog = { name: p.name, dx: p.dx, miss: [], extra: xl.slice(), fine: fl.slice(), unsafe: ul, why: ordWhy(p) };
     logOrders(S, p);
   } else if (p.ordLog) {
     if ((xl.length || ul.length) && !p.ordLog.miss.length && !p.ordLog.extra.length && !(p.ordLog.unsafe || []).length) logOrders(S, p);
@@ -3161,6 +3184,7 @@ function goalWhy(p, key) {
   const prov = (p.tProv != null ? p.tProv : G.t) - roomed;
   if (prov > 10) return `No provider for ${Math.round(prov)} min after they were roomed`;
   if ((key === 'ct25' || key === 'dtn60') && (outActive('ct') || outActive('power'))) return 'The CT scanner was down';
+  if (key === 'abx60' && p.rxg && p.rxg.abx && reqOf(p, 'abx') && p.rxg.abx.length < reqOf(p, 'abx').length) return 'Only one of the two antibiotics it needs was ordered';   // round 12, R5.12-09
   if (key === 'dtn60' && p.bp0 && p.bp0[0] > LYTIC_BP[0] && !(p.treat.bp && p.treat.bp.st === 'done')) return `The pressure was over ${LYTIC_BP[0]}/${LYTIC_BP[1]} and was never brought down`;
   const why = { ct25: 'Waited in the CT line', dtn60: 'The thrombolytic waited on CT, neurology, or pharmacy', abx60: 'Antibiotics waited on pharmacy or a nurse', ecg10: 'Nobody was free to do the ECG',
     d2b90: 'The cath lab handoff took too long', surg15: 'The surgeon came late', tx45: 'The transfer call went out late', resus5: 'No resus bay was ready' };
@@ -4357,7 +4381,7 @@ function trainPatient(k, how, o) {
   if (!c) return null;
   const p = makePatient(c, how === 'walk' || how === 'waiting' ? 'walk' : 'ems');
   if (o.name) p.name = o.name;
-  if (o.age != null) p.age = o.age;
+  if (o.age != null) { p.age = o.age; if (c.gray) p.gray = grayScore(c, p.age); }   // the score from the age the patient shows (round 12: Grace)
   if (o.sex) p.sex = o.sex;
   p.lang = o.lang || null; p.tArrive = G.t;
   if (p.alert === 'stroke') strokeSetup(p, { over: !!o.bpOver, lkw: o.lkw != null ? o.lkw : 50 });   // scripted strokes are under the limit unless asked
@@ -4963,6 +4987,6 @@ const RADIO_BTN = {
   miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
 };
 for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
-Object.assign(OC, { WATCH_WHY, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
+Object.assign(OC, { WATCH_WHY, ordWhy, detResult, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);

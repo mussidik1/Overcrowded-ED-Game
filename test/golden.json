@@ -1,5 +1,5 @@
 {
- "version": "0.31.0",
+ "version": "0.32.0",
  "shifts": {
   "rn/rush/none": {
    "arrivals": 27,
@@ -73,13 +73,13 @@
    "ama": 1,
    "expired": 1,
    "left": 22,
-   "care": 1443,
+   "care": 1463,
    "wait": 38,
    "stars": 1,
    "fail": null,
    "lit": 0,
    "acc": null,
-   "stateHash": "38aa0f8b"
+   "stateHash": "b0a4bc45"
   },
   "md/rush/none": {
    "arrivals": 27,
@@ -93,33 +93,33 @@
    "ama": 0,
    "expired": 0,
    "left": 22,
-   "care": 308,
+   "care": 314,
    "wait": 21,
    "stars": 3,
    "fail": null,
    "lit": 6,
-   "acc": 72,
-   "stateHash": "4f73ffca"
+   "acc": 73,
+   "stateHash": "6eca4f38"
   },
   "md/easy/none": {
-   "arrivals": 87,
-   "arrivalsHash": "1c7ba19c",
-   "seen": 87,
-   "dc": 54,
-   "adm": 28,
-   "proc": 4,
+   "arrivals": 88,
+   "arrivalsHash": "56b2f846",
+   "seen": 88,
+   "dc": 51,
+   "adm": 26,
+   "proc": 5,
    "tx": 0,
    "lwbs": 0,
    "ama": 0,
    "expired": 0,
-   "left": 5,
-   "care": 1718,
+   "left": 9,
+   "care": 1625,
    "wait": 18,
    "stars": 3,
    "fail": null,
-   "lit": 66,
+   "lit": 60,
    "acc": 69,
-   "stateHash": "6a4d3fed"
+   "stateHash": "02c2c9b3"
   },
   "md/med/none": {
    "arrivals": 111,
@@ -133,13 +133,13 @@
    "ama": 1,
    "expired": 0,
    "left": 10,
-   "care": 2071,
+   "care": 2061,
    "wait": 20,
    "stars": 3,
    "fail": null,
    "lit": 39,
    "acc": 73,
-   "stateHash": "7ad4ac2e"
+   "stateHash": "498132e4"
   },
   "md/hard/none": {
    "arrivals": 128,
@@ -1478,7 +1478,7 @@
    "treats": [
     "o2",
     "fluids",
-    "abx=piptazo/ctx+vanc",
+    "abx=piptazo/ctx/cefepime+vanc",
     "pressor"
    ],
    "dx": "Septic shock",
@@ -1486,7 +1486,8 @@
     "abx": [
      "piptazo",
      "vanc",
-     "ctx"
+     "ctx",
+     "cefepime"
     ],
     "pressor": [
      "norepi"
@@ -2690,7 +2691,8 @@
     "abx": [
      [
       "piptazo",
-      "ctx"
+      "ctx",
+      "cefepime"
      ],
      [
       "vanc"
