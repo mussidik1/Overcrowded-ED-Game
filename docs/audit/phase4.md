@@ -34,4 +34,4 @@
 - **Prettier and `// @ts-check` with strict types (R2-05).** Prettier would rewrite every line of the dense source; strict types on a
   5,000-line untyped file is the Phase 5 rewrite. Both wait for Phase 5, which the owner deferred.
 - **The ABEM EM Model copy (R2-17).** `docs/em-model/*.json` is a full parsed copy of ABEM's 2022 EM Model. It is not on the website, but
-  the repo is public. Its licence isn't recorded. Needs the owner: confirm permission, or keep only the item codes the game uses.
+  the repo is public. Kept as it is, with nothing added (the owner's decision, Nov 26, 2026).
