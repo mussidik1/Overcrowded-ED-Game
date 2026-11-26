@@ -1,13 +1,11 @@
 # QA rubric: Emergency Department: Code Black
 
-Written Nov 26, 2026, under `spec/PIPELINE-ADDENDUM.md` item 2. **Draft: not in use until the owner approves the thresholds.**
+Written Nov 26, 2026, under `spec/PIPELINE-ADDENDUM.md` item 2. Thresholds approved by the owner on Nov 26, 2026.
 
 Each criterion is scored 1 to 10 by a fresh QA agent (Stage 15a), with evidence. A score under its threshold is a FAIL. So is any open
 Critical or High bug.
 
-This project adopted the pipeline at v0.31.0, so there is no `spec/00-INTAKE.md`, `spec/02-SPEC.md` or ARCHITECTURE document yet. Until
-they exist, "REQ" means the player-facing behaviour in `README.md`, and "ARCHITECTURE contracts" means "How it ships", "Layout", "Engine"
-and "UI" in `CLAUDE.md`.
+The requirements (REQs) and the ARCHITECTURE contracts are in `spec/02-SPEC.md`; the product brief is `spec/00-INTAKE.md`.
 
 | Criterion | Threshold | 4 looks like | 7 looks like | 10 looks like |
 |---|---|---|---|---|

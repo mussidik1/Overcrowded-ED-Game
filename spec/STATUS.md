@@ -2,7 +2,7 @@
 
 - **Project:** Emergency Department: Code Black. **Mode:** adopted mid-project at v0.31.0 (owner's choice, Nov 25, 2026): the
   ship stages now, the full spec (Stages 0–7, traceability) before the next feature work.
-- **Pipeline addendum (Nov 26, 2026):** `spec/PIPELINE-ADDENDUM.md` applies and wins where it conflicts with the older pipeline. The builder never signs off on its own work. `spec/QA-RUBRIC.md` is drafted and waits for the owner's OK.
+- **Pipeline addendum (Nov 26, 2026):** `spec/PIPELINE-ADDENDUM.md` applies and wins where it conflicts with the older pipeline. The builder never signs off on its own work. `spec/QA-RUBRIC.md` thresholds approved by the owner (Nov 26). `spec/00-INTAKE.md` and `spec/02-SPEC.md` retrofitted from the README and CLAUDE.md (owner's choice) so Stage 15a has REQs. Stage 15a round 1 runs on v0.32.0 as released (owner's choice).
 - **Current stage:** v0.32.0 released (Nov 26, 2026): `main` at `78916ef`, Deploy run 4 green. v0.31.0 history below; v0.32.0 in `spec/RELEASE.md`.
 
 | Stage | Result | Notes |
