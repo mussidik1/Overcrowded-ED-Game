@@ -862,6 +862,8 @@ function care(n, tag, p) {
   G.care += n; G.ledger[k] = (G.ledger[k] || 0) + n;
 }
 const mdMine = p => !!(p && G.mode === 'md' && p.mine && p.prov === G.me);
+const MD_LOAD = { easy: 0, med: 2, hard: 4, rush: 2 }, MD_HOLD = { easy: 1, med: 1.3, hard: 1.8, rush: 1.3 };   // Phase 6 (R5-04)
+const mdLoad = () => G.order.reduce((n, id) => { const p = G.pts[id]; return n + (p.prov === G.me && p.loc === 'room' && !p.mdPick && p.dsp !== 'gone' ? 1 : 0); }, 0);
 function note(msg, kind) { if (G.pre) return; G.log.unshift({ t: G.t, msg, kind: kind || 'info' }); if (G.log.length > 60) G.log.length = 60; }
 function toast(msg, kind, routine) { if (G.pre) return; note(msg, kind); hooks.toast(msg, kind || 'info', !!routine); }   // routine: good to know, nothing to do. The floor plan files it under the bell.
 function sound(n) { if (!G.pre) hooks.sound(n); }
@@ -4617,7 +4619,11 @@ function botStep(o) {
       const who = tp && load(tp) < 2 ? tp : (pc || tp);
       return !!who && sendUp(p.id, who.id).ok;
     });
-    const mdWait = G.mode === 'md' && !(p.prov && p.prov !== G.me) && G.t - (p.tNeed != null ? Math.max(p.tNeed, p.tRoom) : p.tRoom) < (p.arrest ? 1 : vEsi(p) <= 2 ? 6 : 15);
+    // Phase 6 (R5-04): the attending's own load grows with the level. The game's charge nurse hands the sickest new patients (ESI 1 and 2)
+    // straight to the attending up to MD_LOAD of them at once, and holds the rest longer for the attending on harder levels (the other
+    // doctors are busier). Easy keeps today's pace.
+    if (G.mode === 'md' && !G.pre && !G.train && needsProv(p) && !p.prov && !p.arrest && vEsi(p) <= 2 && mdLoad() < (MD_LOAD[G.level] || 0) && canAssign(staff(G.me), p).ok) add(5, () => !p.prov && assign(G.me, p.id).ok);
+    const mdWait = G.mode === 'md' && !(p.prov && p.prov !== G.me) && G.t - (p.tNeed != null ? Math.max(p.tNeed, p.tRoom) : p.tRoom) < (p.arrest ? 1 : (vEsi(p) <= 2 ? 6 : 15) * (MD_HOLD[G.level] || 1));
     if (needsProv(p) && o.prov !== false && !(G.mode === 'md' && p.prov === G.me) && !mdWait) add(vEsi(p) <= 2 ? 4.5 : 7, () => {
       if (!needsProv(p)) return false;
       const opts = G.staff.filter(s => isProv(s) && s.st === 'on' && s.id !== G.me && canAssign(s, p).ok);

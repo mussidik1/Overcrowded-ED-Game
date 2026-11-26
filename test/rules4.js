@@ -92,7 +92,8 @@ assert(OC.staff(ME).q.length === 0 && !OC.active().some(p => p.prov === ME), 'yo
 run(120);
 const others = OC.active().filter(p => p.prov && p.prov !== ME).length;
 const here = OC.active().filter(p => p.loc !== 'enroute' && p.loc !== 'new');
-assert(OC.inRooms().length >= 4 && OC.inRooms().length >= here.length - 2 && others > 0 && !OC.active().some(p => p.prov === ME), `the computer charge nurse rooms patients, and other providers pick up anyone you leave (${others})`);
+const handed = OC.active().filter(p => p.prov === ME);   // Phase 6 (R5-04): on Manic Monday the charge nurse hands you up to two of the sickest
+assert(OC.inRooms().length >= 4 && OC.inRooms().length >= here.length - 2 && others > 0 && handed.every(p => p.esi <= 2) && handed.filter(p => p.loc === 'room' && !p.mdPick).length <= 2, `the computer charge nurse rooms patients, other providers pick up anyone you leave (${others}), and only the sickest are handed to you (${handed.length})`);
 const MDT = ['md', 'orders', 'harm', 'dispo', 'box', 'consult', 'flow', 'goals', 'returns', 'gray', 'blood'];
 assert(Object.keys(G.ledger).every(k => MDT.includes(k)), 'your score has no nursing items (ratios, wall time, staffing): ' + Object.keys(G.ledger).join(', '));
 let n = 0; while (!G.over && n++ < 20000) { OC.step(0.1); if (n % 20 === 0) OC.mdPlay({ budget: 2, acc: 0.8, line: 1 }); }

@@ -37,3 +37,11 @@ OC.newGame('med', 62, { mode: 'md' }); G = OC.G;
 OC.newGame('med', 64, {});
 { let seen = 0, known = 0; for (let i = 0; i < 4000 && seen < 3; i++) { OC.step(0.25); for (const q of Object.values(OC.G.pts)) if (q.alertOn && q.alert && q.alert !== 'arrest' && q.loc === 'enroute' && !q._seen) { q._seen = 1; seen++; if (q.dxK) known++; } }
   assert(seen === known, 'the charge nurse still sees what the alert is'); }
+
+// R5-04: the attending's own load grows with the level: on harder levels the game's charge nurse hands the sickest patients to you
+{ const mine = lv => { let n = 0; for (let s = 1; s <= 3; s++) { OC.newGame(lv, 700 + s, { mode: 'md' }); for (let i = 0; i < 1200; i++) OC.step(0.1);   // two game hours, the attending taking nobody
+    n += Object.values(OC.G.pts).filter(p => p.prov === OC.G.me && p.esi <= 2).length; } return n; };
+  const e = mine('easy'), h = mine('hard');
+  assert(e === 0 && h > 0, `the sickest new patients go to the attending on Full Moon Friday (${h}), not on Quiet Tuesday (${e})`); }
+// R5-04: the charge nurse's Rush stars are capped by pace
+assert(OC.paceStars(12) === 3 && OC.paceStars(20) === 2 && OC.paceStars(35) === 1 && OC.paceStars(50) === 0, 'Rush pace: 15, 25 and 40 minutes from the door to a provider for three, two and one stars');
