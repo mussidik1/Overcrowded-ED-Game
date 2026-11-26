@@ -48,7 +48,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .brand small { display: block; font: 600 12px/1.2 var(--ui); letter-spacing: .8px; text-transform: uppercase; opacity: .6; margin-top: 2px; }
 .clock { margin-left: auto; font: 700 27px/1 var(--ui); font-variant-numeric: tabular-nums; letter-spacing: .5px; }
 .hud-btns { display: flex; gap: 6px; }
-.hb { min-width: 40px; height: 36px; padding: 0 9px; border: 1.5px solid rgba(255, 255, 255, .28); border-radius: 9px; background: transparent; color: #fff; font-weight: 700; font-size: 14px; }
+.hb { min-width: 44px; height: 44px; padding: 0 9px; border: 1.5px solid rgba(255, 255, 255, .28); border-radius: 9px; background: transparent; color: #fff; font-weight: 700; font-size: 14px; }
 .hb.on { background: #F2C230; border-color: #F2C230; color: var(--ink); }
 .hb-menu { display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; }
 .hb-menu svg { width: 20px; height: 20px; }
@@ -529,7 +529,7 @@ body.mapmode .hud { flex: 1 1 500px; display: flex; align-items: center; gap: 10
 body.mapmode .hud-top { flex: none; gap: 8px; }
 body.mapmode .clock { margin-left: 0; font-size: 24px; }
 body.mapmode .pills { flex: 1; display: flex; gap: 5px; min-width: 0; padding: 0; }
-body.mapmode .pill { flex: 1 1 0; flex-direction: row; align-items: baseline; gap: 6px; padding: 6px 9px; }
+body.mapmode .pill { flex: 1 1 0; flex-direction: row; align-items: center; gap: 6px; min-height: 44px; padding: 6px 9px; }
 body.mapmode .pill b { font-size: 17px; }
 body.mapmode.msgon:not(.msgover) .pill { flex: 0 0 auto; justify-content: center; }   /* a message is up: the scores are five numbers on the left, and it takes the rest */
 body.mapmode.msgon:not(.msgover) .pill span { display: none; }
@@ -572,18 +572,18 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 .dock .istaff .ic-l { display: none; }
 .dock .istaff .ic { min-height: 44px; }
 @media (max-height: 520px) {
-  body.mapmode .hud { gap: 7px; padding-top: calc(3px + env(safe-area-inset-top)); padding-bottom: 4px; }
+  body.mapmode .hud { gap: 7px; padding-top: calc(2px + env(safe-area-inset-top)); padding-bottom: 2px; }
   body.mapmode .hud-top { gap: 6px; }
   body.mapmode .clock { font-size: 20px; }
-  body.mapmode .hb { min-width: 36px; height: 31px; padding: 0 8px; font-size: 13px; }
+  body.mapmode .hb { min-width: 44px; height: 44px; padding: 0 8px; font-size: 13px; }   /* the owner's decision (Nov 26): a 44 px strip on a sideways phone */
   body.mapmode #btnPause { top: calc(3px + env(safe-area-inset-top)); }
-  body.mapmode .hb-msg { position: relative; min-width: 31px; padding: 0 6px; }   /* on a phone the count rides the bell's corner, so the button stays narrow */
+  body.mapmode .hb-msg { position: relative; min-width: 44px; padding: 0 6px; }   /* on a phone the count rides the bell's corner, so the button stays narrow */
   body.mapmode .hb-msg b { position: absolute; top: -3px; right: -5px; min-width: 15px; padding: 0 3px; font-size: 12px; line-height: 1.35; box-shadow: 0 0 0 1.5px var(--frame, #1B2230); }
   body.mapmode.msgon:not(.msgover) .pill { min-width: 0; padding: 2px 5px 3px; }
   body.mapmode .pills { gap: 4px; }
   body.mapmode .top { flex-wrap: nowrap; }
   body.mapmode .hud { flex: 1 1 0; }
-  body.mapmode .pill { flex-direction: column; align-items: center; gap: 0; min-width: 30px; padding: 1px 4px 2px; }
+  body.mapmode .pill { flex-direction: column; align-items: center; justify-content: center; gap: 0; min-width: 44px; min-height: 44px; padding: 1px 4px 2px; }
   body.mapmode .pill b { font-size: 14.5px; line-height: 1; }
   body.mapmode .pill span { font-size: 0; line-height: 0; }
   body.mapmode .pill span::after { content: attr(data-s); font-size: 12px; line-height: 1; }
@@ -788,9 +788,9 @@ svg.lgc { flex: none; width: 40px; height: 27px; margin-right: 6px; }
 /* zoom buttons, in the corner by the front walk */
 .mzoom { display: none; }
 body.mapmode.ingame .mzoom { position: fixed; z-index: 26; right: calc(var(--railR, 0px) + 7px); bottom: calc(var(--dockH, 0px) + 7px + env(safe-area-inset-bottom)); display: flex; flex-direction: row-reverse; gap: 5px; }
-.mzoom button { position: relative; width: 40px; height: 40px; padding: 0; border: 1.5px solid rgba(27, 34, 48, .55); border-radius: 50%; background: rgba(255, 255, 255, .9); color: var(--ink); font: 700 21px/1 var(--ui); box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
+.mzoom button { position: relative; width: 44px; height: 44px; padding: 0; border: 1.5px solid rgba(27, 34, 48, .55); border-radius: 50%; background: rgba(255, 255, 255, .9); color: var(--ink); font: 700 21px/1 var(--ui); box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
 .mzoom button::after { content: ''; position: absolute; inset: -5px -3px; }   /* a finger does not have to hit the circle exactly */
-@media (max-height: 520px) { .mzoom button { width: 40px; height: 40px; font-size: 20px; } }
+@media (max-height: 520px) { .mzoom button { width: 44px; height: 44px; font-size: 20px; } }
 /* in Orientation, toasts keep clear of the preceptor's card */
 
 /* the menu on a phone held sideways: the title on the left, the shifts on the right */
