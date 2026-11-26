@@ -465,7 +465,7 @@ function roomNeeds(p, r, G) { const n = nextStep(p, r, G); return /n-act|n-bad|n
 function renderZoneBar(G) {
   const act = E.active();
   const wall = act.filter(p => p.loc === 'wall').length, wait = act.filter(p => p.loc === 'waiting' || p.loc === 'triage').length;
-  let h = `<button type="button" class="zc${wall ? ' warn' : ''}" data-act="jump" data-arg="intake">EMS ${wall}</button><button type="button" class="zc${wait > 6 ? ' warn' : ''}" data-act="jump" data-arg="intake">Wait ${wait}</button>`;
+  let h = `<button type="button" class="zc${wall ? ' warn' : ''}" data-act="jump" data-arg="intake">EMS ${wall}</button><button type="button" class="zc${wait > 6 ? ' warn' : ''}" data-act="jump" data-arg="intake" aria-label="${wait} in the waiting room">Lobby ${wait}</button>`;   // R4-05: says what it counts
   for (const z of E.ZONES) {
     const ns = E.zoneNurses(z.id), load = E.zoneLoad(z.id, hasHold()), cap = ns.length * 4, n = E.zonePts(z.id);
     const st = !ns.length ? (n ? 'none' : 'empty') : load > cap ? 'over' : 'ok';
@@ -521,7 +521,7 @@ function renderLanes(G) {
   const ei = $('#emsInfo'); setH(ei, `${wall.length ? `${wall.length} on the wall${rep ? ` · ${rep} waiting to give report` : ''} · longest ${fm(mw)}` : 'Clear'}${G.enroute.length ? ` · ${G.enroute.length} inbound` : ''}`); setC(ei, 'lane-i' + (mw > 30 ? ' bad' : ''));
   const tri = E.zoneNurses('triage').length, pit = G.staff.find(s => s.pit && E.present(s));
   const quiet = waiting.some(p => G.t - Math.max(p.tTriage != null ? p.tTriage : (p.tArrive || 0), p.lastUpdate != null ? p.lastUpdate : -1e9, G.wrUpdate) >= 60);
-  const wi = $('#waitInfo'); setH(wi, `${waiting.length} waiting · ${G.triageQ.length} at the door${tri ? '' : ' · no triage nurse'}${pit ? ` · ${esc(pit.short)} in triage` : ''}${quiet ? ' · no update in an hour' : ''}`); setC(wi, 'lane-i' + (!tri || quiet ? ' bad' : ''));
+  const wi = $('#waitInfo'); setH(wi, `${waiting.length} in the waiting room · ${G.triageQ.length} at the door${tri ? '' : ' · no triage nurse'}${pit ? ` · ${esc(pit.short)} in triage` : ''}${quiet ? ' · no update in an hour' : ''}`); setC(wi, 'lane-i' + (!tri || quiet ? ' bad' : ''));
 }
 function treatReason(p) {
   const ks = Object.keys(p.treat).filter(k => p.treat[k].st !== 'done');
@@ -1227,7 +1227,7 @@ function zoneSheet(G, z) {
     const sec = (t, list, none) => `<div><h4>${t}</h4><div class="mag-list">${list.map(magB).join('') || `<p class="hint" style="margin:0">${none}</p>`}</div></div>`;
     const wallSec = sec('On the wall', wall, 'No ambulance crews are waiting.'), doorSec = sec('At the door', door, 'Nobody at the door.'), waitSec = sec('Waiting room', wait, 'Nobody is waiting.');
     let h = atWall ? head('The wall', `${plural(wall.length, 'ambulance crew')} waiting to hand over`) + wallSec + doorSec + waitSec
-      : head('Waiting room', `${wait.length} waiting · ${door.length} at the door`) + doorSec + waitSec + (wall.length && U.view === 'map' ? wallSec : '');
+      : head('Waiting room', `${wait.length} in the waiting room · ${door.length} at the door`) + doorSec + waitSec + (wall.length && U.view === 'map' ? wallSec : '');
     if (MD()) return h + '<p class="hint">The charge nurse runs intake. Tap a patient to open their card.</p>';
     const ago = G.t - G.wrUpdate, n = wait.length + door.length;
     h += `<div class="sh-acts"><button type="button" class="hl" data-act="updWait" ${ago < 30 || !n ? 'disabled' : ''}>${!n ? 'Nobody is waiting' : ago < 30 ? `You walked the room ${fm(ago)} ago` : `Walk the waiting room and update ${n} ${n > 1 ? 'people' : 'person'}`}</button></div><p class="hint">An honest update buys patience: people stay about 20 minutes longer before they walk out.</p>`;
@@ -2581,8 +2581,8 @@ function renderMeter(G, list) {
   else { m.style.right = 'auto'; m.style.bottom = 'auto'; m.style.left = (r.left + 8) + 'px'; m.style.top = (r.top + 8) + 'px'; }
   m.style.setProperty('--wm', `hsl(${hue} 72% ${n >= 10 ? 44 : 40}%)`);
   setC(m, 'wmeter' + (n > 10 ? ' crit' : n >= 7 ? ' hot' : ''));
-  const h = `<b>${n}</b><span>${n === 1 ? 'patient' : 'patients'}<br>waiting</span>`; setH(m, h);
-  m.setAttribute('aria-label', `${n} patient${n === 1 ? '' : 's'} waiting. Tap for the list.`);
+  const h = `<b>${n}</b><span>waiting on<br>a next step</span>`; setH(m, h);   // R4-05: not the waiting room; patients whose next step is yours
+  m.setAttribute('aria-label', `${n} patient${n === 1 ? '' : 's'} waiting on a next step. Tap for the list.`);
 }
 function ucSheet(G, s) {   // v0.25: what the unit secretary is doing, and the clerical work waiting
   if (!s) return '';

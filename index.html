@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-hzErZkuOXy26VpeRn05G3gHJXckKLV8i+gjKQ3OtHCE=' 'sha256-lUx/ZCoBTSXhyzcar4S6y8b18+VeSeLJfiwxyaGtbbM=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-hzErZkuOXy26VpeRn05G3gHJXckKLV8i+gjKQ3OtHCE=' 'sha256-Crvyz0xS9ainEiPaXMoMVGbcCxTAy6wAvOF+doqVKOY=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1B2230">
 <meta name="mobile-web-app-capable" content="yes">
@@ -98,6 +98,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .pill b { font: 700 19px/1 var(--ui); font-variant-numeric: tabular-nums; }
 .pill span { max-width: 100%; overflow: hidden; font-size: 12px; letter-spacing: 0; text-overflow: ellipsis; white-space: nowrap; opacity: .75; }
 .pill.good b { color: #86E3A8; } .pill.warn b { color: #F7C55A; } .pill.bad b { color: #FF9191; }
+.pill.bad b::after { content: '!'; margin-left: 1px; }   /* R4-08: a bad score says so without colour */
 .shiftbar { height: 3px; margin: 0 calc(-1 * max(12px, env(safe-area-inset-right))) 0 calc(-1 * max(12px, env(safe-area-inset-left))); background: rgba(255, 255, 255, .12); }
 .shiftbar i { display: block; width: 0; height: 100%; background: #F2C230; }
 
@@ -235,6 +236,8 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .tg.todo { color: var(--ink-2); }
 .tg.run { background: #E6EEFC; color: var(--accent); animation: runpulse 1.4s ease-in-out infinite; }
 .tg.done { border-color: var(--good); background: var(--good); color: #fff; }
+.tg.done::before { content: '✓'; margin-right: 2px; }   /* R4-08: done and needed differ by more than green and red */
+.tg.need::before { content: '!'; margin-right: 2px; }
 .tg.ver { border-color: #A85800; background: #FCEFD2; color: #8A4A00; }
 .tg.lgx { border-color: #A85800; color: #A85800; }
 .tg.lgr { border-color: var(--app); border-style: dashed; color: var(--app); }
@@ -395,6 +398,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .mc-res.ok { color: var(--good); } .mc-res.bad { color: var(--bad); }
 
 .toasts { position: fixed; top: calc(8px + env(safe-area-inset-top)); right: 12px; left: 12px; z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+body.ingame:not(.mapmode) .toasts { top: calc(var(--topH, 60px) + 6px); }   /* R4-04: on the list board, messages sit below the clock, the scores and the Box, never over them */
 .toast { max-width: 520px; padding: 9px 13px; border-radius: 12px; background: var(--ink); color: #fff; font: 600 14.5px/1.3 var(--ui); box-shadow: 0 6px 18px rgba(0, 0, 0, .25); animation: pop .16s ease-out; transition: opacity .3s, transform .3s; }
 .toast.out { opacity: 0; transform: translateY(6px); }
 ol.first { margin: 4px 0 12px; padding-left: 22px; font: 400 15.5px/1.4 var(--body); }
@@ -588,11 +592,11 @@ body.mapmode.rails .dock-prov { flex: 1; flex-direction: column; gap: 5px; min-h
 body.mapmode.rails .pm { flex: 1 1 0; min-width: 0; min-height: 34px; max-height: 60px; padding: 3px 7px; }
 body.mapmode.rails .pm-q { top: 2px; right: 2px; }
 body.mapmode.rails .pm.sel { transform: translateX(-3px); }
-body.mapmode.rails .dock-team { flex: none; width: auto; min-height: 34px; margin: 0; }
+body.mapmode.rails .dock-team { flex: none; width: auto; min-height: 44px; margin: 0; }
 body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(100dvh - var(--topH, 40px)); margin-right: var(--railR, 80px); margin-left: var(--railL, 58px); }
 .rail-l .istaff { flex-direction: column; align-items: stretch; gap: 5px; margin: 0; padding: 0; overflow: visible; }
 .rail-l .ic-l { display: none; }
-.rail-l .ic { min-width: 0; min-height: 40px; padding: 4px 6px; }
+.rail-l .ic { min-width: 0; min-height: 44px; padding: 4px 6px; }
 .rail-l .ic.sel { transform: translateX(3px); }
 .dock .istaff { flex: none; margin: 0 6px 0 0; padding: 6px 0 0; overflow: visible; }
 .dock .istaff .ic-l { display: none; }
@@ -816,7 +820,7 @@ svg.lgc { flex: none; width: 40px; height: 27px; margin-right: 6px; }
 body.mapmode.ingame .mzoom { position: fixed; z-index: 26; right: calc(var(--railR, 0px) + 7px); bottom: calc(var(--dockH, 0px) + 7px + env(safe-area-inset-bottom)); display: flex; flex-direction: row-reverse; gap: 5px; }
 .mzoom button { position: relative; width: 40px; height: 40px; padding: 0; border: 1.5px solid rgba(27, 34, 48, .55); border-radius: 50%; background: rgba(255, 255, 255, .9); color: var(--ink); font: 700 21px/1 var(--ui); box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
 .mzoom button::after { content: ''; position: absolute; inset: -5px -3px; }   /* a finger does not have to hit the circle exactly */
-@media (max-height: 520px) { .mzoom button { width: 38px; height: 38px; font-size: 20px; } }
+@media (max-height: 520px) { .mzoom button { width: 40px; height: 40px; font-size: 20px; } }
 /* in Orientation, toasts keep clear of the preceptor's card */
 
 /* the menu on a phone held sideways: the title on the left, the shifts on the right */
@@ -889,7 +893,7 @@ body.ingame .needbtn.on { border-color: #1E5BC6; background: #1E5BC6; color: #ff
 body.ingame .needbtn.hot { border-color: #C8243A; background: #C8243A; animation: flash 1s ease-in-out infinite; }
 body.training:not(.needon) .needbtn { display: none; }
 body.mapmode.ingame .needbtn { right: auto; left: calc(var(--railL, 0px) + 8px); bottom: calc(var(--dockH, 0px) + 8px + env(safe-area-inset-bottom)); }
-@media (max-height: 520px) { body.mapmode.ingame .needbtn { height: 36px; padding: 0 11px 0 9px; font-size: 13px; } body.mapmode.ingame .needbtn b { font-size: 16px; } }
+@media (max-height: 520px) { body.mapmode.ingame .needbtn { height: 44px; padding: 0 11px 0 9px; font-size: 13px; } body.mapmode.ingame .needbtn b { font-size: 16px; } }
 .needbtn .nb-n { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
 .needbtn .nb-w { max-width: 170px; overflow: hidden; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
 .needbtn .nb-w::before { content: "· "; }
@@ -6760,7 +6764,7 @@ function roomNeeds(p, r, G) { const n = nextStep(p, r, G); return /n-act|n-bad|n
 function renderZoneBar(G) {
   const act = E.active();
   const wall = act.filter(p => p.loc === 'wall').length, wait = act.filter(p => p.loc === 'waiting' || p.loc === 'triage').length;
-  let h = `<button type="button" class="zc${wall ? ' warn' : ''}" data-act="jump" data-arg="intake">EMS ${wall}</button><button type="button" class="zc${wait > 6 ? ' warn' : ''}" data-act="jump" data-arg="intake">Wait ${wait}</button>`;
+  let h = `<button type="button" class="zc${wall ? ' warn' : ''}" data-act="jump" data-arg="intake">EMS ${wall}</button><button type="button" class="zc${wait > 6 ? ' warn' : ''}" data-act="jump" data-arg="intake" aria-label="${wait} in the waiting room">Lobby ${wait}</button>`;   // R4-05: says what it counts
   for (const z of E.ZONES) {
     const ns = E.zoneNurses(z.id), load = E.zoneLoad(z.id, hasHold()), cap = ns.length * 4, n = E.zonePts(z.id);
     const st = !ns.length ? (n ? 'none' : 'empty') : load > cap ? 'over' : 'ok';
@@ -6816,7 +6820,7 @@ function renderLanes(G) {
   const ei = $('#emsInfo'); setH(ei, `${wall.length ? `${wall.length} on the wall${rep ? ` · ${rep} waiting to give report` : ''} · longest ${fm(mw)}` : 'Clear'}${G.enroute.length ? ` · ${G.enroute.length} inbound` : ''}`); setC(ei, 'lane-i' + (mw > 30 ? ' bad' : ''));
   const tri = E.zoneNurses('triage').length, pit = G.staff.find(s => s.pit && E.present(s));
   const quiet = waiting.some(p => G.t - Math.max(p.tTriage != null ? p.tTriage : (p.tArrive || 0), p.lastUpdate != null ? p.lastUpdate : -1e9, G.wrUpdate) >= 60);
-  const wi = $('#waitInfo'); setH(wi, `${waiting.length} waiting · ${G.triageQ.length} at the door${tri ? '' : ' · no triage nurse'}${pit ? ` · ${esc(pit.short)} in triage` : ''}${quiet ? ' · no update in an hour' : ''}`); setC(wi, 'lane-i' + (!tri || quiet ? ' bad' : ''));
+  const wi = $('#waitInfo'); setH(wi, `${waiting.length} in the waiting room · ${G.triageQ.length} at the door${tri ? '' : ' · no triage nurse'}${pit ? ` · ${esc(pit.short)} in triage` : ''}${quiet ? ' · no update in an hour' : ''}`); setC(wi, 'lane-i' + (!tri || quiet ? ' bad' : ''));
 }
 function treatReason(p) {
   const ks = Object.keys(p.treat).filter(k => p.treat[k].st !== 'done');
@@ -7522,7 +7526,7 @@ function zoneSheet(G, z) {
     const sec = (t, list, none) => `<div><h4>${t}</h4><div class="mag-list">${list.map(magB).join('') || `<p class="hint" style="margin:0">${none}</p>`}</div></div>`;
     const wallSec = sec('On the wall', wall, 'No ambulance crews are waiting.'), doorSec = sec('At the door', door, 'Nobody at the door.'), waitSec = sec('Waiting room', wait, 'Nobody is waiting.');
     let h = atWall ? head('The wall', `${plural(wall.length, 'ambulance crew')} waiting to hand over`) + wallSec + doorSec + waitSec
-      : head('Waiting room', `${wait.length} waiting · ${door.length} at the door`) + doorSec + waitSec + (wall.length && U.view === 'map' ? wallSec : '');
+      : head('Waiting room', `${wait.length} in the waiting room · ${door.length} at the door`) + doorSec + waitSec + (wall.length && U.view === 'map' ? wallSec : '');
     if (MD()) return h + '<p class="hint">The charge nurse runs intake. Tap a patient to open their card.</p>';
     const ago = G.t - G.wrUpdate, n = wait.length + door.length;
     h += `<div class="sh-acts"><button type="button" class="hl" data-act="updWait" ${ago < 30 || !n ? 'disabled' : ''}>${!n ? 'Nobody is waiting' : ago < 30 ? `You walked the room ${fm(ago)} ago` : `Walk the waiting room and update ${n} ${n > 1 ? 'people' : 'person'}`}</button></div><p class="hint">An honest update buys patience: people stay about 20 minutes longer before they walk out.</p>`;
@@ -8876,8 +8880,8 @@ function renderMeter(G, list) {
   else { m.style.right = 'auto'; m.style.bottom = 'auto'; m.style.left = (r.left + 8) + 'px'; m.style.top = (r.top + 8) + 'px'; }
   m.style.setProperty('--wm', `hsl(${hue} 72% ${n >= 10 ? 44 : 40}%)`);
   setC(m, 'wmeter' + (n > 10 ? ' crit' : n >= 7 ? ' hot' : ''));
-  const h = `<b>${n}</b><span>${n === 1 ? 'patient' : 'patients'}<br>waiting</span>`; setH(m, h);
-  m.setAttribute('aria-label', `${n} patient${n === 1 ? '' : 's'} waiting. Tap for the list.`);
+  const h = `<b>${n}</b><span>waiting on<br>a next step</span>`; setH(m, h);   // R4-05: not the waiting room; patients whose next step is yours
+  m.setAttribute('aria-label', `${n} patient${n === 1 ? '' : 's'} waiting on a next step. Tap for the list.`);
 }
 function ucSheet(G, s) {   // v0.25: what the unit secretary is doing, and the clerical work waiting
   if (!s) return '';
