@@ -1,5 +1,5 @@
-commit aa308d1908a98b4dca91628fb6a6341892032a73
-date   2026-11-25 23:21 UTC
+commit 0c999dee7d65d43e289932f51491ccbfe7839e80
+date   2026-11-25 23:55 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -14,7 +14,7 @@ No errors.
 === python test/ui_test.py ===
 PASS
 1:report {"care": 1576, "wait": 11, "sat": 57, "stars": 2, "seen": 112, "dc": 36, "adm": 30, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 4, "interp": 18, "pitSeen": 0}
-52:No errors.
+53:No errors.
 ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
@@ -22,11 +22,11 @@ No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 1799, 'stars': 3, 'wait': 25, 'left': 24} {'seen': 40, 'fast': 14, 'ordRight': 111, 'ordExtra': 11, 'ordMiss': 9, 'clean': 24, 'gaps': 2, 'harm': 0, 'untreated': 0, 'dispoRight': 35, 'dispoWrong': 1, 'dxRight': 20, 'wrongDrug': 7, 'log': [{'name': 'Brenda H.', 'dx': 'Septic shock', 'miss': [], 'extra': ['Metronidazole (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Lactate. Oxygen, fluids, antibiotics. A pressor when fluids aren’t enough. ICU.'}, {'name': 'Ivan T.', 'dx': 'Diabetic ketoacidosis', 'miss': [], 'extra': ['Regular insulin 10 units IV (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Labs show the sugar, the acid, and the potassium. Fluids first. Insulin once the potassium is known. ICU.'}, {'name': 'Helen E.', 'dx': 'Spontaneous pneumothorax', 'miss': [], 'extra': ['CT head'], 'fine': [], 'unsafe': [], 'why': 'The chest X-ray shows it. A large one needs a chest tube (or a small catheter) and oxygen.'}, {'name': 'Tyler N.', 'dx': 'Cellulitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Nadia B.', 'dx': 'Hip fracture', 'miss': [], 'extra': ['Ketorolac (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.'}, {'name': 'Jen T.', 'dx': 'Contact dermatitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'No tests. A contact rash gets a steroid cream and an antihistamine.'}, {'name': 'Jen S.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['Lidocaine (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Yara A.', 'dx': 'Ankle sprain', 'miss': [], 'extra': ['Hydromorphone (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Tender on the bone means an X-ray. No fracture: ibuprofen and home.'}, {'name': 'Thi H.', 'dx': 'Status epilepticus', 'miss': [], 'extra': [], 'fine': [], 'unsafe': [], 'why': 'Check the sugar first. Lorazepam IV now, then a second drug (levetiracetam). Then look for the cause.'}, {'name': 'Jim R.', 'dx': 'Pneumonia', 'miss': [], 'extra': [], 'fine': [], 'unsafe': [], 'why': 'Chest X-ray finds it. Labs show how sick. Oxygen for the low level, and antibiotics.'}, {'name': 'Carmen H.', 'dx': 'Cholecystitis', 'miss': [], 'extra': ['Lidocaine (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Ultrasound first, not CT. Labs show infection and the liver. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Earl N.', 'dx': 'Behavioral health emergency', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Labs look for a medical cause. Then Psychiatry.'}, {'name': 'Brenda F.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Meclizine (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}], 'dxWrong': 4, 'dxLog': [{'name': 'Jen S.', 'said': 'Inferior MI', 'dx': 'Cholecystitis', 'must': False}, {'name': 'Yara A.', 'said': 'Achilles tendon rupture', 'dx': 'Ankle sprain', 'must': False}, {'name': 'Mei P.', 'said': 'Scaphoid fracture', 'dx': 'Wrist fracture', 'must': False}, {'name': 'Jamal B.', 'said': 'Pancreatitis', 'dx': 'Gastroenteritis', 'must': False}], 'codeRight': 2, 'died': 1, 'codeLost': 1, 'handed': 0, 'codeLate': 0, 'arrestOpen': 0, 'arrestLeft': 0}
-36:No errors.
+1:report {'care': 1892, 'stars': 3, 'wait': 20, 'left': 19} {'seen': 42, 'fast': 17, 'ordRight': 148, 'ordExtra': 8, 'ordMiss': 4, 'clean': 33, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 37, 'dispoWrong': 2, 'dxRight': 24, 'dxWrong': 8, 'dxLog': [{'name': 'Ivan R.', 'said': 'Gastroenteritis', 'dx': 'Mesenteric ischemia', 'must': True}, {'name': 'Earl D.', 'said': 'Gastroenteritis', 'dx': 'Mesenteric ischemia', 'must': True}, {'name': 'Nora B.', 'said': 'Strep throat', 'dx': 'Ear infection', 'must': False}, {'name': 'Dorothy J.', 'said': 'Tension headache', 'dx': 'Migraine', 'must': False}, {'name': 'Kwame C.', 'said': 'Kidney stone', 'dx': 'Appendicitis', 'must': True}, {'name': 'Joyce P.', 'said': 'Pulmonary embolism', 'dx': 'Heart failure flare', 'must': False}, {'name': 'Owen H.', 'said': 'Mastoiditis', 'dx': 'Ear infection', 'must': False}, {'name': 'Keisha F.', 'said': 'Heart failure flare', 'dx': 'Pneumonia', 'must': False}], 'wrongDrug': 3, 'log': [{'name': 'Wei D.', 'dx': 'Influenza', 'miss': [], 'extra': ['Amoxicillin (wrong drug)', 'CT head'], 'fine': [], 'unsafe': [], 'why': 'A respiratory swab confirms flu. Fever medicine and fluids at home. Mask and an isolation room while they are here.'}, {'name': 'Frank C.', 'dx': 'Hip fracture', 'miss': [], 'extra': ['CT head'], 'fine': [], 'unsafe': [], 'why': 'X-ray shows the break. Labs get the patient ready for surgery; an ECG is reasonable. Pain control, then Orthopedics.'}, {'name': 'Dorothy J.', 'dx': 'Migraine', 'miss': [], 'extra': ['CT head'], 'fine': [], 'unsafe': [], 'why': 'No tests. A usual migraine with a normal nerve exam gets fluids and medication.'}, {'name': 'Priya P.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Meclizine (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Kwame C.', 'dx': 'Appendicitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Labs and a CT find the appendix. Pain control, then General Surgery. Antibiotics are reasonable.'}, {'name': 'Andre F.', 'dx': 'Syncope, low risk', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Every faint gets an ECG. Labs look for anemia or a salt problem. Both normal, with a warning beforehand: home.'}, {'name': 'Lucia E.', 'dx': 'Dehydration', 'miss': [], 'extra': [], 'fine': [], 'unsafe': [], 'why': 'Labs show the kidneys are dry. Fluids fix it.'}, {'name': 'Dorothy R.', 'dx': 'Chest pain, moderate risk', 'miss': ['Medications (aspirin)'], 'extra': ['Furosemide (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'ECG, troponin, and a chest X-ray. Aspirin. The risk factors earn a second troponin in observation.'}], 'died': 0, 'codeLost': 0, 'handed': 0, 'codeLate': 0, 'arrestOpen': 0, 'arrestLeft': 0}
+30:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (average of the four: 88)
+ok   best score kept for the attending (average of the four: 89)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -34,7 +34,7 @@ PASS
 74:No errors.
 68/69 k3
 69/69 end
-taps: 78, game clock: 10:33, care 147, cards read 72, words 1765, longest 48
+taps: 78, game clock: 10:34, care 147, cards read 72, words 1765, longest 48
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -50,7 +50,7 @@ PASS
 74:No errors.
 68/69 k3
 69/69 end
-taps: 79, game clock: 10:31, care 147, cards read 72, words 1764, longest 48
+taps: 79, game clock: 10:26, care 147, cards read 72, words 1764, longest 48
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -58,7 +58,7 @@ PASS
 11:No errors.
  7/8 h6
  8/8 h7
-taps: 11, game clock: 07:41, care 131, cards read 8, words 213, longest 36
+taps: 11, game clock: 07:40, care 131, cards read 8, words 213, longest 36
 No errors.
 
 === MODE=rn python test/finger_test.py ===
@@ -119,7 +119,7 @@ No errors.
 PASS
 16:No errors.
 ok   the bell opens Events, and the arrivals are listed there
-ok   an icon that needs you shakes every couple of seconds (2 now)
+ok   an icon that needs you shakes every couple of seconds (4 now)
 ok   and the others keep still
 No errors.
 
