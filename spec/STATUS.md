@@ -12,7 +12,7 @@
 | 15 QA | Skipped by the owner (Nov 25, 2026) | The owner chose to release without the phone check; testers only, behind the gate. |
 | 16 Drift check | PASS after fixes | Fresh agent found 9 mismatches (0 Critical, 1 High in docs, 3 Medium, 5 Low): all fixed in text or code, none needed a migration. F-039 to F-047. |
 | 17 CTO review | GO WITH CONDITIONS (testers); NO-GO (students) | Memo below. |
-| 18 Publish | In progress | Merged into `main` (`aa308d1`); the first deploy stopped at the forged-header probe (Cloudflare refuses forged headers: a check fix, `85a3d0d` on `3d`). Nothing published yet. |
+| 18 Publish | Done (Nov 26, 2026) | Live behind the gate: `main` at `0c999de`, Deploy run 3 green (live database checks, publish, live-site checks). |
 
 ## CTO memo (Stage 17, Nov 25, 2026, at 04a1c0b)
 
@@ -32,4 +32,4 @@
 
 **Open findings:** none Critical/High open. Accepted risks pending the owner's sign-off: F-034, F-035, F-036.
 
-**Next action:** the owner: conditions 1–4 above, then "release". The owner has said he is not ready to release.
+**Next action:** v0.31.0 is released. Next: v0.32.0 (Phase 3, on `claude/sleepy-rubin-jot35n`).
