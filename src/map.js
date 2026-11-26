@@ -321,7 +321,7 @@ function pathIn(from, at) {
   return [LIFT, [1150, 676], [1150, HALL_Y]].concat(routeTo([1150, HALL_Y], at));
 }
 const pathOut = (from, at) => [at].concat(routeOut(at, from === 'pad' ? 'pad' : from === 'bay' ? 'bay' : 'up'));
-const AMB_LINGER = new Map(), HELI = new Map();
+const AMB_LINGER = new Map();
 /* Walk a figure along a path with WAAPI; its own transform is already where it ends. */
 function walkPath(n, path, then) {
   const segs = []; let len = 0;
@@ -526,6 +526,7 @@ function use3d(G) {
   const el = document.getElementById('map'); if (!el || !OC3D.ok) { ld(false); return false; }
   if (!el.querySelector('canvas.floor3d')) { if (!OC3D.init(el, H3D)) { D3.failed = true; return false; } if (OC3D.quality) OC3D.quality(U.q3d); }
   if (!el.classList.contains('three')) el.classList.add('three');
+  if (OC3D.wake) OC3D.wake();
   const r = OC3D.ready(); ld(!r); return r;
 }
 function load3d() {
@@ -539,7 +540,8 @@ const H3D = {
   RM, icon: k => ICO[k] || ICO.wait, route: (a, b) => routeTo(a, b), routeIn: (to, from) => pathIn(from || 'lift', to).slice(1), routeUp: (at, from) => pathOut(from || 'lift', at).slice(1), entry: from => pathIn(from || 'lift', [600, 349])[0], PAD, speed: () => Math.min(4, U.speed || 1),
   drag: () => { U.mapDrag = performance.now() + 250; },
   live: () => U.scene === 'game' && !U.paused && !U.modal,
-  fail: () => { D3.failed = true; off3d(); },
+  on: () => floor3d() && (U.scene === 'game' || U.scene === 'title'),
+  fail: (err, why) => { D3.failed = true; off3d(); if (why === 'lost') toast('The 3D floor stopped. Showing the flat map; reload to get 3D back.', 'bad'); },
   tap(kind, id, cx, cy, far) {
     let n = null;
     if (kind === 'room') n = document.getElementById('mroom-' + id);

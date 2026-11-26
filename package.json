@@ -11,11 +11,14 @@
     "build3d": "node build3d.js",
     "golden:update": "node test/golden.js --update",
     "db:test": "bash supabase/tests/run.sh",
-    "db:live": "node test/db_live.js"
+    "db:live": "node test/db_live.js",
+    "lint": "node tools/lint.js"
   },
   "devDependencies": {
     "@fontsource/cardo": "^5.3.0",
     "esbuild": "^0.28.2",
+    "eslint": "9.39.5",
+    "globals": "16.5.0",
     "three": "^0.170.0"
   }
 }

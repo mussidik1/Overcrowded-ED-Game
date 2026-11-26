@@ -793,7 +793,7 @@ function pathRows(p, G) {
   else { cv = cs.phone ? `${E.SPECS[cs.spec].doc} accepted by phone` : `${E.SPECS[cs.spec].doc} (${E.SPECS[cs.spec].name}) at the bedside`; cst = 'ok'; }
   if (p.conNote && cs.st === 'none') { cv += `<small class="dxp bad">${esc(p.conNote)}</small>`; }
   rows.push(row('Consult', cv, cst));
-  if (p.con2 && cs.st === 'here') { const c2 = p.consult2, S2 = E.SPECS[p.con2]; rows.push(row('Second consult', !c2 ? 'Needed: a second service' : c2.st === 'req' ? `${E.SPECS[c2.spec].doc} (${E.SPECS[c2.spec].name}) coming in <span data-cd="${c2.due}"></span>` : `${E.SPECS[c2.spec].doc} (${E.SPECS[c2.spec].name}) at the bedside`, !c2 ? 'need' : c2.st === 'here' ? 'ok' : 'idle')); }
+  if (p.con2 && cs.st === 'here') { const c2 = p.consult2; rows.push(row('Second consult', !c2 ? 'Needed: a second service' : c2.st === 'req' ? `${E.SPECS[c2.spec].doc} (${E.SPECS[c2.spec].name}) coming in <span data-cd="${c2.due}"></span>` : `${E.SPECS[c2.spec].doc} (${E.SPECS[c2.spec].name}) at the bedside`, !c2 ? 'need' : c2.st === 'here' ? 'ok' : 'idle')); }
   if (p.screen) rows.unshift(row('Screening', p.screen === 'pending' ? 'Not screened yet: the first person to see them asks about cough, fever, rash and travel' : `Positive: mask on, ${p.iso === 'air' ? 'airborne isolation (Room 8 or 16)' : 'isolation room with a door'}`, p.screen === 'pending' ? 'need' : 'ok'));
   rows.push(row('Plan', dispoText(p), p.dsp === 'none' ? 'idle' : 'ok'));
   return rows.join('');
@@ -979,7 +979,6 @@ function ptSheet(G, p) {
   return h;
 }
 /* ---------- physician mode: see, order, decide ---------- */
-const ORDER_TESTS = [['ecg', 'ECG', 'A tracing of the heart rhythm'], ['lab', 'Labs', 'Blood and urine tests'], ['xr', 'X-ray', 'Bones and lungs'], ['ct', 'CT', 'Detailed pictures inside'], ['us', 'Ultrasound', 'Gallbladder, clots in a leg']];
 const ORDER_TX = [['meds', 'Medications', 'Pain, nausea, pills, the usual drug'], ['fluids', 'IV fluids', 'Salt water into a vein'], ['abx', 'Antibiotics', 'By vein, for a serious infection'], ['o2', 'Oxygen', 'Prongs or a mask, for a low SpO2'], ['nebs', 'Nebulizer', 'A mist that opens the airways'], ['bipap', 'BiPAP', 'A mask that pushes air in'], ['hfnc', 'High-flow oxygen', 'Warm, fast oxygen by nose'], ['intub', 'Intubate', 'A breathing tube and ventilator'],
   ['epi', 'Epinephrine', 'For a severe allergic reaction'], ['nalox', 'Naloxone', 'Reverses an opioid overdose'], ['insulin', 'Insulin drip', 'For DKA: steady insulin by vein'], ['pressor', 'Vasopressor', 'Holds the pressure up'], ['pace', 'Atropine and pacing', 'For a heart that is too slow'], ['cardiovert', 'Synchronized cardioversion', 'A timed shock for a fast heart that is crashing'], ['bp', 'Blood pressure control', 'Brings a high pressure down'], ['tnk', 'Thrombolytic', 'The clot drug: a stroke, or a PE that drops the pressure'], ['reverse', 'Reversal agent', 'Undoes a blood thinner'],
   ['blood', 'Blood transfusion', 'Units of blood, one at a time'], ['mtp', 'Massive transfusion', 'Coolers of blood, right now'], ['repair', 'Laceration repair', 'Stitches. You do them']];
@@ -1021,7 +1020,6 @@ function gapHint(p) { const m = PLAIN() ? E.missNow(p, p.ord === 'more') : []; r
 const lyticHeld = p => !!(p.treat.tnk && p.treat.tnk.st === 'wait' && !p.treat.bp && p.alert === 'stroke' && !E.bpOkForLytic(p));
 /* Tests on the order sheet: the ECG, single labs in their groups, and named studies by kind. */
 const IMG_KINDS = [['xr', 'X-ray'], ['ct', 'CT'], ['mri', 'MRI'], ['us', 'Ultrasound']];
-function testsBlock(chip) { return orderMenus(chip, null); }
 /* v0.28: the order sheet is parent menus. Tap one to open it; Medications opens into drug classes.
    Closed menus keep their chips in the page (hidden), so a lit target can name the menu it lives in. */
 const shuf = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };   // a fair shuffle
@@ -1081,18 +1079,14 @@ const LOOK = {
   ctcs_normal: 'The fronts of the vertebrae line up in a smooth curve, and so do their backs. No step, no crack, and even gaps between the bones.',
   ctap_normal: 'Liver, kidneys, and bowel all where they belong. No free fluid or air, no swollen appendix. (This is one slice, front to back.)',
   mris_normal: 'The spinal cord and nerves sit in a clear, bright channel of fluid. Nothing pushes into it. (The discs at the bottom are a little worn, which is common.)',
-  pelvis_normal: 'An unbroken ring of bone.',
   cthead_normal: 'Gray brain filling the skull evenly. No bright white blood. (This slice is low, at the level of the eyes.)',
   ct_sdh: 'A bright crescent of blood between the skull and the brain, pushing the brain over.',
   cta_normal: 'Bright, unbroken arteries filled with contrast.',
   cta_m1: 'A 3D picture of the arteries, seen from the front (R and L mark the sides). On the left the main artery to the side of the brain stops short at the arrow: the clot. On the right it runs out into its branches.',
-  ctcs_normal: 'Neck bones lined up, edges unbroken.',
   ctpe_normal: 'Lung arteries evenly bright with contrast. No dark clot inside them.',
-  ctap_normal: 'Normal bowel, kidneys, and fat.',
   ct_appy: 'A swollen appendix with hazy, inflamed fat around it.',
   ct_stone: 'A bright white dot in the ureter, the tube from the kidney, with the kidney swollen above it.',
   mrib_normal: 'Even gray brain. No bright spot.',
-  mris_normal: 'A spinal cord with room around it.',
   fast_positive: 'A black stripe between the liver and the kidney. Black on ultrasound is fluid: here, blood.',
   fast_negative: 'Liver and kidney touching, with no black stripe between them.',
   us_gallstones: 'Bright stones inside the gallbladder, dark shadows behind them, and a thick wall.',
@@ -1912,7 +1906,8 @@ const LESSONS = {
     { id: 'k7', wait: true, title: 'Two clocks', text: `**Door to CT: 25 minutes.**\n**Door to needle: 60 minutes.**\nThe drug goes in once CT shows no bleed, neurology agrees, and BP is under 185/110.`,
       done: () => { const p = LP(); return !!(p.treat.tnk && p.treat.tnk.st === 'done') || p.loc === 'gone'; } },
     { id: 'k8', wait: true, title: 'After the drug', text: `Neurology admits her to the **ICU** to watch for bleeding.`, done: lLeft },
-    { id: 'k9', final: true, title: 'Stroke: the short version', text: `**Looks like**: sudden face droop, weak arm or leg, slurred speech.\n**Order**: CT, labs, thrombolytic. BP control if over 185/110.\n**Clock**: CT in 25, drug in 60.\n**Charge nurse**: room her now, keep CT free.` },
+    { id: 'k8b', next: true, title: 'Not every stroke gets it', text: `**No clot drug** if they:\n• arrived **over 4½ hours** after last known well,\n• **woke up** with it (onset unknown counts as too late),\n• take a **blood thinner** like apixaban (check **Home meds**).\nThen there is no door-to-needle clock. **Let the pressure run** up to **220/120**, unless a large-vessel stroke goes for **clot removal**.` },
+    { id: 'k9', final: true, title: 'Stroke: the short version', text: `**Looks like**: sudden face droop, weak arm or leg, slurred speech.\n**Order**: CT, labs, thrombolytic. BP control if over 185/110.\n**No drug** if late, woke up with it, or on a blood thinner: pressure up to 220/120 is fine.\n**Clock**: CT in 25, drug in 60.\n**Charge nurse**: room her now, keep CT free.` },
   ] },
   arrest: { name: 'Cardiac arrest', sys: 'cardio', blurb: 'Shockable or not. Epinephrine, amiodarone, the H’s and T’s. Children and injuries.', steps: [
     { id: 'ca0', next: true, title: 'No pulse', text: `**Cardiac arrest**: the heart has stopped pumping. No pulse, not breathing.\nThe team starts **CPR** at once: push **hard** (2 inches, 5 cm) and **fast** (100 to 120 a minute), let the chest **come back up**, keep **pauses under 10 seconds**, and swap compressors **every 2 minutes**. The attending **runs the code**.` },
@@ -2147,7 +2142,7 @@ function cbDraw(c) {   // a new code for this setup, never one this device alrea
 function cbRegister(code, key, tries) {
   const seq = U.regSeq = (U.regSeq || 0) + 1, shown = U.codeMade === code, old = cbKeys()[code], t = (old && old.t) || Date.now();
   U.reg = { code, key, st: 'saving' };
-  const saved = cbKeySave(code, { k: key, t, p: 1, s: shown ? 1 : 0 });
+  cbKeySave(code, { k: key, t, p: 1, s: shown ? 1 : 0 });
   const why = e => (e === 'busy' ? CB_BUSY + ' Or turn off Wi-Fi and tap Try again on mobile data (another network): same code, same key.' : e === 'full' ? CB_FULL : e === 'invalid' ? 'The server turned this code down. Tap a shift to make another.' : 'The server didn’t say why.');
   cbRpc('cb_class_new', { p_code: code, p_key: key, p_ver: GAME_V }).then(r => {
     if (seq !== U.regSeq) return;   // forgotten, or another code made, since
@@ -2319,7 +2314,13 @@ function lessonsHTML() {
     + LESSON_SYS.filter(([sy]) => LESSON_KEYS.some(k => LESSONS[k].sys === sy)).map(([sy, nm]) => `<div class="o-sec lsn-sys">${esc(nm)}</div><div class="cgrid lsn">${LESSON_KEYS.filter(k => LESSONS[k].sys === sy).map(k => `<button type="button" class="cbtn" data-act="lesson" data-arg="${k}"><b>${esc(LESSONS[k].name)}${lessonDone(k) ? ' <i class="lsn-ok">✓</i>' : ''}</b><small>${esc(LESSONS[k].blurb)}</small></button>`).join('')}</div>`).join('');
 }
 const STEPS_NOW = () => { const k = lessonKey(); return k ? LESSONS[k].steps : (g() && g().mode === 'md' ? STEPS_MD : STEPS); };
-function coachSafe(fn) { try { return !!fn(); } catch (e) { return false; } }
+// R1-04: a broken tutorial step is no longer silent. Each distinct error is logged once (window.__coachErrs, read by the tests).
+const COACH_ERRS = (window.__coachErrs = window.__coachErrs || []);
+function coachErr(e, where) {
+  const m = `${where} ${(TR() && coachStep() && coachStep().id) || '?'}: ${(e && e.message) || e}`;
+  if (!COACH_ERRS.includes(m) && COACH_ERRS.length < 50) { COACH_ERRS.push(m); try { console.warn('Tutorial step error:', m); } catch (x) { /* no console */ } }
+}
+function coachSafe(fn) { try { return !!fn(); } catch (e) { coachErr(e, 'done'); return false; } }
 function coachStep() { const t = TR(), L = STEPS_NOW(); return t ? L[Math.min(t.step, L.length - 1)] : null; }
 function coachWaitDone() { const s = coachStep(); return !!(s && s.wait && coachSafe(s.done)); }
 function coachAdvance() {
@@ -2335,7 +2336,7 @@ function coachRun() {
   if (t.brk != null) { U.hold = true; U.ff = 0; return; }   // between chapters nothing moves, and the next patient has not arrived
   for (let guard = 0; guard < 6; guard++) {
     const s = STEPS_NOW()[t.step];
-    if (s.setup && !t.setup[s.id]) { t.setup[s.id] = 1; let ids = null; try { ids = s.setup(); } catch (e) { ids = null; } if (ids) Object.assign(t.ids, ids); }
+    if (s.setup && !t.setup[s.id]) { t.setup[s.id] = 1; let ids = null; try { ids = s.setup(); } catch (e) { coachErr(e, 'setup'); ids = null; } if (ids) Object.assign(t.ids, ids); }
     const stuck = s.wait && g().t - t.t0 > 150;   // a safety valve: never fast-forward forever
     if (U.coachSeen !== t.step) { U.coachSeen = t.step; U.coachAt = performance.now(); }
     if ((s.done && coachSafe(s.done)) || stuck) {
@@ -2352,7 +2353,7 @@ function coachRun() {
   U.hold = !s.wait || held; U.ff = s.wait && !held ? 18 : 0;
 }
 function coachReadMs(s) {   // about a quarter second a word, between 3.5 and 11 seconds
-  let text = ''; try { text = typeof s.text === 'function' ? s.text() : s.text; } catch (e) { text = ''; }
+  let text = ''; try { text = typeof s.text === 'function' ? s.text() : s.text; } catch (e) { coachErr(e, 'text'); text = ''; }
   return Math.max(3500, Math.min(11000, plainText(text).split(/\s+/).length * 260));
 }
 function coachSkip() {
@@ -2362,7 +2363,7 @@ function coachSkip() {
     coachAdvance();   // they asked to skip: no holding the card for reading time
     return;
   }
-  if (s.auto) { try { s.auto(); } catch (e) { /* fall through */ } }
+  if (s.auto) { try { s.auto(); } catch (e) { coachErr(e, 'auto'); } }
   if (!(s.done && coachSafe(s.done))) coachAdvance();
 }
 function coachHTML(where) {
@@ -2373,7 +2374,7 @@ function coachHTML(where) {
     return `<div class="coach-c ${where}"><div class="ck">Preceptor · chapter ${C.k} of ${C.count} done</div><h4>${esc(prev.name)}: done</h4><p>${fmt(first ? (chMode() === 'md' ? `You can now **see, treat, and discharge** a simple patient.\nTry a **Quiet Tuesday**, or **keep going**: ${C.name}, ${C.n} steps.` : `You can now **room, treat, and discharge** a walk-in.\nTry a **Quiet Tuesday** (tap **Next** when unsure), or **keep going**: ${C.name}, ${C.n} steps.`) : `Next: **${C.name}**, ${C.n} steps.\n**Keep going**, play a **Quiet Tuesday**, or **Menu**. Your place is kept.`)}</p><div class="cb"><button type="button" class="skip" data-act="coachExit">Menu</button><button type="button"${first ? ' class="go"' : ''} data-act="coachEasy">Play Quiet Tuesday</button><button type="button"${first ? '' : ' class="go"'} data-act="coachNext">Keep going</button></div></div>`;
   }
   const title = typeof s.title === 'function' ? s.title() : s.title;
-  let text = ''; try { text = typeof s.text === 'function' ? s.text() : s.text; } catch (e) { text = ''; }
+  let text = ''; try { text = typeof s.text === 'function' ? s.text() : s.text; } catch (e) { coachErr(e, 'text'); text = ''; }
   const W = '<button type="button" class="skip" data-act="words">Words</button>';
   const lk = lessonKey(), nextL = lk ? LESSON_KEYS[LESSON_KEYS.indexOf(lk) + 1] : null;
   const btns = s.final && lk ? W + `<button type="button" ${nextL ? '' : 'class="go" '}data-act="coachDone">Menu</button>${nextL ? `<button type="button" class="go" data-act="lessonNext">Next: ${esc(LESSONS[nextL].name)}</button>` : ''}`
@@ -2397,7 +2398,7 @@ function renderCoach() {
   for (const x of document.querySelectorAll('.coach-spot')) x.classList.remove('coach-spot');
   const s = t && t.brk == null ? coachStep() : null;
   if (!s || !s.spot) { if (U.view === 'map') mapSpot([]); el.classList.remove('ctop'); return; }
-  let sels = []; try { sels = s.spot().filter(Boolean); } catch (e) { sels = []; }
+  let sels = []; try { sels = s.spot().filter(Boolean); } catch (e) { coachErr(e, 'spot'); sels = []; }
   const els = [];
   for (const q of sels) for (const x of document.querySelectorAll(q)) if (x.getClientRects().length && (x.offsetParent !== null || getComputedStyle(x).position === 'fixed')) els.push(x);   // on screen, not merely in the page
   for (const x of els) x.classList.add('coach-spot');
@@ -2429,7 +2430,7 @@ function mapAct(el, cx, cy) {
   if (!el || el.disabled) return;
   ensureAudio();
   const fn = ACT[el.dataset.act];
-  if (fn) { fn(el.dataset.arg, el); render(); }
+  if (fn) { try { fn(el.dataset.arg, el); render(); } catch (e) { if (U.scene === 'game') crash(e, 'tap ' + el.dataset.act); else throw e; } }
 }
 
 /* On the floor plan the preceptor's card keeps off what it points at: the far side first, then the other end of the screen. */
@@ -2948,10 +2949,25 @@ function save(force) {
   const now = Date.now();
   if (!force && now - U.lastSave < 15000) return;
   U.lastSave = now;
-  try { localStorage.setItem('oc-save', JSON.stringify({ G, lvl: U.lvl, pack: G.pack, at: now, ver: GAME_V })); } catch (e) { /* storage full or blocked */ }
+  let txt;
+  try { txt = JSON.stringify({ G, lvl: U.lvl, pack: G.pack, at: now, ver: GAME_V }); } catch (e) { return; }
+  if (txt.length > SAVE_MAX) { if (!U.saveBig) { U.saveBig = true; toast('This shift is too big to save on this device. Finish it here.', 'bad'); } return; }   // R3-18: a hard ceiling (a full shift is about 0.3 MB)
+  try { localStorage.setItem('oc-save', txt); } catch (e) { /* storage full or blocked */ }
+}
+// R1-07 / R3-09: a save is checked before it is offered or loaded, so a broken or foreign save can't trap the player on the menu or
+// freeze the game on Resume. MIGRATE[v] turns an older save format into v + 1; none exists yet (every save since v0.20 is format 5).
+const SAVE_MAX = 3e6, SAVE_V = 5, MIGRATE = {};
+function saveShape(G) {
+  return !!(G && typeof G === 'object' && G.v === SAVE_V && typeof G.t === 'number' && isFinite(G.t) && G.pts && typeof G.pts === 'object' && !Array.isArray(G.pts)
+    && Array.isArray(G.order) && Array.isArray(G.rooms) && Array.isArray(G.staff) && G.stats && typeof G.stats === 'object' && G.rng != null && E.LEVELS[G.level]);
+}
+function migrateSave(d) {
+  if (!d || !d.G) return null;
+  for (let n = 0; d.G.v !== SAVE_V && MIGRATE[d.G.v] && n < 10; n++) d.G = MIGRATE[d.G.v](d.G);
+  return saveShape(d.G) ? d : null;
 }
 // v0.29.1: saves carry the version. A class shift saved on another version is not resumed: it would no longer be the class's shift.
-function readSave() { try { const s = localStorage.getItem('oc-save'); if (!s) return null; const d = JSON.parse(s); return d && d.G && d.G.v === 5 && !d.G.over && !(d.G.code && d.ver !== GAME_V) ? d : null; } catch (e) { return null; } }
+function readSave() { try { const s = localStorage.getItem('oc-save'); if (!s) return null; const d = migrateSave(JSON.parse(s)); return d && !d.G.over && !(d.G.code && d.ver !== GAME_V) ? d : null; } catch (e) { return null; } }
 // Round 3 (R3.3-03): a class shift saved on another version can't resume (the shift would change). The main menu says so, in full, until
 // the player taps Got it (a toast was cut off on a phone and gone in 3 seconds).
 function staleClassSave() {
@@ -2963,9 +2979,14 @@ function staleClassHTML() {
 }
 function resumeSave() {
   const d = readSave(); if (!d) { toast('No saved shift on this device', 'bad'); return; }
-  E.load(d.G); U.lvl = d.lvl; U.mode = d.G.mode || 'rn'; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = true; U.speed = 1; U.msgs = []; U.msgNew = 0;
-  $('#title').hidden = true; $('#report').hidden = true;
-  render();
+  try {
+    E.load(d.G); U.lvl = d.lvl; U.mode = d.G.mode || 'rn'; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = true; U.speed = 1; U.msgs = []; U.msgNew = 0;
+    $('#title').hidden = true; $('#report').hidden = true;
+    render();
+  } catch (e) {   // a save that loads but can't be drawn: drop it rather than fail again on every Resume
+    try { console.error('Saved shift could not be opened:', e); } catch (x) { /* no console */ }
+    store('oc-save', null); U.scene = 'title'; showTitle(); toast('That saved shift couldn’t be opened, so it was removed. Start a new one.', 'bad');
+  }
 }
 
 /* ---------- scenes ---------- */
@@ -3008,7 +3029,7 @@ function clearToasts() { const b = $('#toasts'); if (b) b.innerHTML = ''; TQ.len
 /* ---------- the first-visit page (v0.22): what this is, who it's for, privacy, credits. Later it's About on the menu. ---------- */
 function aboutHTML(head) {
   const first = !head;
-  const imgs = Object.entries(IMG_CREDIT).map(([k, c]) => `<li>${c.f ? `<i>${esc(c.f.replace(/\.(jpe?g|png)$/i, ""))}</i>. ` : ""}${esc(c.t)}${c.u ? ` <a href="${esc(c.u)}" target="_blank" rel="noopener">source</a>` : ''}</li>`).join('');
+  const imgs = Object.entries(IMG_CREDIT).map(([k, c]) => `<li>${c.f ? `<i>${esc(c.f.replace(/\.(jpe?g|png)$/i, ""))}</i>. ` : ""}${esc(c.t)}${c.u ? ` <a href="${esc(c.u)}" target="_blank" rel="noopener">source</a>` : ''}${c.l ? ` <a href="${esc(c.l)}" target="_blank" rel="noopener">licence</a>` : ''}</li>`).join('');
   return `<div class="card t-sub-menu t-about">${head || '<div class="t-kicker">Emergency Department</div><h1 class="t-brand">Code Black</h1>'}`
     + `<p class="ab-lead">Run a busy ER for one twelve-hour shift.</p>`
     + `<p>Be the <b>charge nurse</b>: beds, staff, ambulances, the radio. Or the <b>attending</b>: see patients, order tests, make the call.</p>`
@@ -3024,7 +3045,7 @@ function aboutHTML(head) {
     + `<p><b>Who sees it:</b> in the game, only the instructor who made the code, with its instructor key. The game’s developer runs the database (on Supabase, in the US) and can see it too. It’s used only to show the instructor the class’s results; copies the instructor makes are theirs.</p>`
     + `<p><b>How long:</b> deleted when the class ends: 30 days after the code was made, or, for a code first used more than 14 days after it was made, 30 days after that first result. Either way, within 30 days of the class’s first result. <b>Sooner:</b> ask your instructor, who can delete any result${CB.contact ? `, or write to ${esc(CB.contact)}` : ''}.</p>`
     + `<p><b>Network addresses.</b> To stop floods of fake results, the database counts requests per network for up to two days, by a keyed hash that changes every day, never the address itself. Supabase’s own request logs also see the address, for the time its plan sets (a day on its free plan). The website itself is hosted on GitHub Pages, which, like any web host, logs the address of every visit.${gatedHost() ? ' On this private test site, opening the game checks the test password with the same database.' : ''}</p>`
-    + `<details class="ab-cred"><summary>Credits</summary><p>3D people and animations from <a href="https://github.com/scottpetrovic/mesh2motion-app" target="_blank" rel="noopener">mesh2motion</a> (CC0). Furniture and cars from <a href="https://github.com/KayKit-Game-Assets" target="_blank" rel="noopener">KayKit</a> by Kay Lousberg (CC0). The rooms and the department were built in Blender for this game. Drawn with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> (MIT). Set in Cardo by David Perry (SIL Open Font License).</p><p>Medical images:</p><ul>${imgs}</ul></details>`
+    + `<details class="ab-cred"><summary>Credits</summary><p>3D people and animations from <a href="https://github.com/scottpetrovic/mesh2motion-app" target="_blank" rel="noopener">mesh2motion</a> (CC0). The rooms, furniture, ambulances and the department were built in Blender for this game. Drawn with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> (MIT) and meshoptimizer by Arseny Kapoulkine (MIT). Set in Cardo by David Perry (SIL Open Font License 1.1). Their notices are in <a href="THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener">THIRD_PARTY_NOTICES.txt</a>. Medical images are resized and saved as JPEG (two are cropped); a CC BY-SA picture stays under that licence.</p><p>Medical images:</p><ul>${imgs}</ul></details>`
     + `<div class="levels"><button type="button" class="big act ab-go" data-act="aboutDone">${first ? 'Start' : 'Back to the menu'}</button></div></div>`;
 }
 function showTitle() {
@@ -3139,11 +3160,6 @@ function scoreCardsHTML(R, led, LED) {
   return `<div class="scards">${card('Patients', R.sc.patients, `<small>${R.lwbs ? `${R.lwbs} left without being seen` : 'How they felt about the visit'}</small>`)}${card('Clinical', R.sc.clinical, why('clinical'))}${card('Admin', R.sc.admin, why('admin'))}${card('Staff', R.sc.staff, `<small>${R.fail === 'walkout' ? 'They walked out' : 'Average morale'}</small>`)}</div>`;
 }
 /* What each star takes, and how far the next one is. */
-function starLine(R) {
-  const s = ((R.mode === 'md' ? E.STARS_MD : E.STARS) || {})[R.level]; if (!s || R.fail) return '';
-  const f = n => Number(n).toLocaleString('en-US'), nx = s.find(v => R.care < v);
-  return `<p class="star-key">★ ${f(s[0])} · ★★ ${f(s[1])} · ★★★ ${f(s[2])} points. ${nx == null ? 'You cleared all three.' : `<b>${f(nx - R.care)} more</b> for the next star.`}</p>`;
-}
 /* Orders the attending missed or did not need, patient by patient, with the reason. */
 function ordLogHTML(m) {
   const all = (m.log || []).filter(x => x && (x.miss.length || x.extra.length || (x.unsafe || []).length)); if (!all.length) return '';
@@ -3199,7 +3215,32 @@ function showLastReport() {
 
 /* ---------- loop ---------- */
 let last = 0, lastR = 0, demoAcc = 0;
+/* R1-04 / R3-04: one error used to freeze the shift for good, with no message. Now the loop stops cleanly, keeps the last good save (it
+   doesn't save the state the error left half-done), and says so, with Reload, Copy details, and a way out if the save itself is broken. */
+let crashed = null;
+function crash(e, where) {
+  if (crashed) return;
+  crashed = { where, msg: String((e && e.message) || e).slice(0, 300), stack: String((e && e.stack) || '').split('\n').slice(0, 6).join('\n'), v: GAME_V, t: g() ? Math.round(g().t * 10) / 10 : null };
+  try { console.error('Code Black stopped:', e); } catch (x) { /* no console */ }
+  const saved = !!readSave();
+  const d = document.createElement('div');
+  d.id = 'crash'; d.className = 'modal-wrap'; d.setAttribute('role', 'alertdialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'crashH');
+  d.innerHTML = `<div class="modal"><h3 id="crashH" tabindex="-1">Something went wrong</h3><p>${saved ? 'The game stopped. <b>Your shift is saved</b> up to the last few seconds. Reload to pick it up.' : 'The game stopped. Reload to start again.'}</p>`
+    + `<div class="crash-btns"><button type="button" class="big act" id="crashReload">Reload</button><button type="button" class="big" id="crashCopy">Copy details</button>${saved ? '<button type="button" class="big" id="crashDrop">Start over without the save</button>' : ''}</div>`
+    + `<p class="crash-note">If it happens again, Copy details and send them with the class code or level you were playing.</p></div>`;
+  document.body.appendChild(d);
+  const det = () => `Code Black v${crashed.v}, ${crashed.where}, game minute ${crashed.t}: ${crashed.msg}\n${crashed.stack}`;
+  $('#crashReload').addEventListener('click', () => location.reload());
+  $('#crashCopy').addEventListener('click', () => { const b = $('#crashCopy'); try { navigator.clipboard.writeText(det()).then(() => { b.textContent = 'Copied'; }, () => { b.textContent = 'Couldn’t copy'; }); } catch (x) { b.textContent = 'Couldn’t copy'; } });
+  const dr = $('#crashDrop'); if (dr) dr.addEventListener('click', () => { store('oc-save', null); location.reload(); });
+  try { $('#crashH').focus(); } catch (x) { /* focus is a nicety */ }
+}
 function frame(now) {
+  if (crashed) return;
+  try { frameBody(now); } catch (e) { crash(e, 'frame'); return; }
+  requestAnimationFrame(frame);
+}
+function frameBody(now) {
   const dt = Math.min(0.25, Math.max(0, (now - (last || now)) / 1000)); last = now;
   const G = g();
   if (G && U.scene === 'game' && !isPaused() && !G.over && !U.hold && !(U.freeze && !U.ff)) {   // U.freeze: test harness, turn-based play
@@ -3214,7 +3255,6 @@ function frame(now) {
   if (G && U.scene === 'game' && G.over) showReport();
   if (G && U.scene === 'game') ambient(G, now);
   if (now - lastR > 110) { lastR = now; render(); }
-  requestAnimationFrame(frame);
 }
 function bind() {
   document.addEventListener('click', e => {
@@ -3333,7 +3373,7 @@ function boot2(data) {
   }
   buildBoard(); bind();
   for (const [id, txt] of [['laneEms', 'No ambulances waiting'], ['laneWait', 'Waiting room is empty']]) $('#' + id).dataset.empty = txt;
-  if (data.G && data.G.v === 5 && data.G.running && !data.G.over) {
+  if (data.G && saveShape(data.G) && data.G.running && !data.G.over) {
     E.load(data.G); U.scene = 'game'; U.mode = data.G.mode || 'rn'; U.lvl = data.lvl || data.G.level; U.speed = data.speed || 1; U.paused = true;
     $('#title').hidden = true;
     render();
@@ -3344,5 +3384,5 @@ function boot2(data) {
 /*MAP*/
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-window.OCUI = { U, render, cbClean, verdictOf, start, omOf: k => omOf(k), showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
+window.OCUI = { U, render, save: f => save(f), cbClean, verdictOf, start, omOf: k => omOf(k), showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
 })();

@@ -3263,7 +3263,6 @@ function checkDispo(p) {
   setDispo(p);
 }
 function setDispo(p) {
-  const L = LEVELS[G.level];
   if (p.dispo === 'home') {
     const w = !G.train && !p.ret && (CASES.find(c => c.k === p.ck) || {}).watch;
     if (w && !p.watched) { p.dsp = 'watch'; p.due = G.t + w; p.watchFor = w; p.watched = true; note(`${label(p)} is treated. Watch until ${clock(p.due)} before they go home.`); }
@@ -4976,7 +4975,7 @@ const OC = {
   startOutage, sickEnough, looksSick, classCode, readCode, setCodeVersion, grayDispo, fullCapacity, updatePt, updateWaiting, recheck, vEsi, regQuick, isBoarder, holds, holdNurses, ratioCap, activeResus,
   metrics, staffHours, median, crowdWhy, BOARD_ST, holdLoad, trainPatient, trainConsult, trainOutage, vitalsOf, SCENS,
   lintCases, HCG_CASES, hcgDue, CONTRA_IF, REQ_AGE, NEVER_WRONG, SAME_CLASS_OK, sameClassAlt, signOrders, mdDecide, mdPlay, mdMine, rxName, DISPO_NAME, DRUGS, DRUG_CLASS, RXOK, RXREQ, ALSO, BLEED_RISK, contraOf, drugFor, drugsFor, reqLeft, rxOk, ORDER_MENUS, PROC, DDX, MUST, dxPick, dxName, DXQ, NODX, accuracy, litAdd, LIT_STEPS,
-  LESSON_CASE, CONTRA, contraWhy, WORKUP, workupOk, strokeSetup, ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, lyticWindowOk, ARREST_NO_TEAM, CODE_Q, CODE_CAUSE, codeSteps, codeRhythm, codeCause, kgOf, lintCode, CODE_AI_Q, codeOdds, codeFill, monthsOf, CODE_CAUSE, CODE_WHY, CAUSE_OF, afOnset, contraWhy, CONTRA_WHY, staffGone, CODE_GAP, CODE_BASE, toArrest, harmCheck, inStream, CRASH, needsTx, strokeSetup, DX_PLAIN,
+  LESSON_CASE, CONTRA, contraWhy, WORKUP, workupOk, strokeSetup, ageSex, npo, bpOkForLytic, LYTIC_BP, LYTIC_WINDOW, lyticWindowOk, ARREST_NO_TEAM, CODE_Q, CODE_CAUSE, codeSteps, codeRhythm, codeCause, kgOf, lintCode, CODE_AI_Q, codeOdds, codeFill, monthsOf, CODE_WHY, CAUSE_OF, afOnset, CONTRA_WHY, staffGone, CODE_GAP, CODE_BASE, toArrest, harmCheck, inStream, CRASH, needsTx, DX_PLAIN,
   crashNow(id) { const p = pt(id); if (p && !p.crash) crash(p); return p; }, fireEvent(k) { if (EV[k] && EV[k].fire) fireEv(k); }, eventKeys: () => Object.keys(EV), eventReady: k => !!(EV[k] && EV[k].fire && EV[k].w && EV[k].w() > 0),
   trainCard() { if (G.card || !G.train) return false; EV.trainpick.fire(); return true; },
 };

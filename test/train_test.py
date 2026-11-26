@@ -136,6 +136,8 @@ with sync_playwright() as pw:
         if rings3d < 10: errors.append(f'only {rings3d} floor targets were ringed in 3D')
         print('3D rings shown:', rings3d)
     if J('OCUI.U.msgNew'): errors.append('Orientation filed a message under the bell: every message should show')
+    ce = J('window.__coachErrs || []')
+    if ce: errors.append('tutorial step errors (Phase 4, R1-04): ' + '; '.join(ce[:5]))
     if words and max(words) > 70: errors.append(f'a preceptor card runs {max(words)} words: over 70')
     b.close()
 print('ERRORS:' if errors else 'No errors.')

@@ -258,7 +258,9 @@ VIEW=list python3 test/train_test.py # either Orientation on the list board
 
 ## Credits
 
-3D people and animations from [mesh2motion](https://github.com/scottpetrovic/mesh2motion-app) (CC0, per that repository). Furniture and cars from [KayKit](https://github.com/KayKit-Game-Assets) by Kay Lousberg (CC0). The ED rooms, stretchers, scrubs, and department are original, built in Blender. Rendered with [three.js](https://threejs.org) (MIT). The imaging pictures are from Wikimedia Commons; each author and licence is listed in [img/CREDITS.md](img/CREDITS.md) and shown in the game.
+3D people and animations from [mesh2motion](https://github.com/scottpetrovic/mesh2motion-app) (CC0, per that repository). The ED rooms, furniture, ambulances, stretchers, scrubs, and department are original, built in Blender. Rendered with [three.js](https://threejs.org) (MIT), with meshoptimizer by Arseny Kapoulkine (MIT). The imaging pictures are from Wikimedia Commons and one from PubMed Central (via Open-i); each author, licence and the changes made are listed in [img/CREDITS.md](img/CREDITS.md) and shown in the game. Third-party licence texts are in [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
+
+**License:** Copyright (c) 2025-2026 the owner of this repository (GitHub: mussidik1). All rights reserved: you may read the code and play the game, but not copy or reuse it without permission. See [LICENSE](LICENSE).
 
 
 Set in [Cardo](https://fonts.google.com/specimen/Cardo) by David Perry (SIL Open Font License 1.1), via Fontsource.

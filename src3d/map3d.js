@@ -15,7 +15,6 @@ const B2T = (x, y, z = 0) => new THREE.Vector3(x, z, -y);   // Blender (Z up) to
 const X = u => (u - 700) * 0.04;
 const YK = [[0, 14.8], [44, 13.6], [244, 4.7], [404, -3.5], [446, -3.5], [642, -12.4], [652, -12.7], [712, -15.6]];
 const Y = v => { if (v <= YK[0][0]) return YK[0][1]; for (let i = 1; i < YK.length; i++) { const [a, ya] = YK[i - 1], [b, yb] = YK[i]; if (v <= b) return ya + (yb - ya) * (v - a) / (b - a); } return YK[YK.length - 1][1]; };
-const VINV = y => { for (let i = 1; i < YK.length; i++) { const [a, ya] = YK[i - 1], [b, yb] = YK[i]; if ((y <= ya && y >= yb) && ya !== yb) return a + (b - a) * (ya - y) / (ya - yb); } return y > YK[0][1] ? 0 : 712; };
 const g2b = (u, v) => [X(u), Y(v)];
 
 /* Fixed spots in the 3D building (Blender metres), matching the 2D map's spot lists. */
@@ -45,9 +44,9 @@ async function packs() {
   if (!(await script(BASE + 'pack-index.js')) || !window.OC3DPACKS) return; for (const f of window.OC3DPACKS) await script(BASE + f); }
 const buf = async u => PACK[u] ? b64buf(PACK[u]) : (await fetch(BASE + u)).arrayBuffer();
 const load = u => (cache[u] ||= buf(u).then(b => loader.parseAsync(b, BASE)));
-const GL = {}, ROOM = {}, ENT = new Map(), AMB = new Map(), ROOMX = {}, LBL = new Map(), ANIM = {};
+const GL = {}, ROOM = {}, ENT = new Map(), AMB = new Map(), LBL = new Map(), ANIM = {};
 const view = { tx: 2, ty: -1, dist: 60, fit: 60, tilt: 60 * DEG };   // v0.24.1: a little more top-down, so the floor fills a phone
-let ambLive = false, ambK = 1, snap = null, clock = new THREE.Clock(), lastPick = [], SUN = null;
+let ambLive = false, ambK = 1, snap = null, clock = new THREE.Clock(), SUN = null;
 /* Quality. auto starts balanced on a phone (sharp on a computer) and steps down while frames run slow. */
 const QL = { high: { dpr: 2, shadow: 2048, soft: true, fps: 60 }, med: { dpr: 1.5, shadow: 1024, soft: false, fps: 60 }, low: { dpr: 2, shadow: 0, soft: false, fps: 30 } };   // v0.23.1: battery saver keeps a sharp picture (pixel ratio 1 was blurry on a 3x phone); it saves with no shadows and 30 frames a second
 const TOUCH = matchMedia('(pointer: coarse)').matches;
@@ -181,14 +180,12 @@ async function build() {
   ready = true;
 }
 const RING = M('#ff1010', { emissive: '#ff0000', emissiveIntensity: 2.4 }), BLANK = M('#10347f', { roughness: 0.9 }), CALL_ON = M('#ffffff', { emissive: '#fff6e0', emissiveIntensity: 3 }), CALL_OFF = M('#8d9298', { roughness: 0.4 });
-const GOLD = new THREE.MeshBasicMaterial({ color: '#f2c230', transparent: true, opacity: 0.9, depthWrite: false });
 
 /* ---------- people ---------- */
 const MODEL = {
   md: () => 'md', app: s => (s.title === 'NP' ? 'np' : 'pa'), rn: s => 'rn' + (1 + hsh(s.id) % 4), pct: s => 't' + (1 + hsh(s.id) % 2), reg: s => 'reg' + (1 + hsh(s.id) % 2),
   evs: s => 'ev' + (1 + hsh(s.id) % 2), rt: () => 'rt', rph: () => 'rx', tp: () => 'tp', uc: () => 'reg2', cons: () => 'md', help: () => 'md', ems: s => 'ems' + (1 + hsh(s.id) % 3),
 };
-const LIFT3 = [14.8, -14.6];   // the elevators, where admitted patients go up
 const PTG = ['pt_05', 'pt_06', 'pt_15', 'pt_32', 'pt_female-08', 'pt_female-09', 'pt_31-female', 'pt_10'];
 const RAW = ['psx-05', 'psx-06', 'psx-10', 'psx-15', 'psx-32', 'psx-female-08', 'psx-female-09', 'psx-31-female'];
 function spawn(model) {
@@ -207,13 +204,11 @@ function play(e, name) {
   e.anim = name;
 }
 /* Where an entity should be: Blender x, y, z, facing (deg), pose, and what it lies on. */
-function placeFor(want) { return want; }
 
 function roomAt(u, v) {
   for (const [id, R2] of Object.entries(api.RM)) if (u >= R2.x && u <= R2.x + R2.w && v >= R2.y && v <= R2.y + R2.h) return id;
   return null;
 }
-const lerp = (a, b, t) => a + (b - a) * t;
 /* A spot in a room's own frame to Blender world. */
 function roomPt(id, lx, ly) { const r = ROOM[id].r, c = Math.cos(r.rot * DEG), s = Math.sin(r.rot * DEG); return [r.x + lx * c - ly * s, r.y + lx * s + ly * c]; }
 /* A bed or a chair outside the rooms (hallway beds H1 to H4, chairs C1 to C6). */
@@ -328,7 +323,6 @@ function light(t, power) {
 const ROAD_X = -33.5, EXIT_X = -35.2;   // the far lane clears the tree at the south end
 const cub = (P, t) => { const u = 1 - t, a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t; return [a * P[0][0] + b * P[1][0] + c * P[2][0] + d * P[3][0], a * P[0][1] + b * P[1][1] + c * P[2][1] + d * P[3][1]]; };
 const cubD = (P, t) => { const u = 1 - t, a = 3 * u * u, b = 6 * u * t, c = 3 * t * t; return [a * (P[1][0] - P[0][0]) + b * (P[2][0] - P[1][0]) + c * (P[3][0] - P[2][0]), a * (P[1][1] - P[0][1]) + b * (P[2][1] - P[1][1]) + c * (P[3][1] - P[2][1])]; };
-const cubLen = P => { let s = 0, q = P[0]; for (let i = 1; i <= 16; i++) { const r = cub(P, i / 16); s += Math.hypot(r[0] - q[0], r[1] - q[1]); q = r; } return s; };
 const fwdOf = h => [Math.sin(h), -Math.cos(h)];   // heading (three's rotation.y) to the way the cab points, on the floor
 const add2 = (a, b, k = 1) => [a[0] + b[0] * k, a[1] + b[1] * k];
 function leg(P, rev, speed, ease) {   // with a length table, so the ease is over distance: the curve's own pace is uneven
@@ -494,7 +488,7 @@ function labels() {
     for (const sg of snap.signs) {
       const l = sprite('z' + sg.z), key = [sg.text, sg.over, sg.full].join('|'), w = 30 + sg.text.length * 15;
       setSprite(l, key, w * 2, 84, near ? 22 : 15, g => { g.scale(2, 2); pill(g, 2, 2, w - 4, 38, 19, sg.over ? '#C8243A' : '#FFFFFF', sg.over ? '#C8243A' : sg.full ? '#B76E00' : '#8E97A4', sg.full ? 4 : 2.5); g.fillStyle = sg.over ? '#fff' : '#1B2230'; g.font = FONT(22); g.textBaseline = 'middle'; g.fillText(sg.text, 14, 22); });
-      const [x, y] = g2b(sg.x + sg.w / 2, sg.y + (sg.y > 400 ? 0 : 0)); l.s.position.copy(B2T(x, sg.y > 400 ? -12.2 : sg.z === 'hall' ? 2.6 : 14.4, 3.0)); l.tap = { kind: 'zone', id: sg.z };
+      const [x] = g2b(sg.x + sg.w / 2, sg.y + (sg.y > 400 ? 0 : 0)); l.s.position.copy(B2T(x, sg.y > 400 ? -12.2 : sg.z === 'hall' ? 2.6 : 14.4, 3.0)); l.tap = { kind: 'zone', id: sg.z };
     }
     for (const c of snap.counts) {
       const l = sprite('c' + c.id), w = 26 + c.text.length * 15;
@@ -514,7 +508,7 @@ function labels() {
         setSprite(l, 'CPR' + m.sel, 128, 88, near ? 30 : 20, g => { g.scale(2, 2); pill(g, 3, 5, 58, 34, 17, '#B3261E', m.sel ? '#F2C230' : '#FFFFFF', m.sel ? 4 : 2.5); g.fillStyle = '#fff'; g.font = FONT(22); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('CPR', 32, 23); });
         l.s.visible = true; const p0 = e.root.position; l.s.position.set(p0.x, p0.y + 2.4, p0.z); l.tap = m.tap ? { kind: m.kind, id: m.id } : null; continue;
       }
-      const t = m.esi ? String(m.esi) : '?', w = 44;
+      const t = m.esi ? String(m.esi) : '?';
       setSprite(l, t + m.sel + m.ok, 88, 88, near ? 22 : 13, g => { g.scale(2, 2); g.beginPath(); g.arc(22, 22, 19, 0, 7); g.fillStyle = m.esi ? ['', '#C8243A', '#E46A1C', '#F2C230', '#2FA35B', '#3B74C4'][m.esi] : '#5E6878'; g.fill(); g.lineWidth = m.sel || m.ok ? 5 : 3; g.strokeStyle = m.sel ? '#F2C230' : m.ok ? '#2fd36a' : '#fff'; g.stroke(); g.fillStyle = m.esi === 3 ? '#3A2F00' : '#fff'; g.font = FONT(24); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 22, 24); });
     }
     l.s.visible = true; const p = e.root.position; l.s.position.set(p.x, p.y + (e.want && e.want.lie ? 1.0 : 2.2), p.z); l.tap = m.tap ? { kind: m.kind, id: m.id } : null;
@@ -660,6 +654,7 @@ function resize() {
   return true;
 }
 function frame(now) {
+  if (api.on && !api.on()) { raf = 0; return; }   // 3D switched off (or the list board shown): the loop stops until wake() (audit R5-06, R1-16)
   raf = requestAnimationFrame(frame);
   if (!ready || !el.isConnected || document.hidden) return;
   const lv = QL[qNow] || QL.med, idle = api.live && !api.live();   // behind the menu or the pause card: two frames a second
@@ -740,6 +735,9 @@ window.OC3D = {
     } catch (e) { failed = true; return false; }
     R.info.autoReset = false; R.toneMapping = THREE.AgXToneMapping; R.toneMappingExposure = 0.86; R.outputColorSpace = THREE.SRGBColorSpace;
     R.domElement.className = 'floor3d'; el.appendChild(R.domElement);
+    // R3-05: if the phone takes the graphics back (low memory, a long time in the background), fall back to the flat map instead of a
+    // blank floor. The 3D floor comes back on the next reload.
+    R.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); failed = true; if (raf) { cancelAnimationFrame(raf); raf = 0; } if (api.fail) api.fail(new Error('WebGL context lost'), 'lost'); });
     // the 3D floor acts on pointerup; the click a browser makes afterwards would land on whatever just opened (and close it)
     R.domElement.addEventListener('touchend', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
     S = new THREE.Scene(); HUD = new THREE.Scene(); S.background = new THREE.Color('#5d6066');
@@ -753,6 +751,9 @@ window.OC3D = {
     raf = requestAnimationFrame(frame); return true;
   },
   ready: () => ready, failed: () => failed,
+  wake() { if (el && R && !failed && !raf) { lastDraw = 0; raf = requestAnimationFrame(frame); } },
+  _running: () => !!raf,
+  _loseContext() { const x = R && R.getContext().getExtension('WEBGL_lose_context'); if (x) x.loseContext(); return !!x; },   // tests
   lookPad() { if (!PAD3) return; view.dist = view.fit * 0.42; view.tx = PAD3[0] + 7; view.ty = PAD3[1]; clampView(); camSet(); },
   sync(sn) { if (ready) { try { apply(sn); } catch (err) { console.warn('3D floor', err); } } },
   zoom(f) { if (!ready) return; if (!f) camReset(); else zoomAt(f); },
