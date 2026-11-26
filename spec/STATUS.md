@@ -2,7 +2,7 @@
 
 - **Project:** Emergency Department: Code Black. **Mode:** adopted mid-project at v0.31.0 (owner's choice, Nov 25, 2026): the
   ship stages now, the full spec (Stages 0–7, traceability) before the next feature work.
-- **Current stage:** 15–17 for v0.31.0 (QA, drift check, CTO review).
+- **Current stage:** 18 for v0.32.0 (publish). v0.31.0 history below; v0.32.0 in `spec/RELEASE.md`.
 
 | Stage | Result | Notes |
 |---|---|---|
@@ -32,4 +32,4 @@
 
 **Open findings:** none Critical/High open. Accepted risks pending the owner's sign-off: F-034, F-035, F-036.
 
-**Next action:** v0.31.0 is released. Next: v0.32.0 (Phase 3, on `claude/sleepy-rubin-jot35n`).
+**Next action:** release v0.32.0 (owner said "Release", Nov 26, 2026): Tests green on `3d`, merge into `main`, deploy check.

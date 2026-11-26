@@ -78,7 +78,7 @@ src/index.template.html  page shell with /*FONTS*/ /*STYLE*/ /*ENGINE*/ /*UI*/ p
 src3d/map3d.js           3D floor (three.js). esbuild bundles it to 3d/map3d.js
 build.js                 builds index.html and sw.js. Stops if engine.js or ui.js+map.js fails to parse
 build3d.js               esbuild call for the 3D bundle
-test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor
+test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor, rules14.js the Phase 3 clinical content (v0.32)
 test/golden.js           a change detector: seeded-shift behaviour fingerprints, class sync, class codes, save round trips, answer keys, code cards, drug rules, scripted codes
 test/sim.js, stress.js   simulated shifts, and 188 shifts across every level and scenario
 test/*_test.py           Playwright UI tests against the built index.html (test/_browser.py picks the browser)
@@ -155,7 +155,7 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules13.js: engine rule checks in Node (~700 "ok" lines; any "FAIL:" sets exit 1)
+npm test          # rules.js through rules14.js: engine rule checks in Node (~760 "ok" lines; any "FAIL:" sets exit 1)
                   #   then golden.js: behaviour fingerprints, stream sync, class codes, save round trips, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run sim       # simulated shifts at several player speeds
