@@ -3039,7 +3039,7 @@ function titleHTML() {
   const learnBadge = store(trainedKey(U.mode)) ? '<span class="best">Done ✓</span>' : chD ? `<span class="best">${chD} of ${chN}</span>` : fresh ? '<span class="best go">Start here</span>' : '';
   const play = row('play', DOT.med, 'Play a shift', 'Four shifts, plus class scenarios.', stars ? `<span class="best">${stars} ★</span>` : '');
   const learn = row('learn', 'var(--accent)', 'Learn', 'Introductory orientation, then managing disease-specific conditions.', learnBadge);
-  return `<div class="card t-main">${staleClassHTML()}${brand}${modes}<p class="t-sub">${md ? 'You see patients, write the orders, and answer the radio.' : 'You manage the flow of a 32-bed ED.'}</p><div class="levels">${resume}${fresh ? learn + play : play + learn}${row('set', '#6B7280', 'Settings', '')}</div><div class="t-links"><button type="button" data-act="help">How to play</button>${lastReport() ? '<button type="button" data-act="lastReport">Last summary</button>' : ''}<button type="button" data-act="tmenu" data-arg="about">About</button></div></div>`;
+  return `<div class="card t-main">${staleClassHTML()}${brand}${modes}<p class="t-sub">${md ? 'You see patients, write the orders, and answer the radio.' : 'You manage the flow of a 32-bed ED.'}</p>${rankLine(U.mode)}<div class="levels">${resume}${fresh ? learn + play : play + learn}${row('set', '#6B7280', 'Settings', '')}</div><div class="t-links"><button type="button" data-act="help">How to play</button>${lastReport() ? '<button type="button" data-act="lastReport">Last summary</button>' : ''}<button type="button" data-act="tmenu" data-arg="about">About</button></div></div>`;
 }
 function clearToasts() { const b = $('#toasts'); if (b) b.innerHTML = ''; TQ.length = 0; clearTimeout(toastPump.t); msgOn(false); }
 /* ---------- the first-visit page (v0.22): what this is, who it's for, privacy, credits. Later it's About on the menu. ---------- */
@@ -3137,7 +3137,7 @@ function reportHTML(R, ledger, at) {
   const LED = { md: 'Patients you saw', orders: 'Orders', harm: 'Unsafe orders, complications and untreated patients', dispo: 'Disposition calls', flow: 'Patients moved', goals: 'Alert time goals', box: 'The Box', consult: 'Consults', lwbs: 'Left without being seen', ama: 'Left against advice', returns: '72-hour returns', wall: 'Wall time', ratio: 'Over-ratio nursing', uncovered: 'Uncovered patients', safety: 'Safety events', hall: 'Hallway beds', sitter: 'Missing sitters', waiting: 'Waiting-room crashes', admin: 'Administration <small>goals executives set, and requests you refused</small>', staffing: 'Staffing costs', divert: 'Divert', blood: 'Bleeding and blood', transfer: 'Transfers', gray: 'Gray-zone calls', chair: 'Admitted patients in chairs', experience: 'Complaints' };
   const rows = Object.entries(led).filter(([, v]) => Math.abs(v) >= 1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LED[k] || k}</td><td class="${v < 0 ? 'neg' : 'pos'}">${v > 0 ? '+' : ''}${Math.round(v)}</td></tr>`).join('');
   const t = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
-  return `<div class="card rep"><h2>${R.fail === 'fired' ? 'Your group let you go' : R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2>${scoreCardsHTML(R, led, LED)}${litHTML(R)}<p class="verdict">${R.fail === 'fired' ? 'Legal risk reached 75%, and the group ended your contract mid-shift. "What raised your legal risk", above, lists every reason.' : R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.expired ? `${R.expired} patient${R.expired === 1 ? '' : 's'} died in the department. ${R.stars >= 2 && !(R.mode === 'md' && R.md && (!R.md.seen || R.md.died || R.md.arrestLeft || R.md.codeLost || R.md.handed || R.md.codeLate || R.md.dxWrong || R.md.dispoWrong || R.md.contra || R.md.unneeded || R.md.untreated)) ? 'The numbers were good; read the worst moments below.' : verdictOf(R)}` : verdictOf(R))} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
+  return `<div class="card rep"><h2>${R.fail === 'fired' ? 'Your group let you go' : R.fail ? 'The staff walked out' : R.mode === 'md' ? 'Attending shift summary' : 'Shift summary'}</h2>${scoreCardsHTML(R, led, LED)}${U.career ? `<p class="rank-gain">${U.career.up ? `<b>Promoted: ${esc(U.career.rank.name)}.</b> ` : ''}+${U.career.gain} rank point${U.career.gain === 1 ? '' : 's'}. Rank: <b>${esc(U.career.rank.name)}</b>${U.career.rank.next ? `, ${U.career.rank.need} to ${esc(U.career.rank.next)}` : ''}.</p>` : ''}${litHTML(R)}<p class="verdict">${R.fail === 'fired' ? 'Legal risk reached 75%, and the group ended your contract mid-shift. "What raised your legal risk", above, lists every reason.' : R.fail ? 'Staff satisfaction hit bottom and your nurses went home. Breaks, backup, and fewer mandates keep people around.' : (R.expired ? `${R.expired} patient${R.expired === 1 ? '' : 's'} died in the department. ${R.stars >= 2 && !(R.mode === 'md' && R.md && (!R.md.seen || R.md.died || R.md.arrestLeft || R.md.codeLost || R.md.handed || R.md.codeLate || R.md.dxWrong || R.md.dispoWrong || R.md.contra || R.md.unneeded || R.md.untreated)) ? 'The numbers were good; read the worst moments below.' : verdictOf(R)}` : verdictOf(R))} ${esc(L.name)}${R.scen && R.scen !== 'none' ? `, ${esc(E.SCENS[R.scen].name)} scenario` : ''}${R.mode === 'md' ? `, ${esc(E.PACKS[R.pack].name)} medical direction` : ''}.</p>
 <p class="rep-meta">${R.mode === 'md' ? 'Attending' : 'Charge nurse'} · ${esc(L.name)}${R.scen && R.scen !== 'none' ? ' · ' + esc(E.SCENS[R.scen].name) : ''} · ${new Date(at || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · Name: <span class="rep-name">&nbsp;</span></p>${R.code || R.realSec ? `<p class="rep-meta rep-class">${R.code ? `Class code <b>${esc(R.code)}</b>` : ''}${R.code && R.realSec ? ' · ' : ''}${R.realSec ? esc(realTxt(R).replace(/^played/, 'Played')) : ''}${R.bedFirst ? ` · ${R.bedFirst} bedded before registration` : ''}</p>` : ''}
 <p class="rep-note">A teaching game, not clinical guidance. No licensed clinician has reviewed its clinical content yet.</p>
 ${cbSendHTML(R, at)}${mmHTML(R)}${mdReportHTML(R, t)}
@@ -3216,6 +3216,32 @@ function metricsHTML(R, t) {
 ${R.mode === 'md' ? '' : `<h4>Patient experience</h4><table>${t('Experience score', R.px == null ? '—' : R.px + '%')}${t('Complaints', R.complaints)}${t('Updates you gave', R.updates)}${t('Minutes in hallway beds', R.hallMins)}</table>
 <h4>Judgment calls</h4><table>${t('Gray-zone calls (right / defensible / too cautious / too bold)', gn ? `${gr.right} / ${gr.ok} / ${gr.over} / ${gr.under}` : '—')}${t('Went to observation', R.obs)}${t('Under-triaged / caught before harm', `${R.underTriage} / ${R.underCaught}`)}${t('Missed diagnoses from long provider lines', R.missedDx)}${t('Attending co-signs', R.cosign)}${t('Intubations (without an RT)', `${R.intub} (${R.intubNoRT})`)}${t('Moves to chairs', R.chairMoves)}${t('Full-capacity protocol', R.fcp)}${t('Regional diversion suspensions', R.suspended)}</table>`}`;
 }
+/* Phase 6 (the owner's decision): a career rank per role, from the stars earned across shifts. On this device only. A full shift's star
+   counts 2 points, a Rush star 1 (it is a sixth as long). The thresholds are in points. */
+const RANKS = {
+  rn: ['New grad', 'Staff nurse', 'Preceptor', 'Relief charge', 'Charge nurse', 'Nurse manager', 'Director of emergency nursing'],
+  md: ['Intern', 'Resident', 'Senior resident', 'Chief resident', 'Attending', 'Associate director', 'Department chair'],
+};
+const RANK_AT = [0, 6, 16, 30, 50, 80, 120];
+function career() { try { const c = JSON.parse(store('oc-career') || 'null'); if (c && c.v === 1) return c; } catch (e) { /* a broken record starts again */ } return { v: 1, rn: { pts: 0, n: 0 }, md: { pts: 0, n: 0 }, last: 0 }; }
+function rankOf(mode, pts) {
+  let i = 0; while (i + 1 < RANK_AT.length && pts >= RANK_AT[i + 1]) i++;
+  const L = RANKS[mode === 'md' ? 'md' : 'rn'];
+  return { name: L[i], next: i + 1 < L.length ? L[i + 1] : null, need: i + 1 < RANK_AT.length ? RANK_AT[i + 1] - pts : 0, i };
+}
+// counts a finished shift once (a report shown again doesn't count twice); Orientation and lessons don't count
+function careerAdd(R, at) {
+  if (!R || R.level === 'train' || !E.LEVELS[R.level]) return null;
+  const c = career(), m = R.mode === 'md' ? 'md' : 'rn'; if (c.last && c.last >= at) return null;
+  const before = rankOf(m, c[m].pts), gain = (R.stars | 0) * (R.level === 'rush' ? 1 : 2);
+  c[m].pts += gain; c[m].n++; c.last = at; store('oc-career', JSON.stringify(c));
+  const after = rankOf(m, c[m].pts);
+  return { gain, rank: after, up: after.i > before.i };
+}
+function rankLine(mode) {
+  const c = career(), m = mode === 'md' ? 'md' : 'rn', r = rankOf(m, c[m].pts);
+  return `<p class="t-rank">Rank: <b>${esc(r.name)}</b>${r.next ? ` · ${r.need} point${r.need === 1 ? '' : 's'} to ${esc(r.next)}` : ''}</p>`;
+}
 function showReport() {
   const G = g(), R = G.report; if (!R) return;
   U.scene = 'report'; U.sheet = null; U.modal = null; U.sel = null;
@@ -3223,6 +3249,7 @@ function showReport() {
   store('oc-save', null);
   if (!R.fail && (!R.scen || R.scen === 'none') && (R.avg || 0) > bestOf(R.level, R.mode)) store('oc-best4-' + (R.mode === 'md' ? 'md-' : '') + R.level, String(R.avg));
   const at = Date.now();
+  U.career = careerAdd(R, at);
   U.cbName = ''; U.leaveAsk = null;
   saveRep({ v: 1, R: Object.assign({}, R, { ver: GAME_V, mdSeen: (G.stats.md || {}).seen || 0, mdHarm: (G.stats.md || {}).harm || 0, mdDied: (R.md || {}).died || 0, mdArrestOpen: (R.md || {}).arrestLeft || 0, mdCodeLost: (R.md || {}).codeLost || 0, mdContra: (G.stats.md || {}).contra || 0, mdUnneeded: (G.stats.md || {}).unneeded || 0 }), led: G.ledger, at });   // a full or blocked store: the summary and Send still work now (U.lastRep)
   const el = $('#report'); el.hidden = false; setH(el, reportHTML(R, undefined, at)); el.scrollTop = 0; window.scrollTo(0, 0);
@@ -3230,6 +3257,7 @@ function showReport() {
 }
 function showLastReport() {
   const d = lastReport(); if (!d) return;
+  U.career = null;
   U.scene = 'report'; U.sheet = null; U.modal = null; U.sel = null; U.lvl = d.R.level; U.mode = d.R.mode === 'md' ? 'md' : 'rn';
   $('#title').hidden = true;
   const el = $('#report'); el.hidden = false; setH(el, reportHTML(d.R, d.led, d.at)); el.scrollTop = 0; window.scrollTo(0, 0);

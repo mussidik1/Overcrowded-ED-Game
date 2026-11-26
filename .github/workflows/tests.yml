@@ -86,7 +86,7 @@ jobs:
       - name: Run the UI tests
         run: |
           fail=0
-          for t in ui_test md_ui_test map_test class_test gate_test about_test events_test imaging_test offline_test crash_test map3d_life_test; do
+          for t in ui_test md_ui_test map_test class_test gate_test about_test events_test imaging_test offline_test crash_test map3d_life_test career_test; do
             echo "=== $t ==="; timeout 600 python test/$t.py || fail=1
           done
           for m in rn md; do echo "=== train_test MODE=$m ==="; MODE=$m timeout 900 python test/train_test.py || fail=1; done
@@ -150,6 +150,7 @@ jobs:
           run python test/events_test.py
           run python test/class_test.py
           run python test/crash_test.py
+          run python test/career_test.py
           echo "" >> results.txt
           if [ $fail = 0 ]; then echo "ALL PASS" >> results.txt; else echo "SOME FAILED" >> results.txt; fi
           cat results.txt
