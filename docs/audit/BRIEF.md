@@ -146,3 +146,10 @@ npm test                           # Node rule checks (about 1 minute)
 - What changed since round 10 began: `git diff 1ab6fa9..e3fbeec -- src supabase test tools .github build.js package.json CLAUDE.md README.md docs/SMOKE.md`. Review the release as a whole too: would you ship v0.31.0 to students today?
 - **Do not contact supabase.co or edcodeblack.com**, and do not change the live database.
 - Reports go to `docs/audit/round11/`, scratch to `scratchpad/round11/rN/`.
+
+## Round 12 (Nov 26, 2026): the release review of v0.32.0 (audit Phase 3, high-priority clinical content)
+- Branch `claude/sleepy-rubin-jot35n` at the commit this section was added in. `main` is v0.31.0 (live, behind the gate).
+- **The owner's rule changed (Nov 26): one review round per release, on the release's whole diff.** This round covers everything since v0.31.0: `git diff 0c999de..HEAD -- src test docs/clinical-sources.md README.md CLAUDE.md`. No database change in this release.
+- What changed (Phase 3, `docs/PRO_AUDIT.md` R6-02, 08, 09, 11 to 18, 20): drug keys (asthma, anaphylaxis, TXA, COPD, pneumonia and shock combinations, DKA potassium, TIA disposition); strokes that aren't all eligible (`strokeSetup`); risk scores built from the patient's parts (`grayScore`); the first order set graded against the complaint (`WORKUP` in `signOrders`); `docs/clinical-sources.md`. The clinical answers came from a licensed clinician's review and from the owner as clinical consultant (`docs/audit/verification.md`, "Clinician's answers").
+- Read `docs/audit/round11/STATUS.md` for the previous round. `test/rules14.js` holds this phase's checks.
+- **Do not contact supabase.co or edcodeblack.com**, and do not change the live database. Reports go to `docs/audit/round12/`, scratch to `scratchpad/round12/rN/`.
