@@ -607,7 +607,7 @@ function dxPick(pid, pick) {
     litAdd(MUST.has(p.ck) ? 5 : 2, `missed ${p.dx}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
   }
   if (!p.txGap) treatGap(p);
-  return { ok: true, right, msg: right ? `Right: ${p.dx}.` : `Not ${pick}. It’s ${p.dx}.` };
+  return { ok: true, right, msg: G.train ? (right ? `Right: ${p.dx}.` : `Not ${pick}. It’s ${p.dx}.`) : `Your diagnosis: ${pick}. The results and how they do will tell.` };   // Phase 6 (R5-05): no instant verdict on a shift
 }
 // Clinical accuracy: diagnoses called right and orders right, against everything called or ordered. Starts at 100.
 function accuracy() {
@@ -836,8 +836,23 @@ function patientScore() {
   return n ? Math.round(sum / n) : null;
 }
 function scores() { return { patients: patientScore(), clinical: scoreOf('clinical'), admin: scoreOf('admin'), staff: Math.round(staffSat()) }; }
-function avgScore() { const s = scores(), v = [s.patients, s.clinical, s.admin, s.staff].filter(x => x != null); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0; }
-function overallStars() { const s = scores(); return Math.round([s.patients, s.clinical, s.admin, s.staff].reduce((n, v) => n + scoreStars(v == null ? 100 : v), 0) / 4); }
+/* Phase 6 (R5-03, the owner's decision): the attending is graded on the attending's own decisions. Clinical (own patients only),
+   diagnoses called right, radio calls answered right, and legal safety (100 minus legal risk). The department's four scores still show,
+   as context. A part with nothing to grade yet (no diagnosis called, no radio call) is left out rather than counted as perfect. */
+function mdScores() {
+  const S = G.stats, M = S.md || {}, dn = (M.dxRight || 0) + (M.dxWrong || 0), B = S.boxC || {}, rn = (B.right || 0) + (B.wrong || 0) + (B.miss || 0);
+  return { clinical: scoreOf('clinical'), dx: dn ? Math.round(100 * (M.dxRight || 0) / dn) : null, radio: rn ? Math.round(100 * (B.right || 0) / rn) : null, legal: Math.max(0, Math.min(100, Math.round(100 - (G.lit || 0)))) };
+}
+const gradeParts = () => { if (G.mode === 'md') { const m = mdScores(); return [m.clinical, m.dx, m.radio, m.legal]; } const s = scores(); return [s.patients, s.clinical, s.admin, s.staff]; };
+function avgScore() { const v = gradeParts().filter(x => x != null); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0; }
+/* Phase 6 (R5-04): two hours is too short for the department's scores to fall, so tapping through the Rush earned three stars. The
+   Rush is about speed: the charge nurse's Rush stars are capped by pace, the average minutes from the door to a provider (still-waiting
+   patients count to the end). 15 or under keeps three stars, 25 two, 40 one. */
+const PACE = [15, 25, 40];
+const paceStars = w => (w <= PACE[0] ? 3 : w <= PACE[1] ? 2 : w <= PACE[2] ? 1 : 0);
+const paced = () => G.level === 'rush' && G.mode !== 'md';
+function overallStars() { if (paced()) return Math.min(baseStars(), paceStars(avgWait())); return baseStars(); }
+function baseStars() { const v = gradeParts(); if (G.mode === 'md') { const w = v.filter(x => x != null); return w.length ? Math.round(w.reduce((n, x) => n + scoreStars(x), 0) / w.length) : 0; } return Math.round(v.reduce((n, x) => n + scoreStars(x == null ? 100 : x), 0) / 4); }
 const scoreStars = v => (v == null ? 0 : v >= 85 ? 3 : v >= 70 ? 2 : v >= 55 ? 1 : 0);
 function care(n, tag, p) {
   if (G.pre) return;
@@ -1351,7 +1366,7 @@ function spawnAlert() {
   const dk = diverted(c);
   if (dk) { G.stats.diverted++; note(`A ${ALERTS[c.alert].name} alert went elsewhere (${DIVERTS[dk].name})`); return; }
   const p = makePatient(c, 'ems');
-  p.unit = unitName(); p.loc = 'enroute'; p.eta = G.t + randi(7, 12); p.alertOn = true; p.dxK = true;
+  p.unit = unitName(); p.loc = 'enroute'; p.eta = G.t + randi(7, 12); p.alertOn = true; p.dxK = alertDxKnown();
   outageMiss(c, p);
   G.enroute.push(p.id);
   G.box.q.push({ kind: 'notify', pid: p.id, unit: p.unit, id: ++G.box.seq });
@@ -1418,9 +1433,12 @@ function bedsideTriage(p) {
   if (p.tri !== 'done') { p.tri = 'done'; p.triBy = null; }
   callWalkinAlert(p);
 }
+// Phase 6 (R5-05): an alert tells the team what kind of patient is coming (the Working line), not the diagnosis. On the attending's own
+// shift the diagnosis waits for the workup and the attending's call; the charge nurse and Orientation still see it.
+const alertDxKnown = () => !(G.mode === 'md' && !G.train);
 function callWalkinAlert(p) {
   if (!p.alert || p.alertOn) return;
-  p.alertOn = true; p.dxK = true; p.pren = true;
+  p.alertOn = true; p.dxK = alertDxKnown(); p.pren = true;
   if (ALERTS[p.alert].auto) autoConsult(p);
   toast(`Triage called a ${ALERTS[p.alert].name} alert: ${ageSex(p)}, ${p.cc}`, 'alert');
   sound('siren');
@@ -3135,7 +3153,9 @@ function consult(pid, spec, o) {
   if (p.con !== spec) {
     if (mdMine(p) && !p.con) G.stats.md.dispoWrong++;
     m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-10, 'consult', p); G.stats.wrongSpec++; provHit(p, 3); sound('bad');
-    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? (p.conNote = `${S.name} declined. Try ${SPECS[p.con].name}.`, note(`${S.name} declined ${label(p)}: not theirs. Try ${SPECS[p.con].name}.`, 'bad'), `Why is ${S.name.toLowerCase()} getting this call? Not ours. Call ${SPECS[p.con].name}.`) : 'This patient doesn’t need a consult. Send them home.'}"` };
+    // Phase 6 (R5-05): on a shift a consultant who isn't the right one says so, without naming the right one; Orientation and Lessons still do
+    const tryW = G.train ? ` Try ${SPECS[p.con] ? SPECS[p.con].name : ''}.` : '';
+    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? (p.conNote = `${S.name} declined: not theirs.${tryW}`, note(`${S.name} declined ${label(p)}: not theirs.${tryW}`, 'bad'), `Why is ${S.name.toLowerCase()} getting this call? Not ours.${G.train ? ` Call ${SPECS[p.con].name}.` : ''}`) : G.train ? 'This patient doesn’t need a consult. Send them home.' : 'I don’t think they need us.'}"` };
   }
   // EMS-activated STEMI, stroke, and trauma alerts can call their team on the field report alone
   const miss = (p.alertOn && ALERTS[p.alert] && ALERTS[p.alert].auto) ? [] : p.pre.filter(k => !(p.work[k] && p.work[k].st === 'done'));
@@ -4088,7 +4108,7 @@ function mciArrive(part) {
   const mk = (k, unit) => { const p = makePatient(CASES.find(x => x.k === k), 'ems'); p.unit = unit; return p; };
   if (!part || part === 'red') {
     const p = mk('mcired', 'Medic 41');
-    p.loc = 'enroute'; p.eta = G.t + 5; p.alertOn = true; p.dxK = true;
+    p.loc = 'enroute'; p.eta = G.t + 5; p.alertOn = true; p.dxK = alertDxKnown();
     G.enroute.push(p.id); G.box.q.push({ kind: 'notify', pid: p.id, unit: p.unit, id: ++G.box.seq });
   }
   if (!part || part === 'yel') {
@@ -4495,7 +4515,7 @@ function endShift(reason) {
   const S = G.stats;
   G.report = {
     level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, endMin: Math.round(Math.min(G.t, G.shift || G.t)), realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
-    stars: G.fail ? 0 : overallStars(), avg: avgScore(),
+    stars: G.fail ? 0 : overallStars(), avg: avgScore(), own: G.mode === 'md' ? mdScores() : null, pace: paced() ? { wait: Math.round(avgWait()), stars: paceStars(avgWait()), lim: PACE.slice() } : null,
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama,
     expired: S.expired + deadHere.length,   // audit R5-02: the dead who haven't left yet count too, whenever they arrived (R6.8-01)
     noTeam: S.noTeam || 0, lyticLate: S.lyticLate || 0,
@@ -4966,7 +4986,7 @@ const OC = {
   LEVELS, STARS, STARS_MD, ZONES, ZONE_NAME, ROOMS, SPECS, WORK, TREAT, ALERTS, GOALS, SCEN, PACKS, CASES, LANGS,
   LABS, IMGS, NEED, RES, IMG_NORMAL, detResult, DET_KIND, DET_NAME, needOf,
   pt, room, staff, roomOf, roomName, label, clock, active, inRooms, boarders, isProv, present,
-  zoneLoad, zoneNurses, nurseLoad, zonePts, weight, staffSat, scores, scoreStars, avgWait, waitingCount, hallCount, maxWallNow,
+  zoneLoad, zoneNurses, nurseLoad, zonePts, weight, staffSat, scores, scoreStars, overallStars, avgScore, paceStars, avgWait, waitingCount, hallCount, maxWallNow,
   canPlace, canAssign, needsProv, allWorkDone, preDone, treatsDone, pitDcReady,
   CONS_VISIT, place, move, evsTap, assign, consult, discharge, dischargeRehab, ucDo, clerkOpen, CLERK, RIDE, requestTransfer, escalate, toggleStat,
   boxNotify, boxTake, boxDecide, chooseCard, sendBreak, toggleZone, setZoneClosed, callAgency, orderPizza, setYellow, setDivert, starsFor,
@@ -4986,6 +5006,6 @@ const RADIO_BTN = {
   miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
 };
 for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
-Object.assign(OC, { WATCH_WHY, ordWhy, detResult, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
+Object.assign(OC, { WATCH_WHY, mdScores, ordWhy, detResult, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);

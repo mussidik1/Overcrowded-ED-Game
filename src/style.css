@@ -1061,6 +1061,8 @@ body.ingame { touch-action: pan-x pan-y; }
 .rep-class b { letter-spacing: .08em; }
 
 /* v0.25: the four scores on the shift summary */
+.rep details.dept { margin: 0 0 12px; }
+.rep details.dept summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; }
 .scards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 8px 0 12px; }
 .scard { border: 2px solid #CBD2DA; border-radius: 12px; padding: 8px 10px; background: #fff; display: flex; flex-direction: column; gap: 2px; }
 .scard > span { font-size: 13px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }

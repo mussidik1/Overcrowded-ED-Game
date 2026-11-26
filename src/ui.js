@@ -70,7 +70,7 @@ const fm = m => { m = Math.max(0, Math.round(m)); return m < 60 ? m + 'm' : Math
 const fl = v => (Math.round(v * 10) / 10).toString();
 const RC = { md: 'r-md', app: 'r-app', rn: 'r-rn', pct: 'r-pct', evs: 'r-evs', rt: 'r-rt', rph: 'r-rph', reg: 'r-reg', tp: 'r-tp', uc: 'r-uc' };
 const ZSHORT = { resus: 'Resus', a: 'A', b: 'B', c: 'C', d: 'D', e: 'E', hall: 'Hall', ft: 'FT', rp: 'Chairs' };
-const dxShown = p => (p.dxK && (!p.alertOn || p.ev === 'done')) ? p.dx : null;
+const dxShown = p => (p.dxK && (!p.alertOn || p.ev === 'done')) ? (p.dxPick && !(g() && g().train) && p.mine ? p.dxPick : p.dx) : null;   // Phase 6 (R5-05): on a shift the card shows the attending's own call
 const dxOr = p => dxShown(p) || p.cc;
 function emoji(p) { const a = p.age; if (a < 2) return '👶'; if (a < 13) return p.sex === 'F' ? '👧' : '👦'; if (a < 60) return p.sex === 'F' ? '👩' : '👨'; return p.sex === 'F' ? '👵' : '👴'; }
 const esiKnown = p => p.tri === 'done' || p.alertOn || p.crash || p.arrest || ['room', 'waiting', 'gone'].includes(p.loc);
@@ -330,7 +330,7 @@ function layoutMode() {
   document.body.style.setProperty('--rrw', (rw + Math.round(slack * (lw ? 0.6 : 1))) + 'px');
   return U.rails;
 }
-const PSHORT = { Patients: 'Pts', Clinical: 'Clin' };
+const PSHORT = { Patients: 'Pts', Clinical: 'Clin', Diagnoses: 'Dx' };
 function pill(id, val, cls, lbl) {
   const el = document.getElementById(id); setC(el, 'pill ' + (cls || ''));
   const b = el.querySelector('b'); if (b.textContent !== val) b.textContent = val;
@@ -340,10 +340,19 @@ function pill(id, val, cls, lbl) {
 function renderHud(G) {
   const c = E.clock(); if ($('#clock').textContent !== c) $('#clock').textContent = c;
   const sc = E.scores(), tone = v => (v == null ? '' : v >= 80 ? 'good' : v >= 60 ? 'warn' : 'bad'), pc = v => (v == null ? '—' : v + '%');   // v0.25: four scores, both roles
-  pill('pPat', pc(sc.patients), tone(sc.patients), 'Patients');
-  pill('pClin', pc(sc.clinical), tone(sc.clinical), 'Clinical');
-  pill('pAdm', pc(sc.admin), tone(sc.admin), 'Admin');
-  pill('pStaff', pc(sc.staff), tone(sc.staff), 'Staff');
+  if (G.mode === 'md') {   // Phase 6 (R5-03): the attending sees the four scores that grade the attending
+    const m = E.mdScores();
+    pill('pPat', pc(m.clinical), tone(m.clinical), 'Clinical');
+    const dn = ((G.stats.md || {}).dxRight || 0) + ((G.stats.md || {}).dxWrong || 0);
+    pill('pClin', String(dn), '', 'Diagnoses');   // how many called, not how many right: a live percentage would give each answer away (R5-05)
+    pill('pAdm', pc(m.radio), tone(m.radio), 'Radio');
+    pill('pStaff', pc(m.legal), tone(m.legal), 'Legal');
+  } else {
+    pill('pPat', pc(sc.patients), tone(sc.patients), 'Patients');
+    pill('pClin', pc(sc.clinical), tone(sc.clinical), 'Clinical');
+    pill('pAdm', pc(sc.admin), tone(sc.admin), 'Admin');
+    pill('pStaff', pc(sc.staff), tone(sc.staff), 'Staff');
+  }
   $('#shiftProg').style.width = Math.min(100, Math.max(0, G.t / G.shift * 100)).toFixed(2) + '%';
   const dv = $('#btnYellow'), on = Object.keys(E.DIVERTS).filter(k => G.dv[k].on);
   setC(dv, 'hb' + (on.some(k => k !== 'yellow') ? ' red' : on.length ? ' on' : '') + (Object.keys(G.out).length && !on.length ? ' alarm' : ''));
@@ -1016,7 +1025,8 @@ function mdPrimary0(p, G) {
 const gapMsg = p => (E.vitalsOf(p).trend === 'better' ? 'Better, but something they need is still not ordered.' : 'Not improving. Something they need isn’t ordered.') + gapHint(p);
 /* With Plain words on, a gap names what is still needed. The points are already gone; this is the lesson.
    While the workup is open it names the tests only: naming the drug would give the diagnosis away. */
-function gapHint(p) { const m = PLAIN() ? E.missNow(p, p.ord === 'more') : []; return m.length ? ` <b class="hintb">Still needed: ${esc(m.join(', '))}.</b>` : ''; }
+function gapHint(p) { const m = PLAIN() && g() && g().train ? E.missNow(p, p.ord === 'more') : [];   // Phase 6 (R5-05): the list of what's missing is for Orientation and Lessons only
+  return m.length ? ` <b class="hintb">Still needed: ${esc(m.join(', '))}.</b>` : ''; }
 const lyticHeld = p => !!(p.treat.tnk && p.treat.tnk.st === 'wait' && !p.treat.bp && p.alert === 'stroke' && !E.bpOkForLytic(p));
 /* Tests on the order sheet: the ECG, single labs in their groups, and named studies by kind. */
 const IMG_KINDS = [['xr', 'X-ray'], ['ct', 'CT'], ['mri', 'MRI'], ['us', 'Ultrasound']];
@@ -2816,7 +2826,7 @@ const ACT = {
   },
   shareResult: () => {
     const d = lastReport(); if (!d) return; const R = d.R, L = E.LEVELS[R.level];
-    const t = `ED: Code Black${R.code ? ' · class ' + R.code : ''} · ${R.mode === 'md' ? 'Attending' : 'Charge nurse'}, ${L.name}${R.scen && R.scen !== 'none' ? ', ' + E.SCENS[R.scen].name : ''} · ${R.sc ? `patients ${R.sc.patients == null ? '—' : R.sc.patients + '%'}, clinical ${R.sc.clinical}%, admin ${R.sc.admin}%, staff ${R.sc.staff}%` : R.care + ' points'} ${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}${R.realSec ? ' · ' + realTxt(R) : ''}`;
+    const t = `ED: Code Black${R.code ? ' · class ' + R.code : ''} · ${R.mode === 'md' ? 'Attending' : 'Charge nurse'}, ${L.name}${R.scen && R.scen !== 'none' ? ', ' + E.SCENS[R.scen].name : ''} · ${R.mode === 'md' && R.own ? `clinical ${R.own.clinical}%, diagnoses ${R.own.dx == null ? '—' : R.own.dx + '%'}, radio ${R.own.radio == null ? '—' : R.own.radio + '%'}, legal ${R.own.legal}%` : R.sc ? `patients ${R.sc.patients == null ? '—' : R.sc.patients + '%'}, clinical ${R.sc.clinical}%, admin ${R.sc.admin}%, staff ${R.sc.staff}%` : R.care + ' points'} ${'★'.repeat(R.stars)}${'☆'.repeat(3 - R.stars)}${R.realSec ? ' · ' + realTxt(R) : ''}`;
     if (navigator.share) navigator.share({ title: 'Code Black shift summary', text: t }).catch(() => {}); else copyText(t).then(ok => { res(ok ? { ok: true, msg: 'Copied your result' } : { ok: false, why: t }, true); render(); });
   },
   legend: () => { U.sheet = U.sheet && U.sheet.type === 'legend' ? null : { type: 'legend' }; },
@@ -2933,13 +2943,19 @@ const ACT = {
   // can't be replayed: say so instead of quietly starting a different shift.
   again: () => { if (unsentGuard()) return; U.armR = 0; const R = lastReport(), c = R && R.R && R.R.code ? E.readCode(R.R.code) : null; if (R && R.R && R.R.code && (!c || c.stale)) { res({ ok: false, why: `Class code ${R.R.code} was made on another version of the game, so it can’t be replayed. Ask your instructor for a new code.` }); return; } start(U.lvl, null, null, c); },
   lastReport: () => showLastReport(),
-  pill: k => toast(PILL_HELP[k], 'info'),
+  pill: k => toast((g() && g().mode === 'md' && PILL_HELP_MD[k]) || PILL_HELP[k], 'info'),
 };
 const PILL_HELP = {   // v0.25
   pat: 'Patients: how they feel about the visit. Long waits with no update pull it down. Leaving without being seen hurts most.',
   clin: 'Clinical: the right care at the right time. Time goals, right calls and safe staffing raise it. Harm, misses and returns lower it.',
   adm: 'Admin: flow and cost. Moving patients and offloading ambulances raise it. Walkouts, wall time, needless diverts and extra costs lower it.',
   staff: 'Staff: average morale. Breaks help. Over-ratio pods and mandates hurt. Below 20% the staff walk out.',
+};
+const PILL_HELP_MD = {   // the attending's own four (Phase 6, R5-03): these set the attending's stars
+  pat: 'Clinical: your own patients. The right orders on time and the right call raise it. Misses, harm and slow care lower it.',
+  clin: 'Diagnoses: how many you have called. How many were right shows at the end of the shift, and counts toward your stars.',
+  adm: 'Radio: medical-direction calls you answered right. A call that rings out counts as wrong. Blank until the first call.',
+  staff: 'Legal: 100 minus your legal risk. Harm, missed must-not-miss diagnoses and deaths raise the risk.',
 };
 
 /* ---------- save and resume (this device only) ---------- */
@@ -3095,7 +3111,7 @@ const verdictOf = R => {   // the stars are the owner's scoring; the words mustn
   }
   return (R.mode === 'md' ? VERDICT_MD : VERDICT)[R.stars];
 };
-const VERDICT_MD = ['Rough one. Read the worst moments below, then try again.', 'You kept your patients moving. Tomorrow will be better.', 'Solid shift. The nurses like working with you.', 'Attending of the year. The residents want to copy your orders.'];
+const VERDICT_MD = ['Rough one. Read the worst moments below, then try again.', 'Some good calls, and some to review below. Tomorrow will be better.', 'Solid shift. Your calls held up.', 'Attending of the year. The residents want to copy your orders.'];   // graded on the attending's own calls (Phase 6)
 const VERDICT = ['Rough one. Read the worst moments below, then try again.', 'You kept the doors open. Tomorrow will be better.', 'Solid shift. The night charge owes you.', 'Charge nurse of the year. Somebody frame this board.'];
 // The last summary, kept in storage so a reload brings it back. U.lastRep holds it too, so Send works when storage is full or blocked.
 function lastReport() {
@@ -3157,7 +3173,14 @@ function scoreCardsHTML(R, led, LED) {
   const why = c => { const e = Object.entries(led).filter(([k, v]) => SC_TAGS[c].includes(k) && Math.abs(v) >= 1); const lo = e.filter(x => x[1] < 0).sort((a, b) => a[1] - b[1])[0], hi = e.filter(x => x[1] > 0).sort((a, b) => b[1] - a[1])[0];
     return `${hi ? `<small>Best: ${(LED[hi[0]] || hi[0]).replace(/<small>.*<\/small>/, '').trim()}</small>` : ''}${lo ? `<small class="neg">Hurt most: ${(LED[lo[0]] || lo[0]).replace(/<small>.*<\/small>/, '').trim()}</small>` : ''}`; };
   const card = (name, v, extra) => `<div class="scard ${v == null ? '' : v >= 80 ? 'good' : v >= 60 ? 'warn' : 'bad'}"><span>${name}</span><b>${v == null ? '—' : v + '%'}</b><i aria-label="${E.scoreStars(v)} of 3 stars">${st(v)}</i>${extra || ''}</div>`;
-  return `<div class="scards">${card('Patients', R.sc.patients, `<small>${R.lwbs ? `${R.lwbs} left without being seen` : 'How they felt about the visit'}</small>`)}${card('Clinical', R.sc.clinical, why('clinical'))}${card('Admin', R.sc.admin, why('admin'))}${card('Staff', R.sc.staff, `<small>${R.fail === 'walkout' ? 'They walked out' : 'Average morale'}</small>`)}</div>`;
+  const dept = `<div class="scards">${card('Patients', R.sc.patients, `<small>${R.lwbs ? `${R.lwbs} left without being seen` : 'How they felt about the visit'}</small>`)}${card('Clinical', R.sc.clinical, why('clinical'))}${card('Admin', R.sc.admin, why('admin'))}${card('Staff', R.sc.staff, '')}</div>`;
+  if (R.mode === 'md' && R.own) {   // Phase 6 (R5-03): the attending's stars come from the attending's own four; the department's are context
+    const o = R.own, B = R.boxC || {};
+    return `<div class="scards">${card('Clinical', o.clinical, `<small>Your own patients</small>${why('clinical')}`)}${card('Diagnoses', o.dx, `<small>${R.dxRight} of ${R.dxRight + R.dxWrong} right</small>`)}${card('Radio calls', o.radio, `<small>${B.right || 0} of ${(B.right || 0) + (B.wrong || 0) + (B.miss || 0)} right</small>`)}${card('Legal', o.legal, `<small>Legal risk ${R.lit}%</small>`)}</div>`
+      + `<details class="dept"><summary>The department today (not your grade)</summary>${dept}</details>`;
+  }
+  const pace = R.pace ? `<p class="hint pace"><b>Rush pace:</b> ${R.pace.wait} min from the door to a provider, on average. ★★★ needs ${R.pace.lim[0]} or under, ★★ ${R.pace.lim[1]}, ★ ${R.pace.lim[2]}. In the Rush, your stars can’t beat your pace.</p>` : '';
+  return pace + `<div class="scards">${card('Patients', R.sc.patients, `<small>${R.lwbs ? `${R.lwbs} left without being seen` : 'How they felt about the visit'}</small>`)}${card('Clinical', R.sc.clinical, why('clinical'))}${card('Admin', R.sc.admin, why('admin'))}${card('Staff', R.sc.staff, `<small>${R.fail === 'walkout' ? 'They walked out' : 'Average morale'}</small>`)}</div>`;
 }
 /* What each star takes, and how far the next one is. */
 /* Orders the attending missed or did not need, patient by patient, with the reason. */
