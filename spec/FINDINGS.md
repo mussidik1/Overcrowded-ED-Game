@@ -83,3 +83,30 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 | F-045 | 16 | Low | The sheet's close button was 38 px | Fixed | 44 px |
 | F-046 | 16 | Low | The Send box didn't name role and shift | Fixed | added |
 | F-047 | 16 | Low | The wrong-key message left out the restart; RELEASE named a stale commit | Fixed | text corrected |
+
+## Stage 15a round 1 (Nov 26, 2026, v0.32.0; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-048 | 15a | Medium | QA-1: Gate card is 420 px wide: Play and the title are off-screen on every phone (index.html .gate-card) | Open |  |
+| F-049 | 15a | Medium | QA-2: Privacy: a full name ("John Smith") passes validation and is sent with a result | Open |  |
+| F-050 | 15a | Medium | QA-3: Cardiac arrest and fast-heart-rhythm lessons are text only, though REQ-14 lists them as played | Open |  |
+| F-051 | 15a | Medium | QA-4: A malformed but parseable save is offered as Resume and leaves a dead board throwing every frame | Open | v0.33.0-dev saveShape() checks a save before Resume (Phase 4); to be confirmed by QA |
+| F-052 | 15a | Medium | QA-5: Accessibility: modals don't take focus; the hidden board behind the menu and modals is reachable by keyboard | Open |  |
+| F-053 | 15a | Low | QA-6: Escape doesn't close the pause menu | Open |  |
+| F-054 | 15a | Medium | QA-7: Clinical notice incomplete: Lessons and class results carry only the no-clinician half; Orientation has neither | Open |  |
+| F-055 | 15a | Low | QA-8: "Sign with no orders" is enabled but always refused, and the refusal hints that something is needed | Open |  |
+| F-056 | 15a | Low | QA-9: Code-card reason names bleeding for tenecteplase in a DKA arrest (the patient is dry, not bleeding) | Open |  |
+| F-057 | 15a | Medium | QA-10: Tenecteplase with no indication isn't flagged as harm at signing; the report says "Unsafe orders 1" without naming it; insulin before the potassium gets no comment | Open |  |
+| F-058 | 15a | Low | QA-11: The radio-call pack isn't in Settings, only on Play a shift for the attending | Open |  |
+| F-059 | 15a | Medium | QA-12: Text under 12 px carries state and tap targets are under 44 px during a shift | Open | v0.33.0-dev: text raised to 12 px (Phase 6); tap targets still open |
+| F-060 | 15a | Low | QA-13: A code pasted with spaces is cut off by maxlength=9 and refused | Open |  |
+| F-061 | 15a | Low | QA-14: With results off, text refers to Show key and Copy key buttons that aren't shown | Open |  |
+| F-062 | 15a | Low | QA-15: The arrival toast covers the "tap a green room" placement prompt | Open |  |
+| F-063 | 15a | Low | QA-16: Upright list board: waiting-room card text clipped, a pill overlaps R1, the opening toast covers the clock | Open |  |
+| F-064 | 15a | Low | QA-17: Browser or Android back mid-shift leaves the app instead of closing the open sheet (save kept) | Open |  |
+| F-065 | 15a | Low | QA-18: A double tap on a level's Start passes through and opens a patient card on the new board | Open |  |
+| F-066 | 15a | Low | QA-19: Profanity is accepted as a student name and would show on the instructor's list | Open |  |
+| F-067 | 15a | Low | QA-20: The patient card's Complaint field is empty after an arrest | Open |  |
+| F-068 | 15a | Low | QA-21: "without iv fluids" in the M&M: IV should be capitalised | Open |  |
+| F-069 | 15a | Low | QA-22: 3D files are cached only after a shift is played online (first-visit offline gets the flat map) | Open |  |
