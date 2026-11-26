@@ -942,14 +942,18 @@ function ptSheet(G, p) {
   else if (dx) kv.push(['Diagnosis', `<b>${esc(dx)}</b>${E.DX_PLAIN[dx] ? `<small class="dxp">${esc(E.DX_PLAIN[dx])}</small>` : ''}`]); else if (p.alertOn && p.alert) kv.push(['Working', `${esc(E.ALERTS[p.alert].name)} alert`]);
   if (p.ev === 'done' && E.examOf(p) && p.loc !== 'gone') kv.push(['Exam', esc(E.examOf(p))]);
   if (p.tag) kv.push(['Field tag', `${cap(p.tag)}: ${{ red: 'immediate', yellow: 'can wait a little', green: 'walking wounded' }[p.tag]}`]);
-  if (p.lkwT != null && p.alertOn) kv.push(['Onset', `Last known well <b>${E.clock(p.lkwT)}</b> · the thrombolytic has to be in by ${E.clock(p.lkwT + E.LYTIC_WINDOW)}`]);
+  if (p.alert === 'stroke' && (p.alertOn || p.ev === 'done')) {   // walk-in strokes too, once seen (Phase 3, R6-02)
+    if (p.lkwT != null) kv.push(['Onset', `Last known well <b>${E.clock(p.lkwT)}</b> · ${p.anticoag ? 'check the home meds' : p.strokeKind && p.strokeKind !== 'in' ? 'outside the 4.5-hour window for the thrombolytic' : `the thrombolytic has to be in by ${E.clock(p.lkwT + E.LYTIC_WINDOW)}`}`]);   // no deadline for a patient who can't have it (round 12)
+    else kv.push(['Onset', 'Last known well <b>unknown</b>: woke up with it']);
+    if (p.anticoag) kv.push(['Home meds', `Takes <b>${esc(p.anticoag)}</b> (a blood thinner)`]);
+  }
   if (p.ck === 'afib' && p.dxK) { const h = E.afOnset(p); kv.push(['Onset', h != null ? `Started about <b>${h} hours</b> ago` : 'Not sure when it started: <b>at least a few days</b>']); }
   if (p.iso && p.screen !== 'pending') kv.push(['Isolation', p.iso === 'air' ? 'Airborne. Room 8 or 16.' : 'Droplet. Mask, and a room with a door.']);
   if (p.sitter) kv.push(['Safety', 'Needs a safe room (19 or 20) or a 1:1 sitter']);
   if (p.bleed === 'mtp') kv.push(['Bleeding', p.bb ? 'Massive transfusion activated' : '<b>Hemorrhage. Activate MTP.</b>']);
   else if (p.bleed === 'prbc' && (!MD() || p.treat.blood)) kv.push(['Blood', p.treat.blood && p.treat.blood.st === 'done' ? 'Transfusion given' : MD() ? 'Transfusion ordered' : 'Needs a transfusion']);   // the attending decides that for themselves
   if (p.ret) kv.push(['Return', 'Seen here earlier today and back sicker']);
-  if (p.gray && p.ev === 'done' && p.dxK) kv.push(['Risk', `${esc(p.gray.tool)} ${p.gray.score} · ${esc(p.gray.band)} risk`]);
+  if (p.gray && p.ev === 'done' && p.dxK) kv.push(['Risk', `${esc(p.gray.tool)} ${p.gray.score} · ${esc(p.gray.band)} risk${(p.gray.parts || []).length ? `<small> (${p.gray.parts.map(esc).join(', ')})</small>` : ''}`]);   // the parts, so the number can be checked (Phase 3, R6-16)
   if (['room', 'waiting', 'wall', 'triage'].includes(p.loc)) { const px = Math.round(Math.max(0, Math.min(100, p.px))); kv.push(['Experience', `<span class="pxv ${px >= 70 ? 'ok' : px >= 45 ? 'warn' : 'bad'}">${px}%</span> · ${p.lastUpdate != null ? (G.t - p.lastUpdate < 1 ? 'updated just now' : `updated <span data-el="${p.lastUpdate}"></span> ago`) : 'no update yet'}${PLAIN() ? '<small class="dxp">how they feel about the visit; an update raises it</small>' : ''}`]); }
   h += `<div class="ph-cc">${kv.map(([k, v]) => `<div><span>${k}</span><div>${v}</div></div>`).join('')}</div>`;
   if (MD() && p.ck && E.rxName && p.tr.includes('meds') && mine(p)) kv.push(['Medications', esc(E.rxName(p))]);
@@ -1828,7 +1832,7 @@ const STEPS_MD = [
   { id: 'a1', title: 'Vomiting, sugar very high', text: `**Room 5**: [[Aisha]], 24, **ESI 2**. She’s vomiting and her sugar is very high.\nTap **her room**, then **See this patient**.`,
     setup: () => ({ aisha: E.trainPatient('dka', 'room', { room: '5', name: 'Aisha K.', age: 24, sex: 'F' }) }), ...seeStep('aisha') },
   { id: 'a2', wait: true, title: 'In the room', text: `Her breath smells **fruity**. She’s breathing **fast and deep**. Her mouth is dry.`, done: () => tid('aisha').ord === 'need' },
-  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**: without **insulin**, the body burns fat and the blood turns acid.\nOrder a **BMP** (sugar and **potassium**), a **blood gas** (how acid), a **pregnancy test** (any woman who could be pregnant), **fluids**, and an **insulin drip**.\nTap **her room**. **BMP**, **Blood gas**, **Pregnancy test**, **Normal saline** (Fluids and blood), **Insulin drip** (Medications, Sugar and electrolytes), **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin']]) },
+  { id: 'a3', title: 'Treat what you find', text: `This looks like **DKA**: without **insulin**, the body burns fat and the blood turns acid.\nOrder a **BMP** (sugar and **potassium**), a **blood gas** (how acid), a **pregnancy test** (any woman who could be pregnant), **fluids**, an **insulin drip**, and **potassium** (insulin lowers it).\nTap **her room**. **BMP**, **Blood gas**, **Pregnancy test**, **Normal saline** (Fluids and blood), **Insulin drip** and **Potassium** (Medications, Sugar and electrolytes), **Sign**.`, ...ordStep('aisha', [['t', 'lab'], ['r', 'fluids'], ['r', 'insulin'], ['r', 'meds']]) },
   { id: 'a4', wait: true, title: 'Results', text: `**Glucose 540** (normal about 100). **Anion gap 26**: acid in the blood (normal under 12).\n**Potassium 4.8**: safe for insulin, which drops potassium.\nIt’s DKA. Her nurse starts the drip.`, done: () => tid('aisha').dsp === 'mddecide' || !!tid('aisha').mdPick },
   { id: 'a5', title: 'Admit her', text: `An insulin drip needs hourly checks, so she goes to the **ICU**.\nTo admit, you call a **consult**, the team that takes over.\nTap **her room**, **Admit: call a consult**, then **Critical Care**.`, ...callStep('aisha', 'consult', 'icu') },
   { id: 'a6', wait: true, title: 'Admitted', text: `Critical Care **admits** her. The charge nurse handles the bed upstairs.`, done: () => E.isBoarder(tid('aisha')) || tid('aisha').loc === 'gone' },
@@ -1942,7 +1946,7 @@ const LESSONS = {
     { id: 'p2', title: 'See her now', text: () => `She’s **ESI 1**.\nTap **${lRoom()}**, then **See this patient**.`, ...seeStep('pt') },
     { id: 'p3', wait: true, title: 'In the room', text: `She’s **hot and blotchy**, **breathing fast**, and doesn’t know the day.`, done: lExamined },
     { id: 'p4', next: true, title: 'What she needs', text: `She needs:\n**IV fluids** to lift the pressure.\n**Antibiotics** for the infection.\n**Vasopressor**, a drug that squeezes vessels, if fluids aren’t enough.\n**Oxygen**: hers is low.\n**Labs** to find the germ.` },
-    { id: 'p5', title: 'Sepsis orders', text: `Tap **her room**. **Lactate**, **Blood cultures**, **CBC**, **BMP**, **Oxygen**, **Normal saline**, **Piperacillin-tazobactam** (Antibiotics by vein), **Norepinephrine** (Resuscitation drugs), **Sign**.\nCultures go before antibiotics, so the germ still grows.`, ...ordStep('pt', [['t', 'lab'], ['r', 'o2'], ['r', 'fluids'], ['r', 'abx'], ['r', 'pressor']]) },
+    { id: 'p5', title: 'Sepsis orders', text: `Tap **her room**. **Lactate**, **Blood cultures**, **CBC**, **BMP**, **Oxygen**, **Normal saline**, **Piperacillin-tazobactam** and **Vancomycin** (Antibiotics by vein: one broad, one for MRSA), **Norepinephrine** (Resuscitation drugs), **Sign**.\nCultures go before antibiotics, so the germ still grows.`, ...ordStep('pt', [['t', 'lab'], ['r', 'o2'], ['r', 'fluids'], ['r', 'abx'], ['r', 'pressor']]) },
     { id: 'p6', wait: true, title: 'Watch the pressure', text: `Her **pressure climbs** and her oxygen comes up. The **pharmacist** checks the drugs first.`, done: lResulted },
     { id: 'p7', title: 'Admit her', text: `A vasopressor drip needs the **ICU**.\nTap **her room**, **Admit: call a consult**, then **Critical Care**.`, ...callStep('pt', 'consult', 'icu') },
     { id: 'p8', final: true, title: 'Sepsis: the short version', text: `**Looks like**: infection plus fast heart, fast breathing, confusion, or low pressure.\n**Order**: labs, fluids, antibiotics. Oxygen if low. Vasopressor if pressure stays low.\n**Clock**: antibiotics in 60.\n**Charge nurse**: Resus room and a second nurse.` },
@@ -1967,7 +1971,7 @@ const LESSONS = {
     { id: 'b2', wait: true, title: 'In the room', text: `He’s **wheezing**, leaning forward, talking a few words at a time.`, done: lExamined },
     { id: 'b3', title: 'Read his numbers', text: `Tap **his room** to open his card.`, ...lCard },
     { id: 'b4', next: true, keep: true, title: 'Two numbers', text: () => { const v = E.vitalsOf(LP()); return `**SpO2** (oxygen): **${v.spo2}%**. Normal is 95+.\n**RR** (breaths a minute): **${v.rr}**. Normal is 12–20.\nHe’s **tiring**. That’s what worries me.`; }, spot: () => ['#sheet .ph-cc'] },
-    { id: 'b5', keep: true, title: 'Breathing orders', text: `**A nebulizer**: medicine mist to open airways.\n**BiPAP**: a tight mask that helps each breath.\n**Chest X-ray** and **Blood gas** check for pneumonia and CO2.\nTap **Chest X-ray**, **Blood gas**, **Ipratropium-albuterol neb** (Medications, Breathing), **BiPAP** (Airway and breathing), **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'nebs'], ['r', 'bipap']]) },
+    { id: 'b5', keep: true, title: 'Breathing orders', text: `**A nebulizer**: medicine mist to open airways.\n**BiPAP**: a tight mask that helps each breath.\n**Chest X-ray** and **Blood gas** check for pneumonia and CO2.\nA **steroid** calms the airways; an **antibiotic** treats the flare.\nTap **Chest X-ray**, **Blood gas**, **Ipratropium-albuterol neb** (Medications, Breathing), **Methylprednisolone** (Allergy and steroids), **Azithromycin** (Antibiotics by mouth), **BiPAP** (Airway and breathing), **Sign**.`, ...ordStep('pt', [['t', 'xr'], ['t', 'lab'], ['r', 'nebs'], ['r', 'meds'], ['r', 'abx'], ['r', 'bipap']]) },
     { id: 'b6', wait: true, title: 'Watch him settle', text: `**RT** fits the mask. His oxygen rises and his breathing slows.`, done: lResulted },
     { id: 'b7', title: 'Admit him', text: `He needs the mask for hours, so he stays. The **hospitalist** cares for admitted patients.\nTap **his room**, **Admit: call a consult**, then **Hospitalist**.`, ...callStep('pt', 'consult', 'hosp') },
     { id: 'b8', final: true, title: 'Trouble breathing: the short version', text: `**Wheezing**: nebulizer. BiPAP if tiring.\n**Wet lungs**: BiPAP and medications.\n**Fever and cough**: X-ray, labs, oxygen, **Antibiotics** (not Medications).\n**Charge nurse**: ESI 2. Room now.` },
@@ -2043,7 +2047,7 @@ const GAME_V = '/*GAMEV*/';   // the build puts the version here: a code gives t
 // v0.29.1: codes carry the version. PAST_V holds only the version just before this one ('' is v0.29.0 and earlier, before codes
 // carried one): each entry is another 1-in-64 chance that a mistyped code reads as stale, so each release replaces it, never appends.
 // The check is 6 bits, so about 1 code in 64 from another version still reads as current: refused almost always, not always.
-const PAST_V = ['0.30.0'];   // v0.31.0 replaces v0.30.0 on the live site
+const PAST_V = ['0.31.0'];   // v0.32.0 replaces v0.31.0 on the live site
 E.setCodeVersion(GAME_V, PAST_V);
 const staleWhy = () => `That code looks mistyped, or it was made on another version of the game (this is v${GAME_V}). Check each letter. If it’s right, ask your instructor for a new code.`;
 /* Class codes: an instructor makes one, students enter it, and everyone plays the same shift (same arrivals and events). */

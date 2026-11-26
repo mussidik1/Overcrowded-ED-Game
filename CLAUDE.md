@@ -26,7 +26,7 @@ Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages
 The owner is a paramedic and EMS educator. He reads replies on the phone app.
 
 - **Replies:** short, direct, declarative sentences. Put anything he'll copy and paste in one complete block, never in pieces.
-- **Review rule (the owner's decision, Nov 24, 2026: six reviewers, not nine):** after any change bigger than a bug fix, and at the end of every step (an audit phase, a release), run the six audit reviewers: R1 architecture, R2 tooling and legal, R3 game tech, security and privacy, R4 UI/UX, R5 player and game design, R6 clinical accuracy (roles and report format in `docs/audit/BRIEF.md` and `docs/PRO_AUDIT.md`). Brief each one as a hostile, nitpicky professional in that role who hates the project: assume it is broken, verify every claim in the code and the running game, and report everything down to Nitpick. Fix their serious findings before shipping to `main`. (This replaced the earlier rule of three extra reviewers prompted *"Pretend you are a senior software engineer, and you absolutely HATE this project. What would you critique about this project after a comprehensive review."*: don't run those as well.) Spawn other subagents only when he asks; this rule counts as asking. Run the "CEO agent" only when he says "run the CEO agent". Never use a subagent to get around a denied action.
+- **Review rule (the owner's decisions: Nov 24, 2026, six reviewers, not nine; Nov 26, 2026, once per release, not per step):** once per release, on the release's whole diff, run the six audit reviewers (not after every step or batch of changes): R1 architecture, R2 tooling and legal, R3 game tech, security and privacy, R4 UI/UX, R5 player and game design, R6 clinical accuracy (roles and report format in `docs/audit/BRIEF.md` and `docs/PRO_AUDIT.md`). Brief each one as a hostile, nitpicky professional in that role who hates the project: assume it is broken, verify every claim in the code and the running game, and report everything down to Nitpick. Fix their serious findings before shipping to `main`. To save usage, a second agent re-checks only Critical and High findings, and the drift check and CTO memo (`spec/`) run only at a release. (This replaced the earlier rule of three extra reviewers prompted *"Pretend you are a senior software engineer, and you absolutely HATE this project. What would you critique about this project after a comprehensive review."*: don't run those as well.) Spawn other subagents only when he asks; this rule counts as asking. Run the "CEO agent" only when he says "run the CEO agent". Never use a subagent to get around a denied action.
 - **Privacy:** never send his email to an external service without his explicit approval. The gate password stays out of the repo (it's in his status doc).
 - **Gate:** stays on until he says "launch". Launch is one SQL line: `update public.cb_gate set gate_on = false where id = 1;`
 - **Database changes** to the Supabase project need his approval each time.
@@ -78,7 +78,7 @@ src/index.template.html  page shell with /*FONTS*/ /*STYLE*/ /*ENGINE*/ /*UI*/ p
 src3d/map3d.js           3D floor (three.js). esbuild bundles it to 3d/map3d.js
 build.js                 builds index.html and sw.js. Stops if engine.js or ui.js+map.js fails to parse
 build3d.js               esbuild call for the 3D bundle
-test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor
+test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor, rules14.js the Phase 3 clinical content (v0.32)
 test/golden.js           a change detector: seeded-shift behaviour fingerprints, class sync, class codes, save round trips, answer keys, code cards, drug rules, scripted codes
 test/sim.js, stress.js   simulated shifts, and 188 shifts across every level and scenario
 test/*_test.py           Playwright UI tests against the built index.html (test/_browser.py picks the browser)
@@ -155,7 +155,7 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules13.js: engine rule checks in Node (~700 "ok" lines; any "FAIL:" sets exit 1)
+npm test          # rules.js through rules14.js: engine rule checks in Node (~760 "ok" lines; any "FAIL:" sets exit 1)
                   #   then golden.js: behaviour fingerprints, stream sync, class codes, save round trips, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run sim       # simulated shifts at several player speeds

@@ -102,3 +102,15 @@ I skimmed every Medium. The others read as correctly rated. Several Medium clini
 - PPI scored as an extra in upper GI bleed: **R6-28 = R5-16**.
 - Orders graded against the hidden diagnosis and answers given away: **R6-18** overlaps **R5-05** (exam line and printed diagnosis) and is the mechanism behind **R6-08**.
 - Arrest content: **R6-04** (no resuscitation decisions) and **R5-01 / R5-02** (arrests that never resolve) are separate defects in the same subsystem.
+
+## Clinician's answers (Nov 25, 2026, relayed by the owner)
+
+A licensed clinician reviewed the clinical content. The owner chose to keep the game's "not reviewed" notice for now and record
+the review here.
+
+- **R6-17 (TIA, ABCD2 0–3, normal CT, ECG and labs, no vessel imaging):** discharge home with rapid follow-up and observation for
+  imaging both score as right.
+- **R6-08 (STEMI and NSTEMI):** morphine for ongoing pain and an early beta-blocker are neutral add-ons, neither wrong nor
+  required (metoprolol stays harmful with signs of shock).
+- **R6-15 (DKA, potassium 4.8):** ordering the insulin drip on the same signature as the BMP is acceptable; potassium
+  replacement should still be required at K 3.5 to 5.0.

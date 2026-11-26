@@ -17,8 +17,10 @@ assert(r.ok && !p.tr.includes('meds') && G.stats.md.wrongDrug === 1, 'strep thro
 r = OC.signOrders(p.id, [], ['penvk']);
 assert(r.ok && p.tr.includes('meds') && p.drugs.includes('penvk'), 'penicillin fills the need');
 p = mine('anaph');
+const w0 = G.stats.md.wrongDrug || 0, x0 = G.stats.md.ordExtra || 0;
 r = OC.signOrders(p.id, [], ['epiim', 'diphen', 'methylpred', 'o2', 'ns']);
-assert(p.tr.includes('epi') && p.tr.includes('meds'), 'anaphylaxis: IM epinephrine and an antihistamine count');
+assert(p.tr.includes('epi') && OC.missNow(p).length === 0 && (G.stats.md.wrongDrug || 0) === w0 && (G.stats.md.ordExtra || 0) === x0,
+  'anaphylaxis: IM epinephrine is the treatment; an antihistamine, a steroid and fluids are fine add-ons, not extras (Phase 3, R6-11)');
 // 2. The diagnosis call
 OC.G.train = null;
 p = mine('pna'); p.dxK = false;
