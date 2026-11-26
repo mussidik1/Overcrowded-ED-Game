@@ -2246,7 +2246,7 @@
   "cause:vol": [
    "They were very sick and dry before this. The ultrasound shows **a small, empty heart**.",
    "[RIGHT] Fluids wide open, while CPR and epinephrine go on -> An empty heart: fluids wide open, while CPR and epinephrine go on.",
-   "Tenecteplase, in case a clot is behind this arrest -> A clot buster in a bleeding patient makes it worse.",
+   "Tenecteplase, in case a clot is behind this arrest -> An empty heart needs volume, not a clot buster: nothing here points to a clot, and the drug risks bleeding.",
    "Shock it at 200 J, then 2 minutes of CPR -> PEA and asystole are not shockable. A shock only pauses CPR. (A flat line: check the leads and the gain first.)",
    "Nothing changes: epinephrine every 3 to 5 minutes -> Repeating epinephrine without looking for the cause rarely ends well."
   ],

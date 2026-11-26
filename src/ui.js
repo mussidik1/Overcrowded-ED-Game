@@ -2064,7 +2064,7 @@ function classHTML() {
     + (R.st === 'fail' && !R.hard ? `<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button>${R.net || R.full ? '<button type="button" class="big" data-act="codeNoRes">Use it without results</button>' : ''}</div>` : '') + '</div></div>' : '';
   const ask = U.codeAsk && made ? `<div class="cb-ask" id="codeAsk" role="alert"><span>Make a new code for ${esc(E.LEVELS[U.codeAsk].name)}? ${esc(made.code)} goes off the screen${cbKeys()[made.code] ? ' (it stays in your saved codes below)' : ''}.</span><button type="button" class="big act" data-act="codeAskNo">Keep ${esc(made.code)}</button><button type="button" class="big" data-act="codeMakeGo" data-arg="${esc(U.codeAsk)}">New code</button></div>` : '';
   return head('Class code', `Everyone who enters the same code plays the same shift: the same patients and events, at the same times, on the same game version (this is v${GAME_V}). The attending’s radio calls can differ between players. What each player does with the shift is theirs.`)
-    + `<div class="cc-box"><label for="ccIn"><b>Play a code</b></label><div class="cc-row"><input id="ccIn" class="cc-in" data-pick="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="9" placeholder="ABC-DEF" value="${esc(U.codeIn || '')}" aria-describedby="ccWhat"><button type="button" class="big act" data-act="codePlay" ${typed ? '' : 'disabled'}>Start</button></div><small id="ccWhat" class="cc-what">${esc(codeHint(U.codeIn || ''))}</small></div>`
+    + `<div class="cc-box"><label for="ccIn"><b>Play a code</b></label><div class="cc-row"><input id="ccIn" class="cc-in" data-pick="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="ABC-DEF" value="${esc(U.codeIn || '')}" aria-describedby="ccWhat"><button type="button" class="big act" data-act="codePlay" ${typed ? '' : 'disabled'}>Start</button></div><small id="ccWhat" class="cc-what">${esc(codeHint(U.codeIn || ''))}</small></div>`
     + `<div class="cc-box"><b>Make one (instructors)</b><small>It uses the role${U.mode === 'md' ? ', radio calls' : ''} and scenario set on the menu (now: ${esc(codeDesc({ mode: U.mode, level: 'med', scen: U.scen, pack: U.pack }).replace(/ · Manic Monday/, ''))}). Pick the shift:</small><div class="cgrid cc-lv">${lv}</div>`
     + (!made && saving ? '<div class="cc-made"><small role="status">Making a class code…</small></div>' : '')
     + fail
@@ -2111,9 +2111,17 @@ const cbClean = v => {
   const t = n.replace(/([\u0600-\u0DFF])[\u200C\u200D](?=\p{L})/gu, '$1').replace(/([\u0980-\u09FF])\u200D(?=\u09CD)/gu, '$1').replace(/([\u0D00-\u0D7F])\u200D(?= |$)/gu, '$1');   // and a Bengali joiner before the virama (R5.8-07)   // a joiner after a letter or mark of a script that uses one (Arabic to Sinhala), before a letter; or ending a Malayalam word (a chillu)
   return len >= 1 && len <= 20 && CB_NAME.test(t) && !CB_BADCH.test(t) ? n : null;
 };
-const cbNameWhy = v => { const n = String(v || '').trim(); return !n ? 'Type your first name or initials.' : [...n.normalize('NFC')].length > 20 ? 'At most 20 characters: try your first name or initials.'
+const cbNameWhy = v => { const n = String(v || '').trim(), c = cbClean(n); return !n ? 'Type your first name or initials.' : c && cbRude(c) ? 'Please use your first name or initials.' : c && !cbOneName(c) ? 'Your first name only, or with an initial, like Ana M. or S.K. No last names.' : [...n.normalize('NFC')].length > 20 ? 'At most 20 characters: try your first name or initials.'
   : /\p{Default_Ignorable_Code_Point}/u.test(n) ? 'Your keyboard added a hidden character: type the name again, or use your initials.'
   : /\p{N}/u.test(n) ? 'No numbers: use your first name or initials, like Sam, Ana M. or S.K.' : n.split(/\s+/).length > 3 ? 'At most three words, like Mary Ann K.' : 'Use your first name or initials: letters only, like Sam, Ana M. or S.K.'; };
+// The owner's decisions (Nov 26, 2026; QA-2, QA-19): on top of the server's rule, the game sends only one first name, initials, or a first
+// name plus initials ("Ana", "S.K.", "Ana M."), never two full words (a full name), and refuses common profanity. Game only: the server's
+// rule (cbClean above, matched to the contract file) is unchanged.
+const cbInitial = w => /^(\p{L}\.?)+$/u.test(w) && [...w.replace(/\./g, '')].length <= 3 && (w.includes('.') || [...w].length <= 2);
+const cbOneName = n => n.split(' ').filter(w => !cbInitial(w)).length <= 1;
+const CB_RUDE = /(fuck|shit|cunt|bitch|whore|slut|nigg|fag|asshole|wank|bollock|twat|piss)/, CB_RUDE_W = /^(ass|arse|dick|cock|cum|tits?|prick|bastard|crap|damn|hell|sex|porn|nazi|poop|butt|penis|vagina|boob)$/;
+const cbRude = n => { const t = n.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase(); return CB_RUDE.test(t.replace(/[^a-z]/g, '')) || t.split(/[^a-z]+/).some(w => CB_RUDE_W.test(w)); };
+const cbSendable = v => { const n = cbClean(v); return n && cbOneName(n) && !cbRude(n) ? n : null; };
 const cbAlpha = v => String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
 const cbCodeNorm = v => { const t = cbAlpha(v); return /^[0-9A-HJKMNP-TV-Z]{6}$/.test(t) ? t.slice(0, 3) + '-' + t.slice(3) : null; };   // any well-formed code, whatever its version
 const cbKeyNorm = v => { const t = cbAlpha(v); return /^[0-9A-HJKMNP-TV-Z]{16}$/.test(t) ? t : null; };
@@ -2205,7 +2213,7 @@ function cbRows(L) {
   for (const r of rows) { const k = nm(r); seen[k] = (seen[k] || 0) + 1; r.nth = seen[k]; r.of = tot[k]; r.det = cbDet(r); r.when = cbDate(r.at, true); }
   L._of = L.rows; L._rows = rows; return rows;
 }
-const CB_NOTE = 'Not for grading: scores are self-reported, anyone with the code can send a result under any name (a repeated name may be a retry or another student), and no licensed clinician has reviewed the game’s clinical content.';
+const CB_NOTE = 'Not for grading: scores are self-reported, anyone with the code can send a result under any name (a repeated name may be a retry or another student), and it is a teaching game, not clinical guidance: no licensed clinician has reviewed its clinical content.';
 const CB_MDNOTE = 'Attending: the score and stars mostly reflect the department the computer runs. The attending’s own work is the patients they saw (and how many of them died), their diagnoses, unsafe orders and radio calls. Radio calls differ between players, and complications are partly chance. Many patients who arrest die even after a well-run code (the list says which deaths came after a code run by the book: every rhythm check right, the code started within 5 minutes).';
 const cbClock = m => { const t = 7 * 60 + (m || 0); return String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
 function cbDet(r) {   // the second line of a result: the student's own numbers first
@@ -2241,7 +2249,7 @@ function cbListHTML() {
       + (old && (K.x || K.p) ? '<small>Made on an older version of the game: make a new code.</small>' : '')
       + (K.g && !(row && row.why) ? `<small class="cb-err">Another class has ${esc(c)} on the server now. Forget it and make a new code.</small>` : '')
       + (ask ? `<div class="cb-ask" role="alert"><span>Forget the key for ${esc(c)} on this device? Without it, nobody can read or delete ${esc(c)}’s results.</span><button type="button" class="big" data-act="keyForgetNo">Keep</button><button type="button" class="big danger" data-act="keyForgetGo" data-arg="${esc(c)}">Forget</button></div>`
-        : `<div class="cc-row">${main}${U.codeMade === c ? '<small>Its key: Show key and Copy key, with the code above.</small>' : `<button type="button" class="big" data-act="keyShow" data-arg="${esc(c)}" aria-expanded="${show}">${show ? 'Hide key' : 'Show key'}</button><button type="button" class="big" data-act="keyCopy" data-arg="${esc(c)}">Copy key</button>`}</div><div class="cc-row"><button type="button" class="cb-link" data-act="keyForget" data-arg="${esc(c)}">Forget this key on this device</button></div>`)
+        : `<div class="cc-row">${main}${U.codeMade === c ? '<small>Its key: use Show key and Copy key with the code above.</small>' : `<button type="button" class="big" data-act="keyShow" data-arg="${esc(c)}" aria-expanded="${show}">${show ? 'Hide key' : 'Show key'}</button><button type="button" class="big" data-act="keyCopy" data-arg="${esc(c)}">Copy key</button>`}</div><div class="cc-row"><button type="button" class="cb-link" data-act="keyForget" data-arg="${esc(c)}">Forget this key on this device</button></div>`)
       + '</li>'; }).join('')}</ul><small>Results show every student’s name and score: not on a projected screen. On a shared computer, forget your keys when you’re done, and delete any results file you downloaded.</small>`;
   h += U.cbOpen ? `<div class="cb-form"><label for="cbCode">Class code</label><input id="cbCode" class="cb-code" data-pick="cbcode" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="ABC-DEF" value="${esc(F.code || '')}">`
     + `<label for="cbKey">Instructor key <small>(hidden as you type, for a projected screen)</small></label><div class="cc-row cb-keyrow"><input id="cbKey" class="cb-code cb-keyin${U.cbKeyVis ? '' : ' masked'}" data-pick="cbkey" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX" value="${esc(F.key || '')}"><button type="button" class="big" data-act="cbKeyVis">${U.cbKeyVis ? 'Hide' : 'Show'}</button></div>`
@@ -2320,7 +2328,7 @@ function copyText(t) {
 }
 function lessonsHTML() {
   const n = LESSON_KEYS.filter(lessonDone).length;
-  return head('Lessons', `The first lessons put you on a patient as the doctor, about two minutes each. The case cards (five short cards) teach one must-not-miss condition: how it looks, what to order, what to give and what not to. Written with AI: <b>no licensed clinician has reviewed them yet</b>.${n ? ` ${n} of ${LESSON_KEYS.length} done.` : ''}`)
+  return head('Lessons', `Nine of the first lessons put you on a patient as the doctor, about two minutes each; cardiac arrest and fast heart rhythms are read-through cards (the rhythm-check cards themselves come up on a shift). The case cards (five short cards) teach one must-not-miss condition: how it looks, what to order, what to give and what not to. A teaching game, not clinical guidance. Written with AI: <b>no licensed clinician has reviewed them yet</b>.${n ? ` ${n} of ${LESSON_KEYS.length} done.` : ''}`)
     + LESSON_SYS.filter(([sy]) => LESSON_KEYS.some(k => LESSONS[k].sys === sy)).map(([sy, nm]) => `<div class="o-sec lsn-sys">${esc(nm)}</div><div class="cgrid lsn">${LESSON_KEYS.filter(k => LESSONS[k].sys === sy).map(k => `<button type="button" class="cbtn" data-act="lesson" data-arg="${k}"><b>${esc(LESSONS[k].name)}${lessonDone(k) ? ' <i class="lsn-ok">✓</i>' : ''}</b><small>${esc(LESSONS[k].blurb)}</small></button>`).join('')}</div>`).join('');
 }
 const STEPS_NOW = () => { const k = lessonKey(); return k ? LESSONS[k].steps : (g() && g().mode === 'md' ? STEPS_MD : STEPS); };
@@ -2438,6 +2446,7 @@ function mapAct(el, cx, cy) {
   const hadSheet = !!U.sheet; setTimeout(() => { if (hadSheet && !U.sheet) U.tapGuard = { t: performance.now() + 400, x: cx, y: cy }; }, 0);
   if (el && el.dataset.act === 'closeSheet') { const nb = $('#needBtn'), r = nb ? nb.getBoundingClientRect() : null; if (r && r.width && cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) el = nb; }   // Next shows through the dimmed side of an open card: a tap there goes to the next thing, not just the card closing
   if (!el || el.disabled) return;
+  if (U.startGuard && performance.now() < U.startGuard && U.scene === 'game' && !el.closest('#modal, #coach')) return;
   ensureAudio();
   const fn = ACT[el.dataset.act];
   if (fn) { try { fn(el.dataset.arg, el); render(); } catch (e) { if (U.scene === 'game') crash(e, 'tap ' + el.dataset.act); else throw e; } }
@@ -2473,7 +2482,11 @@ function renderModal(G) {
     h = `<div class="mc-who">${lessonKey() ? 'Lesson: ' + esc(LESSONS[lessonKey()].name) : esc(E.LEVELS[G.level].name)}${G.scen && G.scen !== 'none' && E.SCENS[G.scen] ? ' · ' + esc(E.SCENS[G.scen].name) + ' scenario' : ''} · ${E.clock()}</div><h3>Menu</h3><p>The shift is paused and saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="restart"><b>${U.armR && performance.now() - U.armR < 3000 ? 'Tap again to restart' : 'Restart this shift'}</b></button><button type="button" data-act="menu"><b>Main menu</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="words"><b>What the words mean</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="plain"><b>Plain words: ${PLAIN() ? 'on' : 'off'}</b></button><button type="button" data-act="view"><b>${U.view === 'map' ? 'Switch to the list board' : 'Switch to the floor plan'}</b></button>${U.view === 'map' ? `<button type="button" data-act="three"><b>${U.three ? '3D floor: on' : '3D floor: off'}</b></button>` : ''}${U.view === 'map' && U.three ? `<button type="button" data-act="q3d"><b>3D detail: ${Q3D_NAME[U.q3d]}</b></button>` : ''}${document.fullscreenEnabled ? `<button type="button" data-act="fullscreen"><b>${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</b></button>` : ''}</div>`;
   }
   if (h && TR()) h = coachHTML('in') + h;
+  const was = wrap.hidden;
   wrap.hidden = !h; morph(el, h);
+  // QA-5: the board behind the menu, a report or an open card can't be reached by keyboard, and a card that opens takes the focus
+  const app = $('.app'), block = U.scene !== 'game' || !!h; if (app && app.inert !== block) app.inert = block;
+  if (h && was && !wrap.contains(document.activeElement)) { const f = el.querySelector('button:not([disabled]), [href], input, [tabindex]:not([tabindex="-1"])'); if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* focus is a nicety */ } }
 }
 const ROT = window.matchMedia('(orientation: portrait) and (max-width: 700px)');   // the same test the "Turn your phone sideways" card uses
 function isPaused() { const G = g(); return U.paused || !!U.modal || (G && !!G.card && (G.mode !== 'md' || G.card.mine)) || U.scene !== 'game' || (U.view === 'map' && ROT.matches); }   // the computer charge nurse answers cards for the attending
@@ -2745,7 +2758,7 @@ const ACT = {
   cbSend: at => {
     const d = lastReport(); if (!d || String(d.at) !== String(at) || !d.R.code || d.sent) return;
     U.cbSent = U.cbSent || {}; if (U.cbSent[at] === 'sending') return;   // one send at a time
-    const name = cbClean(U.cbName), focus = !!(document.activeElement && document.activeElement.id === 'cbName');
+    const name = cbSendable(U.cbName), focus = !!(document.activeElement && document.activeElement.id === 'cbName');
     U.cbBadName = U.cbBadName || {}; delete U.cbBadName[at];
     if (!name) { U.cbSent[at] = cbNameWhy(U.cbName); U.cbBadName[at] = 1; cbRedraw(true); return; }
     if (!d.cid) { d.cid = cbUuid(); saveRep(d); }   // kept with the report, so a resend after a reload is the same result
@@ -2935,7 +2948,7 @@ const ACT = {
   sound: () => { U.sound = !U.sound; store('oc-sound', U.sound ? '1' : '0'); if (U.sound) ensureAudio(); else hush(); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   help: () => { U.sheet = { type: 'help' }; },
   pack: k => { U.pack = k; store('oc-pack', k); setH($('#title'), titleHTML()); },
-  start: lvl => start(lvl),
+  start: lvl => { start(lvl); U.startGuard = performance.now() + 600; },   // QA-18: the second tap of a double tap doesn't land on the new board
   resumeSave: () => resumeSave(),
   restart: () => { const now = performance.now(); if (!U.armR || now - U.armR > 3000) { U.armR = now; render(); return; } U.armR = 0; start(U.lvl); },
   menu: () => { if (unsentGuard()) return; save(true); showTitle(); },
@@ -2996,7 +3009,7 @@ function staleClassHTML() {
 function resumeSave() {
   const d = readSave(); if (!d) { toast('No saved shift on this device', 'bad'); return; }
   try {
-    E.load(d.G); U.lvl = d.lvl; U.mode = d.G.mode || 'rn'; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = true; U.speed = 1; U.msgs = []; U.msgNew = 0;
+    backTrap(); E.load(d.G); U.lvl = d.lvl; U.mode = d.G.mode || 'rn'; U.scene = 'game'; U.sel = null; U.sheet = null; U.modal = null; U.paused = true; U.speed = 1; U.msgs = []; U.msgNew = 0;
     $('#title').hidden = true; $('#report').hidden = true;
     render();
   } catch (e) {   // a save that loads but can't be drawn: drop it rather than fail again on every Resume
@@ -3015,7 +3028,7 @@ function titleHTML() {
   const md = U.mode === 'md';
   const fresh = !['easy', 'med', 'hard'].some(k => bestOf(k));
   const modes = `<p class="t-role" id="roleLab">Select role:</p><div class="modes" role="group" aria-labelledby="roleLab"><button type="button" class="mode${md ? '' : ' on'}" data-act="mode" data-arg="rn" aria-pressed="${!md}"><b>Charge nurse</b><small>Manage ED flow</small></button><button type="button" class="mode${md ? ' on' : ''}" data-act="mode" data-arg="md" aria-pressed="${md}"><b>Attending</b><small>See patients, write orders</small></button></div>`;
-  const tb = md ? 'A preceptor walks you through it.' : E.LEVELS.train.blurb;
+  const tb = (md ? 'A preceptor walks you through it.' : E.LEVELS.train.blurb) + ' A teaching game, not clinical guidance.';   // QA-7: Orientation is reachable from the main menu too
   const chM = md ? 'md' : 'rn', chN = chList(chM).length, chD = chList(chM).filter(c => chDone(chM, c.k)).length;   // once a chapter is done, the row opens the chapter list
   const train = `<button type="button" class="lvl train" ${chD ? 'data-act="chapters"' : 'data-act="start" data-arg="train"'}><span class="dot" style="background:var(--accent)"></span><span><b>${E.LEVELS.train.name}</b><small>${tb}</small></span>${store(trainedKey(U.mode)) ? '<span class="best">Done ✓</span>' : chD ? `<span class="best">${chD} of ${chN}</span>` : fresh ? '<span class="best go">Start here</span>' : ''}</button>`;
   const nL = LESSON_KEYS.filter(lessonDone).length;
@@ -3033,7 +3046,7 @@ function titleHTML() {
   if (U.tm === 'about') return aboutHTML(store('oc-seen-about') ? head('About Code Black') : '');
   const wxs = `<div class="packs wxp"><span id="wxLab">Weather</span><div class="segs s5">${Object.entries(E.WX).map(([k, W]) => `<button type="button" class="seg${(U.wx || 'clear') === k ? ' on' : ''}" data-act="weather" data-arg="${k}" aria-pressed="${(U.wx || 'clear') === k}">${esc(W.name.split(' ')[0])}</button>`).join('')}</div><select class="wx-sel" data-pick="weather" aria-labelledby="wxLab">${Object.entries(E.WX).map(([k, W]) => `<option value="${k}"${(U.wx || 'clear') === k ? ' selected' : ''}>${esc(W.name)}</option>`).join('')}</select><small>${esc(E.WX[U.wx || 'clear'].blurb)}</small></div>`;
   if (U.tm === 'play') return `<div class="card t-sub-menu">${head('Play a shift', role + ', 07:00 to 19:00.')}<div class="levels">${lv}<button type="button" class="lvl t-go cc-go" data-act="classCode"><span class="dot" style="background:#4F5A6B"></span><span><b>Class code</b><small>Play your instructor's shift, or make one for a class.</small></span><span class="t-chev" aria-hidden="true">›</span></button></div>${scens}${wxs}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}</div>`;
-  if (U.tm === 'learn') return `<div class="card t-sub-menu">${head('Learn', 'Start with the introductory orientation. Then learn to manage disease-specific conditions.')}<div class="levels">${train}${lessons}</div><div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="words">What the words mean</button></div></div>`;
+  if (U.tm === 'learn') return `<div class="card t-sub-menu">${head('Learn', 'Start with the introductory orientation. Then learn to manage disease-specific conditions. <small class="t-warn">A teaching game, not clinical guidance. Written with AI: <b>no licensed clinician has reviewed it yet</b>.</small>')}<div class="levels">${train}${lessons}</div><div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="words">What the words mean</button></div></div>`;
   if (U.tm === 'set') return `<div class="card t-sub-menu">${head('Settings')}<div class="t-sets">${set('view', 'Board', U.view === 'map' ? 'floor plan' : 'list')}${U.view === 'map' ? set('three', 'Floor', U.three ? '3D' : 'flat') : ''}${U.view === 'map' && U.three ? set('q3d', '3D detail', Q3D_NAME[U.q3d]) : ''}${set('sound', 'Sound', U.sound ? 'on' : 'off')}${set('plain', 'Plain words', PLAIN() ? 'on' : 'off')}${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? set('fullscreen', 'Full screen', document.fullscreenElement ? 'on' : 'off') : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
   const stars = ['easy', 'med', 'hard'].reduce((n, k) => n + (bestOf(k) ? E.scoreStars(bestOf(k)) : 0), 0);
   const learnBadge = store(trainedKey(U.mode)) ? '<span class="best">Done ✓</span>' : chD ? `<span class="best">${chD} of ${chN}</span>` : fresh ? '<span class="best go">Start here</span>' : '';
@@ -3075,7 +3088,9 @@ function showTitle() {
   const t = $('#title'); t.hidden = false; setH(t, titleHTML());
   render();
 }
+const backTrap = () => { try { if (!(history.state && history.state.cb)) history.pushState({ cb: 1 }, ''); } catch (e) { /* history blocked */ } };   // QA-17
 function start(lvl, lesson, chapter, code) {
+  backTrap();
   U.cbName = '';   // a class result's name box starts empty for whoever plays next on this device
   ensureAudio();
   if (!LESSONS[lesson]) lesson = null;
@@ -3369,9 +3384,17 @@ function bind() {
       if (U.sel) U.sel = null;
       else if (U.sheet && U.sheet.type === 'class' && ((U.cbList && U.cbList.ask) || U.cbForget || U.codeAsk)) { if (U.cbList && U.cbList.ask) ACT.cbDelNo(); else if (U.cbForget) ACT.keyForgetNo(); else ACT.codeAskNo(); }
       else if (U.sheet) U.sheet = null;
+      else if (U.scene === 'game' && U.paused && !U.modal) ACT.pause();   // QA-6: Escape closes the pause menu
       render();
     }
     else if ((e.key === 'n' || e.key === 'N') && U.scene === 'game' && !e.metaKey && !e.ctrlKey && !/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) { ACT.needNext(); render(); }
+  });
+  // QA-17: in a shift, the phone's back button closes what is open (a selection, a sheet), or opens the pause menu, instead of leaving the game
+  window.addEventListener('popstate', () => {
+    if (U.scene !== 'game') return;
+    if (U.sel) U.sel = null; else if (U.sheet) U.sheet = null; else if (!U.paused && !U.modal) ACT.pause();
+    try { history.pushState({ cb: 1 }, ''); } catch (e) { /* history blocked */ }
+    render();
   });
   document.addEventListener('fullscreenchange', () => { if (U.scene === 'title') setH($('#title'), titleHTML()); else render(); });
   window.addEventListener('resize', () => { U.layKey = null; if (U.scene === 'game') render(); });
@@ -3435,5 +3458,5 @@ function boot2(data) {
 /*MAP*/
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-window.OCUI = { U, render, save: f => save(f), cbClean, verdictOf, start, omOf: k => omOf(k), showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
+window.OCUI = { U, render, save: f => save(f), cbClean, cbSendable, verdictOf, start, omOf: k => omOf(k), showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
 })();

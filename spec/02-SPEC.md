@@ -1,6 +1,6 @@
 # 02 Spec: Emergency Department: Code Black (v0.32.0)
 
-Retrofitted Nov 26, 2026, from `README.md` and `CLAUDE.md`. It describes **v0.32.0 as released**. Each requirement (REQ) has acceptance
+Retrofitted Nov 26, 2026, from `README.md` and `CLAUDE.md`. It describes **v0.32.0 as released**. Corrected after QA round 1 where the spec, not the game, was wrong: REQ-03 (the radio pack is on Play a shift by design) and REQ-14 (two lessons were always read-through). Each requirement (REQ) has acceptance
 criteria (AC) an evaluator can check in the running game. "Phone" means about 390 x 844 upright and 844 x 390 sideways; "desktop" means
 about 1280 x 800. A local copy has no password gate.
 
@@ -16,7 +16,8 @@ about 1280 x 800. A local copy has no password gate.
 - AC3: The chosen role is clear on the menu and carries into the shift.
 
 **REQ-03 Settings.** Settings change the board view (floor plan or list), the 3D floor (on or off, with a detail level), sound, plain
-words, the radio-call pack, and full screen where the browser allows it. Choices are remembered on the device.
+words, and full screen where the browser allows it. Choices are remembered on the device. The radio-call pack is chosen on Play a
+shift, for the attending only (radio calls are the attending's job).
 
 ## A shift
 
@@ -71,9 +72,9 @@ player acts, and explains every term and abbreviation the first time.
 - AC1: It can be finished start to end in both roles by following the prompts.
 - AC2: It comes in chapters; a finished chapter is remembered and the next one is offered.
 
-**REQ-14 Lessons.** Short lessons per condition (11 played lessons: radio calls, stroke, cardiac arrest, fast heart rhythms, chest pain,
-sepsis, bleeding trauma, trouble breathing, overdose, belly pain, falls; plus a text lesson for each newer condition). A finished lesson
-is marked done.
+**REQ-14 Lessons.** Short lessons per condition: 9 played on a patient (radio calls, stroke, chest pain, sepsis, bleeding trauma, trouble
+breathing, overdose, belly pain, falls), 2 read-through (cardiac arrest, fast heart rhythms), and a text lesson for each newer condition.
+The Lessons screen says which are which. A finished lesson is marked done.
 
 ## Class codes and results
 

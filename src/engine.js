@@ -1992,7 +1992,7 @@ function signOrders(pid, tests, treats) {
     else if (k === 'cardiovert' && cardiovertOk(p)) { fl.push(TREAT[k].label); }   // stable A-fib under 48 hours: rhythm control is a fair choice
     else if (OKL.includes(k)) { fl.push(trName(p, k)); }
     else { pts -= 3; extra++; S.ordExtra++; xl.push(TREAT[k].label); (p.extraTr = p.extraTr || []).push(k);
-      if (HARM[k] && !p.arrest && !(k === 'cardiovert' && p.ck === 'afib' && cardiovertOk(p))) S.unneeded = (S.unneeded || 0) + 1;   // the unsafe order, counted when ordered, whatever happens next (R6.7-03)
+      if (HARM[k] && !p.arrest && !(k === 'cardiovert' && p.ck === 'afib' && cardiovertOk(p))) { S.unneeded = (S.unneeded || 0) + 1; ul.push(`${TREAT[k].label} (no sign it's needed, and it carries real risk)`); }   // QA-10: named in the review and at signing   // the unsafe order, counted when ordered, whatever happens next (R6.7-03)
       if (k === 'blood' && !p.bb) p.bb = { st: 'xm', due: G.t + 30 }; }
   }
   let held = '';
@@ -2026,7 +2026,7 @@ function signOrders(pid, tests, treats) {
   if (newT.length && (p.dsp === 'mddecide' || p.dsp === 'decide')) p.dsp = 'none';
   const n = newT.length + newR.length;
   if (newT.some(k => DET_KIND(k) === 'mri')) note(`${label(p)}: MRI ordered. It takes about an hour, and the patient leaves the department for it.`);
-  return { ok: true, msg: `${n} order${n === 1 ? '' : 's'} signed for ${label(p)}${newR.includes('meds') ? ` (${rxName(p)})` : ''}${held ? '.' + held : ''}`, held: !!held };
+  return { ok: true, msg: `${n} order${n === 1 ? '' : 's'} signed for ${label(p)}${newR.includes('meds') ? ` (${rxName(p)})` : ''}${held ? '.' + held : ''}${ul.length ? `. Can hurt them: ${ul.join('; ')}.` : ''}`, held: !!held, unsafe: ul.slice() };
 }
 // A workup that is missing a test the plan needs: the diagnosis waits until it's ordered.
 function workGap(p) {
@@ -2045,7 +2045,7 @@ function harmCheck(p, k) {
   let h = HARM[k]; if (!h) return;
   if (k === 'cardiovert' && p.ck === 'afib') { if (cardiovertOk(p)) return; h = [0.15, 25, 'had a stroke after cardioversion: A-fib of unknown or long duration needs three weeks of a blood thinner, or a TEE to rule out a clot, before a shock']; }
   if (!chance(h[0])) return;
-  G.stats.md.harm++; care(-h[1], 'harm', p); litAdd(10, `harmed by ${TREAT[k].label.toLowerCase()} without an indication`, p);
+  G.stats.md.harm++; care(-h[1], 'harm', p); litAdd(10, `harmed by ${lcl(TREAT[k].label)} without an indication`, p);
   mm(55, `${p.name} ${h[2]}`, `${TREAT[k].label} was ordered without an indication`, true);
   toast(`${p.name} ${h[2]}.`, 'bad'); sound('bad');
 }
@@ -2164,6 +2164,7 @@ const CODE_WHY = {
   stopForTube: 'Stopping compressions to place a tube costs more than it gains.',
   hemctl: 'A bleed inside the body: blood (massive transfusion) and a surgeon or interventional radiology to stop it. CPR can\'t fill an empty heart.',
   tnkWrong: 'A clot buster in a bleeding patient makes it worse.',
+  tnkDry: 'An empty heart needs volume, not a clot buster: nothing here points to a clot, and the drug risks bleeding.',   // QA-9: the dry (DKA, dehydration) arrest isn't bleeding
   hypovol: 'An empty heart: fluids wide open, while CPR and epinephrine go on.',
   opioid: 'An opioid arrest is a breathing arrest: oxygen and good ventilation first. Naloxone is reasonable, but it never replaces CPR.',
   naloxWait: 'Never stop CPR to wait for naloxone.',
@@ -2234,7 +2235,7 @@ const CODE_CAUSE = {   // the last rhythm check in PEA or asystole: the cause th
   trap: { t: 'Severe asthma: the chest is **stiff and over-full**, and each breath gets harder.', c: [['Pause the bag, press the chest to let air out, slow the breaths', 'trap', 1], ['Bag faster and harder to push more oxygen past the tight airways', 'bagFaster'], ['A double dose of epinephrine, then keep bagging hard', 'highEpi'], ['Shock it at 200 J, then 2 minutes of CPR and recheck', 'shockPea']] },
   air: { t: 'The bag-mask **isn\'t moving the chest** well.', c: [['Reposition, two-person bag-mask, then a tube, without stopping CPR', 'hypox', 1], ['Stop CPR until the breathing tube is in, then restart compressions', 'stopForTube'], ['A double dose of epinephrine to open up the airways', 'highEpi'], ['More sodium bicarbonate to correct the acid from poor breathing', 'bicarbAll']] },
   bleed: { t: '**Hemoglobin 5** on the gas. The bleeding is inside: {src}.', c: [['Massive transfusion, and a surgeon or IR to stop the bleeding', 'hemctl', 1], ['Tenecteplase, in case a clot is behind this arrest', 'tnkWrong'], ['Shock it at 200 J, then 2 minutes of CPR and epinephrine', 'shockPea'], ['Nothing changes: epinephrine every 3 to 5 minutes and wait for labs', 'noHunt']] },
-  vol: { t: 'They were very sick and dry before this. The ultrasound shows **a small, empty heart**.', c: [['Fluids wide open, while CPR and epinephrine go on', 'hypovol', 1], ['Tenecteplase, in case a clot is behind this arrest', 'tnkWrong'], ['Shock it at 200 J, then 2 minutes of CPR', 'shockPea'], ['Nothing changes: epinephrine every 3 to 5 minutes', 'noHunt']] },
+  vol: { t: 'They were very sick and dry before this. The ultrasound shows **a small, empty heart**.', c: [['Fluids wide open, while CPR and epinephrine go on', 'hypovol', 1], ['Tenecteplase, in case a clot is behind this arrest', 'tnkDry'], ['Shock it at 200 J, then 2 minutes of CPR', 'shockPea'], ['Nothing changes: epinephrine every 3 to 5 minutes', 'noHunt']] },
   opioid: { t: 'They were found **not breathing**, pupils pinpoint.', c: [['Oxygen and ventilation; naloxone is reasonable; CPR goes on', 'opioid', 1], ['Give naloxone and stop CPR until it starts working', 'naloxWait'], ['Flumazenil, to reverse whatever they took, then recheck', 'flumaz'], ['Shock it at 200 J, then 2 minutes of CPR and more epinephrine', 'shockPea']] },
   tension: { t: 'No breath sounds on one side, and the **trachea is pushed to the other side**.', c: [['Decompress that side now, with a needle or a finger', 'tension', 1], ['A portable chest X-ray first, to be sure which side it is', 'xrayFirst'], ['A double dose of epinephrine, then keep bagging', 'highEpi'], ['Shock it at 200 J, then 2 minutes of CPR and recheck', 'shockPea']] },
   clot: { t: 'The ultrasound shows **a huge right heart** and a clot in the leg.', c: [['Tenecteplase (a clot buster) during CPR, and keep going', 'clot', 1], ['Stop now: an arrest from a clot this size can\'t come back', 'peHopeless'], ['Heparin drip, and recheck the rhythm and pulse in an hour', 'heparinWait'], ['Shock it at 200 J, then 2 minutes of CPR and recheck', 'shockPea']] },
@@ -3368,7 +3369,7 @@ function dspTimers(p) {
     else if (G.t - p.iftT0 >= 12 && p.iftNag == null) { p.iftNag = G.t; care(-4, 'transfer', p); toast(`The ${crewOf(p)} crew in ${label(p)} is still waiting for your report`, 'bad'); }
   }
   else if (p.dsp === 'iftreport' && G.t >= p.iftRep + 6) {
-    const owed = p.tr.filter(k => !p.treat[k] || p.treat[k].st !== 'done').map(k => TREAT[k].label.toLowerCase()).join(', ');
+    const owed = p.tr.filter(k => !p.treat[k] || p.treat[k].st !== 'done').map(k => lcl(TREAT[k].label)).join(', ');
     if (treatsDone(p)) leave(p, 'tx');
     else if (p.crewWait == null) { p.crewWait = G.t; note(`The ${crewOf(p)} crew in ${label(p)} is waiting on ${owed} before they go`, 'bad'); }
     else if (G.t - p.crewWait > 20) {
@@ -3503,7 +3504,7 @@ function bounceRoll(p, outcome, wasLoc) {
     if (p.missedDx) add(0.35, `Missed on the first visit: ${p.missedDx.by} had ${p.missedDx.n} patients in line`);
     if (p.wrongHome) add(0.6, `Sent home when they needed ${DISPO_NAME[p.wrongHome] || 'admission'}`);
     if (p.earlyDc) add(0.6, `Sent home ${p.earlyDc.left} min early: ${p.earlyDc.why}`);
-    if (p.txGap && p.txGap.length) add(0.3, `Went home without ${p.txGap.map(k => TREAT[k].label.toLowerCase()).join(' or ')}`);
+    if (p.txGap && p.txGap.length) add(0.3, `Went home without ${p.txGap.map(k => lcl(TREAT[k].label)).join(' or ')}`);
   }
   if (!chance(c)) return;
   p.retWhy = why;
@@ -3614,9 +3615,11 @@ function crash(p) {
   G.stats.wrCrash++; care(-20, 'waiting');
   toast(`${p.name} is crashing in the waiting room. Get them into a resus bay.`, 'alert'); sound('alarm');
 }
+// a treatment's name inside a sentence: ordinary words in lower case, abbreviations kept (IV fluids, BiPAP, CT) (QA-21)
+const lcl = t => String(t).split(' ').map(w => (/^[A-Z][a-z]+$/.test(w) ? w.toLowerCase() : w)).join(' ');
 function toArrest(p, where) {
   if (p.alert && p.alert !== 'arrest' && p.preAlert == null) p.preAlert = p.alert;   // what they came in as (a trauma alert is a traumatic arrest)
-  p.arrest = true; p.alert = 'arrest'; p.alertOn = true; p.dxK = true; p.cc = where; p.dx = 'Cardiac arrest';
+  p.arrest = true; p.alert = 'arrest'; p.alertOn = true; p.dxK = true; p.cc = where || p.cc || 'Collapsed, no pulse'; p.dx = 'Cardiac arrest';   // QA-20: never a blank complaint
   p.wk = []; p.tr = []; p.con = null; p.pre = []; p.need = null; p.dispo = 'code'; p.ev = 'none'; p.dsp = 'none';
   p.tArrest = G.t; p.code = null; p.ord = null; p.right = null; p.txGap = null; p.dxq = null;
   if (p.prov) {
@@ -3713,7 +3716,7 @@ function minuteTick() {
     }
     if (mdMine(p) && p.txGap && p.txGap.length && !p.txHarm && t - p.tGap > 20) {
       p.txHarm = true; G.stats.md.untreated++; care(-20, 'harm', p); litAdd(MUST.has(p.ck) ? 10 : 5, 'left untreated for 20 minutes', p);
-      mm(50, `${p.name} got worse without ${p.txGap.map(k => TREAT[k].label.toLowerCase()).join(' or ')}`, 'It was never ordered', true);
+      mm(50, `${p.name} got worse without ${p.txGap.map(k => lcl(TREAT[k].label)).join(' or ')}`, 'It was never ordered', true);
       toast(`${label(p)} is getting worse. Something they need was never ordered.`, 'bad'); sound('bad');
     }
     // Patient experience: an hour without an update starts to cost you.

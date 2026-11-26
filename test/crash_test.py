@@ -48,7 +48,19 @@ with sync_playwright() as pw:
         ok(page.locator('#crash').count() == 0, 'Reload reloads the game')
     ctx.close()
 
-    # 3. A tutorial step that throws is logged
+    # 3. QA-17: the back button in a shift opens the pause menu instead of leaving; QA-6: Escape closes it
+    ctx = b.new_context(viewport={'width': 844, 'height': 390}, is_mobile=True, has_touch=True)
+    page = ctx.new_page(); J = page.evaluate
+    page.goto(URL); page.wait_for_timeout(600)
+    J("window.OCUI.start('easy')"); page.wait_for_timeout(600)
+    J("(() => { const U = window.OCUI.U; U.modal = null; U.paused = false; U.view = 'list'; window.OC.G.card = null; })()"); page.wait_for_timeout(300)
+    page.go_back(); page.wait_for_timeout(500)
+    ok(J("window.OCUI.U.scene") == 'game' and J("window.OCUI.U.paused") is True and page.url.startswith('file:'), 'the back button in a shift opens the pause menu and stays in the game')
+    page.keyboard.press('Escape'); page.wait_for_timeout(300)
+    ok(J("window.OCUI.U.paused") is False, 'Escape closes the pause menu')
+    ctx.close()
+
+    # 4. A tutorial step that throws is logged
     ctx = b.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True)
     page = ctx.new_page(); J = page.evaluate
     page.goto(URL); page.wait_for_timeout(600)

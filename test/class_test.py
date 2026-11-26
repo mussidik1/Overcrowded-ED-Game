@@ -47,6 +47,8 @@ with sync_playwright() as pw:
     page.route('**/rest/v1/rpc/cb_class_new', on_new)
     names = J("(L) => [L.accept.filter(n => !OCUI.cbClean(n)), L.refuse.filter(n => OCUI.cbClean(n))]", CALL['names'])
     ok(names == [[], []], f'the game accepts and refuses the same names as the contract file says the database does ({names})')
+    send = J("(L) => L.map(n => [n, !!OCUI.cbSendable(n)])", ['Sam', 'Ana M.', 'S.K.', 'J.D.', 'Mary-Kate', 'John Smith', 'John Q Smith', 'Ana Maria', 'Fuck', 'Dick'])
+    ok([x[1] for x in send] == [True, True, True, True, True, False, False, False, False, False], f'the game sends one first name, initials, or a first name and an initial; never a full name or profanity (owner, QA-2, QA-19): {send}')
     src_ui = open(os.path.join(os.path.dirname(__file__), '..', 'src', 'ui.js'), encoding='utf-8').read()
     page.locator('#sheet [data-act="codeMake"][data-arg="rush"]').tap(); page.wait_for_timeout(700)
     first = reg[0].get('p_code') if reg else ''

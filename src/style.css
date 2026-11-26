@@ -393,7 +393,7 @@ ol.first li::marker { font-weight: 700; color: var(--accent); }
 .seg.on { background: var(--ink); color: #fff; }
 .packs small { color: var(--ink-2); font: 500 13px/1.35 var(--body); }
 .t-links { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; }
-.t-links button { padding: 8px 2px; border: 0; background: none; color: var(--accent); font: 700 15px/1 var(--ui); text-decoration: underline; text-underline-offset: 3px; }
+.t-links button { min-height: 44px; min-width: 44px; padding: 8px 2px; border: 0; background: none; color: var(--accent); font: 700 15px/1 var(--ui); text-decoration: underline; text-underline-offset: 3px; }
 .rep h2 { margin: 0; font: 700 28px/1.1 var(--display); }
 .rep .stars { margin: 6px 0 2px; color: #E3A512; font-size: 34px; letter-spacing: 4px; }
 .rep .verdict { margin: 0 0 12px; color: var(--ink-2); font: 500 15px/1.4 var(--body); }
@@ -464,7 +464,7 @@ ol.first li::marker { font-weight: 700; color: var(--accent); }
 .coach-c h4 { margin: 5px 0 3px; color: var(--ink); font: 700 18px/1.15 var(--display); letter-spacing: 0; text-transform: none; }
 .coach-c p { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.38; }
 .coach-c .cb { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 9px; }
-.coach-c .cb button { min-height: 36px; padding: 0 13px; border: 2px solid var(--ink); border-radius: 9px; background: var(--paper); color: var(--ink); font: 700 14.5px/1 var(--ui); }
+.coach-c .cb button { min-height: 44px; padding: 0 13px; border: 2px solid var(--ink); border-radius: 9px; background: var(--paper); color: var(--ink); font: 700 14.5px/1 var(--ui); }
 .coach-c .cb button.go { background: var(--ink); color: #fff; }
 .coach-c .cb button.skip { padding: 0 6px; border-color: transparent; background: none; color: var(--ink-2); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .coach-c .cb .cff { margin-right: auto; color: #8A6400; font: 600 13px/1 var(--ui); }
@@ -614,7 +614,7 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
   body.mapmode .coach-c h4 { margin: 3px 0 2px; font-size: 15.5px; }
   body.mapmode .coach-c p { font-size: 13px; line-height: 1.3; }
   body.mapmode .coach-c .cb { margin-top: 6px; }
-  body.mapmode .coach-c .cb button { min-height: 32px; font-size: 13px; }
+  body.mapmode .coach-c .cb button { min-height: 44px; font-size: 13px; }
   body.mapmode .coach-c .cb { gap: 5px; }   /* "Fast-forwarding…", Words, and Skip ahead on one row */
   body.mapmode .coach-c .cb button.skip { padding: 0 4px; }
   body.mapmode .coach-c .cb .cff { font-size: 12.5px; }
@@ -699,8 +699,9 @@ body.mapmode.rails .map { height: calc(100vh - var(--topH, 40px)); height: calc(
 .t-about .ab-go { width: 100%; margin-top: 16px; }
 /* the private testing gate */
 body.gated .app, body.gated #title, body.gated .screen { visibility: hidden; }
-.gate { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; padding: 20px; background: #1B2230; color: #fff; overflow: auto; }
-.gate-card { width: min(420px, 100%); text-align: center; }
+.gate { position: fixed; inset: 0; z-index: 3000; display: grid; grid-template-columns: minmax(0, 420px); justify-content: center; align-content: center; padding: 20px 16px; background: #1B2230; color: #fff; overflow: auto; }
+.gate-card { width: 100%; min-width: 0; text-align: center; }   /* QA-1: a fixed track, so the card fits a 320 px phone (100% inside an auto track resolved to 420 px) */
+.gate-card .t-brand { overflow-wrap: anywhere; }
 .gate-card .t-brand { color: #fff; margin: 4px 0 10px; }
 .gate-card p { font-size: 18px; opacity: .9; }
 .gate-card form { display: flex; gap: 8px; margin-top: 14px; }
@@ -807,7 +808,7 @@ body.mapmode.ingame .mzoom { position: fixed; z-index: 26; right: calc(var(--rai
   #title .packs { margin-top: 6px; gap: 4px; }
   #title .packs small { font-size: 12.5px; line-height: 1.25; }
   #title .t-links { margin-top: 4px; flex-wrap: wrap; gap: 0 10px; }
-  #title .t-links button { padding: 7px 2px; }
+  #title .t-links button { padding: 7px 2px; min-height: 44px; }
   #title .t-tip { margin-top: 4px; }
 }
 /* notches: keep the floor out from under them */
@@ -958,7 +959,7 @@ body.ingame { touch-action: pan-x pan-y; }
 .t-head { margin-bottom: 10px; }
 .t-head h2 { margin: 6px 0 4px; font: 700 30px/1.1 var(--ui); }
 .t-head .t-sub { margin-bottom: 4px; }
-.t-back { padding: 8px 10px 8px 0; border: 0; background: none; color: var(--accent); font: 700 16px/1 var(--ui); }
+.t-back { min-height: 44px; padding: 8px 10px 8px 0; border: 0; background: none; color: var(--accent); font: 700 16px/1 var(--ui); }
 .t-sets { display: grid; gap: 8px; }
 .t-set { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 8px 14px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); font: 500 17px/1.2 var(--ui); text-align: left; box-shadow: 0 3px 0 var(--ink); }
 .t-set b { font: 700 17px/1.2 var(--ui); color: var(--accent); white-space: nowrap; }
@@ -1063,6 +1064,7 @@ body.ingame { touch-action: pan-x pan-y; }
 /* v0.25: the four scores on the shift summary */
 .rep details.dept { margin: 0 0 12px; }
 .rep details.dept summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; }
+.t-sub .t-warn { display: block; margin-top: 6px; font-size: 14px; }
 .t-rank { margin: -4px 0 10px; font-size: 15px; color: var(--ink-2); }
 .rank-gain { margin: 0 0 12px; font-size: 16px; }
 .scards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 8px 0 12px; }
@@ -1074,7 +1076,7 @@ body.ingame { touch-action: pan-x pan-y; }
 .scard small.neg { color: #B4232F; }
 .scard.good { border-color: #12813A; } .scard.warn { border-color: #C99A06; } .scard.bad { border-color: #D11A2F; }
 /* v0.25: the waiting meter, top left of the floor */
-.wmeter { position: fixed; z-index: 29; display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; border-radius: 12px; border: 0; background: var(--wm, #12813A); color: #fff; font: 13px/1.05 var(--ui); text-align: left; box-shadow: 0 3px 10px rgba(16, 24, 40, .25); cursor: pointer; transition: background .6s; }
+.wmeter { position: fixed; z-index: 29; display: flex; min-height: 44px; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; border-radius: 12px; border: 0; background: var(--wm, #12813A); color: #fff; font: 13px/1.05 var(--ui); text-align: left; box-shadow: 0 3px 10px rgba(16, 24, 40, .25); cursor: pointer; transition: background .6s; }
 .wmeter b { font-size: 22px; font-weight: 700; min-width: 1ch; text-align: center; }
 .wmeter.hot { animation: wmPulse 1.4s ease-in-out infinite; }
 .wmeter.crit { animation: wmPulse .9s ease-in-out infinite, wmShake 2s ease-in-out infinite; }

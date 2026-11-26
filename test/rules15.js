@@ -45,3 +45,9 @@ OC.newGame('med', 64, {});
   assert(e === 0 && h > 0, `the sickest new patients go to the attending on Full Moon Friday (${h}), not on Quiet Tuesday (${e})`); }
 // R5-04: the charge nurse's Rush stars are capped by pace
 assert(OC.paceStars(12) === 3 && OC.paceStars(20) === 2 && OC.paceStars(35) === 1 && OC.paceStars(50) === 0, 'Rush pace: 15, 25 and 40 minutes from the door to a provider for three, two and one stars');
+
+// QA-10: a risky treatment with no indication (tenecteplase for DKA) is named as unsafe when signed, with a reason, and in the review
+OC.newGame('easy', 81, { mode: 'md' }); G = OC.G; G.train = null; G.card = null;
+{ const p = CAP('dka'); p.prov = G.me; p.mine = true; p.ev = 'done'; OC.awaitOrders(p);
+  const r = OC.signOrders(p.id, OC.needOf(p).n, ['ns', 'insulin', 'kcl', 'tnk']);
+  assert(r.ok && /Can hurt them: Thrombolytic/.test(r.msg) && (p.ordLog.unsafe || []).some(x => /Thrombolytic/.test(x)), `an unneeded thrombolytic is named as unsafe at signing and in the review ("${r.msg}")`); }
