@@ -2,7 +2,7 @@
 
 - **Project:** Emergency Department: Code Black. **Mode:** adopted mid-project at v0.31.0 (owner's choice, Nov 25, 2026): the
   ship stages now, the full spec (Stages 0–7, traceability) before the next feature work.
-- **Current stage:** 18 for v0.32.0 (publish). v0.31.0 history below; v0.32.0 in `spec/RELEASE.md`.
+- **Current stage:** v0.32.0 released (Nov 26, 2026): `main` at `78916ef`, Deploy run 4 green. v0.31.0 history below; v0.32.0 in `spec/RELEASE.md`.
 
 | Stage | Result | Notes |
 |---|---|---|
@@ -32,4 +32,4 @@
 
 **Open findings:** none Critical/High open. Accepted risks pending the owner's sign-off: F-034, F-035, F-036.
 
-**Next action:** release v0.32.0 (owner said "Release", Nov 26, 2026): Tests green on `3d`, merge into `main`, deploy check.
+**Next action:** v0.32.0 is released (Tests run 71 green on `3d` at `f3a40f3`; Deploy run 4 green). Next: Phase 4 small items, Phase 6 quick wins, Phase 7 Lows.
