@@ -111,3 +111,19 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 | F-068 | 15a | Low | QA-21: "without iv fluids" in the M&M: IV should be capitalised | Fixed (to be confirmed by QA) | abbreviations kept in sentences (IV fluids) |
 | F-069 | 15a | Low | QA-22: 3D files are cached only after a shift is played online (first-visit offline gets the flat map) | Open |  |
 
+## Stage 15a round 2 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-070 | 15a | High | QA2-1: A regular attending shift gives the diagnosis away: the decision heading reads "Your call · <true diagnosis>" under the attending's wrong pick, and Accuracy and Legal change at the pick | Open |  |
+| F-071 | 15a | Medium | QA2-2: On a shift, the second-consult refusal and the phone-admit refusal name the right service or disposition; "I don't think they need us" hints none is needed | Open |  |
+| F-072 | 15a | Medium | QA2-3: The syncope risk score is a random number with no parts; diagnosis labels ("Syncope, high risk", "Chest pain, low risk") name the risk band before the call | Open |  |
+| F-073 | 15a | Medium | QA2-4: Keyboard: map rooms can't take focus; the patient card doesn't take focus; focus isn't returned after a dialog; Tab leaves dialogs; focus lost on menu change | Open |  |
+| F-074 | 15a | Medium | QA2-5: The Lessons list doesn't mark which lessons are played, read-through or case cards | Open |  |
+| F-075 | 15a | Low | QA2-6: Floating waiting and Next buttons cover room labels and (attending) score pills on the phone list board | Open |  |
+| F-076 | 15a | Low | QA2-7: Small targets and text: sideways map tokens 14-21 px, play-menu chips 36 px, list jump chips 32 px, desktop map text 8.6-11 px | Open |  |
+| F-077 | 15a | Low | QA2-8: Stacked arrival toasts cover the wall, door and waiting area on the sideways map | Open |  |
+| F-078 | 15a | Low | QA2-9: With results off, the saved-code row points to Show key and Copy key buttons that aren't there | Open |  |
+| F-079 | 15a | Low | QA2-10: The attending's Radio pill reads 0% before any call (should read a dash) | Open |  |
+| F-080 | 15a | Low | QA2-11: The served build says v0.32.0; the spec says v0.33.0 candidate | Open |  |
+| F-081 | 15a | Low | QA2-12: The gate password is stored in plain text (informational; the owner chose not to harden the gate) | Accepted (owner, gate) |  |

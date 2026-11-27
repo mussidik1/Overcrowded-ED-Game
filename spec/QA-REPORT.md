@@ -42,3 +42,30 @@ Each round is a fresh QA agent with only `spec/00-INTAKE.md`, `spec/02-SPEC.md`,
 ### Bugs
 
 Critical 0, High 0, Medium 8, Low 14. They are QA-1 to QA-22 in `spec/FINDINGS.md`, as F-048 to F-069.
+
+## Round 2: Nov 27, 2026, the v0.33.0 candidate (work branch at 0928c78; GAME_V still 0.32.0), local copy
+
+**Verdict: FAIL.** One High bug is open, and three criteria are under threshold.
+
+- **Browser:** Playwright Chromium at 360x640, 390x844, 844x390 (touch) and 1280x800.
+- **Server:** Supabase was unreachable, so class results, Send and the gate were tested against an in-memory mock of the `cb_`
+  functions (client side only).
+
+| Criterion | Score | Threshold | Result | Key evidence |
+|---|---|---|---|---|
+| Functionality | 7 | 8 | FAIL | Core flows complete in both roles, including class code, Send, results (mock), resume, offline and the gate. REQ-07 AC5 fails (QA2-1); AC4, REQ-14 and REQ-22 are partial. |
+| Product depth | 8 | 7 | PASS | Full order sheet, results read as findings, harm flagged with reasons, code cards explain, radio calls sound, real class results and CSV. Weak: the syncope score has no parts (QA2-3). |
+| Visual design and usability | 6 | 7 | FAIL | No sideways scroll; menus 44 px; Next names the task. Against: map tokens 14–21 px; 36 px chips; desktop map text 8.6–11 px; floating buttons and toasts cover content; keyboard gaps (QA2-4, 6, 7, 8). |
+| Code quality | 7 | 6 | PASS | No `Math.random` in the engine; no inline handlers; strict CSP; delegated taps; exact resume; same arrivals on one code. |
+| Offline and install | 8 | 8 | PASS | The service worker controls after the first load; offline reload plays; network-first update; valid manifest; class save across a version is explained. |
+| Clinical safety | 9 | 10 | FAIL | Notices on first visit, About, Learn, Lessons, report, class results and CSV; the name isn't stored; no outside requests in play. Gap: no notice on the screens where the attending meets the clinical content in a regular shift (order sheet, code cards), or on Play a shift and Class code. |
+
+### REQ walk (summary)
+
+- **Pass:** REQ-01–06, 08, 09 (adult), 10, 11, 12, 13, 15, 16, 17 (mock), 18, 20, 21, 23, 24.
+- **Partial:** REQ-14 (QA2-5), REQ-19 (QA2-6, 7, 8).
+- **Fail:** REQ-07 (AC5, QA2-1); REQ-22 (QA2-4).
+
+### Bugs
+
+High 1, Medium 4, Low 7. They are QA2-1 to QA2-12 in `spec/FINDINGS.md`, as F-070 to F-081.
