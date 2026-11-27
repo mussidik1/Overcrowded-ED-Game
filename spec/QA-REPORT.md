@@ -157,3 +157,20 @@ Medium 5, Low 8. They are QA5-1 to QA5-13 in `spec/FINDINGS.md`, as F-109 to F-1
 ### Bugs
 
 High 2, Medium 2, Low 8. They are QA6-1 to QA6-12 in `spec/FINDINGS.md`, as F-122 to F-133.
+
+## Round 7: Nov 27, 2026, v0.33.0 candidate (work branch at 88d4fe4), local copy
+
+**Verdict: FAIL.** Two criteria are under threshold: Product depth 6 of 7 and Visual design 6 of 7. One High bug is open.
+
+| Criterion | Score | Threshold | Result | Key evidence |
+|---|---|---|---|---|
+| Functionality | 8 | 8 | PASS | Every core flow in both roles: shifts and early endings, both Orientations, 12 lessons, class codes, Send, results, gate, offline, update, resume, crash guard. |
+| Product depth | 6 | 7 | FAIL | QA7-1: unseen ESI 1–2 patients on the attending's list stay stable for 11 hours; an idle shift still earns a star and rank points. Also QA7-5, QA7-6. |
+| Visual design and usability | 6 | 7 | FAIL | QA7-2: the sideways list board shows about 90 px of rooms. QA7-4: 70 of 97 targets on the sideways 2D floor are under 44 px. QA7-8. Keyboard support is strong. |
+| Code quality | 7 | 6 | PASS | CSP with hashes; no inline handlers; no `Math.random` in the engine; JSON saves; same arrivals on one code. |
+| Offline and install | 9 | 8 | PASS | Offline with 3D; update served on the next load with the old cache deleted; no installability errors. |
+| Clinical safety | 10 | 10 | PASS | Notices everywhere; only initials and numbers sent; nothing stored or cached. |
+
+### Bugs
+
+High 1, Medium 3, Low 7. They are QA7-1 to QA7-11 in `spec/FINDINGS.md`, as F-134 to F-144.

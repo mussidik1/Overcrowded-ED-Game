@@ -200,3 +200,18 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 | F-132 | 15a | Low | QA6-11: M&M times out of order (went home at 07:11, diagnosis call at 07:20) | Open |  |
 | F-133 | 15a | Low | QA6-12: Harder levels bring more patients, not a higher ESI 1-2 share (46%, 44%, 48%) | Open |  |
 
+## Stage 15a round 7 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-134 | 15a | High | QA7-1: Unseen critical patients on the attending's list don't deteriorate (11 h stable); an idle attending still earns Clinical 55%, a star and rank points | Open |  |
+| F-135 | 15a | Medium | QA7-2: The list board on a sideways phone shows about 90 px of rooms (header, pills, Box bar, chips and dock fill the screen) | Open |  |
+| F-136 | 15a | Medium | QA7-3: Initials accept slurs and violent words (NIG, COON, KILL, RAPE) and 4-letter names (John, Mary) | Open |  |
+| F-137 | 15a | Medium | QA7-4: Sideways 2D floor plan: 70 of 97 targets under 44 px (hall rooms 44x21, chips 21x21, Box dot 14x16) | Open |  |
+| F-138 | 15a | Low | QA7-5: The HEART card lists 2 of its 5 parts for low-risk chest pain | Open |  |
+| F-139 | 15a | Low | QA7-6: "Best: Alert time goals" on an idle charge-nurse shift | Open |  |
+| F-140 | 15a | Low | QA7-7: Needed-work tags show on a non-own alert patient before any order (hints at the workup) | Open |  |
+| F-141 | 15a | Low | QA7-8: Small controls: 36 px chips, 32 px jump chips, 16x22 checkbox, 11.25 px Class code notice | Open |  |
+| F-142 | 15a | Low | QA7-9: Focus falls to the page after the first-shift card | Open |  |
+| F-143 | 15a | Low | QA7-10: About 48% of arrivals are ESI 1-2 even on Quiet Tuesday | Open |  |
+| F-144 | 15a | Low | QA7-11: An empty gate submit leaves the previous error | Open |  |
