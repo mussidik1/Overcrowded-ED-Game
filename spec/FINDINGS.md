@@ -128,4 +128,20 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 | F-080 | 15a | Low | QA2-11: The served build says v0.32.0; the spec says v0.33.0 candidate | Fixed (to be confirmed by QA) | version 0.33.0 |
 | F-081 | 15a | Low | QA2-12: The gate password is stored in plain text (informational; the owner chose not to harden the gate) | Accepted (owner, gate) |  |
 
+## Stage 15a round 3 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
 
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-082 | 15a | Medium | QA3-1: Harm reasons name an undiagnosed condition: PE tenecteplase ("a stable clot") and overdose lorazepam ("on top of an overdose") | Open |  |
+| F-083 | 15a | Medium | QA3-2: The hemorrhagic-shock toast ("in hemorrhagic shock. Activate the massive transfusion protocol!") gives the attending the answer on a shift | Open |  |
+| F-084 | 15a | Medium | QA3-3: Tab leaves an open patient sheet for the top bar and the board | Open |  |
+| F-085 | 15a | Medium | QA3-4: Closing the pause menu (Escape or Resume) leaves focus on the page body | Open |  |
+| F-086 | 15a | Low | QA3-5: The attending's M&M lists unassigned patients' events | Open |  |
+| F-087 | 15a | Low | QA3-6: "0 orders signed" when the only order is an unsafe drug | Open |  |
+| F-088 | 15a | Low | QA3-7: The radio medical-direction question and result cards carry no teaching-game notice (keeps Clinical safety at 9) | Open |  |
+| F-089 | 15a | Low | QA3-8: Scenario and weather chips 36 px; list jump chips 32 px at 360 px; 11-12 px text in two places | Open |  |
+| F-090 | 15a | Low | QA3-9: The phone back button leaves the game from the menus (outside a shift) | Open |  |
+| F-091 | 15a | Low | QA3-10: "Dr. Who" passes the name rule (title read as initials); the three-word message's example is refused | Open |  |
+| F-092 | 15a | Low | QA3-11: The gate stores the password in plain text and opens offline on any stored value (owner chose not to harden the gate) | Accepted (owner, gate) |  |
+| F-093 | 15a | Low | QA3-12: Harm feedback at signing may be lost in a busy message stream (not confirmed) | Open |  |
+| F-094 | 15a | Low | QA3-13: The 360 px list board is crowded: Next, the counter and messages overlap tiles | Open |  |

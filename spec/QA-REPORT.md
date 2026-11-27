@@ -69,3 +69,29 @@ Critical 0, High 0, Medium 8, Low 14. They are QA-1 to QA-22 in `spec/FINDINGS.m
 ### Bugs
 
 High 1, Medium 4, Low 7. They are QA2-1 to QA2-12 in `spec/FINDINGS.md`, as F-070 to F-081.
+
+## Round 3: Nov 27, 2026, v0.33.0 candidate (work branch at ca0a1e5; GAME_V 0.33.0), local copy
+
+**Verdict: FAIL.** Two criteria are under threshold. No Critical or High bug. This is the third failed round: per the addendum, work
+stops here and the owner gets a summary.
+
+- **Browser:** Playwright Chromium at 390x844, 844x390 (touch), 360x640 and 1280x800.
+- **Server:** Supabase mocked with request routing: success, down, 500, 429 and timeout. The gate was tested as edcodeblack.com.
+
+| Criterion | Score | Threshold | Result | Key evidence |
+|---|---|---|---|---|
+| Functionality | 7 | 8 | FAIL | Every core flow finished in both roles. Three acceptance criteria fail: REQ-07 AC2 (QA3-1), AC5 (QA3-2) and REQ-22 (QA3-3, QA3-4). |
+| Product depth | 8 | 7 | PASS | Lessons labelled by kind; HEART built from the patient; code cards and radio calls explained; real M&M and points breakdown; arrivals grow with the level. |
+| Visual design and usability | 7 | 7 | PASS | Consistent; one obvious next action; no sideways scroll; "!" beside colour. Small leftovers: 36 px chips, 32 px jump chips and 11–12 px text at 360 px. |
+| Code quality | 7 | 6 | PASS | No `Math.random` in the engine; CSP with hashes; delegated taps; JSON state; same arrivals on one code. |
+| Offline and install | 8 | 8 | PASS | Manifest and icons; offline play including 3D once cached; a new version is served on the next load. |
+| Clinical safety | 9 | 10 | FAIL | The notice is on every listed screen and on the order sheet and code cards; no personal data. Gap: the radio medical-direction cards (QA3-7). |
+
+### REQ walk (summary)
+
+- **Pass:** REQ-01–06, 08, 09, 10 (partial), 11–21, 23, 24.
+- **Fail:** REQ-07 (AC2, AC5); REQ-22.
+
+### Bugs
+
+Medium 4, Low 9. They are QA3-1 to QA3-13 in `spec/FINDINGS.md`, as F-082 to F-094.
