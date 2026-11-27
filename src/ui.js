@@ -258,8 +258,11 @@ E.hooks.arrive = p => {
   if (p.alertOn) return;
   arrPop(p, ems, how);
 };
+const ARRQ = [];   // QA2-8: on a sideways phone arrivals show one at a time, each in turn, so the door and the wall stay in view
 function arrPop(p, ems, how) {
-  let box = $('#arrivals');
+  const one = U.view === 'map' && window.innerHeight < 520, cur = $('#arrivals');
+  if (one && cur && [...cur.children].some(x => !x.classList.contains('out'))) { ARRQ.push([p, ems, how]); if (ARRQ.length > 4) ARRQ.shift(); return; }
+  let box = cur;
   if (!box) { box = document.createElement('div'); box.id = 'arrivals'; box.className = 'arrivals'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
   const host = $(U.view === 'map' ? '#map' : '#board'), r = host && host.getBoundingClientRect();
   if (!r || !r.width) return;
@@ -269,7 +272,7 @@ function arrPop(p, ems, how) {
   el.innerHTML = `${ems ? icoInline('amb', 'act') : icoInline('walkin', 'act')}<span><b>New: ${esc(p.name)}</b>, ${esc(E.ageSex(p))} · ${esc(p.cc)}<small>${esc(how)}</small></span>`;
   box.appendChild(el);
   while (box.children.length > 3) box.firstChild.remove();
-  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, 3800);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); const n = ARRQ.shift(); if (n && U.scene === 'game') arrPop(...n); }, 400); }, one ? 2600 : 3800);
 }
 function res(r, closeOnOk) { if (!r) return; toast(r.ok ? (r.msg || 'Done') : r.why, r.ok ? 'good' : 'bad'); if (r.ok && closeOnOk) U.sheet = null; }
 
@@ -2592,7 +2595,7 @@ function renderMeter(G, list) {
   const n = qCount(list), hue = n <= 2 ? 130 : n >= 10 ? 0 : Math.round(120 - (n - 2) / 8 * 120);
   const z = U.view === 'map' && $('#mzoom'), zr = z && getComputedStyle(z).display !== 'none' ? z.getBoundingClientRect() : null;   // beside the zoom buttons, out of the way of the rooms
   if (zr && zr.width) { m.style.left = 'auto'; m.style.top = 'auto'; m.style.right = (window.innerWidth - zr.left + 8) + 'px'; m.style.bottom = (window.innerHeight - zr.bottom) + 'px'; }
-  else { m.style.right = 'auto'; m.style.bottom = 'auto'; m.style.left = (r.left + 8) + 'px'; m.style.top = (r.top + 8) + 'px'; }
+  else { const th = ($('#top') || {}).offsetHeight || 0; m.style.right = 'auto'; m.style.bottom = 'auto'; m.style.left = (r.left + 8) + 'px'; m.style.top = (Math.max(r.top, th) + 8) + 'px'; }   // QA2-6: never over the scores
   m.style.setProperty('--wm', `hsl(${hue} 72% ${n >= 10 ? 44 : 40}%)`);
   setC(m, 'wmeter' + (n > 10 ? ' crit' : n >= 7 ? ' hot' : ''));
   const h = `<b>${n}</b><span>waiting on<br>a next step</span>`; setH(m, h);   // R4-05: not the waiting room; patients whose next step is yours
