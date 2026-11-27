@@ -293,6 +293,7 @@ def run():
         # the attending sees the same floor, but the charge nurse runs the pods
         J("() => { OCUI.U.freeze = false; OCUI.U.paused = false; OCUI.showTitle(); }"); page.wait_for_timeout(300)
         tap('[data-act="mode"][data-arg="md"]'); tap('[data-act="tmenu"][data-arg="play"]'); tap('button.lvl[data-arg="med"]'); page.wait_for_timeout(500)
+        if page.locator('#title [data-act="replaceGo"]').count(): tap('#title [data-act="replaceGo"]'); page.wait_for_timeout(500)   # a saved shift is there: it asks first (QA6-4)
         ok(J('OC.G.mode') == 'md', 'an attending shift starts on the floor plan')
         ok(J("getComputedStyle(document.getElementById('railL')).display") == 'none', 'the attending has no intake rail')
         tap('#mzh-a')

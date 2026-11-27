@@ -187,15 +187,16 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 
 | ID | Stage | Sev | Finding | Status | Resolution |
 |---|---|---|---|---|---|
-| F-122 | 15a | High | QA6-1: The diagnosis toast is green with a good sound for a right call and red with a bad sound for a wrong one, on a regular shift (ACT.dxPick uses r.right) | Open |  |
-| F-123 | 15a | High | QA6-2: Neglect scores perfectly: handed-over patients (prov set, not mine) left unseen don't count against the attending; an idle Manic Monday got Clinical 100% and 2 stars | Open |  |
-| F-124 | 15a | Medium | QA6-3: HEART card: "needs a troponin, not drawn yet" above "Your call · HEART score 4" (p.det is empty for patients the game's providers work up) | Open |  |
-| F-125 | 15a | Medium | QA6-4: Starting a new shift silently deletes the saved one | Open |  |
-| F-126 | 15a | Low | QA6-5: The menu's best stars come from the average score, not the stars earned (pace cap, attending) | Open |  |
-| F-127 | 15a | Low | QA6-6: A double tap on Start the shift opens the triage sheet on the list board | Open |  |
+| F-122 | 15a | High | QA6-1: The diagnosis toast is green with a good sound for a right call and red with a bad sound for a wrong one, on a regular shift (ACT.dxPick uses r.right) | Fixed (to be confirmed by QA) | on a shift the diagnosis message is neutral in colour and has no sound; Orientation and Lessons keep them |
+| F-123 | 15a | High | QA6-2: Neglect scores perfectly: handed-over patients (prov set, not mine) left unseen don't count against the attending; an idle Manic Monday got Clinical 100% and 2 stars | Fixed (to be confirmed by QA) | a handed-over patient left unseen costs Clinical (-25), legal risk and an M&M line when they leave or the shift ends; rules15 |
+| F-124 | 15a | Medium | QA6-3: HEART card: "needs a troponin, not drawn yet" above "Your call · HEART score 4" (p.det is empty for patients the game's providers work up) | Fixed (to be confirmed by QA) | one troponin rule for the risk line and the call; HEART asks for a troponin before the call |
+| F-125 | 15a | Medium | QA6-4: Starting a new shift silently deletes the saved one | Fixed (to be confirmed by QA) | a new shift asks before replacing the saved one (Keep my shift / Start the new one); crash_test |
+| F-126 | 15a | Low | QA6-5: The menu's best stars come from the average score, not the stars earned (pace cap, attending) | Fixed (to be confirmed by QA) | the menu shows the best stars a shift earned |
+| F-127 | 15a | Low | QA6-6: A double tap on Start the shift opens the triage sheet on the list board | Fixed (to be confirmed by QA) | taps on the board are ignored for 0.6 s after Start the shift |
 | F-128 | 15a | Low | QA6-7: Initials accept short names (JOHN, Bob) and misspelled rude words (FUK) | Open |  |
 | F-129 | 15a | Low | QA6-8: Small targets and text: 32 px jump chips, 36 px scenario chips, 18 px Beds upstairs, sideways hall rooms and The Box, 11.25 and 11.7 px text | Open |  |
-| F-130 | 15a | Low | QA6-9: The first-visit page doesn't take focus or have a dialog role; Escape doesn't close the Play submenu | Open |  |
+| F-130 | 15a | Low | QA6-9: The first-visit page doesn't take focus or have a dialog role; Escape doesn't close the Play submenu | Fixed (to be confirmed by QA) | Escape leaves a submenu |
 | F-131 | 15a | Low | QA6-10: Gate password in plain text (owner chose not to harden the gate) | Accepted (owner, gate) |  |
 | F-132 | 15a | Low | QA6-11: M&M times out of order (went home at 07:11, diagnosis call at 07:20) | Open |  |
 | F-133 | 15a | Low | QA6-12: Harder levels bring more patients, not a higher ESI 1-2 share (46%, 44%, 48%) | Open |  |
+

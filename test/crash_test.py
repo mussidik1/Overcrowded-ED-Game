@@ -73,6 +73,19 @@ with sync_playwright() as pw:
         ok(inside, 'Tab stays inside an open patient sheet')
     ctx.close()
 
+    # 5. QA6-4: a new shift asks before it replaces the saved one
+    ctx = b.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True)
+    page = ctx.new_page(); J = page.evaluate
+    page.goto(URL); page.wait_for_timeout(600)
+    J("window.OCUI.start('easy')"); page.wait_for_timeout(500); J("(() => { OCUI.U.modal = null; OCUI.save(true); OCUI.U.scene = 'title'; OCUI.showTitle(); })()"); page.wait_for_timeout(300)
+    J("window.OCUI.start('med')"); page.wait_for_timeout(300)
+    ok(J("OCUI.U.scene") == 'title' and page.locator('#title [data-act="replaceNo"]').count() == 1 and 'replaces your saved one' in page.inner_text('#title'), 'a new shift asks before it replaces the saved one')
+    page.locator('#title [data-act="replaceNo"]').tap(); page.wait_for_timeout(300)
+    ok(J("JSON.parse(localStorage.getItem('oc-save')).G.level") == 'easy', 'Keep my shift keeps it')
+    J("window.OCUI.start('med')"); page.wait_for_timeout(300); page.locator('#title [data-act="replaceGo"]').tap(); page.wait_for_timeout(500)
+    ok(J("OCUI.U.scene") == 'game' and J("OC.G.level") == 'med', 'Start the new one starts it')
+    ctx.close()
+
     # 4. A tutorial step that throws is logged
     ctx = b.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True)
     page = ctx.new_page(); J = page.evaluate

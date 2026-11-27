@@ -79,4 +79,9 @@ for (const k of ['syncope', 'synchigh', 'cpmod', 'cwp']) { const p = OC.pt(OC.tr
 
 // QA5-3: staff actions and radio calls don't land in the attending's own clinical score or disposition points
 { OC.newGame('rush', 704, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
-  const R = OC.G.report; assert(!(R.md && R.md.seen) ? R.own.clinical >= 90 : true, `an attending who saw nobody isn't graded down on Clinical for radio calls (Clinical ${R.own.clinical}%, Radio ${R.own.radio}%)`); }
+  const R = OC.G.report; assert(!(R.md && R.md.seen) && !(OC.G.stats.md.unseen) ? R.own.clinical >= 90 : true, `an attending who saw nobody isn't graded down on Clinical for radio calls (only for patients left unseen) (Clinical ${R.own.clinical}%, Radio ${R.own.radio}%)`); }
+
+// QA6-2: patients put on the attending's list and never seen count against the attending
+{ OC.newGame('med', 705, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
+  const R = OC.G.report, n = (OC.G.stats.md || {}).unseen || 0;
+  assert(n > 0 && R.own.clinical < 90 && (R.mm || []).some(m => /never seen/.test(m.what)) && R.stars <= 1, `an idle attending's unseen patients cost Clinical and stars and reach the M&M (${n} unseen, Clinical ${R.own.clinical}%, ${R.stars} stars)`); }

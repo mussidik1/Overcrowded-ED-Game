@@ -3466,8 +3466,16 @@ function toggleStat(pid) {
   for (const s of G.staff) if (isProv(s)) sortQ(s);
   return { ok: true, msg: p.stat ? `${label(p)} marked STAT. Everyone works it first.` : `STAT cleared for ${label(p)}` };
 }
+// QA6-2: a patient the charge nurse put on the attending's list and the attending never saw counts against the attending: when they
+// leave, or when the shift ends with them still waiting.
+function unseenHanded(p, how) {
+  if (!p || !p.handed || p.mine || p.unseenDone || G.mode !== 'md' || G.train || G.pre) return;
+  p.unseenDone = true; care(-25, 'md', p); litAdd(5, `on your list and never seen (${how})`, p);
+  G.stats.md.unseen = (G.stats.md.unseen || 0) + 1;
+  mm(55, `${p.name} was on your list and never seen`, how[0].toUpperCase() + how.slice(1), true);
+}
 function leave(p, outcome) {
-  settleDx(p);
+  settleDx(p); unseenHanded(p, outcome === 'expired' ? 'they died waiting' : ['lwbs', 'ama'].includes(outcome) ? 'they left without being seen by you' : 'another doctor finished their care');
   const r = roomOf(p);
   if (r) { r.pid = null; if (r.kind === 'chair') r.st = 'clean'; else { r.st = 'dirty'; r.dirt = (p.iso || outcome === 'expired') ? 'term' : 'std'; } }
   if (p.loc === 'triage') { const i = G.triageQ.indexOf(p.id); if (i >= 0) G.triageQ.splice(i, 1); }
@@ -4512,7 +4520,7 @@ const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200
 const STARS_MD = { easy: [600, 1200, 1800], med: [600, 1300, 2000], hard: [600, 1300, 2000], train: [300, 800, 1400], rush: [120, 240, 310] };
 function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' ? STARS_MD : STARS)[level || (G && G.level) || 'med']; return c >= s[2] ? 3 : c >= s[1] ? 2 : c >= s[0] ? 1 : 0; }
 function endShift(reason) {
-  for (const id of G.order) settleDx(G.pts[id]);   // calls not yet settled count at the end
+  for (const id of G.order) { const q = G.pts[id]; settleDx(q); if (q && q.loc !== 'gone') unseenHanded(q, 'they were still waiting when the shift ended'); }   // calls not yet settled, and patients left unseen, count at the end
   if (G.over) return;
   if (!G.pre && G.stats.returnsLate && G.mode !== 'md') care(-20 * G.stats.returnsLate, 'returns');
   G.over = true; G.running = false; G.fail = reason === 'walkout' || reason === 'fired' ? reason : null;
