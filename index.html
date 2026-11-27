@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-5lMYQrI1u9TGLmPiMxTh5hTm/nrSDGf/VHE/yofn/mU=' 'sha256-KB4dwhOchyMvpozs+b1YcOMwgmea3+r+2y5Sd1bsBko=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-usghAIVYy9wdRRpvctqPLq7+XQ4brSN84HrYOoz/KPc=' 'sha256-Oze08dXS0YUP5CLpIgAy6rA2VqgXxSNXAFbsnyMl1a0=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1B2230">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1088,6 +1088,7 @@ body.ingame { touch-action: pan-x pan-y; }
 .cb-row .cb-ask { flex: 1 1 100%; }
 .cb-codes > li.open { border-left: 4px solid #1F5FA8; padding-left: 8px; }
 body.ingame:not(.mapmode) #board { padding-top: 56px; }   /* QA2-6: the floating counter sits above the first rooms, not on their labels */
+body.modalon .toasts { z-index: 90; }   /* QA4-1: an open card (z 95) is never covered by a message */
 .rep-note { margin: 10px 0 0; font-size: 13px; color: var(--ink-2); }
 .cb-main { flex: 1 1 0; min-width: 0; }   /* beside the ✕; only the confirm takes a line of its own (audit R4.6-03) */
 .cb-del-gap { flex: 0 0 44px; }
@@ -5283,6 +5284,7 @@ function missBox() {
   G.stats.boxC.miss++; care(-30 * surveyMul(), 'box');
   { const sc = scenOf(c); (G.stats.radioLog = G.stats.radioLog || []).push({ q: sc.plain || sc.q, miss: true, a: sc.a, why: sc.pwhy || sc.why, btn: sc.btn || null, right: sc.opts ? sc.opts[sc.r] : null }); }
   toast(`Missed radio call. ${c.unit} rolled to another hospital's physician.`, 'bad'); sound('bad');
+  if (G.mode === 'md' && !G.train) mm(35, `Missed a radio call from ${c.unit}`, 'Nobody gave medical direction, and the crew went to another hospital’s physician', true);   // QA4-3
   G.ev.missedC++; if (G.ev.missedC >= 2) G.ev.regionDue = true;
 }
 function missNotify(p) {
@@ -5920,7 +5922,7 @@ function botStep(o) {
     // Phase 6 (R5-04): the attending's own load grows with the level. The game's charge nurse hands the sickest new patients (ESI 1 and 2)
     // straight to the attending up to MD_LOAD of them at once, and holds the rest longer for the attending on harder levels (the other
     // doctors are busier). Easy keeps today's pace.
-    if (G.mode === 'md' && !G.pre && !G.train && needsProv(p) && !p.prov && !p.arrest && vEsi(p) <= 2 && mdLoad() < (MD_LOAD[G.level] || 0) && canAssign(staff(G.me), p).ok) add(5, () => !p.prov && assign(G.me, p.id).ok);
+    if (G.mode === 'md' && !G.pre && !G.train && needsProv(p) && !p.prov && !p.arrest && vEsi(p) <= 2 && mdLoad() < (MD_LOAD[G.level] || 0) && canAssign(staff(G.me), p).ok) add(5, () => { if (p.prov) return false; p.prov = G.me; p.handed = true; note(`The charge nurse put ${label(p)} on your list. See them when you can.`); return true; });   // QA4-4: handed over, not seen: the attending sees them (and gets the credit) with See this patient
     const mdWait = G.mode === 'md' && !(p.prov && p.prov !== G.me) && G.t - (p.tNeed != null ? Math.max(p.tNeed, p.tRoom) : p.tRoom) < (p.arrest ? 1 : (vEsi(p) <= 2 ? 6 : 15) * (MD_HOLD[G.level] || 1));
     if (needsProv(p) && o.prov !== false && !(G.mode === 'md' && p.prov === G.me) && !mdWait) add(vEsi(p) <= 2 ? 4.5 : 7, () => {
       if (!needsProv(p)) return false;
@@ -7900,7 +7902,7 @@ function helpMD() {
 <li><b>Bedside tests.</b> A fingerstick glucose or urine dip reads in a minute and works when the lab is down. Check the sugar early on every stroke.</li>
 <li><b>Answer the radio.</b> Tap Answer, read the call, approve or deny. Only you can.</li>
 <li><b>Alerts.</b> Time goals: ECG in 10, CT in 25, needle in 60, balloon in 90.</li>
-<li><b>Your scores.</b> Patients, Clinical (your own patients), Admin, Staff. The meter counts patients waiting on their next step.</li>
+<li><b>Your scores.</b> Your own calls: Clinical (your own patients), Diagnoses (called; how many were right shows at the end), Radio (medical-direction calls answered right) and Legal (100 minus legal risk). The department's Patients, Admin and Staff show on your summary as context. The meter counts patients waiting on a next step.</li>
 </ol>`;
 }
 function renderSheet(G) {
@@ -7929,6 +7931,7 @@ function renderSheet(G) {
   else if (s && s.type === 'chapters') h = chaptersHTML();
   else if (s && s.type === 'lessons') h = lessonsHTML();
   else if (s && s.type === 'class') h = classHTML();
+  if (h && s && ['help', 'words', 'pt'].includes(s.type)) h += '<p class="rep-note">A teaching game, not clinical guidance. No licensed clinician has reviewed it yet.</p>';   // QA4-11: wherever clinical content shows
   if (h && TR() && s.type !== 'words' && !coachBeside()) h = coachHTML('in') + h;
   const key = h ? s.type + '|' + (s.pid || s.sid || s.z || '') : '';
   wrap.hidden = !h; morph(el, h);
@@ -8155,7 +8158,7 @@ const STEPS_MD = [
   { id: 'rack', next: true, title: 'Who needs you', text: () => (FP() ? 'A **blue** room is waiting for a doctor. Yours get a **gold ring**.' : 'Rooms marked **Needs a provider** are waiting for a doctor. Yours show **YOU**.') + '\nA **pod** is four rooms and one nurse.\nThe circle is the **ESI**: **1** needs life-saving help now, **5** is minor.\nWait too long and another doctor takes them.', spot: () => ['#zh-a, #mzh-a', '#zbar'] },
   { id: 'you', next: true, title: 'Your line', text: () => `You’re **Dr. Patel**, ${SIDE()}. Your button shows what you’re doing and who’s waiting on you.\nThe others are another attending and the **PAs and NPs**.`, spot: () => ['#dockProv [data-arg="md1"]', '#sideProv [data-arg="md1"]'] },
 
-  { id: 'top', next: true, title: 'Your scores', text: () => `Four scores grade you:\n**Patients**: how they feel about the visit.\n**Clinical**: your care, right and on time.\n**Admin**: flow and cost.\n**Staff**: team morale.${FP() ? '\nThe **meter** by the zoom buttons counts patients waiting on their next step.' : ''}`, spot: () => ['#top .pills', '#waitMeter'] },
+  { id: 'top', next: true, title: 'Your scores', text: () => `Four scores grade **your own calls**:\n**Clinical**: your patients' care, right and on time.\n**Diagnoses**: how many you've called (how many were right shows at the end).\n**Radio**: medical-direction calls answered right.\n**Legal**: 100 minus your legal risk.${FP() ? '\nThe **meter** by the zoom buttons counts patients waiting on a next step.' : ''}`, spot: () => ['#top .pills', '#waitMeter'] },   // QA4-2
 
   { id: 'j1', title: 'Sore throat', text: `**Room 1**: [[Jordan]], 22, sore throat and fever.\nTap **his room**, then **See this patient**.`,
     setup: () => ({ jordan: E.trainPatient('strep', 'room', { room: '1', name: 'Jordan P.', age: 22, sex: 'M' }) }), ...seeStep('jordan') },
@@ -8453,7 +8456,7 @@ const cbNameWhy = v => { const n = String(v || '').trim(), c = cbClean(n); retur
 // rule (cbClean above, matched to the contract file) is unchanged.
 const cbInitial = w => /^\p{Lu}\.?$/u.test(w) || /^(\p{L}\.){2,3}$/u.test(w) || /^\p{Lu}{2,3}$/u.test(w);   // "S", "S.", "J.D.", "JS": not "Dr." (QA3-10)
 const cbOneName = n => n.split(' ').filter(w => !cbInitial(w)).length <= 1;
-const CB_RUDE = /(fuck|shit|cunt|bitch|whore|slut|nigg|fag|asshole|wank|bollock|twat|piss)/, CB_RUDE_W = /^(ass|arse|dick|cock|cum|tits?|prick|bastard|crap|damn|hell|sex|porn|nazi|poop|butt|penis|vagina|boob)$/;
+const CB_RUDE = /(fuck|shit|cunt|bitch|whore|slut|nigg|fag|asshole|wank|bollock|twat|piss|hitler)/, CB_RUDE_W = /^(ass|arse|cock|cum|tits?|prick|bastard|crap|damn|hell|sex|porn|nazi|poop|butt|penis|vagina|boob)$/;
 const cbRude = n => { const t = n.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase(); return CB_RUDE.test(t.replace(/[^a-z]/g, '')) || t.split(/[^a-z]+/).some(w => CB_RUDE_W.test(w)); };
 const cbSendable = v => { const n = cbClean(v); return n && cbOneName(n) && !cbRude(n) ? n : null; };
 const cbAlpha = v => String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
@@ -8819,7 +8822,7 @@ function renderModal(G) {
   if (h && U.modal && (U.modal.type === 'scen' || U.modal.type === 'result')) h += '<p class="rep-note">A teaching game, not clinical guidance: follow your own protocols. No licensed clinician has reviewed it yet.</p>';   // QA3-7: radio calls give doses
   if (h && TR()) h = coachHTML('in') + h;
   const was = wrap.hidden;
-  wrap.hidden = !h; morph(el, h);
+  wrap.hidden = !h; morph(el, h); document.body.classList.toggle('modalon', !!h);   // QA4-1: messages go under an open card
   // QA-5: the board behind the menu, a report or an open card can't be reached by keyboard, and a card that opens takes the focus
   const app = $('.app'), block = U.scene !== 'game' || !!h; if (app && app.inert !== block) app.inert = block;
   if (h && was) U.focRet0 = document.activeElement && document.activeElement !== document.body && !wrap.contains(document.activeElement) ? document.activeElement : null;   // QA3-4: what opened it, before the focus moves in
@@ -9007,7 +9010,7 @@ const ACT = {
     const list = kind === 't' ? U.ord.tests : U.ord.treats, i = list.indexOf(key);
     if (i >= 0) list.splice(i, 1); else list.push(key);
   },
-  sign: pid => { const o = U.ord && U.ord.pid === pid ? U.ord : { tests: [], treats: [] }; const r = E.signOrders(pid, o.tests, o.treats); if (r.ok) { U.ord = null; U.ordOpen = null; } res(r, r.ok); },
+  sign: pid => { const o = U.ord && U.ord.pid === pid ? U.ord : { tests: [], treats: [] }; const r = E.signOrders(pid, o.tests, o.treats); if (r.ok) { U.ord = null; U.ordOpen = null; } if (r.ok && r.unsafe && r.unsafe.length) { toast(r.msg, 'bad'); U.sheet = null; } else res(r, r.ok); },   // QA4-5: an unsafe order is never confirmed in green
   ordOpen: pid => { U.ordOpen = pid; U.ord = null; },
   dxPick: a => { const i = a.indexOf('|'), r = E.dxPick(a.slice(0, i), a.slice(i + 1)); if (r.ok) { toast(r.msg, r.right ? 'good' : 'bad'); sfx(r.right ? 'good' : 'bad'); } else res(r); },
   ordMenu: id => { const S = OM_OPEN(); if (S.has(id)) { S.delete(id); for (const k of [...S]) if (k.startsWith(id + ':')) S.delete(k); } else { if (!id.includes(':')) for (const k of [...S]) if (!k.includes(':')) S.delete(k); S.add(id); } },

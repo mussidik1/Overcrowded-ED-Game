@@ -4004,6 +4004,7 @@ function missBox() {
   G.stats.boxC.miss++; care(-30 * surveyMul(), 'box');
   { const sc = scenOf(c); (G.stats.radioLog = G.stats.radioLog || []).push({ q: sc.plain || sc.q, miss: true, a: sc.a, why: sc.pwhy || sc.why, btn: sc.btn || null, right: sc.opts ? sc.opts[sc.r] : null }); }
   toast(`Missed radio call. ${c.unit} rolled to another hospital's physician.`, 'bad'); sound('bad');
+  if (G.mode === 'md' && !G.train) mm(35, `Missed a radio call from ${c.unit}`, 'Nobody gave medical direction, and the crew went to another hospital’s physician', true);   // QA4-3
   G.ev.missedC++; if (G.ev.missedC >= 2) G.ev.regionDue = true;
 }
 function missNotify(p) {
@@ -4641,7 +4642,7 @@ function botStep(o) {
     // Phase 6 (R5-04): the attending's own load grows with the level. The game's charge nurse hands the sickest new patients (ESI 1 and 2)
     // straight to the attending up to MD_LOAD of them at once, and holds the rest longer for the attending on harder levels (the other
     // doctors are busier). Easy keeps today's pace.
-    if (G.mode === 'md' && !G.pre && !G.train && needsProv(p) && !p.prov && !p.arrest && vEsi(p) <= 2 && mdLoad() < (MD_LOAD[G.level] || 0) && canAssign(staff(G.me), p).ok) add(5, () => !p.prov && assign(G.me, p.id).ok);
+    if (G.mode === 'md' && !G.pre && !G.train && needsProv(p) && !p.prov && !p.arrest && vEsi(p) <= 2 && mdLoad() < (MD_LOAD[G.level] || 0) && canAssign(staff(G.me), p).ok) add(5, () => { if (p.prov) return false; p.prov = G.me; p.handed = true; note(`The charge nurse put ${label(p)} on your list. See them when you can.`); return true; });   // QA4-4: handed over, not seen: the attending sees them (and gets the credit) with See this patient
     const mdWait = G.mode === 'md' && !(p.prov && p.prov !== G.me) && G.t - (p.tNeed != null ? Math.max(p.tNeed, p.tRoom) : p.tRoom) < (p.arrest ? 1 : (vEsi(p) <= 2 ? 6 : 15) * (MD_HOLD[G.level] || 1));
     if (needsProv(p) && o.prov !== false && !(G.mode === 'md' && p.prov === G.me) && !mdWait) add(vEsi(p) <= 2 ? 4.5 : 7, () => {
       if (!needsProv(p)) return false;

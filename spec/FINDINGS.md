@@ -150,17 +150,18 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 
 | ID | Stage | Sev | Finding | Status | Resolution |
 |---|---|---|---|---|---|
-| F-095 | 15a | Medium | QA4-1: Toasts (z-index 100) cover decision-card and radio-card text on the list board (cards z-index 95) | Open |  |
-| F-096 | 15a | Medium | QA4-2: Attending Orientation step and How to play still teach Patients, Clinical, Admin, Staff instead of Clinical, Diagnoses, Radio, Legal | Open |  |
-| F-097 | 15a | Medium | QA4-3: An idle attending Rush with every radio call missed reads "Nothing went badly wrong this shift" in the M&M | Open |  |
-| F-098 | 15a | Medium | QA4-4: The attending report credits patients the game handed over and examined (Patients you saw 2, time-goal and disposition points) when the player did nothing | Open |  |
-| F-099 | 15a | Low | QA4-5: A signed order set with an unsafe drug is confirmed in a green toast | Open |  |
+| F-095 | 15a | Medium | QA4-1: Toasts (z-index 100) cover decision-card and radio-card text on the list board (cards z-index 95) | Fixed (to be confirmed by QA) | messages go under an open card (z-index 90 while a card is open) |
+| F-096 | 15a | Medium | QA4-2: Attending Orientation step and How to play still teach Patients, Clinical, Admin, Staff instead of Clinical, Diagnoses, Radio, Legal | Fixed (to be confirmed by QA) | attending Orientation and How to play teach Clinical, Diagnoses, Radio, Legal |
+| F-097 | 15a | Medium | QA4-3: An idle attending Rush with every radio call missed reads "Nothing went badly wrong this shift" in the M&M | Fixed (to be confirmed by QA) | a missed radio call is an M&M line for the attending; rules15 |
+| F-098 | 15a | Medium | QA4-4: The attending report credits patients the game handed over and examined (Patients you saw 2, time-goal and disposition points) when the player did nothing | Fixed (to be confirmed by QA) | handed-over patients wait on the list (no credit, no exam) until See this patient; rules15 |
+| F-099 | 15a | Low | QA4-5: A signed order set with an unsafe drug is confirmed in a green toast | Fixed (to be confirmed by QA) | an unsafe order set is confirmed in red |
 | F-100 | 15a | Low | QA4-6: The department section on the attending report has no disclosure marker; "Clinical accuracy" beside a different "Clinical" score | Open |  |
 | F-101 | 15a | Low | QA4-7: Score pills lose their labels while a message shows in the top bar | Open |  |
 | F-102 | 15a | Low | QA4-8: Small targets and text: 36 px chips, 31 px Find a doctor, 32 px jump tabs, 22 px zone header, 21 px map tokens, 8.6 px desktop staff names, 11.25 px Class code notice | Open |  |
 | F-103 | 15a | Low | QA4-9: Order-menu badges overlap the arrows; the sheet close button overlaps the first order row | Open |  |
-| F-104 | 15a | Low | QA4-10: The name filter refuses "Dick" and accepts "Hitler" | Open |  |
-| F-105 | 15a | Low | QA4-11: No teaching-game notice on How to play, the glossary, or in-shift charge-nurse patient cards (keeps Clinical safety at 9) | Open |  |
+| F-104 | 15a | Low | QA4-10: The name filter refuses "Dick" and accepts "Hitler" | Fixed (to be confirmed by QA) | "Dick" accepted (a real first name); "Hitler" refused; class_test |
+| F-105 | 15a | Low | QA4-11: No teaching-game notice on How to play, the glossary, or in-shift charge-nurse patient cards (keeps Clinical safety at 9) | Fixed (to be confirmed by QA) | the notice on How to play, the glossary and patient cards |
 | F-106 | 15a | Low | QA4-12: A card shows "ECG: Sinus tach" with HR 83; "interpreter in 0m" | Open |  |
 | F-107 | 15a | Low | QA4-13: Playing a class code leaves its role and scenario on the menu with no notice | Open |  |
 | F-108 | 15a | Low | QA4-14: Gate password in plain text (owner chose not to harden the gate) | Accepted (owner, gate) |  |
+

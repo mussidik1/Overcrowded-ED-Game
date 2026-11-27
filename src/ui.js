@@ -1582,7 +1582,7 @@ function helpMD() {
 <li><b>Bedside tests.</b> A fingerstick glucose or urine dip reads in a minute and works when the lab is down. Check the sugar early on every stroke.</li>
 <li><b>Answer the radio.</b> Tap Answer, read the call, approve or deny. Only you can.</li>
 <li><b>Alerts.</b> Time goals: ECG in 10, CT in 25, needle in 60, balloon in 90.</li>
-<li><b>Your scores.</b> Patients, Clinical (your own patients), Admin, Staff. The meter counts patients waiting on their next step.</li>
+<li><b>Your scores.</b> Your own calls: Clinical (your own patients), Diagnoses (called; how many were right shows at the end), Radio (medical-direction calls answered right) and Legal (100 minus legal risk). The department's Patients, Admin and Staff show on your summary as context. The meter counts patients waiting on a next step.</li>
 </ol>`;
 }
 function renderSheet(G) {
@@ -1611,6 +1611,7 @@ function renderSheet(G) {
   else if (s && s.type === 'chapters') h = chaptersHTML();
   else if (s && s.type === 'lessons') h = lessonsHTML();
   else if (s && s.type === 'class') h = classHTML();
+  if (h && s && ['help', 'words', 'pt'].includes(s.type)) h += '<p class="rep-note">A teaching game, not clinical guidance. No licensed clinician has reviewed it yet.</p>';   // QA4-11: wherever clinical content shows
   if (h && TR() && s.type !== 'words' && !coachBeside()) h = coachHTML('in') + h;
   const key = h ? s.type + '|' + (s.pid || s.sid || s.z || '') : '';
   wrap.hidden = !h; morph(el, h);
@@ -1837,7 +1838,7 @@ const STEPS_MD = [
   { id: 'rack', next: true, title: 'Who needs you', text: () => (FP() ? 'A **blue** room is waiting for a doctor. Yours get a **gold ring**.' : 'Rooms marked **Needs a provider** are waiting for a doctor. Yours show **YOU**.') + '\nA **pod** is four rooms and one nurse.\nThe circle is the **ESI**: **1** needs life-saving help now, **5** is minor.\nWait too long and another doctor takes them.', spot: () => ['#zh-a, #mzh-a', '#zbar'] },
   { id: 'you', next: true, title: 'Your line', text: () => `You’re **Dr. Patel**, ${SIDE()}. Your button shows what you’re doing and who’s waiting on you.\nThe others are another attending and the **PAs and NPs**.`, spot: () => ['#dockProv [data-arg="md1"]', '#sideProv [data-arg="md1"]'] },
 
-  { id: 'top', next: true, title: 'Your scores', text: () => `Four scores grade you:\n**Patients**: how they feel about the visit.\n**Clinical**: your care, right and on time.\n**Admin**: flow and cost.\n**Staff**: team morale.${FP() ? '\nThe **meter** by the zoom buttons counts patients waiting on their next step.' : ''}`, spot: () => ['#top .pills', '#waitMeter'] },
+  { id: 'top', next: true, title: 'Your scores', text: () => `Four scores grade **your own calls**:\n**Clinical**: your patients' care, right and on time.\n**Diagnoses**: how many you've called (how many were right shows at the end).\n**Radio**: medical-direction calls answered right.\n**Legal**: 100 minus your legal risk.${FP() ? '\nThe **meter** by the zoom buttons counts patients waiting on a next step.' : ''}`, spot: () => ['#top .pills', '#waitMeter'] },   // QA4-2
 
   { id: 'j1', title: 'Sore throat', text: `**Room 1**: [[Jordan]], 22, sore throat and fever.\nTap **his room**, then **See this patient**.`,
     setup: () => ({ jordan: E.trainPatient('strep', 'room', { room: '1', name: 'Jordan P.', age: 22, sex: 'M' }) }), ...seeStep('jordan') },
@@ -2135,7 +2136,7 @@ const cbNameWhy = v => { const n = String(v || '').trim(), c = cbClean(n); retur
 // rule (cbClean above, matched to the contract file) is unchanged.
 const cbInitial = w => /^\p{Lu}\.?$/u.test(w) || /^(\p{L}\.){2,3}$/u.test(w) || /^\p{Lu}{2,3}$/u.test(w);   // "S", "S.", "J.D.", "JS": not "Dr." (QA3-10)
 const cbOneName = n => n.split(' ').filter(w => !cbInitial(w)).length <= 1;
-const CB_RUDE = /(fuck|shit|cunt|bitch|whore|slut|nigg|fag|asshole|wank|bollock|twat|piss)/, CB_RUDE_W = /^(ass|arse|dick|cock|cum|tits?|prick|bastard|crap|damn|hell|sex|porn|nazi|poop|butt|penis|vagina|boob)$/;
+const CB_RUDE = /(fuck|shit|cunt|bitch|whore|slut|nigg|fag|asshole|wank|bollock|twat|piss|hitler)/, CB_RUDE_W = /^(ass|arse|cock|cum|tits?|prick|bastard|crap|damn|hell|sex|porn|nazi|poop|butt|penis|vagina|boob)$/;
 const cbRude = n => { const t = n.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase(); return CB_RUDE.test(t.replace(/[^a-z]/g, '')) || t.split(/[^a-z]+/).some(w => CB_RUDE_W.test(w)); };
 const cbSendable = v => { const n = cbClean(v); return n && cbOneName(n) && !cbRude(n) ? n : null; };
 const cbAlpha = v => String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
@@ -2501,7 +2502,7 @@ function renderModal(G) {
   if (h && U.modal && (U.modal.type === 'scen' || U.modal.type === 'result')) h += '<p class="rep-note">A teaching game, not clinical guidance: follow your own protocols. No licensed clinician has reviewed it yet.</p>';   // QA3-7: radio calls give doses
   if (h && TR()) h = coachHTML('in') + h;
   const was = wrap.hidden;
-  wrap.hidden = !h; morph(el, h);
+  wrap.hidden = !h; morph(el, h); document.body.classList.toggle('modalon', !!h);   // QA4-1: messages go under an open card
   // QA-5: the board behind the menu, a report or an open card can't be reached by keyboard, and a card that opens takes the focus
   const app = $('.app'), block = U.scene !== 'game' || !!h; if (app && app.inert !== block) app.inert = block;
   if (h && was) U.focRet0 = document.activeElement && document.activeElement !== document.body && !wrap.contains(document.activeElement) ? document.activeElement : null;   // QA3-4: what opened it, before the focus moves in
@@ -2689,7 +2690,7 @@ const ACT = {
     const list = kind === 't' ? U.ord.tests : U.ord.treats, i = list.indexOf(key);
     if (i >= 0) list.splice(i, 1); else list.push(key);
   },
-  sign: pid => { const o = U.ord && U.ord.pid === pid ? U.ord : { tests: [], treats: [] }; const r = E.signOrders(pid, o.tests, o.treats); if (r.ok) { U.ord = null; U.ordOpen = null; } res(r, r.ok); },
+  sign: pid => { const o = U.ord && U.ord.pid === pid ? U.ord : { tests: [], treats: [] }; const r = E.signOrders(pid, o.tests, o.treats); if (r.ok) { U.ord = null; U.ordOpen = null; } if (r.ok && r.unsafe && r.unsafe.length) { toast(r.msg, 'bad'); U.sheet = null; } else res(r, r.ok); },   // QA4-5: an unsafe order is never confirmed in green
   ordOpen: pid => { U.ordOpen = pid; U.ord = null; },
   dxPick: a => { const i = a.indexOf('|'), r = E.dxPick(a.slice(0, i), a.slice(i + 1)); if (r.ok) { toast(r.msg, r.right ? 'good' : 'bad'); sfx(r.right ? 'good' : 'bad'); } else res(r); },
   ordMenu: id => { const S = OM_OPEN(); if (S.has(id)) { S.delete(id); for (const k of [...S]) if (k.startsWith(id + ':')) S.delete(k); } else { if (!id.includes(':')) for (const k of [...S]) if (!k.includes(':')) S.delete(k); S.add(id); } },

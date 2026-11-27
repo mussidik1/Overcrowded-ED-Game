@@ -49,7 +49,8 @@ procedures), reads results, picks a diagnosis from a short list, and picks a dis
 - AC5: On a regular shift the game gives no answers away: no list of missing orders, no instant right or wrong on a diagnosis (the card
   keeps the attending's call), a consultant who isn't the right one says so without naming the right one, and an incoming alert doesn't
   carry its diagnosis for the attending. Orientation and Lessons still show all of these, as teaching.
-- AC6: On Manic Monday and Full Moon Friday the game's charge nurse hands the attending more of the sickest patients directly.
+- AC6: On Manic Monday and Full Moon Friday the game's charge nurse puts more of the sickest patients on the attending's list; each waits
+  for the attending to see them (no credit until then).
 
 **REQ-08 Attending: radio calls.** EMS medical-direction calls ring on the radio (the Box); the attending answers with a choice of
 orders. Calls not answered ring out and count as missed. The charge nurse doesn't give medical direction.

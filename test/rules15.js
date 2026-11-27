@@ -68,3 +68,11 @@ for (const k of ['syncope', 'synchigh', 'cpmod', 'cwp']) { const p = OC.pt(OC.tr
   const p = CAP('mvc'); p.bleed = 'mtp'; p.bb = null; p.tArrive = G.t - 16; p.dsp = 'none'; p.shock = false; for (let i = 0; i < 12; i++) OC.step(0.1);
   assert(msgs.some(m => /pressure is falling/.test(m)) && !msgs.some(m => /hemorrhagic shock|massive transfusion/i.test(m)), `the attending hears the signs, not "hemorrhagic shock" (${msgs.filter(m => /pressure|shock/.test(m)).join(' | ')})`);
   OC.hooks.toast = () => {}; }
+
+// QA4-4: a patient the charge nurse hands over waits for the attending: no credit and no exam until See this patient
+{ OC.newGame('hard', 702, { mode: 'md' }); for (let i = 0; i < 1200; i++) OC.step(0.1);
+  const h = Object.values(OC.G.pts).filter(p => p.handed && p.prov === OC.G.me);
+  assert(h.length > 0 && h.every(p => !p.mine && p.ev === 'none') && (OC.G.stats.md.seen || 0) === 0, `handed-over patients wait for the attending: none counted as seen, none examined (${h.length} handed)`); }
+// QA4-3: a missed radio call is one of the attending's worst moments
+{ OC.newGame('rush', 703, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
+  const R = OC.G.report; assert(!(R.boxC && R.boxC.miss) || (R.mm || []).some(m => /radio call/.test(m.what)), `an idle attending's M&M lists the missed radio calls (${(R.boxC || {}).miss || 0} missed)`); }
