@@ -30,7 +30,7 @@ with sync_playwright() as pw:
     J("localStorage.removeItem('oc-save')")
     J("window.OCUI && window.OCUI.save ? window.OCUI.save(true) : null")
     had = J("!!localStorage.getItem('oc-save')")
-    J("(() => { window.OC.step = () => { throw new Error('test crash'); }; })()")
+    J("(() => { window.OC.G.HALF_DONE = true; window.OC.step = () => { throw new Error('test crash'); }; })()")   # R3.13-01: the state the error leaves must never be saved
     page.wait_for_timeout(1500)
     shown = page.locator('#crash').count() == 1
     if not shown:   # the shift may be paused: tap a control so the loop or a tap runs the engine
@@ -44,8 +44,28 @@ with sync_playwright() as pw:
         ok(J("document.activeElement && document.activeElement.id") == 'crashH', 'the card takes the focus')
         st = J("localStorage.getItem('oc-save')")
         ok((not had) or (st and json.loads(st)['G']['v'] == 5), 'the last good save is kept')
+        # R3.13-03: the card is modal for the keyboard: Tab stays on it, and the board behind is inert
+        seen = set()
+        for _ in range(6):
+            page.keyboard.press('Tab'); seen.add(J("(() => { const a = document.activeElement; return a && a.closest('#crash') ? 'in' : 'OUT:' + (a && (a.id || a.tagName)); })()"))
+        ok(seen == {'in'}, 'Tab stays on the crash card (' + ','.join(sorted(seen)) + ')')
+        ok(J("document.querySelector('.app').inert === true"), 'the board behind the crash card is inert')
+        J("document.dispatchEvent(new Event('visibilitychange')); window.dispatchEvent(new Event('pagehide'))")
+        st = J("localStorage.getItem('oc-save')")
+        ok((not st) or ('HALF_DONE' not in st), 'hiding the page after a crash does not save the half-done state')
         page.locator('#crashReload').tap(); page.wait_for_timeout(900)
         ok(page.locator('#crash').count() == 0, 'Reload reloads the game')
+        st = J("localStorage.getItem('oc-save')")
+        ok((not st) or ('HALF_DONE' not in st), 'after Reload the save is the last good one, not the half-done state')
+        # "Start over without the save" really drops it
+        if st:
+            J("window.OCUI.resumeSave ? window.OCUI.resumeSave() : document.querySelector('#title [data-act=\"resumeSave\"]').click()"); page.wait_for_timeout(800)
+            J("(() => { window.OC.step = () => { throw new Error('test crash 2'); }; const U = window.OCUI.U; U.paused = false; U.hold = false; U.freeze = false; U.view = 'list'; U.modal = null; window.OC.G.card = null; })()"); page.wait_for_timeout(1500)
+            if page.locator('#crashDrop').count():
+                page.locator('#crashDrop').tap(); page.wait_for_timeout(900)
+                ok(J("localStorage.getItem('oc-save')") is None and page.locator('#title [data-act="resumeSave"]').count() == 0, 'Start over without the save leaves no save and no Resume')
+            else:
+                ok(False, 'the second crash shows Start over without the save')
     ctx.close()
 
     # 3. QA-17: the back button in a shift opens the pause menu instead of leaving; QA-6: Escape closes it

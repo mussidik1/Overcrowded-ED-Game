@@ -78,7 +78,7 @@ src/index.template.html  page shell with /*FONTS*/ /*STYLE*/ /*ENGINE*/ /*UI*/ p
 src3d/map3d.js           3D floor (three.js). esbuild bundles it to 3d/map3d.js
 build.js                 builds index.html and sw.js. Stops if engine.js or ui.js+map.js fails to parse
 build3d.js               esbuild call for the 3D bundle
-test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor, rules14.js the Phase 3 clinical content (v0.32)
+test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor, rules14.js the Phase 3 clinical content (v0.32), rules15.js the v0.33 grading, giveaway and save rules
 test/golden.js           a change detector: seeded-shift behaviour fingerprints, class sync, class codes, save round trips, answer keys, code cards, drug rules, scripted codes
 test/sim.js, stress.js   simulated shifts, and 188 shifts across every level and scenario
 test/*_test.py           Playwright UI tests against the built index.html (test/_browser.py picks the browser)
@@ -133,7 +133,7 @@ When you add anything random that should be the same for every player on a code 
 Class results and the testing gate use **Supabase, the same project as Case Room**. The address, the publishable key (public by design) and an optional privacy contact are in `src/backend.json`; `build.js` puts them in the page (`CB` in `ui.js`) and the CSP. Since v0.31.0 the whole Code Black database is in `supabase/` (`supabase/README.md` explains it), and the results sit in a `codeblack` schema that the API doesn't expose. The functions are the only way in:
 
 - `rpc/cb_class_new`: making a class code registers it with an **instructor key** (16 characters) that the game makes and keeps on that device (`oc-ckeys`, `{ v: 1, c: { code: { k, t, p, s, e, x, g } } }`: the key, when the server made the class, unconfirmed, shown, when it ends, ended, taken by another class). Repeating it is safe; a code another class has comes back `taken`, and the game makes another before showing it. A code shows only once the server has registered it (if the server can't be reached, or class results are full, the instructor may use it without results; not when the network is busy, which someone else can cause). The key stays hidden until the instructor taps Show key, and is masked when typed.
-- `rpc/cb_submit`: a student sends their summary: first name or initials, score 0 to 100, stars, real time played, stats (`client_call.json` lists the keys), the version the shift was played on, and the result's own id (kept once however often it's retried). The name is never stored on the device.
+- `rpc/cb_submit`: a student sends their summary: initials (the game sends 1 to 4 letters since v0.33; the server still accepts a short name), score 0 to 100, stars, real time played, stats (`client_call.json` lists the keys), the version the shift was played on, and the result's own id (kept once however often it's retried). The name is never stored on the device.
 - `rpc/cb_class_read`, `rpc/cb_class_delete`: the instructor's Class results list, and deleting one result or all. Both need the key. Copy table and Download CSV export it.
 - `rpc/cb_health`: for the deploy's check and the daily watch (`db-watch.yml`): every migration recorded live, whether the clean-up runs, whether callers' addresses are read and public, how full the storage backstops and the held codes are, and a fingerprint of the database's functions, tables and clean-up job (`codeblack.fingerprint()`, which must match `supabase/tests/fingerprint.json`; `run.sh` prints a new one when the unapplied migration changes). No class data.
 - `rpc/cb_gate_on`, `rpc/cb_gate_check`: the password gate, active only on `edcodeblack.com/.net` and `*.github.io` (`GATED`). The password is checked by bcrypt hash in the database, and a device that passed the gate once can play offline.
@@ -155,7 +155,7 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules14.js: engine rule checks in Node (~760 "ok" lines; any "FAIL:" sets exit 1)
+npm test          # rules.js through rules15.js: engine rule checks in Node (~780 "ok" lines; any "FAIL:" sets exit 1)
                   #   then golden.js: behaviour fingerprints, stream sync, class codes, save round trips, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run lint      # ESLint, correctness rules only (eslint.config.js; tools/lint.js splices map.js into ui.js like the build)

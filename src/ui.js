@@ -305,6 +305,7 @@ function focusMgr() {
   U.focOpen = open;
 }
 function render() {
+  if (crashed) return;   // R3.13-03: a resize or Back after a crash doesn't redraw (or un-inert) the board
   const G = g(); if (!G) return;
   U.wide = window.matchMedia('(min-width: 1100px)').matches && U.view !== 'map';   // the floor plan uses the dock at every size
   document.body.classList.toggle('md', MD());
@@ -2237,7 +2238,7 @@ function cbRows(L) {
   L._of = L.rows; L._rows = rows; return rows;
 }
 const CB_NOTE = 'Not for grading: scores are self-reported, anyone with the code can send a result under any name (a repeated name may be a retry or another student), and it is a teaching game, not clinical guidance: no licensed clinician has reviewed its clinical content.';
-const CB_MDNOTE = 'Attending: the score and stars mostly reflect the department the computer runs. The attending’s own work is the patients they saw (and how many of them died), their diagnoses, unsafe orders and radio calls. Radio calls differ between players, and complications are partly chance. Many patients who arrest die even after a well-run code (the list says which deaths came after a code run by the book: every rhythm check right, the code started within 5 minutes).';
+const CB_MDNOTE = 'Attending: the score and stars are the attending’s own: Clinical on the patients they saw, Diagnoses called right, Radio calls answered right, and Legal. A part with nothing to grade is left out of the average. Radio calls differ between players, and complications are partly chance. Many patients who arrest die even after a well-run code (the list says which deaths came after a code run by the book: every rhythm check right, the code started within 5 minutes).';   // R3.13-05
 const cbClock = m => { const t = 7 * 60 + (m || 0); return String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
 function cbDet(r) {   // the second line of a result: the student's own numbers first
   const q = v => (v == null ? '?' : v), parts = [`${r.min} min played${r.fast ? ` (${r.fast}% sped up)` : ''}`];
@@ -2333,7 +2334,7 @@ function cbSendHTML(R, at) {
     + (U.leaveAsk === at ? `<small class="cb-err" role="alert">Not sent yet. Tap Send first, or tap Menu or Run it back again to leave without sending.</small>` : '')
     + `<div class="cc-row"><input id="cbName" class="cb-name" data-pick="cbname" data-at="${esc(String(at))}" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="Your initials, like S.K." value="${esc(U.cbName || '')}"${busy ? ' disabled' : ''}${st && !busy && bad ? ' aria-invalid="true" aria-describedby="cbNameErr"' : ''}><button type="button" class="big act" data-act="cbSend" data-arg="${esc(String(at))}"${busy ? ' disabled' : ''}>${busy ? 'Sending…' : 'Send'}</button></div>`
     + (st && !busy ? `<small class="cb-err" id="${bad ? 'cbNameErr' : 'cbSendErr'}" role="alert">${esc(st)}</small>` : '')
-    + `<small>Sends your initials, <b>${esc(cbWhat(R))}</b> (the score is the average of your four scores), and these numbers: ${esc(cbWhatAll(R))}, to the instructor who made ${esc(R.code)}. The full list is in About, under Privacy. ${CB_WHO}</small></div>`;   // the box first, the small print after it (audit R5.7-09e)
+    + `<small>Sends your initials, <b>${esc(cbWhat(R))}</b> (the score is the average of your ${R.mode === 'md' ? 'own scores that had something to grade' : 'four scores'}), and these numbers: ${esc(cbWhatAll(R))}, to the instructor who made ${esc(R.code)}. The full list is in About, under Privacy. ${CB_WHO}</small></div>`;   // the box first, the small print after it (audit R5.7-09e)
 }
 function cbRedraw(focus) {   // the summary is drawn once; the send box redraws it when its state changes, keeping the scroll and the typing focus
   const d = lastReport(), el = $('#report'); if (!d || !el || el.hidden) return;
@@ -3001,6 +3002,7 @@ const PILL_HELP_MD = {   // the attending's own four (Phase 6, R5-03): these set
 
 /* ---------- save and resume (this device only) ---------- */
 function save(force) {
+  if (crashed) return;   // R3.13-01: after a crash, nothing (Reload, Start over, hiding the tab, pagehide) writes the half-done state
   const G = g();
   if (U.scene !== 'game' || !G || G.over) return;
   const now = Date.now();
@@ -3050,7 +3052,7 @@ function resumeSave() {
 const DOT = { easy: 'var(--e4)', med: 'var(--e3)', hard: 'var(--e1)', rush: '#7B4A9E' };
 const BLURB_MD = { easy: 'Fewer patients, fewer radio calls. Learn the orders.', med: 'A normal busy day. The radio keeps ringing.', hard: 'Sicker patients, all at once. Good luck.' };
 function bestOf(l, mode) { return +(store('oc-best4-' + ((mode || U.mode) === 'md' ? 'md-' : '') + l) || 0); }
-const bestStars = (l, mode) => { const v = store('oc-bests-' + ((mode || U.mode) === 'md' ? 'md-' : '') + l); return v != null ? +v : bestOf(l, mode) ? E.scoreStars(bestOf(l, mode)) : 0; };   // QA6-5: the stars a shift earned (the Rush pace cap, the attending's own grade)   // v0.25: the best average of the four scores
+const bestStars = (l, mode) => { const v = store('oc-bests-' + ((mode || U.mode) === 'md' ? 'md-' : '') + l); const n = v != null ? +v : bestOf(l, mode) ? E.scoreStars(bestOf(l, mode)) : 0; return n >= 0 && n <= 3 ? n | 0 : 0; };   // R3.13-06: a bad stored value can't blank the menu   // QA6-5: the stars a shift earned (the Rush pace cap, the attending's own grade)   // v0.25: the best average of the four scores
 const trainedKey = mode => (mode === 'md' ? 'oc-trained-md' : 'oc-trained');
 const IOS_TIP = /iPhone|iPod/.test(navigator.userAgent) && !navigator.standalone && !document.fullscreenEnabled;
 function titleHTML() {
@@ -3274,7 +3276,8 @@ const RANKS = {
   md: ['Intern', 'Resident', 'Senior resident', 'Chief resident', 'Attending', 'Associate director', 'Department chair'],
 };
 const RANK_AT = [0, 6, 16, 30, 50, 80, 120];
-function career() { try { const c = JSON.parse(store('oc-career') || 'null'); if (c && c.v === 1) return c; } catch (e) { /* a broken record starts again */ } return { v: 1, rn: { pts: 0, n: 0 }, md: { pts: 0, n: 0 }, last: 0 }; }
+const careerPart = x => x && typeof x === 'object' && Number.isFinite(x.pts) && x.pts >= 0 && Number.isFinite(x.n) && x.n >= 0;
+function career() { try { const c = JSON.parse(store('oc-career') || 'null'); if (c && c.v === 1 && careerPart(c.rn) && careerPart(c.md) && Number.isFinite(c.last || 0)) return c; } catch (e) { /* a broken record starts again */ } return { v: 1, rn: { pts: 0, n: 0 }, md: { pts: 0, n: 0 }, last: 0 }; }
 function rankOf(mode, pts) {
   let i = 0; while (i + 1 < RANK_AT.length && pts >= RANK_AT[i + 1]) i++;
   const L = RANKS[mode === 'md' ? 'md' : 'rn'];
@@ -3325,16 +3328,23 @@ function crash(e, where) {
   if (crashed) return;
   crashed = { where, msg: String((e && e.message) || e).slice(0, 300), stack: String((e && e.stack) || '').split('\n').slice(0, 6).join('\n'), v: GAME_V, t: g() ? Math.round(g().t * 10) / 10 : null };
   try { console.error('Code Black stopped:', e); } catch (x) { /* no console */ }
-  const saved = !!readSave();
+  const saved = !!readSave(), inShift = U.scene === 'game';   // R3.13-12: a crash on the menu doesn't offer to delete a good save
   const d = document.createElement('div');
   d.id = 'crash'; d.className = 'modal-wrap'; d.setAttribute('role', 'alertdialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'crashH');
-  d.innerHTML = `<div class="modal"><h3 id="crashH" tabindex="-1">Something went wrong</h3><p>${saved ? 'The game stopped. <b>Your shift is saved</b> up to the last few seconds. Reload to pick it up.' : 'The game stopped. Reload to start again.'}</p>`
-    + `<div class="crash-btns"><button type="button" class="big act" id="crashReload">Reload</button><button type="button" class="big" id="crashCopy">Copy details</button>${saved ? '<button type="button" class="big" id="crashDrop">Start over without the save</button>' : ''}</div>`
+  d.innerHTML = `<div class="modal"><h3 id="crashH" tabindex="-1">Something went wrong</h3><p>${saved ? 'The game stopped. <b>Your shift is saved</b> up to about the last minute. Reload to pick it up.' : 'The game stopped. Reload to start again.'}</p>`
+    + `<div class="crash-btns"><button type="button" class="big act" id="crashReload">Reload</button><button type="button" class="big" id="crashCopy">Copy details</button>${saved && inShift ? '<button type="button" class="big" id="crashDrop">Start over without the save</button>' : ''}</div>`
     + `<p class="crash-note">If it happens again, Copy details and send them with the class code or level you were playing.</p></div>`;
+  for (const el of document.body.children) if (el !== d && el.tagName !== 'SCRIPT') el.inert = true;   // R3.13-03: nothing behind the card can be reached
+  d.addEventListener('keydown', ev => {   // Tab stays on the card
+    if (ev.key !== 'Tab') return;
+    const b = [...d.querySelectorAll('button')]; if (!b.length) return;
+    const i = b.indexOf(document.activeElement);
+    if (ev.shiftKey && i <= 0) { ev.preventDefault(); b[b.length - 1].focus(); } else if (!ev.shiftKey && (i < 0 || i === b.length - 1)) { ev.preventDefault(); b[0].focus(); }
+  });
   document.body.appendChild(d);
   const det = () => `Code Black v${crashed.v}, ${crashed.where}, game minute ${crashed.t}: ${crashed.msg}\n${crashed.stack}`;
   $('#crashReload').addEventListener('click', () => location.reload());
-  $('#crashCopy').addEventListener('click', () => { const b = $('#crashCopy'); try { navigator.clipboard.writeText(det()).then(() => { b.textContent = 'Copied'; }, () => { b.textContent = 'Couldn’t copy'; }); } catch (x) { b.textContent = 'Couldn’t copy'; } });
+  $('#crashCopy').addEventListener('click', () => { const b = $('#crashCopy'); copyText(det()).then(ok => { b.textContent = ok ? 'Copied' : 'Couldn’t copy'; }); });   // R3.13-12: with the fallback for plain http
   const dr = $('#crashDrop'); if (dr) dr.addEventListener('click', () => { store('oc-save', null); location.reload(); });
   try { $('#crashH').focus(); } catch (x) { /* focus is a nicety */ }
 }
@@ -3410,6 +3420,7 @@ function bind() {
   });
   document.addEventListener('pointerdown', () => { U.kbd = false; }, true);
   document.addEventListener('keydown', e => {
+    if (crashed) return;   // R3.13-03: the crash card handles its own keys
     if (e.key === 'Tab' || e.key === 'Enter' || e.key === ' ') U.kbd = true;
     // Tab stays inside an open menu sheet, which is a modal dialog (audit R4.9-03). In a shift the board stays reachable.
     if (e.key === 'Tab' && !$('#sheetWrap').hidden && $('#modalWrap').hidden) {   // QA3-3: in a shift too (the preceptor's card, beside the sheet, stays in the loop)
@@ -3437,6 +3448,7 @@ function bind() {
   });
   // QA-17: in a shift, the phone's back button closes what is open (a selection, a sheet), or opens the pause menu, instead of leaving the game
   window.addEventListener('popstate', () => {
+    if (crashed) return;
     if (U.scene === 'title') {   // QA3-9: on the menus, Back closes a sheet or returns to the main menu before it leaves the game
       if (U.sheet) U.sheet = null; else if (U.tm && U.tm !== 'main') ACT.tmenu('main');
       render(); return;
