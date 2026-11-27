@@ -24,7 +24,7 @@ paramedic and emergency medicine classes, and it must stay fun and credible for 
 
 - A lay person can learn the game from Orientation, without a manual, and every term and abbreviation is explained.
 - A student's choices change the outcome, and the end-of-shift report says what went well and badly, patient by patient.
-- An instructor can give a class the same shift and read who played and how they scored, with only first names or initials.
+- An instructor can give a class the same shift and read who played and how they scored, with only students' initials.
 - It works on a phone first, offline after the first visit, and installs to the home screen.
 
 ## Constraints
@@ -32,7 +32,7 @@ paramedic and emergency medicine classes, and it must stay fun and credible for 
 - One self-contained web page plus an optional 3D floor and imaging pictures. No accounts. Only class results and a testing password gate
   use a server (Supabase).
 - Teaching game, not clinical guidance. No licensed clinician has reviewed the clinical content as a whole; the game says so.
-- No patient data exists anywhere: every patient is invented. A student may send a first name or initials with a result; nothing else
+- No patient data exists anywhere: every patient is invented. A student may send their initials with a result; nothing else
   personal is collected.
 - During private testing the public site shows a password gate. A local copy (localhost or a file) has no gate.
 - The player directs the work: nothing that should be a player decision happens on its own.

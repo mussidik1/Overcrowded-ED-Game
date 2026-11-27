@@ -63,7 +63,7 @@ def run():
         ok(J('OC.G.running'), 'the shift is running')
         ok(not page.is_visible('#modalWrap'), 'no charge-nurse decision cards for the attending')
         ok(page.inner_text('.brand small').lower() == 'attending', 'header says Attending')
-        ok(not page.is_visible('#btnYellow') and page.locator('#pPat span').inner_text() in ('Clinical', 'Clin') and page.locator('#pClin span').inner_text() in ('Diagnoses', 'Dx') and page.locator('#pAdm span').inner_text() == 'Radio' and page.locator('#pStaff span').inner_text() == 'Legal', 'attending HUD: the attending\'s own four scores (clinical, diagnoses, radio, legal); no yellow button')
+        ok(not page.is_visible('#btnYellow') and page.locator('#pPat span').inner_text() in ('Clinical', 'Clin') and page.locator('#pClin span').inner_text() in ('Diagnoses', 'Dx', 'Dx called') and page.locator('#pAdm span').inner_text() == 'Radio' and page.locator('#pStaff span').inner_text() == 'Legal', 'attending HUD: the attending\'s own four scores (clinical, diagnoses, radio, legal); no yellow button')
 
         # ---------- see a patient ----------
         sim(180, "OC.inRooms().some(p => OC.needsProv(p) && !p.prov && !p.arrest)")   # on a quiet morning the other providers can take the first few

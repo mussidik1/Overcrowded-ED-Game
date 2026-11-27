@@ -97,9 +97,9 @@ Copy and Share, and an instructor key hidden until Show key. A student types the
 - AC2: A code from another game version is refused as stale.
 - AC3: If the server can't be reached, the instructor is told so and may use the code without results.
 
-**REQ-16 Sending a result.** At the end of a class shift a student may Send their summary with a first name or initials only.
-- AC1: The game sends one first name, initials, or a first name plus an initial ("Ana", "S.K.", "Ana M."); two full words (a full
-  name), other forms and common profanity are refused with a reason; a result can't be sent twice.
+**REQ-16 Sending a result.** At the end of a class shift a student may Send their summary with their initials only.
+- AC1: The game sends initials only: 1 to 4 letters, with or without periods or spaces ("S.K.", "JS"). Names, numbers, other
+  forms and rude words spelled as initials are refused with a reason; a result can't be sent twice.
 - AC2: A failure says whether it was the network, a timeout or the server.
 
 **REQ-17 Class results.** With the code and key, the instructor reads the class's results (unranked), can delete one or all, and can copy
@@ -128,8 +128,8 @@ open or opens the pause menu.
 **REQ-23 Clinical notice.** The game says it is a teaching game, not clinical guidance, and that no licensed clinician has reviewed its
 clinical content yet: on About, in Lessons, on the report, and on class results.
 
-**REQ-24 No personal data.** Every patient is invented. The only personal data that leaves the device is a student's chosen first name or
-initials sent with a result; the name is not stored on the device; nothing personal is logged or cached.
+**REQ-24 No personal data.** Every patient is invented. The only personal data that leaves the device is a student's chosen
+initials, sent with a result; they are not stored on the device; nothing personal is logged or cached.
 
 ## Architecture contracts (for the Code quality criterion)
 

@@ -828,7 +828,7 @@ const langMul = p => (p.lang && p.interp !== 'on' ? 1.5 : 1);
 
 /* In physician mode the player answers only for physician work, and only for their own patients. */
 const MD_TAGS = new Set(['md', 'orders', 'harm', 'dispo', 'box', 'consult', 'flow', 'goals', 'returns', 'gray', 'blood']);
-const PT_TAGS = new Set(['flow', 'goals', 'returns', 'gray', 'blood', 'consult']);
+const PT_TAGS = new Set(['flow', 'goals', 'returns', 'gray', 'blood', 'consult', 'dispo']);   // QA5-3: disposition points only for the attending's own patients
 /* v0.25: the four scores. Clinical and admin rise and fall with the same events that move points, sorted by the ledger's tag.
    Patients is how they felt about the visit (their experience). Staff is morale. Each reads 0 to 100. */
 const SC_OF = {};
@@ -864,7 +864,7 @@ const scoreStars = v => (v == null ? 0 : v >= 85 ? 3 : v >= 70 ? 2 : v >= 55 ? 1
 function care(n, tag, p) {
   if (G.pre) return;
   const k = tag || 'other', sc = SC_OF[k];
-  if (sc && !(sc === 'clinical' && G.mode === 'md' && (!MD_TAGS.has(k) || (PT_TAGS.has(k) && !(p && p.mine))))) { const s = (G.sc || (G.sc = freshSc()))[sc]; if (n > 0) s.g += n; else s.b -= n; }   // clinical counts only the attending's own work
+  if (sc && !(sc === 'clinical' && G.mode === 'md' && (!MD_TAGS.has(k) || k === 'box' || (PT_TAGS.has(k) && !(p && p.mine))))) { /* QA5-3: radio calls have their own score for the attending */ const s = (G.sc || (G.sc = freshSc()))[sc]; if (n > 0) s.g += n; else s.b -= n; }   // clinical counts only the attending's own work
   if (G.mode === 'md' && (!MD_TAGS.has(k) || (PT_TAGS.has(k) && !(p && p.mine)))) return;
   G.care += n; G.ledger[k] = (G.ledger[k] || 0) + n;
 }
@@ -2784,7 +2784,7 @@ function bookIFT(pid, level) {
     else care(3, 'transfer', p);
     if (level === 'air') {
       if (!txFast(p)) { care(-6, 'admin', p); why = ' A flight for a patient who isn’t time-critical is expensive and risky.'; }
-      else if (H && H.gnd >= 30) { care(5, 'dispo', p); why = ` Flight saves about ${H.gnd - H.air} min for a time-critical patient.`; }
+      else if (H && H.gnd >= 30) { if (G.mode !== 'md') care(5, 'dispo', p); why = ` Flight saves about ${H.gnd - H.air} min for a time-critical patient.`; }
     } else if (txFast(p) && H && H.air && H.gnd >= 40 && !wxGrounded()) why = ` By ground it’s ${H.gnd} min; a flight would be ${H.air}.`;
   }
   return { ok: true, msg: `${L.name} booked for ${label(p)}, about ${eta} min out.${why}` };
@@ -2810,7 +2810,7 @@ function giveReport(pid) {
   const p = pt(pid);
   if (!p || p.dsp !== 'iftreport') return { ok: false, why: 'No crew is waiting for report' };
   if (p.iftRep != null) return { ok: false, why: 'Report is done. They’re packaging.' };
-  p.iftRep = G.t; if (p.iftNag == null) care(2, 'dispo', p);
+  p.iftRep = G.t; if (p.iftNag == null && G.mode !== 'md') care(2, 'dispo', p);   // QA5-3: a nurse's report isn't the attending's call
   return { ok: true, msg: `Report given to the ${crewOf(p)} crew. They’re packaging ${p.name} for the trip.` };
 }
 /* v0.26: a patient who can’t stay: no bed of the kind they need, so they go to a hospital that has one. */
@@ -2843,7 +2843,7 @@ function helpTick() {
     const h = p.help; if (!h) continue;
     if (h.st === 'req' && G.t >= h.due) {
       h.st = 'here'; h.tVisit = p.loc === 'room' ? G.t : null; const H = HELP[h.k];
-      if (!h.waste) { care(p.hardAirway && h.k === 'anes' && !(p.treat.intub && p.treat.intub.st === 'done') ? 6 : 3, 'dispo', p); if (h.k === 'icu') p.bedPri = true; }
+      if (!h.waste) { if (G.mode !== 'md') care(p.hardAirway && h.k === 'anes' && !(p.treat.intub && p.treat.intub.st === 'done') ? 6 : 3, 'dispo', p); if (h.k === 'icu') p.bedPri = true; }
       note(`${H.doc} (${H.name}) is at the bedside with ${label(p)}${h.waste ? '. Nothing for them to do here' : ''}`, h.waste ? 'bad' : undefined);
     } else if (h.st === 'here') { if (h.tVisit == null && p.loc === 'room') h.tVisit = G.t; if (h.tVisit != null && G.t - h.tVisit >= HELP_STAY) h.st = 'done'; }
   }
@@ -2940,8 +2940,8 @@ function pocDone(p) {
   const w = p.work.poc; if (!w) return;
   w.st = 'done'; w.tDone = G.t;
   if (!G.pre && p.det && p.det.includes('gluc') && !p.pocCredit) {
-    if (p.alert === 'stroke' && !(p.work.ct && p.work.ct.st === 'done')) { p.pocCredit = true; care(2, 'dispo', p); note(`${label(p)}: sugar checked at the bedside before the CT. Low sugar can look like a stroke.`); }
-    else if (p.ck === 'dka') { p.pocCredit = true; care(2, 'dispo', p); note(`${label(p)}: the fingerstick reads HI in a minute. Start the DKA care now.`); }
+    if (p.alert === 'stroke' && !(p.work.ct && p.work.ct.st === 'done')) { p.pocCredit = true; if (G.mode !== 'md') care(2, 'dispo', p); note(`${label(p)}: sugar checked at the bedside before the CT. Low sugar can look like a stroke.`); }
+    else if (p.ck === 'dka') { p.pocCredit = true; if (G.mode !== 'md') care(2, 'dispo', p); note(`${label(p)}: the fingerstick reads HI in a minute. Start the DKA care now.`); }
   }
 }
 function labTat(p) { let m = (p.alertOn || p.stat || p.esi <= 2) ? 10 : 16; if (G.mods.lab > G.t) m *= 2; return m; }
@@ -3401,7 +3401,7 @@ function discharge(pid) {
   if (p.dsp === 'watch') p.earlyDc = { left: Math.max(1, Math.round(p.due - G.t)), why: WATCH_WHY[p.ck] || 'they were still being watched' };   // the player may send them early; the risk is theirs
   else if (p.dsp !== 'ready') return { ok: false, why: p.dispo === 'home' ? 'Not ready yet. Workup or treatment is still pending.' : 'This patient isn’t going home' };
   p.dsp = 'dc';
-  if (p.rehab) { p.unsafeHome = true; care(-12, 'dispo', p); }   // they couldn't manage at home
+  if (p.rehab) { p.unsafeHome = true; if (G.mode !== 'md') care(-12, 'dispo', p); }   // they couldn't manage at home
   return { ok: true, msg: `Discharge started for ${label(p)}. The nurse will do the teaching.` };
 }
 /* v0.25: discharge to rehab. The patient keeps the room (or a chair) until a ride comes: the unit secretary has to call it first. */
@@ -3410,7 +3410,7 @@ function dischargeRehab(pid) {
   if (p.dsp !== 'ready' && p.dsp !== 'watch') return { ok: false, why: p.dispo === 'home' ? 'Not ready yet. Workup or treatment is still pending.' : 'This patient isn’t being discharged' };
   if (p.dsp === 'watch') p.earlyDc = { left: Math.max(1, Math.round(p.due - G.t)), why: WATCH_WHY[p.ck] || 'they were still being watched' };
   p.dsp = 'rehab'; p.dcTo = 'rehab';
-  if (p.rehab) care(6, 'dispo', p); else care(-6, 'admin', p);   // a rehab bed for someone who could have gone home costs the hospital
+  if (p.rehab) { if (G.mode !== 'md') care(6, 'dispo', p); } else care(-6, 'admin', p);   // a rehab bed for someone who could have gone home costs the hospital
   clerkAdd('ride', p.id);
   return { ok: true, msg: `${label(p)} is going to rehab. The unit secretary needs to call a ride.` };
 }
@@ -3670,12 +3670,12 @@ function bleedNeglect(p) {
     p.shock = true; G.stats.shock++; care(-20, 'blood', p);
     if (p.loc !== 'room') { p.esi = 1; p.esiT = null; }
     mm(70, `${label(p)} went into hemorrhagic shock`, `The bleeding went ${Math.round(el)} min with no fluids and no blood`, own);
-    toast(`${label(p)} is in hemorrhagic shock. ${p.loc === 'room' ? 'They need fluids and blood now.' : 'Get them into a resus bay.'}`, 'alert'); sound('alarm');
+    toast(G.mode === 'md' && !G.train ? `${label(p)}: the pressure is falling, the heart is racing, and they're pale and sweaty.` : `${label(p)} is in hemorrhagic shock. ${p.loc === 'room' ? 'They need fluids and blood now.' : 'Get them into a resus bay.'}`, 'alert'); sound('alarm');   // QA5-4
   }
   if (el > 120) {
     toArrest(p, 'Arrested after an untreated bleed'); p.bledOut = true; p.bleed = null; p.shock = false; care(-60, 'blood', p);
     mm(95, `${p.name} bled until their heart stopped`, 'Two hours with no fluids and no blood', own);
-    toast(`${label(p)} lost pulses. The bleeding was never treated.`, 'alert'); sound('alarm');
+    toast(G.mode === 'md' && !G.train ? `${label(p)} lost pulses.` : `${label(p)} lost pulses. The bleeding was never treated.`, 'alert'); sound('alarm');
   }
 }
 function hemorrhageTick(p) {

@@ -76,3 +76,7 @@ for (const k of ['syncope', 'synchigh', 'cpmod', 'cwp']) { const p = OC.pt(OC.tr
 // QA4-3: a missed radio call is one of the attending's worst moments
 { OC.newGame('rush', 703, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
   const R = OC.G.report; assert(!(R.boxC && R.boxC.miss) || (R.mm || []).some(m => /radio call/.test(m.what)), `an idle attending's M&M lists the missed radio calls (${(R.boxC || {}).miss || 0} missed)`); }
+
+// QA5-3: staff actions and radio calls don't land in the attending's own clinical score or disposition points
+{ OC.newGame('rush', 704, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
+  const R = OC.G.report; assert(!(R.md && R.md.seen) ? R.own.clinical >= 90 : true, `an attending who saw nobody isn't graded down on Clinical for radio calls (Clinical ${R.own.clinical}%, Radio ${R.own.radio}%)`); }

@@ -169,16 +169,17 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 
 | ID | Stage | Sev | Finding | Status | Resolution |
 |---|---|---|---|---|---|
-| F-109 | 15a | Medium | QA5-1: Full names pass the first-name rule: BOB JONES, JO SMITH (capitals read as initials), Ana.Smith, AnaSmith | Open |  |
-| F-110 | 15a | Medium | QA5-2: The profanity check refuses real names by substring: Yoshito, Yoshitaka, Ashita, Shitara, Fagan | Open |  |
-| F-111 | 15a | Medium | QA5-3: The attending's report credits disposition points with no dispositions (staff actions land in the attending's ledger); Clinical counts radio calls with no patients seen | Open |  |
-| F-112 | 15a | Medium | QA5-4: The bleed-neglect messages tell the attending the diagnosis and treatment ("in hemorrhagic shock. They need fluids and blood now.") | Open |  |
-| F-113 | 15a | Medium | QA5-5: The syncope score (and HEART) counts a normal troponin that was never ordered | Open |  |
-| F-114 | 15a | Low | QA5-6: Missing space after the notice on the Class code sheet | Open |  |
+| F-109 | 15a | Medium | QA5-1: Full names pass the first-name rule: BOB JONES, JO SMITH (capitals read as initials), Ana.Smith, AnaSmith | Fixed (to be confirmed by QA) | owner: initials only, 1 to 4 letters (no full name can pass); class_test |
+| F-110 | 15a | Medium | QA5-2: The profanity check refuses real names by substring: Yoshito, Yoshitaka, Ashita, Shitara, Fagan | Fixed (to be confirmed by QA) | the rude-word check now matches whole initials only, so real names aren't refused |
+| F-111 | 15a | Medium | QA5-3: The attending's report credits disposition points with no dispositions (staff actions land in the attending's ledger); Clinical counts radio calls with no patients seen | Fixed (to be confirmed by QA) | staff and charge-nurse actions don't score for the attending; radio calls stay out of the attending's Clinical; rules15 |
+| F-112 | 15a | Medium | QA5-4: The bleed-neglect messages tell the attending the diagnosis and treatment ("in hemorrhagic shock. They need fluids and blood now.") | Fixed (to be confirmed by QA) | the bleed-neglect messages give the signs only on the attending's shift |
+| F-113 | 15a | Medium | QA5-5: The syncope score (and HEART) counts a normal troponin that was never ordered | Fixed (to be confirmed by QA) | a troponin not drawn shows as not drawn; HEART says it needs one |
+| F-114 | 15a | Low | QA5-6: Missing space after the notice on the Class code sheet | Fixed (to be confirmed by QA) | space added |
 | F-115 | 15a | Low | QA5-7: Text under 12 px: Class code notice 11.25 px, list-board patient names 11.7 px at 360 px, tiny 3D labels sideways | Open |  |
 | F-116 | 15a | Low | QA5-8: Targets under 44 px: list pod headers 22 px, sideways Waiting-room bar 16 px, About credit links | Open |  |
 | F-117 | 15a | Low | QA5-9: 360 px crowding: vitals pill clipped; the meter overlaps provider chips | Open |  |
 | F-118 | 15a | Low | QA5-10: Focus falls to the page after the shift-intro card; the page body is a Tab stop | Open |  |
 | F-119 | 15a | Low | QA5-11: The Orientation step counter jumps from 16 to 19 of 27 | Open |  |
-| F-120 | 15a | Low | QA5-12: "1 Diagnoses" (grammar) | Open |  |
+| F-120 | 15a | Low | QA5-12: "1 Diagnoses" (grammar) | Fixed (to be confirmed by QA) | the pill reads "Dx called" |
 | F-121 | 15a | Low | QA5-13: Gate password in plain text (owner chose not to harden the gate) | Accepted (owner, gate) |  |
+

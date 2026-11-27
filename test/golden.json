@@ -93,13 +93,13 @@
    "ama": 0,
    "expired": 0,
    "left": 24,
-   "care": 287,
+   "care": 281,
    "wait": 23,
    "stars": 2,
    "fail": null,
    "lit": 21,
    "acc": 83,
-   "stateHash": "ce83e48f"
+   "stateHash": "cc83e169"
   },
   "md/easy/none": {
    "arrivals": 89,
@@ -113,13 +113,13 @@
    "ama": 0,
    "expired": 0,
    "left": 7,
-   "care": 1875,
+   "care": 1863,
    "wait": 18,
    "stars": 2,
    "fail": null,
    "lit": 36,
    "acc": 74,
-   "stateHash": "ed966f8c"
+   "stateHash": "03945397"
   },
   "md/med/none": {
    "arrivals": 104,
@@ -133,13 +133,13 @@
    "ama": 0,
    "expired": 0,
    "left": 17,
-   "care": 1098,
+   "care": 1080,
    "wait": 28,
    "stars": 0,
    "fail": "fired",
    "lit": 77,
    "acc": 64,
-   "stateHash": "210bb25a"
+   "stateHash": "1f0dedcb"
   },
   "md/hard/none": {
    "arrivals": 129,
@@ -153,13 +153,13 @@
    "ama": 0,
    "expired": 1,
    "left": 23,
-   "care": 1703,
+   "care": 1679,
    "wait": 44,
    "stars": 1,
    "fail": null,
    "lit": 73,
    "acc": 76,
-   "stateHash": "93b88369"
+   "stateHash": "3134d10a"
   },
   "rn/med/ct": {
    "arrivals": 107,
@@ -253,13 +253,13 @@
    "ama": 1,
    "expired": 1,
    "left": 17,
-   "care": 1884,
+   "care": 1857,
    "wait": 39,
    "stars": 1,
    "fail": null,
    "lit": 55,
    "acc": 74,
-   "stateHash": "8933d8c3"
+   "stateHash": "1a3b78cb"
   }
  },
  "streams": {

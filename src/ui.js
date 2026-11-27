@@ -345,7 +345,7 @@ function layoutMode() {
   document.body.style.setProperty('--rrw', (rw + Math.round(slack * (lw ? 0.6 : 1))) + 'px');
   return U.rails;
 }
-const PSHORT = { Patients: 'Pts', Clinical: 'Clin', Diagnoses: 'Dx' };
+const PSHORT = { Patients: 'Pts', Clinical: 'Clin', Diagnoses: 'Dx', 'Dx called': 'Dx' };
 function pill(id, val, cls, lbl) {
   const el = document.getElementById(id); setC(el, 'pill ' + (cls || ''));
   const b = el.querySelector('b'); if (b.textContent !== val) b.textContent = val;
@@ -359,7 +359,7 @@ function renderHud(G) {
     const m = E.mdScores();
     pill('pPat', pc(m.clinical), tone(m.clinical), 'Clinical');
     const dn = (G.stats.md || {}).dxCalled || 0;
-    pill('pClin', String(dn), '', 'Diagnoses');   // how many called, not how many right: a live percentage would give each answer away (R5-05)
+    pill('pClin', String(dn), '', 'Dx called');   // QA5-12   // how many called, not how many right: a live percentage would give each answer away (R5-05)
     pill('pAdm', pc(m.radio), tone(m.radio), 'Radio');
     pill('pStaff', pc(m.legal), tone(m.legal), 'Legal');
   } else {
@@ -977,7 +977,10 @@ function ptSheet(G, p) {
   if (p.bleed === 'mtp') kv.push(['Bleeding', p.bb ? 'Massive transfusion activated' : '<b>Hemorrhage. Activate MTP.</b>']);
   else if (p.bleed === 'prbc' && (!MD() || p.treat.blood)) kv.push(['Blood', p.treat.blood && p.treat.blood.st === 'done' ? 'Transfusion given' : MD() ? 'Transfusion ordered' : 'Needs a transfusion']);   // the attending decides that for themselves
   if (p.ret) kv.push(['Return', 'Seen here earlier today and back sicker']);
-  if (p.gray && p.ev === 'done' && p.dxK) kv.push(['Risk', `${esc(p.gray.tool)} ${p.gray.score} · ${esc(p.gray.band)} risk${(p.gray.parts || []).length ? `<small> (${p.gray.parts.map(esc).join(', ')})</small>` : ''}`]);   // the parts, so the number can be checked (Phase 3, R6-16)
+  if (p.gray && p.ev === 'done' && p.dxK) {   // QA5-5: a troponin that wasn't drawn isn't shown as normal; a HEART score needs one
+    const trop = (p.det || []).includes('trop'), heart = p.gray.short === 'HEART', parts = (p.gray.parts || []).map(x => (trop ? x : x.replace('blood pressure and troponin normal (0)', 'blood pressure normal; no troponin drawn, counted as not raised (0)').replace('troponin normal (0)', 'troponin not drawn yet')));
+    kv.push(['Risk', heart && !trop ? `${esc(p.gray.tool)}: needs a troponin<small> (${parts.map(esc).join(', ')})</small>` : `${esc(p.gray.tool)} ${p.gray.score} · ${esc(p.gray.band)} risk${parts.length ? `<small> (${parts.map(esc).join(', ')})</small>` : ''}`]);
+  }   // the parts, so the number can be checked (Phase 3, R6-16)
   if (['room', 'waiting', 'wall', 'triage'].includes(p.loc)) { const px = Math.round(Math.max(0, Math.min(100, p.px))); kv.push(['Experience', `<span class="pxv ${px >= 70 ? 'ok' : px >= 45 ? 'warn' : 'bad'}">${px}%</span> · ${p.lastUpdate != null ? (G.t - p.lastUpdate < 1 ? 'updated just now' : `updated <span data-el="${p.lastUpdate}"></span> ago`) : 'no update yet'}${PLAIN() ? '<small class="dxp">how they feel about the visit; an update raises it</small>' : ''}`]); }
   h += `<div class="ph-cc">${kv.map(([k, v]) => `<div><span>${k}</span><div>${v}</div></div>`).join('')}</div>`;
   if (MD() && p.ck && E.rxName && p.tr.includes('meds') && mine(p)) kv.push(['Medications', esc(E.rxName(p))]);
@@ -2080,7 +2083,7 @@ function classHTML() {
   const fail = R && !made && (R.st === 'none' || R.st === 'fail') ? `<div class="cc-made"><div class="cb-key bad" role="alert"><b>${R.st === 'none' ? 'No class code was made.' : 'No class code yet.'}</b><small>${esc(R.why)}${R.st === 'fail' ? ' A code is shown only once its class results are set up, so it never changes in front of a class.' : ''}</small>`
     + (R.st === 'fail' && !R.hard ? `<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button>${R.net || R.full ? '<button type="button" class="big" data-act="codeNoRes">Use it without results</button>' : ''}</div>` : '') + '</div></div>' : '';
   const ask = U.codeAsk && made ? `<div class="cb-ask" id="codeAsk" role="alert"><span>Make a new code for ${esc(E.LEVELS[U.codeAsk].name)}? ${esc(made.code)} goes off the screen${cbKeys()[made.code] ? ' (it stays in your saved codes below)' : ''}.</span><button type="button" class="big act" data-act="codeAskNo">Keep ${esc(made.code)}</button><button type="button" class="big" data-act="codeMakeGo" data-arg="${esc(U.codeAsk)}">New code</button></div>` : '';
-  return head('Class code', `<small class="t-warn">A teaching game, not clinical guidance. No licensed clinician has reviewed it yet.</small>Everyone who enters the same code plays the same shift: the same patients and events, at the same times, on the same game version (this is v${GAME_V}). The attending’s radio calls can differ between players. What each player does with the shift is theirs.`)
+  return head('Class code', `<small class="t-warn">A teaching game, not clinical guidance. No licensed clinician has reviewed it yet.</small> Everyone who enters the same code plays the same shift: the same patients and events, at the same times, on the same game version (this is v${GAME_V}). The attending’s radio calls can differ between players. What each player does with the shift is theirs.`)
     + `<div class="cc-box"><label for="ccIn"><b>Play a code</b></label><div class="cc-row"><input id="ccIn" class="cc-in" data-pick="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="ABC-DEF" value="${esc(U.codeIn || '')}" aria-describedby="ccWhat"><button type="button" class="big act" data-act="codePlay" ${typed ? '' : 'disabled'}>Start</button></div><small id="ccWhat" class="cc-what">${esc(codeHint(U.codeIn || ''))}</small></div>`
     + `<div class="cc-box"><b>Make one (instructors)</b><small>It uses the role${U.mode === 'md' ? ', radio calls' : ''} and scenario set on the menu (now: ${esc(codeDesc({ mode: U.mode, level: 'med', scen: U.scen, pack: U.pack }).replace(/ · Manic Monday/, ''))}). Pick the shift:</small><div class="cgrid cc-lv">${lv}</div>`
     + (!made && saving ? '<div class="cc-made"><small role="status">Making a class code…</small></div>' : '')
@@ -2128,17 +2131,17 @@ const cbClean = v => {
   const t = n.replace(/([\u0600-\u0DFF])[\u200C\u200D](?=\p{L})/gu, '$1').replace(/([\u0980-\u09FF])\u200D(?=\u09CD)/gu, '$1').replace(/([\u0D00-\u0D7F])\u200D(?= |$)/gu, '$1');   // and a Bengali joiner before the virama (R5.8-07)   // a joiner after a letter or mark of a script that uses one (Arabic to Sinhala), before a letter; or ending a Malayalam word (a chillu)
   return len >= 1 && len <= 20 && CB_NAME.test(t) && !CB_BADCH.test(t) ? n : null;
 };
-const cbNameWhy = v => { const n = String(v || '').trim(), c = cbClean(n); return !n ? 'Type your first name or initials.' : c && cbRude(c) ? 'Please use your first name or initials.' : c && !cbOneName(c) ? 'Your first name only, or with an initial, like Ana M. or S.K. No last names.' : [...n.normalize('NFC')].length > 20 ? 'At most 20 characters: try your first name or initials.'
-  : /\p{Default_Ignorable_Code_Point}/u.test(n) ? 'Your keyboard added a hidden character: type the name again, or use your initials.'
-  : /\p{N}/u.test(n) ? 'No numbers: use your first name or initials, like Sam, Ana M. or S.K.' : n.split(/\s+/).length > 3 ? 'At most three words, like Ana M.' : 'Use your first name or initials: letters only, like Sam, Ana M. or S.K.'; };
-// The owner's decisions (Nov 26, 2026; QA-2, QA-19): on top of the server's rule, the game sends only one first name, initials, or a first
-// name plus initials ("Ana", "S.K.", "Ana M."), never two full words (a full name), and refuses common profanity. Game only: the server's
-// rule (cbClean above, matched to the contract file) is unchanged.
-const cbInitial = w => /^\p{Lu}\.?$/u.test(w) || /^(\p{L}\.){2,3}$/u.test(w) || /^\p{Lu}{2,3}$/u.test(w);   // "S", "S.", "J.D.", "JS": not "Dr." (QA3-10)
-const cbOneName = n => n.split(' ').filter(w => !cbInitial(w)).length <= 1;
-const CB_RUDE = /(fuck|shit|cunt|bitch|whore|slut|nigg|fag|asshole|wank|bollock|twat|piss|hitler)/, CB_RUDE_W = /^(ass|arse|cock|cum|tits?|prick|bastard|crap|damn|hell|sex|porn|nazi|poop|butt|penis|vagina|boob)$/;
-const cbRude = n => { const t = n.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase(); return CB_RUDE.test(t.replace(/[^a-z]/g, '')) || t.split(/[^a-z]+/).some(w => CB_RUDE_W.test(w)); };
-const cbSendable = v => { const n = cbClean(v); return n && cbOneName(n) && !cbRude(n) ? n : null; };
+// The owner's decision (Nov 27, 2026; QA5-1): the game sends initials only, 1 to 4 letters ("S.K.", "JS", "A M"), so no full name can
+// get through. A rude word spelled as initials is refused too. Game only: the server's rule (cbClean above, matched to the contract file)
+// is unchanged and still accepts these.
+const cbLetters = n => n.replace(/[.\s]/g, '');
+const cbInitials = n => /^(\p{L}\.?\s?){1,4}$/u.test(n) && [...cbLetters(n)].length <= 4;
+const CB_RUDE_I = /^(fuck|shit|cunt|fag|ass|arse|cock|cum|tit|tits|dick|piss|twat|wank|sex|porn|poo|poop|butt|kkk|nazi|hell|damn|crap|slut|whor|bich)$/;
+const cbRude = n => CB_RUDE_I.test(cbLetters(n).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase());
+const cbSendable = v => { const n = cbClean(v); return n && cbInitials(n) && !cbRude(n) ? n : null; };
+const cbNameWhy = v => { const n = String(v || '').trim(), c = cbClean(n); return !n ? 'Type your initials.' : /\p{N}/u.test(n) ? 'No numbers: your initials, like S.K. or JS.'
+  : /\p{Default_Ignorable_Code_Point}/u.test(n) ? 'Your keyboard added a hidden character: type your initials again.'
+  : c && cbInitials(c) && cbRude(c) ? 'Please use your own initials.' : 'Initials only: 1 to 4 letters, like S.K. or JS. No names.'; };
 const cbAlpha = v => String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
 const cbCodeNorm = v => { const t = cbAlpha(v); return /^[0-9A-HJKMNP-TV-Z]{6}$/.test(t) ? t.slice(0, 3) + '-' + t.slice(3) : null; };   // any well-formed code, whatever its version
 const cbKeyNorm = v => { const t = cbAlpha(v); return /^[0-9A-HJKMNP-TV-Z]{16}$/.test(t) ? t : null; };
@@ -2325,9 +2328,9 @@ function cbSendHTML(R, at) {
   return `<div class="cb-send" id="cbSendBox"><label for="cbName"><b>Send this to your instructor</b></label>`
     + (U.repLost === at ? '<small class="cb-err">This device couldn’t keep this summary: send it now, before you leave this page.</small>' : '')
     + (U.leaveAsk === at ? `<small class="cb-err" role="alert">Not sent yet. Tap Send first, or tap Menu or Run it back again to leave without sending.</small>` : '')
-    + `<div class="cc-row"><input id="cbName" class="cb-name" data-pick="cbname" data-at="${esc(String(at))}" type="text" maxlength="40" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="First name or initials" value="${esc(U.cbName || '')}"${busy ? ' disabled' : ''}${st && !busy && bad ? ' aria-invalid="true" aria-describedby="cbNameErr"' : ''}><button type="button" class="big act" data-act="cbSend" data-arg="${esc(String(at))}"${busy ? ' disabled' : ''}>${busy ? 'Sending…' : 'Send'}</button></div>`
+    + `<div class="cc-row"><input id="cbName" class="cb-name" data-pick="cbname" data-at="${esc(String(at))}" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="Your initials, like S.K." value="${esc(U.cbName || '')}"${busy ? ' disabled' : ''}${st && !busy && bad ? ' aria-invalid="true" aria-describedby="cbNameErr"' : ''}><button type="button" class="big act" data-act="cbSend" data-arg="${esc(String(at))}"${busy ? ' disabled' : ''}>${busy ? 'Sending…' : 'Send'}</button></div>`
     + (st && !busy ? `<small class="cb-err" id="${bad ? 'cbNameErr' : 'cbSendErr'}" role="alert">${esc(st)}</small>` : '')
-    + `<small>Sends your first name or initials, <b>${esc(cbWhat(R))}</b> (the score is the average of your four scores), and these numbers: ${esc(cbWhatAll(R))}, to the instructor who made ${esc(R.code)}. The full list is in About, under Privacy. ${CB_WHO}</small></div>`;   // the box first, the small print after it (audit R5.7-09e)
+    + `<small>Sends your initials, <b>${esc(cbWhat(R))}</b> (the score is the average of your four scores), and these numbers: ${esc(cbWhatAll(R))}, to the instructor who made ${esc(R.code)}. The full list is in About, under Privacy. ${CB_WHO}</small></div>`;   // the box first, the small print after it (audit R5.7-09e)
 }
 function cbRedraw(focus) {   // the summary is drawn once; the send box redraws it when its state changes, keeping the scroll and the typing focus
   const d = lastReport(), el = $('#report'); if (!d || !el || el.hidden) return;
@@ -3086,7 +3089,7 @@ function aboutHTML(head) {
     + `<h3>A game, not a protocol</h3><p>It’s a teaching game and isn’t clinical guidance. At work, follow your own protocols. It was written with AI, and <b>no licensed clinician has reviewed its clinical content yet</b>.</p>`
     + `<h3>Privacy</h3><p>No accounts, ads, or tracking. Your shifts, progress and settings stay on this device.</p>`
     + `<p><b>Class results.</b> After a class-code shift, <b>Send</b> sends:</p><ul class="ab-list">`
-    + `<li><b>You:</b> your first name or initials (not kept on this device).</li>`
+    + `<li><b>You:</b> your initials (not kept on this device).</li>`
     + `<li><b>Your result:</b> the class code, role, shift, score, stars, minutes played, how much was sped up, and whether and when the shift ended early (fired, or the staff walked out).</li>`
     + `<li><b>The department:</b> mean door-to-provider wait, arrivals, patients who left without being seen or against advice, patients bedded before registration, and deaths.</li>`
     + `<li><b>An attending’s own work:</b> patients seen, how many died (and how many of those after a code run by the book), how many were left in cardiac arrest at the end 5+ minutes with no code running, diagnoses right and wrong, unsafe and unneeded orders, complications, and radio calls right, wrong and missed.</li>`
