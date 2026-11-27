@@ -215,3 +215,5 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 | F-142 | 15a | Low | QA7-9: Focus falls to the page after the first-shift card | Open |  |
 | F-143 | 15a | Low | QA7-10: About 48% of arrivals are ESI 1-2 even on Quiet Tuesday | Open |  |
 | F-144 | 15a | Low | QA7-11: An empty gate submit leaves the previous error | Open |  |
+
+The owner stopped the Stage 15a loop after round 7 (Nov 27, 2026): the open items F-134 to F-144 are known issues for v0.33.0 (Accepted-Risk, pending his release sign-off).
