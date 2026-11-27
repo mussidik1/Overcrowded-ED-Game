@@ -115,15 +115,16 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 
 | ID | Stage | Sev | Finding | Status | Resolution |
 |---|---|---|---|---|---|
-| F-070 | 15a | High | QA2-1: A regular attending shift gives the diagnosis away: the decision heading reads "Your call · <true diagnosis>" under the attending's wrong pick, and Accuracy and Legal change at the pick | Open |  |
-| F-071 | 15a | Medium | QA2-2: On a shift, the second-consult refusal and the phone-admit refusal name the right service or disposition; "I don't think they need us" hints none is needed | Open |  |
-| F-072 | 15a | Medium | QA2-3: The syncope risk score is a random number with no parts; diagnosis labels ("Syncope, high risk", "Chest pain, low risk") name the risk band before the call | Open |  |
-| F-073 | 15a | Medium | QA2-4: Keyboard: map rooms can't take focus; the patient card doesn't take focus; focus isn't returned after a dialog; Tab leaves dialogs; focus lost on menu change | Open |  |
-| F-074 | 15a | Medium | QA2-5: The Lessons list doesn't mark which lessons are played, read-through or case cards | Open |  |
+| F-070 | 15a | High | QA2-1: A regular attending shift gives the diagnosis away: the decision heading reads "Your call · <true diagnosis>" under the attending's wrong pick, and Accuracy and Legal change at the pick | Fixed (to be confirmed by QA) | the heading shows the attending's own call; the diagnosis scores when the patient leaves or the shift ends; live accuracy and the workup line wait for the report |
+| F-071 | 15a | Medium | QA2-2: On a shift, the second-consult refusal and the phone-admit refusal name the right service or disposition; "I don't think they need us" hints none is needed | Fixed (to be confirmed by QA) | second-consult, phone-admit and no-consult refusals name nothing on a shift |
+| F-072 | 15a | Medium | QA2-3: The syncope risk score is a random number with no parts; diagnosis labels ("Syncope, high risk", "Chest pain, low risk") name the risk band before the call | Fixed (to be confirmed by QA) | Canadian Syncope Risk Score built from listed parts; diagnoses renamed "Syncope" and "Chest pain" (owner) |
+| F-073 | 15a | Medium | QA2-4: Keyboard: map rooms can't take focus; the patient card doesn't take focus; focus isn't returned after a dialog; Tab leaves dialogs; focus lost on menu change | Fixed (to be confirmed by QA) | map rooms focusable (Enter/Space); a keyboard-opened sheet takes focus; focus returns on close; Tab stays inside a card; focus follows menu changes |
+| F-074 | 15a | Medium | QA2-5: The Lessons list doesn't mark which lessons are played, read-through or case cards | Fixed (to be confirmed by QA) | each lesson labelled On a patient, Read-through or Case cards |
 | F-075 | 15a | Low | QA2-6: Floating waiting and Next buttons cover room labels and (attending) score pills on the phone list board | Open |  |
 | F-076 | 15a | Low | QA2-7: Small targets and text: sideways map tokens 14-21 px, play-menu chips 36 px, list jump chips 32 px, desktop map text 8.6-11 px | Open |  |
 | F-077 | 15a | Low | QA2-8: Stacked arrival toasts cover the wall, door and waiting area on the sideways map | Open |  |
-| F-078 | 15a | Low | QA2-9: With results off, the saved-code row points to Show key and Copy key buttons that aren't there | Open |  |
+| F-078 | 15a | Low | QA2-9: With results off, the saved-code row points to Show key and Copy key buttons that aren't there | Fixed (to be confirmed by QA) | the key text shows only when the key buttons do |
 | F-079 | 15a | Low | QA2-10: The attending's Radio pill reads 0% before any call (should read a dash) | Open |  |
-| F-080 | 15a | Low | QA2-11: The served build says v0.32.0; the spec says v0.33.0 candidate | Open |  |
+| F-080 | 15a | Low | QA2-11: The served build says v0.32.0; the spec says v0.33.0 candidate | Fixed (to be confirmed by QA) | version 0.33.0 |
 | F-081 | 15a | Low | QA2-12: The gate password is stored in plain text (informational; the owner chose not to harden the gate) | Accepted (owner, gate) |  |
+

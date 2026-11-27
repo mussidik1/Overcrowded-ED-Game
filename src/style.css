@@ -1070,6 +1070,7 @@ body.ingame { touch-action: pan-x pan-y; }
 .rep details.dept { margin: 0 0 12px; }
 .rep details.dept summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; }
 .t-sub .t-warn { display: block; margin-top: 6px; font-size: 14px; }
+.lsn-kind { font-style: normal; font-weight: 700; }
 .t-rank { margin: -4px 0 10px; font-size: 15px; color: var(--ink-2); }
 .rank-gain { margin: 0 0 12px; font-size: 16px; }
 .scards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 8px 0 12px; }

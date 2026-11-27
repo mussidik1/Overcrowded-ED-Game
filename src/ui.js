@@ -80,7 +80,7 @@ const intakeDone = p => p.loc === 'waiting' || p.loc === 'room' || (E.regQuick(p
 /* Who registration can take next: new arrivals, plus quick-registered patients who still need the full version. */
 const regable = p => p.loc !== 'enroute' && (p.reg === 'none' || (p.reg === 'quick' && (p.loc === 'room' || p.loc === 'waiting')));
 const hasHold = () => E.holdNurses().length > 0;
-const GRAY_GUIDE = { 'HEART score': '0 to 3 is low risk (home). 4 to 6 is moderate (observation). 7 to 10 is high (admit).', 'Canadian Syncope Risk Score': '0 or below is low risk (home). 1 to 3 is medium. 4 to 5 is high (observation). 6 and up is very high (admit).', 'ABCD2 score': '0 to 3 is low risk (home with fast follow-up). 4 to 5 is moderate (observation). 6 to 7 is high (admit or observation).', 'CURB-65': 'One point each: Confusion, Urea (BUN) over 19, Respiratory rate 30 or more, Blood pressure under 90/60, age 65 or more. 0 to 1 goes home on pills. 2 is observation or a short admission. 3 or more is admit, and think about the ICU.' };
+const GRAY_GUIDE = { 'HEART score': '0 to 3 is low risk (home). 4 to 6 is moderate (observation). 7 to 10 is high (admit).', 'Canadian Syncope Risk Score': '0 or below is low risk (home). 1 to 3 is medium and 4 to 5 high (observation, or admit). 6 and up is very high (admit).', 'ABCD2 score': '0 to 3 is low risk (home with fast follow-up). 4 to 5 is moderate (observation). 6 to 7 is high (admit or observation).', 'CURB-65': 'One point each: Confusion, Urea (BUN) over 19, Respiratory rate 30 or more, Blood pressure under 90/60, age 65 or more. 0 to 1 goes home on pills. 2 is observation or a short admission. 3 or more is admit, and think about the ICU.' };
 function istChip(lbl, st) { const k = st === 'done' ? 'done' : st === 'doing' ? 'doing' : st === 'q' ? 'q' : 'need'; return `<i class="ist ${k}">${k === 'need' ? 'NEEDS ' : ''}${lbl}${k === 'done' ? ' ✓' : k === 'doing' ? ' NOW' : k === 'q' ? ' IN LINE' : ''}</i>`; }   // needs it, in line for it, being done, done
 function intakeChips(p) { const reg = istChip('REG', E.regQuick(p) ? 'done' : p.reg); return p.loc === 'wall' ? istChip('REPORT', p.tri) + reg : reg + istChip('TRIAGE', p.tri); }   // on the wall, report comes first
 function alertTag(p) { return p.alertOn && p.alert ? `<i class="atag a-${p.alert}">${esc(E.ALERTS[p.alert].name)}</i>` : ''; }
@@ -289,6 +289,18 @@ function buildBoard() {
 }
 
 /* ---------- render ---------- */
+/* QA2-4: when a card or a patient sheet opens in a shift, the keyboard's focus goes into it (the sheet only when it was opened from the
+   keyboard; a card always, see renderModal), and when it closes the focus goes back to what opened it. Menu sheets keep their own logic. */
+function focusMgr() {
+  const open = !$('#modalWrap').hidden ? 'modal' : U.scene === 'game' && !$('#sheetWrap').hidden ? 'sheet' : null;
+  if (open === U.focOpen) return;
+  if (open) {
+    const box = open === 'modal' ? $('#modal') : $('#sheetBox'), a = document.activeElement;
+    if (!U.focOpen) U.focRet = a && a !== document.body ? a : null;
+    if (open === 'sheet' && U.kbd && box && !box.contains(a)) { const f = focusables(box)[0]; if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* a nicety */ } }
+  } else if (U.focRet && U.focRet.isConnected && !document.querySelector('#modalWrap:not([hidden]), #sheetWrap:not([hidden])')) { try { U.focRet.focus({ preventScroll: true }); } catch (e) { /* a nicety */ } U.focRet = null; }
+  U.focOpen = open;
+}
 function render() {
   const G = g(); if (!G) return;
   U.wide = window.matchMedia('(min-width: 1100px)').matches && U.view !== 'map';   // the floor plan uses the dock at every size
@@ -303,7 +315,7 @@ function render() {
     if (ist && want && ist.parentNode !== want) want.insertBefore(ist, want.firstChild); }
   renderHud(G); renderBox(G); renderObjs(G); renderNeed(G); renderSel(G); renderZoneBar(G); renderIntakeStaff(G); renderLanes(G); renderBoard(G); if (U.view === 'map') mapRender(G); renderDock(G); renderSide(G); renderLog(G);
   coachRun();
-  renderSheet(G); renderModal(G);
+  renderSheet(G); renderModal(G); focusMgr();
   live(G);
   renderCoach();
   const top = $('#top'); if (top) document.documentElement.style.setProperty('--topH', top.offsetHeight + 'px');
@@ -343,7 +355,7 @@ function renderHud(G) {
   if (G.mode === 'md') {   // Phase 6 (R5-03): the attending sees the four scores that grade the attending
     const m = E.mdScores();
     pill('pPat', pc(m.clinical), tone(m.clinical), 'Clinical');
-    const dn = ((G.stats.md || {}).dxRight || 0) + ((G.stats.md || {}).dxWrong || 0);
+    const dn = (G.stats.md || {}).dxCalled || 0;
     pill('pClin', String(dn), '', 'Diagnoses');   // how many called, not how many right: a live percentage would give each answer away (R5-05)
     pill('pAdm', pc(m.radio), tone(m.radio), 'Radio');
     pill('pStaff', pc(m.legal), tone(m.legal), 'Legal');
@@ -412,7 +424,7 @@ function renderObjs(G) {
   if (G.region.susp > t) it.push(`<span class="ob bad">Region: no capacity alerts · <span data-cd="${G.region.susp}"></span></span>`);
   if (G.mods.noReport > t) it.push(`<span class="ob bad">Floors not taking report · <span data-cd="${G.mods.noReport}"></span></span>`);
   if (G.obsUnit.filled >= G.obsUnit.cap) it.push('<span class="ob warn">Obs unit full</span>');
-  if (G.mode === 'md' && !G.train) { const L = Math.round(G.lit || 0); it.push(`<span class="ob ${L >= 50 ? 'bad' : L >= 25 ? 'warn' : 'acc'}">Accuracy ${E.accuracy()}% · Legal risk ${L}%${L >= 50 ? ' · PIP' : L >= 40 ? ' · peer review' : ''}</span>`); }
+  if (G.mode === 'md' && !G.train) { const L = Math.round(G.lit || 0); it.push(`<span class="ob ${L >= 50 ? 'bad' : L >= 25 ? 'warn' : 'acc'}">Legal risk ${L}%${L >= 50 ? ' · PIP' : L >= 40 ? ' · peer review' : ''}</span>`); }
   if (G.beds) { const full = G.beds.icu.used >= E.UNITS.icu.cap, w = E.bedWait('icu'); it.push(`<button type="button" class="ob ${full ? 'warn' : 'beds'}" data-act="bedsOpen">Beds: ICU ${G.beds.icu.used}/${E.UNITS.icu.cap}${w ? ` · ${w} waiting` : ''}</button>`); }
   if (U.view === 'map' && E.active().some(p => p.iftLevel === 'air' && ((p.dsp === 'iftwait' && p.due - t <= 3 && !p.airAbort) || p.dsp === 'iftreport'))) it.push('<button type="button" class="ob heli" data-act="watchPad">Helicopter on the pad · watch</button>');
   if (G.wx && G.wx !== 'clear') it.push(`<span class="ob wx">${esc(E.WX[G.wx].name)}${E.wxGrounded() ? ' · no flights' : ''}</span>`);
@@ -1132,7 +1144,7 @@ function ordersBlock(p, G, add) {
   const n = o.tests.length + o.treats.length, need = p.ord === 'need';
   const title = p.ord === 'more' ? `The workup isn’t complete. Add what is missing.${gapHint(p)}` : add ? 'Add orders' : 'Write orders';
   const lbl = n ? `Sign ${n} order${n > 1 ? 's' : ''}` : need ? 'Sign with no orders' : 'Pick orders to add';
-  return `<div class="prim"><div class="prim-l">${title}</div><div class="om">${orderMenus(chip, o)}</div><button type="button" class="big act" data-act="sign" data-arg="${p.id}" ${n || need ? '' : 'disabled'}>${lbl}</button><p class="hint" style="margin:0">Order what they need and nothing extra. Extra tests cost time, and some treatments hurt people who don't need them.</p></div>`;
+  return `<div class="prim"><div class="prim-l">${title}</div><div class="om">${orderMenus(chip, o)}</div><button type="button" class="big act" data-act="sign" data-arg="${p.id}" ${n || need ? '' : 'disabled'}>${lbl}</button><p class="hint" style="margin:0">Order what they need and nothing extra. Extra tests cost time, and some treatments hurt people who don't need them.</p><p class="rep-note">A teaching game, not clinical guidance. No licensed clinician has reviewed it yet.</p></div>`;   // Clinical safety (QA round 2): on the order sheet too
 }
 // The attending's own patient whose diagnosis isn't named yet: plain-word glosses wait (they'd give it away).
 const dxPending = p => MD() && mine(p) && !p.dxK && !(E.G && E.G.train) && !p.gray && !E.NODX.has(p.ck);
@@ -1143,7 +1155,8 @@ function dxBlock(p) {
 }
 function mdDecideBlock(p) {
   const b = (k, l, sub) => `<button type="button" class="cbtn" data-act="mdd" data-arg="${p.id}|${k}"><b>${l}</b><small>${sub}</small></button>`;
-  return `<div class="prim"><div class="prim-l">Your call · ${esc(p.dx)}</div>${p.txGap && p.txGap.length ? `<p class="hint bad" style="margin:0">${gapMsg(p)}</p>` : E.whyOf(p) ? `<p class="hint why"><b>The workup:</b> ${esc(E.whyOf(p))}${p.ordLog && p.ordLog.extra.length ? ` <span class="xtra">Not needed: ${esc(p.ordLog.extra.join(', '))}.</span>` : ''}${p.ordLog && p.ordLog.fine && p.ordLog.fine.length ? ` <span class="fine">Also reasonable: ${esc(p.ordLog.fine.join(', '))}.</span>` : ''}</p>` : ''}<div class="cgrid three">${b('home', 'Discharge home', 'No admission needed')}${b('consult', 'Admit: call a consult', 'Pick the service')}${b('transfer', 'Transfer', 'Care you lack')}</div></div>`;
+  const tr = !!g().train;   // QA2-1: on a shift the heading is the attending's own call, and the teaching line waits for the report
+  return `<div class="prim"><div class="prim-l">Your call · ${esc(tr ? p.dx : dxOr(p))}</div>${p.txGap && p.txGap.length ? `<p class="hint bad" style="margin:0">${gapMsg(p)}</p>` : tr && E.whyOf(p) ? `<p class="hint why"><b>The workup:</b> ${esc(E.whyOf(p))}${p.ordLog && p.ordLog.extra.length ? ` <span class="xtra">Not needed: ${esc(p.ordLog.extra.join(', '))}.</span>` : ''}${p.ordLog && p.ordLog.fine && p.ordLog.fine.length ? ` <span class="fine">Also reasonable: ${esc(p.ordLog.fine.join(', '))}.</span>` : ''}</p>` : ''}<div class="cgrid three">${b('home', 'Discharge home', 'No admission needed')}${b('consult', 'Admit: call a consult', 'Pick the service')}${b('transfer', 'Transfer', 'Care you lack')}</div></div>`;
 }
 const MOOD = ['🙂', '😐', '😠', '🤬'];
 function consultSheet(G, p) {
@@ -2052,7 +2065,7 @@ const GAME_V = '/*GAMEV*/';   // the build puts the version here: a code gives t
 // v0.29.1: codes carry the version. PAST_V holds only the version just before this one ('' is v0.29.0 and earlier, before codes
 // carried one): each entry is another 1-in-64 chance that a mistyped code reads as stale, so each release replaces it, never appends.
 // The check is 6 bits, so about 1 code in 64 from another version still reads as current: refused almost always, not always.
-const PAST_V = ['0.31.0'];   // v0.32.0 replaces v0.31.0 on the live site
+const PAST_V = ['0.32.0'];   // v0.33.0 replaces v0.32.0 on the live site
 E.setCodeVersion(GAME_V, PAST_V);
 const staleWhy = () => `That code looks mistyped, or it was made on another version of the game (this is v${GAME_V}). Check each letter. If it’s right, ask your instructor for a new code.`;
 /* Class codes: an instructor makes one, students enter it, and everyone plays the same shift (same arrivals and events). */
@@ -2063,7 +2076,7 @@ function classHTML() {
   const fail = R && !made && (R.st === 'none' || R.st === 'fail') ? `<div class="cc-made"><div class="cb-key bad" role="alert"><b>${R.st === 'none' ? 'No class code was made.' : 'No class code yet.'}</b><small>${esc(R.why)}${R.st === 'fail' ? ' A code is shown only once its class results are set up, so it never changes in front of a class.' : ''}</small>`
     + (R.st === 'fail' && !R.hard ? `<div class="cc-row"><button type="button" class="big" data-act="codeReg">Try again</button>${R.net || R.full ? '<button type="button" class="big" data-act="codeNoRes">Use it without results</button>' : ''}</div>` : '') + '</div></div>' : '';
   const ask = U.codeAsk && made ? `<div class="cb-ask" id="codeAsk" role="alert"><span>Make a new code for ${esc(E.LEVELS[U.codeAsk].name)}? ${esc(made.code)} goes off the screen${cbKeys()[made.code] ? ' (it stays in your saved codes below)' : ''}.</span><button type="button" class="big act" data-act="codeAskNo">Keep ${esc(made.code)}</button><button type="button" class="big" data-act="codeMakeGo" data-arg="${esc(U.codeAsk)}">New code</button></div>` : '';
-  return head('Class code', `Everyone who enters the same code plays the same shift: the same patients and events, at the same times, on the same game version (this is v${GAME_V}). The attending’s radio calls can differ between players. What each player does with the shift is theirs.`)
+  return head('Class code', `<small class="t-warn">A teaching game, not clinical guidance. No licensed clinician has reviewed it yet.</small>Everyone who enters the same code plays the same shift: the same patients and events, at the same times, on the same game version (this is v${GAME_V}). The attending’s radio calls can differ between players. What each player does with the shift is theirs.`)
     + `<div class="cc-box"><label for="ccIn"><b>Play a code</b></label><div class="cc-row"><input id="ccIn" class="cc-in" data-pick="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="ABC-DEF" value="${esc(U.codeIn || '')}" aria-describedby="ccWhat"><button type="button" class="big act" data-act="codePlay" ${typed ? '' : 'disabled'}>Start</button></div><small id="ccWhat" class="cc-what">${esc(codeHint(U.codeIn || ''))}</small></div>`
     + `<div class="cc-box"><b>Make one (instructors)</b><small>It uses the role${U.mode === 'md' ? ', radio calls' : ''} and scenario set on the menu (now: ${esc(codeDesc({ mode: U.mode, level: 'med', scen: U.scen, pack: U.pack }).replace(/ · Manic Monday/, ''))}). Pick the shift:</small><div class="cgrid cc-lv">${lv}</div>`
     + (!made && saving ? '<div class="cc-made"><small role="status">Making a class code…</small></div>' : '')
@@ -2249,7 +2262,7 @@ function cbListHTML() {
       + (old && (K.x || K.p) ? '<small>Made on an older version of the game: make a new code.</small>' : '')
       + (K.g && !(row && row.why) ? `<small class="cb-err">Another class has ${esc(c)} on the server now. Forget it and make a new code.</small>` : '')
       + (ask ? `<div class="cb-ask" role="alert"><span>Forget the key for ${esc(c)} on this device? Without it, nobody can read or delete ${esc(c)}’s results.</span><button type="button" class="big" data-act="keyForgetNo">Keep</button><button type="button" class="big danger" data-act="keyForgetGo" data-arg="${esc(c)}">Forget</button></div>`
-        : `<div class="cc-row">${main}${U.codeMade === c ? '<small>Its key: use Show key and Copy key with the code above.</small>' : `<button type="button" class="big" data-act="keyShow" data-arg="${esc(c)}" aria-expanded="${show}">${show ? 'Hide key' : 'Show key'}</button><button type="button" class="big" data-act="keyCopy" data-arg="${esc(c)}">Copy key</button>`}</div><div class="cc-row"><button type="button" class="cb-link" data-act="keyForget" data-arg="${esc(c)}">Forget this key on this device</button></div>`)
+        : `<div class="cc-row">${main}${U.codeMade === c ? (K.p ? '' : '<small>Its key: use Show key and Copy key with the code above.</small>') : `<button type="button" class="big" data-act="keyShow" data-arg="${esc(c)}" aria-expanded="${show}">${show ? 'Hide key' : 'Show key'}</button><button type="button" class="big" data-act="keyCopy" data-arg="${esc(c)}">Copy key</button>`}</div><div class="cc-row"><button type="button" class="cb-link" data-act="keyForget" data-arg="${esc(c)}">Forget this key on this device</button></div>`)
       + '</li>'; }).join('')}</ul><small>Results show every student’s name and score: not on a projected screen. On a shared computer, forget your keys when you’re done, and delete any results file you downloaded.</small>`;
   h += U.cbOpen ? `<div class="cb-form"><label for="cbCode">Class code</label><input id="cbCode" class="cb-code" data-pick="cbcode" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="ABC-DEF" value="${esc(F.code || '')}">`
     + `<label for="cbKey">Instructor key <small>(hidden as you type, for a projected screen)</small></label><div class="cc-row cb-keyrow"><input id="cbKey" class="cb-code cb-keyin${U.cbKeyVis ? '' : ' masked'}" data-pick="cbkey" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX" value="${esc(F.key || '')}"><button type="button" class="big" data-act="cbKeyVis">${U.cbKeyVis ? 'Hide' : 'Show'}</button></div>`
@@ -2326,10 +2339,11 @@ function copyText(t) {
   try { if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t).then(() => true, () => old()); } catch (e) { /* no clipboard */ }
   return Promise.resolve(old());
 }
+const LSN_KIND = k => (k.startsWith('c_') ? 'Case cards' : ['arrest', 'tachy'].includes(k) ? 'Read-through' : 'On a patient');   // QA2-5: each lesson says what kind it is
 function lessonsHTML() {
   const n = LESSON_KEYS.filter(lessonDone).length;
   return head('Lessons', `Nine of the first lessons put you on a patient as the doctor, about two minutes each; cardiac arrest and fast heart rhythms are read-through cards (the rhythm-check cards themselves come up on a shift). The case cards (five short cards) teach one must-not-miss condition: how it looks, what to order, what to give and what not to. A teaching game, not clinical guidance. Written with AI: <b>no licensed clinician has reviewed them yet</b>.${n ? ` ${n} of ${LESSON_KEYS.length} done.` : ''}`)
-    + LESSON_SYS.filter(([sy]) => LESSON_KEYS.some(k => LESSONS[k].sys === sy)).map(([sy, nm]) => `<div class="o-sec lsn-sys">${esc(nm)}</div><div class="cgrid lsn">${LESSON_KEYS.filter(k => LESSONS[k].sys === sy).map(k => `<button type="button" class="cbtn" data-act="lesson" data-arg="${k}"><b>${esc(LESSONS[k].name)}${lessonDone(k) ? ' <i class="lsn-ok">✓</i>' : ''}</b><small>${esc(LESSONS[k].blurb)}</small></button>`).join('')}</div>`).join('');
+    + LESSON_SYS.filter(([sy]) => LESSON_KEYS.some(k => LESSONS[k].sys === sy)).map(([sy, nm]) => `<div class="o-sec lsn-sys">${esc(nm)}</div><div class="cgrid lsn">${LESSON_KEYS.filter(k => LESSONS[k].sys === sy).map(k => `<button type="button" class="cbtn" data-act="lesson" data-arg="${k}"><b>${esc(LESSONS[k].name)}${lessonDone(k) ? ' <i class="lsn-ok">✓</i>' : ''}</b><small><i class="lsn-kind">${LSN_KIND(k)}</i> · ${esc(LESSONS[k].blurb)}</small></button>`).join('')}</div>`).join('');
 }
 const STEPS_NOW = () => { const k = lessonKey(); return k ? LESSONS[k].steps : (g() && g().mode === 'md' ? STEPS_MD : STEPS); };
 // R1-04: a broken tutorial step is no longer silent. Each distinct error is logged once (window.__coachErrs, read by the tests).
@@ -2466,7 +2480,7 @@ function renderModal(G) {
   let h = '';
   if (U.scene === 'game' && G.card && (G.mode !== 'md' || G.card.mine)) {
     const c = G.card;
-    h = `<div class="mc-who">${esc(c.who)}</div><h3>${esc(c.title)}</h3><p>${fmt(c.text)}</p><div class="mc-ch">${c.choices.map(x => `<button type="button" data-act="card" data-arg="${x.k}" ${x.dis ? 'disabled' : ''}><b>${esc(x.label)}</b>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('')}</div>`;
+    h = `<div class="mc-who">${esc(c.who)}</div><h3>${esc(c.title)}</h3><p>${fmt(c.text)}</p><div class="mc-ch">${c.choices.map(x => `<button type="button" data-act="card" data-arg="${x.k}" ${x.dis ? 'disabled' : ''}><b>${esc(x.label)}</b>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('')}</div>${/^code/.test(c.eid) ? '<p class="rep-note">A teaching game, not clinical guidance. No licensed clinician has reviewed it yet.</p>' : ''}`;
   } else if (U.modal && U.modal.type === 'scen') {
     const m = U.modal;
     h = `<div class="mc-who">The Box · ${esc(m.unit)} · ${esc(m.doc)} on the line${m.pack === 'miemss' ? ' · Maryland protocols' : ''}</div><h3>Medical direction</h3><p class="scen">${esc(m.sc.q)}</p>${PLAIN() && m.sc.plain ? `<p class="scen-p"><b>In plain words:</b> ${esc(m.sc.plain)}</p>` : ''}${m.sc.opts ? `<div class="mc-ch">${(m.opt || m.sc.opts.map((x, i) => i)).map(i => `<button type="button" data-act="scen" data-arg="o${i}"><b>${esc(m.sc.opts[i])}</b></button>`).join('')}</div>` : `<div class="mc-ch two"><button type="button"${m.sc.btn ? '' : ' class="go"'} data-act="scen" data-arg="1"><b>${esc((m.sc.btn || ['Approve'])[0])}</b></button><button type="button"${m.sc.btn ? '' : ' class="no"'} data-act="scen" data-arg="0"><b>${esc((m.sc.btn || [0, 'Deny'])[1])}</b></button></div>`}`;   // named choices are not green and red: neither is the "yes" answer
@@ -2677,7 +2691,7 @@ const ACT = {
   mdd: a => { const [pid, k] = a.split('|'); if (k === 'consult') { U.sheet = { type: 'consult', pid }; return; } res(E.mdDecide(pid, k), true); },
   staleOk: () => { try { localStorage.removeItem('oc-save'); } catch (e) { /* storage blocked */ } if (U.scene === 'title') setH($('#title'), titleHTML()); },
   aboutDone: () => { store('oc-seen-about', '1'); ACT.tmenu('main'); },
-  tmenu: a => { U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; } },
+  tmenu: a => { U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; if (U.kbd) { const f = $('#title .t-back') || focusables($('#title'))[0]; if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* a nicety */ } } } },   // QA2-4: the focus follows a menu change
   img: a => { const [pid, d] = a.split('|'); openViewer(pid, d); },
   q3d: () => { const o = ['low', 'med', 'high', 'auto']; U.q3d = o[(o.indexOf(U.q3d) + 1) % o.length]; store('oc-3dq', U.q3d); if (window.OC3D && OC3D.quality) OC3D.quality(U.q3d); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   three: () => { U.three = !U.three; store('oc-3d', U.three ? '1' : '0'); if (U.scene === 'title') setH($('#title'), titleHTML()); },
@@ -3045,7 +3059,7 @@ function titleHTML() {
   const role = md ? 'Attending' : 'Charge nurse';
   if (U.tm === 'about') return aboutHTML(store('oc-seen-about') ? head('About Code Black') : '');
   const wxs = `<div class="packs wxp"><span id="wxLab">Weather</span><div class="segs s5">${Object.entries(E.WX).map(([k, W]) => `<button type="button" class="seg${(U.wx || 'clear') === k ? ' on' : ''}" data-act="weather" data-arg="${k}" aria-pressed="${(U.wx || 'clear') === k}">${esc(W.name.split(' ')[0])}</button>`).join('')}</div><select class="wx-sel" data-pick="weather" aria-labelledby="wxLab">${Object.entries(E.WX).map(([k, W]) => `<option value="${k}"${(U.wx || 'clear') === k ? ' selected' : ''}>${esc(W.name)}</option>`).join('')}</select><small>${esc(E.WX[U.wx || 'clear'].blurb)}</small></div>`;
-  if (U.tm === 'play') return `<div class="card t-sub-menu">${head('Play a shift', role + ', 07:00 to 19:00.')}<div class="levels">${lv}<button type="button" class="lvl t-go cc-go" data-act="classCode"><span class="dot" style="background:#4F5A6B"></span><span><b>Class code</b><small>Play your instructor's shift, or make one for a class.</small></span><span class="t-chev" aria-hidden="true">›</span></button></div>${scens}${wxs}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}</div>`;
+  if (U.tm === 'play') return `<div class="card t-sub-menu">${head('Play a shift', role + ', 07:00 to 19:00. <small class="t-warn">A teaching game, not clinical guidance. No licensed clinician has reviewed it yet.</small>')}<div class="levels">${lv}<button type="button" class="lvl t-go cc-go" data-act="classCode"><span class="dot" style="background:#4F5A6B"></span><span><b>Class code</b><small>Play your instructor's shift, or make one for a class.</small></span><span class="t-chev" aria-hidden="true">›</span></button></div>${scens}${wxs}${md ? `<div class="packs"><span>Medical direction calls</span><div class="segs">${packs}</div><small>${esc(E.PACKS[U.pack].note)}</small></div>` : ''}</div>`;
   if (U.tm === 'learn') return `<div class="card t-sub-menu">${head('Learn', 'Start with the introductory orientation. Then learn to manage disease-specific conditions. <small class="t-warn">A teaching game, not clinical guidance. Written with AI: <b>no licensed clinician has reviewed it yet</b>.</small>')}<div class="levels">${train}${lessons}</div><div class="t-links"><button type="button" data-act="help">How to play</button><button type="button" data-act="words">What the words mean</button></div></div>`;
   if (U.tm === 'set') return `<div class="card t-sub-menu">${head('Settings')}<div class="t-sets">${set('view', 'Board', U.view === 'map' ? 'floor plan' : 'list')}${U.view === 'map' ? set('three', 'Floor', U.three ? '3D' : 'flat') : ''}${U.view === 'map' && U.three ? set('q3d', '3D detail', Q3D_NAME[U.q3d]) : ''}${set('sound', 'Sound', U.sound ? 'on' : 'off')}${set('plain', 'Plain words', PLAIN() ? 'on' : 'off')}${document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches ? set('fullscreen', 'Full screen', document.fullscreenElement ? 'on' : 'off') : ''}</div>${IOS_TIP ? '<p class="t-tip">On an iPhone, add this page to your Home Screen (Share, then Add to Home Screen) to play full screen.</p>' : ''}</div>`;
   const stars = ['easy', 'med', 'hard'].reduce((n, k) => n + (bestOf(k) ? E.scoreStars(bestOf(k)) : 0), 0);
@@ -3380,6 +3394,14 @@ function bind() {
       if (f.length && (e.shiftKey ? i <= 0 : i < 0 || i === f.length - 1)) { e.preventDefault(); try { (e.shiftKey ? f[f.length - 1] : f[0]).focus(); } catch (er) { /* old browsers */ } }
       return;
     }
+    // QA2-4: Tab stays inside an open card (a modal dialog) in a shift too
+    if (e.key === 'Tab' && !$('#modalWrap').hidden) {
+      const f = focusables($('#modal')), i = f.indexOf(document.activeElement);
+      if (f.length && (e.shiftKey ? i <= 0 : i < 0 || i === f.length - 1)) { e.preventDefault(); try { (e.shiftKey ? f[f.length - 1] : f[0]).focus(); } catch (er) { /* old browsers */ } }
+      return;
+    }
+    // QA2-4: a room or patient on the floor plan opens with Enter or Space, like a button
+    if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.matches && e.target.matches('[data-act]:not(button):not(input):not(a):not(select)')) { e.preventDefault(); mapAct(e.target, 0, 0); render(); return; }
     if (e.key === 'Escape') {   // a question open in the class sheet is answered "no" first; then the sheet closes
       if (U.sel) U.sel = null;
       else if (U.sheet && U.sheet.type === 'class' && ((U.cbList && U.cbList.ask) || U.cbForget || U.codeAsk)) { if (U.cbList && U.cbList.ask) ACT.cbDelNo(); else if (U.cbForget) ACT.keyForgetNo(); else ACT.codeAskNo(); }

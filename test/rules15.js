@@ -51,3 +51,13 @@ OC.newGame('easy', 81, { mode: 'md' }); G = OC.G; G.train = null; G.card = null;
 { const p = CAP('dka'); p.prov = G.me; p.mine = true; p.ev = 'done'; OC.awaitOrders(p);
   const r = OC.signOrders(p.id, OC.needOf(p).n, ['ns', 'insulin', 'kcl', 'tnk']);
   assert(r.ok && /Can hurt them: Thrombolytic/.test(r.msg) && (p.ordLog.unsafe || []).some(x => /Thrombolytic/.test(x)), `an unneeded thrombolytic is named as unsafe at signing and in the review ("${r.msg}")`); }
+
+// QA2-1: on a shift a diagnosis scores when the patient leaves, not when it is picked (nothing on screen moves at the pick)
+OC.newGame('easy', 91, { mode: 'md' }); G = OC.G; G.train = null; G.card = null;
+{ const p = CAP('stemi'); p.prov = G.me; p.mine = true; p.ev = 'done'; OC.awaitOrders(p); p.dxq = [p.dx, 'Pericarditis', 'Aortic dissection'];
+  const lit0 = G.lit || 0, w0 = G.stats.md.dxWrong || 0; OC.dxPick(p.id, 'Pericarditis');
+  assert((G.lit || 0) === lit0 && (G.stats.md.dxWrong || 0) === w0 && G.stats.md.dxCalled >= 1, 'a wrong call changes no score or legal risk at the pick');
+  OC.settleDx(p); assert((G.stats.md.dxWrong || 0) === w0 + 1 && G.lit > lit0, 'and counts when it settles (the patient leaves, or the shift ends)'); }
+// QA2-3: the syncope risk score is built from the patient's parts, and the diagnosis doesn't name the risk band
+OC.newGame('easy', 92, {});
+for (const k of ['syncope', 'synchigh', 'cpmod', 'cwp']) { const p = OC.pt(OC.trainPatient(k, 'walk', {})); assert(!/risk/.test(p.dx) && p.gray.parts.length >= 2 && p.gray.parts.reduce((n, x) => n + +(x.match(/\((-?\d+)\)$/) || [0, 0])[1], 0) === p.gray.score, `${k}: the score is the sum of its listed parts (${p.gray.score}) and the diagnosis "${p.dx}" doesn't name the band`); }

@@ -476,7 +476,7 @@ const CONTRA_WHY_DRUG = { asa: 'it adds to the bleeding risk', heparin: 'a blood
   ketor: 'NSAIDs can make bleeding and heart attacks worse', ibu: 'NSAIDs can make bleeding and heart attacks worse', tnk: 'a clot buster can cause major bleeding' };
 const CONTRA_WHY = {
   stroke: { tnk: 'it is more than 4.5 hours since they were last known well (later needs perfusion imaging, which this game doesn\'t model)', heparin: 'no blood thinner drip in an acute stroke', enox: 'no blood thinner in an acute stroke', asa: 'no aspirin in the 24 hours after a clot buster' },
-  cpmod: { ntg: 'the pressure is under 90', morph: 'opioids drop a pressure under 90 further', fent: 'opioids drop a pressure under 90 further', hydro: 'opioids drop a pressure under 90 further', metop: 'with a low or borderline pressure, a fast rate or age over 70, a beta-blocker can push the heart into shock', ibu: 'NSAIDs are harmful when chest pain could be the heart', ketor: 'NSAIDs are harmful when chest pain could be the heart' },
+  cpmod: { ntg: 'the pressure is under 90', morph: 'opioids drop a pressure under 90 further', fent: 'opioids drop a pressure under 90 further', hydro: 'opioids drop a pressure under 90 further', metop: 'with a low or borderline pressure, a fast rate or age over 70, a beta-blocker can push the heart into shock', ibu: 'NSAIDs are harmful when the pain could be the heart', ketor: 'NSAIDs are harmful when the pain could be the heart' },
   cwp: { ibu: 'a heart attack isn\'t ruled out until the troponin is back', ketor: 'a heart attack isn\'t ruled out until the troponin is back', ntg: 'the pressure is under 90' },
   afib: { dilt: 'it slows a heart that is already holding no pressure', metop: 'it slows a heart that is already holding no pressure' },
   sbo: { reglan: 'it pushes the gut against a blockage' }, anaph: { epiarr: '1 mg IV is the cardiac arrest dose: with a pulse it can cause a heart attack' },
@@ -598,7 +598,15 @@ function dxAsk(p) {
 function dxPick(pid, pick) {
   const p = pt(pid); if (!p || !p.dxq) return { ok: false, why: 'No diagnosis to make for this patient' };
   const S = G.stats.md, right = pick === dxName(p.ck) || pick === p.dx;
-  p.dxPick = pick; p.dxq = null; p.dxK = true;
+  p.dxPick = pick; p.dxq = null; p.dxK = true; S.dxCalled = (S.dxCalled || 0) + 1;
+  // QA2-1: on a shift, whether the call was right lands when the patient leaves (or the shift ends), not the moment it is picked,
+  // so no score, legal risk or line on screen gives it away. Orientation and Lessons still answer at once.
+  if (!G.train) p.dxPend = { right, pick }; else scoreDx(p, right, pick);
+  if (!p.txGap) treatGap(p);
+  return { ok: true, right, msg: G.train ? (right ? `Right: ${p.dx}.` : `Not ${pick}. It’s ${p.dx}.`) : `Your diagnosis: ${pick}. The results and how they do will tell.` };   // Phase 6 (R5-05): no instant verdict on a shift
+}
+function scoreDx(p, right, pick) {
+  const S = G.stats.md; p.dxPend = null;
   if (right) { S.dxRight = (S.dxRight || 0) + 1; care(8, 'md', p); }
   else {
     S.dxWrong = (S.dxWrong || 0) + 1; care(MUST.has(p.ck) ? -20 : -8, 'md', p);
@@ -606,9 +614,8 @@ function dxPick(pid, pick) {
     if (MUST.has(p.ck)) mm(60, `${p.name}: called ${pick}. It was ${p.dx}`, 'A must-not-miss diagnosis', true);
     litAdd(MUST.has(p.ck) ? 5 : 2, `missed ${p.dx}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
   }
-  if (!p.txGap) treatGap(p);
-  return { ok: true, right, msg: G.train ? (right ? `Right: ${p.dx}.` : `Not ${pick}. It’s ${p.dx}.`) : `Your diagnosis: ${pick}. The results and how they do will tell.` };   // Phase 6 (R5-05): no instant verdict on a shift
 }
+const settleDx = p => { if (p && p.dxPend) scoreDx(p, p.dxPend.right, p.dxPend.pick); };
 // Clinical accuracy: diagnoses called right and orders right, against everything called or ordered. Starts at 100.
 function accuracy() {
   const S = G.stats.md || {}, good = (S.dxRight || 0) * 3 + (S.ordRight || 0), bad = (S.dxWrong || 0) * 3 + (S.ordMiss || 0) + (S.ordExtra || 0) + (S.harm || 0) * 3 + (S.dispoWrong || 0) * 2;
@@ -683,12 +690,12 @@ const CASES = [
   { k: 'etoh', cc: 'Intoxicated, found on a bench', dx: 'Alcohol intoxication', esi: 3, src: 'e', age: [25, 65], sex: 'M', wt: 3, wk: ['lab'], tr: ['fluids'], dispo: 'home', ama: 2, find: { lab: 'Ethanol 280, glucose normal' } },
   { k: 'od', cc: 'Found unresponsive, pinpoint pupils', dx: 'Opioid overdose', esi: 1, src: 'e', age: [18, 55], wt: 2, wk: ['lab'], tr: ['nalox'], dispo: 'home', ama: 4, vit: 'RR 10, SpO2 91%, drowsy after naloxone in the field', find: { lab: 'Fentanyl positive' }, watch: 120, anyRoom: true },
   { k: 'cell', cc: 'Red, hot leg', dx: 'Cellulitis', esi: 3, src: 'w', age: [30, 80], wt: 3, wk: ['lab'], tr: ['abx'], con: 'hosp', pre: ['lab'], dispo: 'admit', find: { lab: 'WBC 14.0' } },
-  { k: 'syncope', cc: 'Passed out', dx: 'Syncope, low risk', esi: 3, src: 'b', age: [16, 70], wt: 3, wk: ['ecg', 'lab'], tr: [], dispo: 'home', gray: 'syncope', find: { ecg: 'Normal sinus rhythm', lab: 'Normal' } },
-  { k: 'synchigh', cc: 'Passed out sitting down', dx: 'Syncope, high risk', esi: 2, src: 'b', age: [60, 90], wt: 1.5, wk: ['ecg', 'lab'], tr: [], dispo: 'obs', gray: 'syncope', find: { ecg: 'New bundle branch block', lab: 'Normal' } },
+  { k: 'syncope', cc: 'Passed out', dx: 'Syncope', esi: 3, src: 'b', age: [16, 70], wt: 3, wk: ['ecg', 'lab'], tr: [], dispo: 'home', gray: 'syncope', find: { ecg: 'Normal sinus rhythm', lab: 'Normal' } },
+  { k: 'synchigh', cc: 'Passed out sitting down', dx: 'Syncope', esi: 2, src: 'b', age: [60, 90], wt: 1.5, wk: ['ecg', 'lab'], tr: [], dispo: 'obs', gray: 'syncope', find: { ecg: 'New bundle branch block', lab: 'Normal' } },
   { k: 'tia', cc: 'Arm went numb, now fine', dx: 'Transient ischemic attack', esi: 2, src: 'w', age: [55, 88], wt: 1.5, wk: ['ct', 'lab', 'ecg'], tr: [], dispo: 'obs', gray: 'tia', find: { ct: 'No acute findings', lab: 'Normal', ecg: 'Normal sinus rhythm' }, ok: ['meds'] },
   { k: 'dehyd', cc: 'Weak and dizzy', dx: 'Dehydration', esi: 3, src: 'e', age: [65, 95], wt: 3, wk: ['lab'], tr: ['fluids'], dispo: 'home', find: { lab: 'BUN 34, creatinine 1.4' } },
-  { k: 'cpmod', cc: 'Chest pressure on and off', dx: 'Chest pain, moderate risk', esi: 2, src: 'b', age: [45, 75], wt: 2.5, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'obs', ecg10: true, gray: 'chest', find: { ecg: 'Nonspecific ST changes', lab: 'First troponin negative', xr: 'Clear lungs' } },
-  { k: 'cwp', cc: 'Chest pain', dx: 'Chest pain, low risk', esi: 2, src: 'b', age: [25, 60], wt: 4, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'home', ecg10: true, gray: 'chest', find: { ecg: 'Normal sinus rhythm', lab: 'Troponin negative', xr: 'Clear lungs' } },
+  { k: 'cpmod', cc: 'Chest pressure on and off', dx: 'Chest pain', esi: 2, src: 'b', age: [45, 75], wt: 2.5, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'obs', ecg10: true, gray: 'chest', find: { ecg: 'Nonspecific ST changes', lab: 'First troponin negative', xr: 'Clear lungs' } },
+  { k: 'cwp', cc: 'Chest pain', dx: 'Chest pain', esi: 2, src: 'b', age: [25, 60], wt: 4, wk: ['ecg', 'lab', 'xr'], tr: ['meds'], dispo: 'home', ecg10: true, gray: 'chest', find: { ecg: 'Normal sinus rhythm', lab: 'Troponin negative', xr: 'Clear lungs' } },
   { k: 'nstemi', cc: 'Chest pain', dx: 'NSTEMI (heart attack)', esi: 2, src: 'b', age: [50, 85], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', ecg10: true, find: { ecg: 'ST depression V4–V6', lab: 'Troponin elevated' }, ok: ['xr'] },
   { k: 'afib', cc: 'Racing heart', dx: 'A-fib with rapid rate', esi: 2, src: 'b', age: [55, 90], wt: 2.5, wk: ['ecg', 'lab'], tr: ['meds'], con: 'cards', pre: ['ecg', 'lab'], dispo: 'admit', vit: 'HR 152, BP 118/76', find: { ecg: 'Irregularly irregular, no P waves, rate 152', lab: 'Troponin negative' } },
   { k: 'chb', cc: 'Dizzy, nearly passed out', dx: 'Complete heart block', esi: 1, src: 'b', age: [60, 90], wt: 1.2, wk: ['ecg', 'lab'], tr: ['pace'], con: 'cards', pre: ['ecg'], dispo: 'icu', ecg10: true, vit: 'HR 38, BP 102/60, lightheaded', find: { ecg: 'P waves march through, unrelated to the QRS; rate 38', lab: 'Potassium 4.4, troponin negative' } },
@@ -1252,8 +1259,13 @@ function grayScore(c, age) {
     return s <= 3 ? g('HEART score', s, 'low', 'home', [], parts) : s <= 6 ? g('HEART score', s, 'moderate', 'obs', ['admit'], parts) : g('HEART score', s, 'high', 'admit', ['obs'], parts);
   }
   if (c.gray === 'syncope') {
-    if (c.k !== 'synchigh') return g('Canadian Syncope Risk Score', randi(-2, 0), 'low', 'home');
-    const s = randi(4, 7); return s <= 5 ? g('Canadian Syncope Risk Score', s, 'high', 'obs', ['admit']) : g('Canadian Syncope Risk Score', s, 'very high', 'admit', ['obs']);
+    // QA2-3: the Canadian Syncope Risk Score from this patient's parts (Thiruganasambandamoorthy 2016), as for HEART: a warning and long
+    // standing point to a vasovagal faint (-1, and -2 as the ED diagnosis); a new bundle branch block is a QRS over 130 ms (+1); no warning
+    // with that ECG points to the heart (+2). Heart disease and the QRS axis come from the dice; the pressure and troponin are normal here.
+    const hd = chance(c.k === 'synchigh' ? 0.6 : 0.2);
+    if (c.k !== 'synchigh') { const s = -1 - 2 + (hd ? 1 : 0); return g('Canadian Syncope Risk Score', s, 'low', 'home', [], ['warning signs, long standing: vasovagal (-1)', 'ED diagnosis vasovagal (-2)', hd && 'history of heart disease (1)', 'blood pressure and troponin normal (0)']); }
+    const ax = chance(0.5), s = (hd ? 1 : 0) + 1 + (ax ? 1 : 0) + 2, parts = [hd && 'history of heart disease (1)', 'QRS over 130 ms: new bundle branch block (1)', ax && 'abnormal QRS axis (1)', 'no warning with that ECG: likely the heart (2)', 'blood pressure and troponin normal (0)'];
+    return s <= 3 ? g('Canadian Syncope Risk Score', s, 'medium', 'obs', ['admit'], parts) : g('Canadian Syncope Risk Score', s, 'high', 'obs', ['admit'], parts);
   }
   if (c.gray === 'tia') {   // ABCD2: age 60 or more, BP 140/90 or more (this case: 172/96), clinical (numbness only: 0), duration (20 minutes: 1), diabetes
     const a = age >= 60, dm = chance(0.25), s = (a ? 1 : 0) + 1 + 0 + 1 + (dm ? 1 : 0), parts = [a && 'age 60 or more (1)', 'BP 140/90 or more (1)', 'numbness only (0)', 'lasted 20 minutes (1)', dm && 'diabetes (1)'];
@@ -1831,8 +1843,8 @@ const DX_PLAIN = {
   'COPD flare': 'Lungs damaged by smoking, flaring up', 'Heart failure flare': 'A weak heart, with fluid backing up into the lungs', 'Kidney stone': 'A small stone stuck on its way out of the kidney',
   'Deep vein thrombosis': 'A blood clot in a leg vein', 'Migraine': 'A severe headache that comes in attacks', 'Suspected tuberculosis': 'A lung infection that spreads through the air',
   'Behavioral health emergency': 'A mental health crisis', 'Alcohol intoxication': 'Drunk, and watched until sober', 'Opioid overdose': 'Too much of an opioid. It slows the breathing', 'Cellulitis': 'A skin infection',
-  'Syncope, low risk': 'Fainting, with nothing worrying found', 'Syncope, high risk': 'Fainting that may come from the heart', 'Transient ischemic attack': 'A stroke that cleared on its own. A warning',
-  'Dehydration': 'Low on fluids', 'Chest pain, moderate risk': 'No heart attack found yet, but not in the clear', 'Chest pain, low risk': 'Not the heart, as far as the tests can tell',
+  'Syncope': 'Fainting: the tests and the risk score say how worried to be', 'Transient ischemic attack': 'A stroke that cleared on its own. A warning',
+  'Dehydration': 'Low on fluids', 'Chest pain': 'No heart attack found yet: the tests and the risk score say what next',
   'NSTEMI (heart attack)': 'A heart attack with the artery partly blocked', 'A-fib with rapid rate': 'An irregular, racing heartbeat', 'Complete heart block': 'The heart’s wiring has failed. It beats too slowly',
   'Upper GI bleed': 'Bleeding in the stomach or gullet', 'Diabetic ketoacidosis': 'No insulin, so the blood turns acid', 'Asthma attack': 'Airways squeezed tight', 'Anaphylaxis': 'A severe allergic reaction',
   'Sepsis (urinary source)': 'A urine infection, and the body is overreacting to it', 'Acute ischemic stroke': 'A clot blocking a blood vessel in the brain', 'Anterior STEMI': 'A heart attack: an artery fully blocked',
@@ -3145,20 +3157,20 @@ function consult(pid, spec, o) {
   if (p.consult.st !== 'none' && p.con2 && !p.consult2 && !o.phone) {   // v0.27: the second service
     if (spec === p.consult.spec) return { ok: false, why: `${S.name} is already involved` };
     const m2 = G.spec[spec];
-    if (spec !== p.con2) { m2.mood = Math.max(-3, m2.mood - 1); m2.at = G.t; care(-6, 'consult', p); G.stats.wrongSpec++; return { ok: false, mad: true, why: `${S.doc} (${S.name}): "Not ours. ${SPECS[p.con2].name} should co-manage this one."` }; }
+    if (spec !== p.con2) { m2.mood = Math.max(-3, m2.mood - 1); m2.at = G.t; care(-6, 'consult', p); G.stats.wrongSpec++; return { ok: false, mad: true, why: `${S.doc} (${S.name}): "Not ours.${G.train ? ` ${SPECS[p.con2].name} should co-manage this one.` : ''}"` }; }   // QA2-2: names the service only in Orientation and Lessons
     const mins2 = Math.round(randi(10, 18) * ([1, 1.2, 1.5, 1.9][-m2.mood] || 1));
     p.consult2 = { st: 'req', spec, due: G.t + mins2, t0: G.t }; care(3, 'dispo', p); G.stats.con2 = (G.stats.con2 || 0) + 1;
     return { ok: true, msg: `${S.doc} (${S.name}) will also see ${label(p)} in about ${mins2} min` };
   }
   if (p.consult.st !== 'none') return { ok: false, why: `${SPECS[p.consult.spec].name} is already involved` };
-  if (o.phone && spec === 'hosp' && p.con !== 'hosp') { care(-4, 'consult', p); return { ok: false, mad: true, why: `${S.doc} (Hospitalist): "I can't take this one sight unseen. ${p.con ? SPECS[p.con].name + ' needs to see them.' : 'They don’t need admission.'}"` }; }
+  if (o.phone && spec === 'hosp' && p.con !== 'hosp') { care(-4, 'consult', p); return { ok: false, mad: true, why: `${S.doc} (Hospitalist): "I can't take this one sight unseen.${G.train ? ` ${p.con ? SPECS[p.con].name + ' needs to see them.' : 'They don’t need admission.'}` : ''}"` }; }
   const m = G.spec[spec];
   if (p.con !== spec) {
     if (mdMine(p) && !p.con) G.stats.md.dispoWrong++;
     m.mood = Math.max(-3, m.mood - 1); m.at = G.t; care(-10, 'consult', p); G.stats.wrongSpec++; provHit(p, 3); sound('bad');
     // Phase 6 (R5-05): on a shift a consultant who isn't the right one says so, without naming the right one; Orientation and Lessons still do
     const tryW = G.train ? ` Try ${SPECS[p.con] ? SPECS[p.con].name : ''}.` : '';
-    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? (p.conNote = `${S.name} declined: not theirs.${tryW}`, note(`${S.name} declined ${label(p)}: not theirs.${tryW}`, 'bad'), `Why is ${S.name.toLowerCase()} getting this call? Not ours.${G.train ? ` Call ${SPECS[p.con].name}.` : ''}`) : G.train ? 'This patient doesn’t need a consult. Send them home.' : 'I don’t think they need us.'}"` };
+    return { ok: false, mad: true, why: `${S.doc} (${S.name}): "${p.con ? (p.conNote = `${S.name} declined: not theirs.${tryW}`, note(`${S.name} declined ${label(p)}: not theirs.${tryW}`, 'bad'), `Why is ${S.name.toLowerCase()} getting this call? Not ours.${G.train ? ` Call ${SPECS[p.con].name}.` : ''}`) : G.train ? 'This patient doesn’t need a consult. Send them home.' : 'Not ours.'}"` };
   }
   // EMS-activated STEMI, stroke, and trauma alerts can call their team on the field report alone
   const miss = (p.alertOn && ALERTS[p.alert] && ALERTS[p.alert].auto) ? [] : p.pre.filter(k => !(p.work[k] && p.work[k].st === 'done'));
@@ -3455,6 +3467,7 @@ function toggleStat(pid) {
   return { ok: true, msg: p.stat ? `${label(p)} marked STAT. Everyone works it first.` : `STAT cleared for ${label(p)}` };
 }
 function leave(p, outcome) {
+  settleDx(p);
   const r = roomOf(p);
   if (r) { r.pid = null; if (r.kind === 'chair') r.st = 'clean'; else { r.st = 'dirty'; r.dirt = (p.iso || outcome === 'expired') ? 'term' : 'std'; } }
   if (p.loc === 'triage') { const i = G.triageQ.indexOf(p.id); if (i >= 0) G.triageQ.splice(i, 1); }
@@ -4496,6 +4509,7 @@ const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200
 const STARS_MD = { easy: [600, 1200, 1800], med: [600, 1300, 2000], hard: [600, 1300, 2000], train: [300, 800, 1400], rush: [120, 240, 310] };
 function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' ? STARS_MD : STARS)[level || (G && G.level) || 'med']; return c >= s[2] ? 3 : c >= s[1] ? 2 : c >= s[0] ? 1 : 0; }
 function endShift(reason) {
+  for (const id of G.order) settleDx(G.pts[id]);   // calls not yet settled count at the end
   if (G.over) return;
   if (!G.pre && G.stats.returnsLate && G.mode !== 'md') care(-20 * G.stats.returnsLate, 'returns');
   G.over = true; G.running = false; G.fail = reason === 'walkout' || reason === 'fired' ? reason : null;
@@ -5015,6 +5029,6 @@ const RADIO_BTN = {
   miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
 };
 for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
-Object.assign(OC, { WATCH_WHY, mdScores, ordWhy, detResult, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
+Object.assign(OC, { WATCH_WHY, settleDx, mdScores, ordWhy, detResult, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);

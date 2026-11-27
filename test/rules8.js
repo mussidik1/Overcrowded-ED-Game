@@ -87,7 +87,7 @@ run(8);
 assert(pn.consult.st === 'here' && pn.consult.tVisit < 0, 'the hospitalist accepts without coming down');
 const ap = P(OC.trainPatient('appy', 'room', { room: roomFree() })); ap.ev = 'done'; ap.dxK = true; for (const k of ap.wk) ap.work[k] = { st: 'done', tDone: G.t };
 r = OC.consult(ap.id, 'hosp', { phone: true });
-assert(!r.ok && /Surgery/.test(r.why), 'a surgical problem cannot be admitted by phone to the hospitalist');
+assert(!r.ok && /sight unseen/.test(r.why) && (OC.G.train ? /Surgery/.test(r.why) : !/Surgery/.test(r.why)), 'a surgical problem cannot be admitted by phone to the hospitalist (who names the right service only in Orientation and Lessons, QA2-2)');
 
 // 7. A second consult
 const hx = P(OC.trainPatient('hipfx', 'room', { room: roomFree() })); hx.con2 = 'hosp'; hx.ev = 'done'; hx.dxK = true; for (const k of hx.wk) hx.work[k] = { st: 'done', tDone: G.t };
