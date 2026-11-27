@@ -132,16 +132,17 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 
 | ID | Stage | Sev | Finding | Status | Resolution |
 |---|---|---|---|---|---|
-| F-082 | 15a | Medium | QA3-1: Harm reasons name an undiagnosed condition: PE tenecteplase ("a stable clot") and overdose lorazepam ("on top of an overdose") | Open |  |
-| F-083 | 15a | Medium | QA3-2: The hemorrhagic-shock toast ("in hemorrhagic shock. Activate the massive transfusion protocol!") gives the attending the answer on a shift | Open |  |
-| F-084 | 15a | Medium | QA3-3: Tab leaves an open patient sheet for the top bar and the board | Open |  |
-| F-085 | 15a | Medium | QA3-4: Closing the pause menu (Escape or Resume) leaves focus on the page body | Open |  |
-| F-086 | 15a | Low | QA3-5: The attending's M&M lists unassigned patients' events | Open |  |
-| F-087 | 15a | Low | QA3-6: "0 orders signed" when the only order is an unsafe drug | Open |  |
-| F-088 | 15a | Low | QA3-7: The radio medical-direction question and result cards carry no teaching-game notice (keeps Clinical safety at 9) | Open |  |
+| F-082 | 15a | Medium | QA3-1: Harm reasons name an undiagnosed condition: PE tenecteplase ("a stable clot") and overdose lorazepam ("on top of an overdose") | Fixed (to be confirmed by QA) | PE tenecteplase, overdose lorazepam and stroke blood-thinner reasons reworded; rules12 checks more condition words |
+| F-083 | 15a | Medium | QA3-2: The hemorrhagic-shock toast ("in hemorrhagic shock. Activate the massive transfusion protocol!") gives the attending the answer on a shift | Fixed (to be confirmed by QA) | the attending hears the signs (falling pressure, racing heart, pale and sweaty); rules15 |
+| F-084 | 15a | Medium | QA3-3: Tab leaves an open patient sheet for the top bar and the board | Fixed (to be confirmed by QA) | Tab stays inside an open patient sheet (and the preceptor card beside it); crash_test |
+| F-085 | 15a | Medium | QA3-4: Closing the pause menu (Escape or Resume) leaves focus on the page body | Fixed (to be confirmed by QA) | closing pause returns the focus to the Menu button; crash_test |
+| F-086 | 15a | Low | QA3-5: The attending's M&M lists unassigned patients' events | Fixed (to be confirmed by QA) | the attending M&M counts only own patients for hemorrhagic shock |
+| F-087 | 15a | Low | QA3-6: "0 orders signed" when the only order is an unsafe drug | Fixed (to be confirmed by QA) | the signed count includes every drug on the sheet |
+| F-088 | 15a | Low | QA3-7: The radio medical-direction question and result cards carry no teaching-game notice (keeps Clinical safety at 9) | Fixed (to be confirmed by QA) | the teaching-game notice on the radio question and result cards |
 | F-089 | 15a | Low | QA3-8: Scenario and weather chips 36 px; list jump chips 32 px at 360 px; 11-12 px text in two places | Open |  |
-| F-090 | 15a | Low | QA3-9: The phone back button leaves the game from the menus (outside a shift) | Open |  |
-| F-091 | 15a | Low | QA3-10: "Dr. Who" passes the name rule (title read as initials); the three-word message's example is refused | Open |  |
+| F-090 | 15a | Low | QA3-9: The phone back button leaves the game from the menus (outside a shift) | Fixed (to be confirmed by QA) | Back on the menus returns to the main menu first |
+| F-091 | 15a | Low | QA3-10: "Dr. Who" passes the name rule (title read as initials); the three-word message's example is refused | Fixed (to be confirmed by QA) | initials are single letters ("S.", "J.D.", "JS"), so "Dr." is not; the message example is "Ana M."; class_test |
 | F-092 | 15a | Low | QA3-11: The gate stores the password in plain text and opens offline on any stored value (owner chose not to harden the gate) | Accepted (owner, gate) |  |
 | F-093 | 15a | Low | QA3-12: Harm feedback at signing may be lost in a busy message stream (not confirmed) | Open |  |
 | F-094 | 15a | Low | QA3-13: The 360 px list board is crowded: Next, the counter and messages overlap tiles | Open |  |
+

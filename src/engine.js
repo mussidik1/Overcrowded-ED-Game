@@ -475,17 +475,17 @@ function sameClassAlt(p, k, t) {
 const CONTRA_WHY_DRUG = { asa: 'it adds to the bleeding risk', heparin: 'a blood thinner makes bleeding worse', enox: 'a blood thinner makes bleeding worse', apixa: 'a blood thinner makes bleeding worse',
   ketor: 'NSAIDs can make bleeding and heart attacks worse', ibu: 'NSAIDs can make bleeding and heart attacks worse', tnk: 'a clot buster can cause major bleeding' };
 const CONTRA_WHY = {
-  stroke: { tnk: 'it is more than 4.5 hours since they were last known well (later needs perfusion imaging, which this game doesn\'t model)', heparin: 'no blood thinner drip in an acute stroke', enox: 'no blood thinner in an acute stroke', asa: 'no aspirin in the 24 hours after a clot buster' },
+  stroke: { tnk: 'it is more than 4.5 hours since they were last known well (later needs perfusion imaging, which this game doesn\'t model)', heparin: 'no blood thinner drip in the first day of sudden weakness or speech trouble: it can bleed into the brain', enox: 'no blood thinner in the first day of sudden weakness or speech trouble: it can bleed into the brain', asa: 'no aspirin in the 24 hours after a clot buster' },
   cpmod: { ntg: 'the pressure is under 90', morph: 'opioids drop a pressure under 90 further', fent: 'opioids drop a pressure under 90 further', hydro: 'opioids drop a pressure under 90 further', metop: 'with a low or borderline pressure, a fast rate or age over 70, a beta-blocker can push the heart into shock', ibu: 'NSAIDs are harmful when the pain could be the heart', ketor: 'NSAIDs are harmful when the pain could be the heart' },
   cwp: { ibu: 'a heart attack isn\'t ruled out until the troponin is back', ketor: 'a heart attack isn\'t ruled out until the troponin is back', ntg: 'the pressure is under 90' },
   afib: { dilt: 'it slows a heart that is already holding no pressure', metop: 'it slows a heart that is already holding no pressure' },
   sbo: { reglan: 'it pushes the gut against a blockage' }, anaph: { epiarr: '1 mg IV is the cardiac arrest dose: with a pulse it can cause a heart attack' },
   asthma: { metop: 'beta-blockers tighten the airways' }, copd: { metop: 'beta-blockers tighten the airways' }, dka: { d50: 'the sugar is already high' },
-  chb: { metop: 'it slows a heart that is already too slow', dilt: 'it slows a heart that is already too slow' }, od: { loraz: 'a sedative on top of an overdose can stop the breathing' },
+  chb: { metop: 'it slows a heart that is already too slow', dilt: 'it slows a heart that is already too slow' }, od: { loraz: 'a sedative can stop the breathing of a patient who is already this drowsy' },
   shock: { labet: 'the pressure is already too low', nicard: 'the pressure is already too low', metop: 'the pressure is already too low', furo: 'it drains volume from a patient in shock' },
   sepsisw: { furo: 'it drains fluid from a patient whose pressure is falling', labet: 'it lowers a pressure that is already falling' },
   salod: { asa: 'more aspirin, on top of what they already took' }, apapod: { apap: 'more acetaminophen, on top of what they already took' },
-  pe: { tnk: 'a stable clot doesn\'t need a clot buster: the bleeding risk is higher than the benefit' },
+  pe: { tnk: 'with a steady blood pressure, a clot buster brings more bleeding risk than benefit' },
 };
 for (const k of ['strokew', 'lvo']) CONTRA_WHY[k] = CONTRA_WHY.stroke;
 for (const k of ['nstemi', 'stemi']) CONTRA_WHY[k] = CONTRA_WHY.cpmod;
@@ -2036,7 +2036,7 @@ function signOrders(pid, tests, treats) {
   if (p.txGap) p.txGap = R.tr.filter(k => !p.tr.includes(k));
   if (p.txGap && !p.txGap.length) p.txGap = null;
   if (newT.length && (p.dsp === 'mddecide' || p.dsp === 'decide')) p.dsp = 'none';
-  const n = newT.length + newR.length;
+  const n = newT.length + newR.length + contraX.length + drugX.length + drugOk.length + partOk.length;   // QA3-6: every drug on the sheet counts, unsafe ones too
   if (newT.some(k => DET_KIND(k) === 'mri')) note(`${label(p)}: MRI ordered. It takes about an hour, and the patient leaves the department for it.`);
   return { ok: true, msg: `${n} order${n === 1 ? '' : 's'} signed for ${label(p)}${newR.includes('meds') ? ` (${rxName(p)})` : ''}${held ? '.' + held : ''}${ul.length ? `. Can hurt them: ${ul.join('; ')}.` : ''}`, held: !!held, unsafe: ul.slice() };
 }
@@ -3684,8 +3684,10 @@ function hemorrhageTick(p) {
   const el = G.t - p.tArrive;
   if (el > 15 && !p.shock) {
     p.shock = true; G.stats.shock++; care(-20, 'blood', p);
-    mm(70, `${label(p)} went into hemorrhagic shock`, 'Massive transfusion wasn’t activated in the first 15 min', !p.prov || !!p.mine);
-    toast(`${label(p)} is in hemorrhagic shock. Activate the massive transfusion protocol!`, 'alert'); sound('alarm');
+    mm(70, `${label(p)} went into hemorrhagic shock`, 'Massive transfusion wasn’t activated in the first 15 min', G.mode === 'md' ? !!p.mine : (!p.prov || !!p.mine));   // QA3-5: the attending's M&M is the attending's own patients
+    // QA3-2: the attending's shift hears what the nurse sees, not the diagnosis and its treatment; the charge nurse (who activates the
+    // protocol) and Orientation keep the full call
+    toast(G.mode === 'md' && !G.train ? `${label(p)}: the pressure is falling, the heart is racing, and they're pale and sweaty.` : `${label(p)} is in hemorrhagic shock. Activate the massive transfusion protocol!`, 'alert'); sound('alarm');
   }
   if (el > 30) {
     const injury = TRAUMA_CASES.includes(p.ck) || p.alert === 'trauma';   // audit R6.2-01: a ruptured aneurysm or ectopic is a medical bleed, not trauma

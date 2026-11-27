@@ -299,7 +299,7 @@ function focusMgr() {
   if (open === U.focOpen) return;
   if (open) {
     const box = open === 'modal' ? $('#modal') : $('#sheetBox'), a = document.activeElement;
-    if (!U.focOpen) U.focRet = a && a !== document.body ? a : null;
+    if (!U.focOpen) U.focRet = (open === 'modal' && U.focRet0) || (a && a !== document.body && !box.contains(a) ? a : null);
     if (open === 'sheet' && U.kbd && box && !box.contains(a)) { const f = focusables(box)[0]; if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* a nicety */ } }
   } else if (U.focRet && U.focRet.isConnected && !document.querySelector('#modalWrap:not([hidden]), #sheetWrap:not([hidden])')) { try { U.focRet.focus({ preventScroll: true }); } catch (e) { /* a nicety */ } U.focRet = null; }
   U.focOpen = open;
@@ -2129,11 +2129,11 @@ const cbClean = v => {
 };
 const cbNameWhy = v => { const n = String(v || '').trim(), c = cbClean(n); return !n ? 'Type your first name or initials.' : c && cbRude(c) ? 'Please use your first name or initials.' : c && !cbOneName(c) ? 'Your first name only, or with an initial, like Ana M. or S.K. No last names.' : [...n.normalize('NFC')].length > 20 ? 'At most 20 characters: try your first name or initials.'
   : /\p{Default_Ignorable_Code_Point}/u.test(n) ? 'Your keyboard added a hidden character: type the name again, or use your initials.'
-  : /\p{N}/u.test(n) ? 'No numbers: use your first name or initials, like Sam, Ana M. or S.K.' : n.split(/\s+/).length > 3 ? 'At most three words, like Mary Ann K.' : 'Use your first name or initials: letters only, like Sam, Ana M. or S.K.'; };
+  : /\p{N}/u.test(n) ? 'No numbers: use your first name or initials, like Sam, Ana M. or S.K.' : n.split(/\s+/).length > 3 ? 'At most three words, like Ana M.' : 'Use your first name or initials: letters only, like Sam, Ana M. or S.K.'; };
 // The owner's decisions (Nov 26, 2026; QA-2, QA-19): on top of the server's rule, the game sends only one first name, initials, or a first
 // name plus initials ("Ana", "S.K.", "Ana M."), never two full words (a full name), and refuses common profanity. Game only: the server's
 // rule (cbClean above, matched to the contract file) is unchanged.
-const cbInitial = w => /^(\p{L}\.?)+$/u.test(w) && [...w.replace(/\./g, '')].length <= 3 && (w.includes('.') || [...w].length <= 2);
+const cbInitial = w => /^\p{Lu}\.?$/u.test(w) || /^(\p{L}\.){2,3}$/u.test(w) || /^\p{Lu}{2,3}$/u.test(w);   // "S", "S.", "J.D.", "JS": not "Dr." (QA3-10)
 const cbOneName = n => n.split(' ').filter(w => !cbInitial(w)).length <= 1;
 const CB_RUDE = /(fuck|shit|cunt|bitch|whore|slut|nigg|fag|asshole|wank|bollock|twat|piss)/, CB_RUDE_W = /^(ass|arse|dick|cock|cum|tits?|prick|bastard|crap|damn|hell|sex|porn|nazi|poop|butt|penis|vagina|boob)$/;
 const cbRude = n => { const t = n.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase(); return CB_RUDE.test(t.replace(/[^a-z]/g, '')) || t.split(/[^a-z]+/).some(w => CB_RUDE_W.test(w)); };
@@ -2498,11 +2498,13 @@ function renderModal(G) {
   } else if (U.scene === 'game' && U.paused && !U.sheet) {
     h = `<div class="mc-who">${lessonKey() ? 'Lesson: ' + esc(LESSONS[lessonKey()].name) : esc(E.LEVELS[G.level].name)}${G.scen && G.scen !== 'none' && E.SCENS[G.scen] ? ' · ' + esc(E.SCENS[G.scen].name) + ' scenario' : ''} · ${E.clock()}</div><h3>Menu</h3><p>The shift is paused and saved on this device.</p><div class="mc-ch"><button type="button" data-act="resume"><b>Resume</b></button><button type="button" data-act="restart"><b>${U.armR && performance.now() - U.armR < 3000 ? 'Tap again to restart' : 'Restart this shift'}</b></button><button type="button" data-act="menu"><b>Main menu</b></button><button type="button" data-act="help"><b>How to play</b></button><button type="button" data-act="words"><b>What the words mean</b></button><button type="button" data-act="sound"><b>Sound: ${U.sound ? 'on' : 'off'}</b></button><button type="button" data-act="plain"><b>Plain words: ${PLAIN() ? 'on' : 'off'}</b></button><button type="button" data-act="view"><b>${U.view === 'map' ? 'Switch to the list board' : 'Switch to the floor plan'}</b></button>${U.view === 'map' ? `<button type="button" data-act="three"><b>${U.three ? '3D floor: on' : '3D floor: off'}</b></button>` : ''}${U.view === 'map' && U.three ? `<button type="button" data-act="q3d"><b>3D detail: ${Q3D_NAME[U.q3d]}</b></button>` : ''}${document.fullscreenEnabled ? `<button type="button" data-act="fullscreen"><b>${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</b></button>` : ''}</div>`;
   }
+  if (h && U.modal && (U.modal.type === 'scen' || U.modal.type === 'result')) h += '<p class="rep-note">A teaching game, not clinical guidance: follow your own protocols. No licensed clinician has reviewed it yet.</p>';   // QA3-7: radio calls give doses
   if (h && TR()) h = coachHTML('in') + h;
   const was = wrap.hidden;
   wrap.hidden = !h; morph(el, h);
   // QA-5: the board behind the menu, a report or an open card can't be reached by keyboard, and a card that opens takes the focus
   const app = $('.app'), block = U.scene !== 'game' || !!h; if (app && app.inert !== block) app.inert = block;
+  if (h && was) U.focRet0 = document.activeElement && document.activeElement !== document.body && !wrap.contains(document.activeElement) ? document.activeElement : null;   // QA3-4: what opened it, before the focus moves in
   if (h && was && !wrap.contains(document.activeElement)) { const f = el.querySelector('button:not([disabled]), [href], input, [tabindex]:not([tabindex="-1"])'); if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* focus is a nicety */ } }
 }
 const ROT = window.matchMedia('(orientation: portrait) and (max-width: 700px)');   // the same test the "Turn your phone sideways" card uses
@@ -2694,7 +2696,7 @@ const ACT = {
   mdd: a => { const [pid, k] = a.split('|'); if (k === 'consult') { U.sheet = { type: 'consult', pid }; return; } res(E.mdDecide(pid, k), true); },
   staleOk: () => { try { localStorage.removeItem('oc-save'); } catch (e) { /* storage blocked */ } if (U.scene === 'title') setH($('#title'), titleHTML()); },
   aboutDone: () => { store('oc-seen-about', '1'); ACT.tmenu('main'); },
-  tmenu: a => { U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; if (U.kbd) { const f = $('#title .t-back') || focusables($('#title'))[0]; if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* a nicety */ } } } },   // QA2-4: the focus follows a menu change
+  tmenu: a => { if (a && a !== 'main' && U.scene === 'title') backTrap(); U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; if (U.kbd) { const f = $('#title .t-back') || focusables($('#title'))[0]; if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* a nicety */ } } } },   // QA2-4: the focus follows a menu change
   img: a => { const [pid, d] = a.split('|'); openViewer(pid, d); },
   q3d: () => { const o = ['low', 'med', 'high', 'auto']; U.q3d = o[(o.indexOf(U.q3d) + 1) % o.length]; store('oc-3dq', U.q3d); if (window.OC3D && OC3D.quality) OC3D.quality(U.q3d); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   three: () => { U.three = !U.three; store('oc-3d', U.three ? '1' : '0'); if (U.scene === 'title') setH($('#title'), titleHTML()); },
@@ -3392,8 +3394,8 @@ function bind() {
   document.addEventListener('keydown', e => {
     if (e.key === 'Tab' || e.key === 'Enter' || e.key === ' ') U.kbd = true;
     // Tab stays inside an open menu sheet, which is a modal dialog (audit R4.9-03). In a shift the board stays reachable.
-    if (e.key === 'Tab' && U.scene !== 'game' && !$('#sheetWrap').hidden) {
-      const f = focusables($('#sheetBox')), i = f.indexOf(document.activeElement);
+    if (e.key === 'Tab' && !$('#sheetWrap').hidden && $('#modalWrap').hidden) {   // QA3-3: in a shift too (the preceptor's card, beside the sheet, stays in the loop)
+      const co = $('#coach'), f = focusables($('#sheetBox')).concat(U.scene === 'game' && co && !co.hidden ? focusables(co) : []), i = f.indexOf(document.activeElement);
       if (f.length && (e.shiftKey ? i <= 0 : i < 0 || i === f.length - 1)) { e.preventDefault(); try { (e.shiftKey ? f[f.length - 1] : f[0]).focus(); } catch (er) { /* old browsers */ } }
       return;
     }
@@ -3416,6 +3418,10 @@ function bind() {
   });
   // QA-17: in a shift, the phone's back button closes what is open (a selection, a sheet), or opens the pause menu, instead of leaving the game
   window.addEventListener('popstate', () => {
+    if (U.scene === 'title') {   // QA3-9: on the menus, Back closes a sheet or returns to the main menu before it leaves the game
+      if (U.sheet) U.sheet = null; else if (U.tm && U.tm !== 'main') ACT.tmenu('main');
+      render(); return;
+    }
     if (U.scene !== 'game') return;
     if (U.sel) U.sel = null; else if (U.sheet) U.sheet = null; else if (!U.paused && !U.modal) ACT.pause();
     try { history.pushState({ cb: 1 }, ''); } catch (e) { /* history blocked */ }

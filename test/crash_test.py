@@ -58,6 +58,19 @@ with sync_playwright() as pw:
     ok(J("window.OCUI.U.scene") == 'game' and J("window.OCUI.U.paused") is True and page.url.startswith('file:'), 'the back button in a shift opens the pause menu and stays in the game')
     page.keyboard.press('Escape'); page.wait_for_timeout(300)
     ok(J("window.OCUI.U.paused") is False, 'Escape closes the pause menu')
+    # QA3-4: pause opened from the keyboard returns the focus to the Menu button when it closes
+    J("document.getElementById('btnPause').focus()"); page.keyboard.press('Enter'); page.wait_for_timeout(300)
+    page.keyboard.press('Escape'); page.wait_for_timeout(300)
+    ok(J("document.activeElement && document.activeElement.id") == 'btnPause', 'closing the pause menu gives the focus back to the Menu button')
+    # QA3-3: Tab stays inside an open patient sheet
+    J("(() => { const p = Object.values(OC.G.pts).find(x => x.loc === 'room'); if (p) { OCUI.U.sheet = { type: 'pt', pid: p.id }; OCUI.render(); } })()"); page.wait_for_timeout(300)
+    if J("!document.getElementById('sheetWrap').hidden"):
+        J("(() => { const f = document.querySelector('#sheetBox button'); if (f) f.focus(); })()")
+        inside = True
+        for _ in range(30):
+            page.keyboard.press('Tab')
+            if not J("(() => { const a = document.activeElement; return !!a && (document.getElementById('sheetBox').contains(a) || document.getElementById('coach').contains(a)); })()"): inside = False; break
+        ok(inside, 'Tab stays inside an open patient sheet')
     ctx.close()
 
     # 4. A tutorial step that throws is logged

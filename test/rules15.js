@@ -61,3 +61,10 @@ OC.newGame('easy', 91, { mode: 'md' }); G = OC.G; G.train = null; G.card = null;
 // QA2-3: the syncope risk score is built from the patient's parts, and the diagnosis doesn't name the risk band
 OC.newGame('easy', 92, {});
 for (const k of ['syncope', 'synchigh', 'cpmod', 'cwp']) { const p = OC.pt(OC.trainPatient(k, 'walk', {})); assert(!/risk/.test(p.dx) && p.gray.parts.length >= 2 && p.gray.parts.reduce((n, x) => n + +(x.match(/\((-?\d+)\)$/) || [0, 0])[1], 0) === p.gray.score, `${k}: the score is the sum of its listed parts (${p.gray.score}) and the diagnosis "${p.dx}" doesn't name the band`); }
+
+// QA3-2: on the attending's shift, the bleeding warning says what the nurse sees, not the diagnosis and its treatment
+{ const msgs = []; OC.hooks.toast = m => msgs.push(String(m));
+  OC.newGame('med', 95, { mode: 'md' }); G = OC.G; G.train = null; G.card = null;
+  const p = CAP('mvc'); p.bleed = 'mtp'; p.bb = null; p.tArrive = G.t - 16; p.dsp = 'none'; p.shock = false; for (let i = 0; i < 12; i++) OC.step(0.1);
+  assert(msgs.some(m => /pressure is falling/.test(m)) && !msgs.some(m => /hemorrhagic shock|massive transfusion/i.test(m)), `the attending hears the signs, not "hemorrhagic shock" (${msgs.filter(m => /pressure|shock/.test(m)).join(' | ')})`);
+  OC.hooks.toast = () => {}; }
