@@ -70,7 +70,7 @@ const fm = m => { m = Math.max(0, Math.round(m)); return m < 60 ? m + 'm' : Math
 const fl = v => (Math.round(v * 10) / 10).toString();
 const RC = { md: 'r-md', app: 'r-app', rn: 'r-rn', pct: 'r-pct', evs: 'r-evs', rt: 'r-rt', rph: 'r-rph', reg: 'r-reg', tp: 'r-tp', uc: 'r-uc' };
 const ZSHORT = { resus: 'Resus', a: 'A', b: 'B', c: 'C', d: 'D', e: 'E', hall: 'Hall', ft: 'FT', rp: 'Chairs' };
-const dxShown = p => (p.dxK && (!p.alertOn || p.ev === 'done')) ? (p.dxPick && !(g() && g().train) && p.mine ? p.dxPick : p.dx) : null;   // Phase 6 (R5-05): on a shift the card shows the attending's own call
+const dxShown = p => (p.dxK && (!p.alertOn || p.ev === 'done')) ? (p.dxPick && !(g() && g().train) && p.mine && !p.arrest && !p.rosc ? p.dxPick : p.dx) : null;   // Phase 6 (R5-05): on a shift the card shows the attending's own call
 const dxOr = p => dxShown(p) || p.cc;
 function emoji(p) { const a = p.age; if (a < 2) return '👶'; if (a < 13) return p.sex === 'F' ? '👧' : '👦'; if (a < 60) return p.sex === 'F' ? '👩' : '👨'; return p.sex === 'F' ? '👵' : '👴'; }
 const esiKnown = p => p.tri === 'done' || p.alertOn || p.crash || p.arrest || ['room', 'waiting', 'gone'].includes(p.loc);
@@ -554,6 +554,7 @@ function myLeft(p) { const me = E.staff(g().me), k = me && me.q[0]; return k && 
 /* What a room needs next: t = words, c = tone, i = the icon the floor plan shows. */
 function nextStep(p, r, G) {
   const pv = p.prov ? E.staff(p.prov) : null, nm = pv ? (isMe(pv) ? 'You' : esc(pv.short)) : '';
+  if (MD() && p.prov === G.me && !p.mine && p.ev === 'none' && !p.arrest) return { t: 'On your list: see them', c: 'n-act fl', i: 'steth' };   // R1.13-01
   if (mine(p) && !p.arrest) {
     if (p.ev === 'q') return { t: 'In your line', c: 'n-wait', i: 'steth' };
     if (p.ev === 'doing') { const n = myLeft(p); return { t: 'You’re in the room' + (n ? ` · ${n} min left` : ''), c: 'n-wait', i: 'steth' }; }
@@ -1022,6 +1023,7 @@ function mdPrimary0(p, G) {
   if (p.arrest && mine(p)) return p.ev === 'none'   // audit R5-01: your own patient in arrest
     ? `<div class="prim"><button type="button" class="big bad" data-act="see" data-arg="${p.id}">Run the code</button><p class="hint" style="margin:0">Your patient has <b>no pulse</b>. Every minute without a doctor lowers the odds. <b><span data-cd="${(p.tArrest != null ? p.tArrest : p.tArrive) + E.ARREST_NO_TEAM}"></span></b> before they are gone.</p></div>`
     : `<p class="hint">You're running the code. CPR is going.</p>`;
+  if (MD() && p.prov === G.me && !p.mine && p.ev === 'none') return `<div class="prim">${mtpBtn}<button type="button" class="big ${p.arrest ? 'bad' : 'act'}" data-act="see" data-arg="${p.id}">${p.arrest ? 'Run the code' : 'See this patient'}</button><p class="hint" style="margin:0">${p.arrest ? 'Every minute without a doctor lowers the odds.' : 'The charge nurse put them on your list. They wait for you.'}</p></div>`;   // R1.13-01: a patient handed to the attending can be seen
   if (!mine(p)) {
     const s = E.staff(p.prov), take = p.ev === 'q' && !p.arrest;
     return `<p class="hint">${s ? esc(s.name) : 'Another provider'} has this patient${take ? ' but hasn\'t started' : ''}.</p>${take ? `<div class="prim"><button type="button" class="big" data-act="see" data-arg="${p.id}">Take over</button></div>` : ''}`;

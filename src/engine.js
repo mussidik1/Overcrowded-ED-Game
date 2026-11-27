@@ -601,21 +601,21 @@ function dxPick(pid, pick) {
   p.dxPick = pick; p.dxq = null; p.dxK = true; S.dxCalled = (S.dxCalled || 0) + 1;
   // QA2-1: on a shift, whether the call was right lands when the patient leaves (or the shift ends), not the moment it is picked,
   // so no score, legal risk or line on screen gives it away. Orientation and Lessons still answer at once.
-  if (!G.train) p.dxPend = { right, pick }; else scoreDx(p, right, pick);
+  if (!G.train) p.dxPend = { right, pick, dx: p.dx }; else scoreDx(p, right, pick);   // R1.13-04: the diagnosis as it was at the call (an arrest renames p.dx)
   if (!p.txGap) treatGap(p);
   return { ok: true, right, msg: G.train ? (right ? `Right: ${p.dx}.` : `Not ${pick}. It’s ${p.dx}.`) : `Your diagnosis: ${pick}. The results and how they do will tell.` };   // Phase 6 (R5-05): no instant verdict on a shift
 }
-function scoreDx(p, right, pick) {
-  const S = G.stats.md; p.dxPend = null;
+function scoreDx(p, right, pick, dx0) {
+  const S = G.stats.md; p.dxPend = null; const dxWas = dx0 || p.dx;
   if (right) { S.dxRight = (S.dxRight || 0) + 1; care(8, 'md', p); }
   else {
     S.dxWrong = (S.dxWrong || 0) + 1; care(MUST.has(p.ck) ? -20 : -8, 'md', p);
-    (S.dxLog = S.dxLog || []).push({ name: p.name, said: pick, dx: p.dx, must: MUST.has(p.ck) });
-    if (MUST.has(p.ck)) mm(60, `${p.name}: called ${pick}. It was ${p.dx}`, 'A must-not-miss diagnosis', true);
-    litAdd(MUST.has(p.ck) ? 5 : 2, `missed ${p.dx}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
+    (S.dxLog = S.dxLog || []).push({ name: p.name, said: pick, dx: dxWas, must: MUST.has(p.ck) });
+    if (MUST.has(p.ck)) mm(60, `${p.name}: called ${pick}. It was ${dxWas}`, 'A must-not-miss diagnosis', true);
+    litAdd(MUST.has(p.ck) ? 5 : 2, `missed ${dxWas}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
   }
 }
-const settleDx = p => { if (p && p.dxPend) scoreDx(p, p.dxPend.right, p.dxPend.pick); };
+const settleDx = p => { if (p && p.dxPend) scoreDx(p, p.dxPend.right, p.dxPend.pick, p.dxPend.dx); };
 // Clinical accuracy: diagnoses called right and orders right, against everything called or ordered. Starts at 100.
 function accuracy() {
   const S = G.stats.md || {}, good = (S.dxRight || 0) * 3 + (S.ordRight || 0), bad = (S.dxWrong || 0) * 3 + (S.ordMiss || 0) + (S.ordExtra || 0) + (S.harm || 0) * 3 + (S.dispoWrong || 0) * 2;
@@ -3276,7 +3276,7 @@ function checkDispo(p) {
     if (!p.mdPick) {
       // Teams the field activated (STEMI, stroke, trauma) take the patient. Otherwise it's your call.
       if (p.consult.st !== 'none' && p.dispo !== 'transfer') p.mdPick = 'consult';
-      else { const st = p.gray ? 'decide' : 'mddecide'; if (p.dsp !== st) { p.dsp = st; note(`${label(p)}: ${p.dx}. Your call.`); } return; }
+      else { const st = p.gray ? 'decide' : 'mddecide'; if (p.dsp !== st) { p.dsp = st; note(G.mode === 'md' && !G.train && p.mine ? `${label(p)}: results are in. Your call: home, a consult, or a transfer.` : `${label(p)}: ${p.dx}. Your call.`); } return; }   // R5.13-01: the log doesn't post the answer on the attending's shift
     }
     if (p.reg !== 'done') return;
     if (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done')) return;

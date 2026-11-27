@@ -72,7 +72,10 @@ for (const k of ['syncope', 'synchigh', 'cpmod', 'cwp']) { const p = OC.pt(OC.tr
 // QA4-4: a patient the charge nurse hands over waits for the attending: no credit and no exam until See this patient
 { OC.newGame('hard', 702, { mode: 'md' }); for (let i = 0; i < 1200; i++) OC.step(0.1);
   const h = Object.values(OC.G.pts).filter(p => p.handed && p.prov === OC.G.me);
-  assert(h.length > 0 && h.every(p => !p.mine && p.ev === 'none') && (OC.G.stats.md.seen || 0) === 0, `handed-over patients wait for the attending: none counted as seen, none examined (${h.length} handed)`); }
+  assert(h.length > 0 && h.every(p => !p.mine && p.ev === 'none') && (OC.G.stats.md.seen || 0) === 0, `handed-over patients wait for the attending: none counted as seen, none examined (${h.length} handed)`);
+  // R1.13-01: and the attending can pick one up (See this patient calls assign)
+  const r = OC.assign(OC.G.me, h[0].id);
+  assert(r.ok && h[0].mine && h[0].ev === 'q' && OC.G.stats.md.seen === 1, `a handed-over patient can be seen by the attending (${r.msg || r.why})`); }
 // QA4-3: a missed radio call is one of the attending's worst moments
 { OC.newGame('rush', 703, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
   const R = OC.G.report; assert(!(R.boxC && R.boxC.miss) || (R.mm || []).some(m => /radio call/.test(m.what)), `an idle attending's M&M lists the missed radio calls (${(R.boxC || {}).miss || 0} missed)`); }
@@ -85,3 +88,20 @@ for (const k of ['syncope', 'synchigh', 'cpmod', 'cwp']) { const p = OC.pt(OC.tr
 { OC.newGame('med', 705, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
   const R = OC.G.report, n = (OC.G.stats.md || {}).unseen || 0;
   assert(n > 0 && R.own.clinical < 90 && (R.mm || []).some(m => /never seen/.test(m.what)) && R.stars <= 1, `an idle attending's unseen patients cost Clinical and stars and reach the M&M (${n} unseen, Clinical ${R.own.clinical}%, ${R.stars} stars)`); }
+
+// R5.13-01: the board log doesn't post the true diagnosis when the attending calls it on a shift (played the way a player does)
+{ OC.newGame('med', 5, { mode: 'md' }); const g = OC.G; let picks = 0, leaks = 0;
+  for (let n = 0; n < 7200 && !g.over && picks < 4; n++) {
+    OC.step(0.1); if (g.card) { if (g.card.mine) OC.chooseCard(g.card.choices[0].k); else OC.botStep({ budget: 0 }); }
+    for (const p of OC.active()) { if (!OC.mdMine(p)) continue;
+      if (p.ord === 'need') OC.signOrders(p.id, p.right.wk.slice(), p.right.tr.flatMap(t => { const d = OC.drugsFor(p, t); return d.length ? d : [t]; }));
+      if (p.dxq) { const w = p.dxq.find(x => x !== OC.dxName(p.ck)); OC.dxPick(p.id, w); p._t = g.t; p._dx = p.dx; picks++; }
+      if (p._dx && p.loc === 'room' && g.log.some(l => l.t >= p._t && String(l.msg).includes(p._dx))) { leaks++; p._dx = null; } }
+    if (n % 20 === 0) { const me = OC.staff(g.me); if (me.q.filter(k => !k.started && k.type !== 'box').length < 1) { const nx = OC.inRooms().filter(p => OC.needsProv(p) && !p.prov && p.ev === 'none')[0]; if (nx) OC.assign(g.me, nx.id); } } }
+  assert(picks >= 2 && leaks === 0, `after a call on a shift, the log doesn't name the true diagnosis while the patient is here (${picks} calls, ${leaks} leaks)`); }
+// R1.13-04: a held wrong call is scored against the diagnosis at the call, not the arrest that renamed it
+OC.newGame('easy', 720, { mode: 'md' }); G = OC.G; G.train = null; G.card = null;
+{ const p = CAP('appy'); p.prov = G.me; p.mine = true; p.ev = 'done'; OC.awaitOrders(p); p.dxq = [p.dx, 'Gastroenteritis']; const truth = p.dx;
+  OC.dxPick(p.id, 'Gastroenteritis'); p.dx = 'Cardiac arrest'; OC.settleDx(p);
+  const L = G.stats.md.dxLog || [];
+  assert(L.some(x => x.dx === truth) && (G.mm || []).every(m => !/It was Cardiac arrest/.test(m.what || '')), `a held wrong call is scored against ${truth}, not the arrest that renamed it`); }

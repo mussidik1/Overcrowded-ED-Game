@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-YcqpA/u9X7DlQWpa9zFWJ6vyk0co478fUUqVRYgbaUo=' 'sha256-5DvckFmmWMY/StyiYg0bSMEjpuygQbE1BdCZUsfV7Ck=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-gm1e7bHhtgxzgwm1ycAhSOws7h6wEdCpUXw3fCqwQFg=' 'sha256-9Ux2A7ikDfhiH9K0uyFPYlxYrm/wokOkEbibnneGrH4=' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data: https://ecpxhcqvgxizdadwumqt.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1B2230">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1881,21 +1881,21 @@ function dxPick(pid, pick) {
   p.dxPick = pick; p.dxq = null; p.dxK = true; S.dxCalled = (S.dxCalled || 0) + 1;
   // QA2-1: on a shift, whether the call was right lands when the patient leaves (or the shift ends), not the moment it is picked,
   // so no score, legal risk or line on screen gives it away. Orientation and Lessons still answer at once.
-  if (!G.train) p.dxPend = { right, pick }; else scoreDx(p, right, pick);
+  if (!G.train) p.dxPend = { right, pick, dx: p.dx }; else scoreDx(p, right, pick);   // R1.13-04: the diagnosis as it was at the call (an arrest renames p.dx)
   if (!p.txGap) treatGap(p);
   return { ok: true, right, msg: G.train ? (right ? `Right: ${p.dx}.` : `Not ${pick}. It’s ${p.dx}.`) : `Your diagnosis: ${pick}. The results and how they do will tell.` };   // Phase 6 (R5-05): no instant verdict on a shift
 }
-function scoreDx(p, right, pick) {
-  const S = G.stats.md; p.dxPend = null;
+function scoreDx(p, right, pick, dx0) {
+  const S = G.stats.md; p.dxPend = null; const dxWas = dx0 || p.dx;
   if (right) { S.dxRight = (S.dxRight || 0) + 1; care(8, 'md', p); }
   else {
     S.dxWrong = (S.dxWrong || 0) + 1; care(MUST.has(p.ck) ? -20 : -8, 'md', p);
-    (S.dxLog = S.dxLog || []).push({ name: p.name, said: pick, dx: p.dx, must: MUST.has(p.ck) });
-    if (MUST.has(p.ck)) mm(60, `${p.name}: called ${pick}. It was ${p.dx}`, 'A must-not-miss diagnosis', true);
-    litAdd(MUST.has(p.ck) ? 5 : 2, `missed ${p.dx}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
+    (S.dxLog = S.dxLog || []).push({ name: p.name, said: pick, dx: dxWas, must: MUST.has(p.ck) });
+    if (MUST.has(p.ck)) mm(60, `${p.name}: called ${pick}. It was ${dxWas}`, 'A must-not-miss diagnosis', true);
+    litAdd(MUST.has(p.ck) ? 5 : 2, `missed ${dxWas}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
   }
 }
-const settleDx = p => { if (p && p.dxPend) scoreDx(p, p.dxPend.right, p.dxPend.pick); };
+const settleDx = p => { if (p && p.dxPend) scoreDx(p, p.dxPend.right, p.dxPend.pick, p.dxPend.dx); };
 // Clinical accuracy: diagnoses called right and orders right, against everything called or ordered. Starts at 100.
 function accuracy() {
   const S = G.stats.md || {}, good = (S.dxRight || 0) * 3 + (S.ordRight || 0), bad = (S.dxWrong || 0) * 3 + (S.ordMiss || 0) + (S.ordExtra || 0) + (S.harm || 0) * 3 + (S.dispoWrong || 0) * 2;
@@ -4556,7 +4556,7 @@ function checkDispo(p) {
     if (!p.mdPick) {
       // Teams the field activated (STEMI, stroke, trauma) take the patient. Otherwise it's your call.
       if (p.consult.st !== 'none' && p.dispo !== 'transfer') p.mdPick = 'consult';
-      else { const st = p.gray ? 'decide' : 'mddecide'; if (p.dsp !== st) { p.dsp = st; note(`${label(p)}: ${p.dx}. Your call.`); } return; }
+      else { const st = p.gray ? 'decide' : 'mddecide'; if (p.dsp !== st) { p.dsp = st; note(G.mode === 'md' && !G.train && p.mine ? `${label(p)}: results are in. Your call: home, a consult, or a transfer.` : `${label(p)}: ${p.dx}. Your call.`); } return; }   // R5.13-01: the log doesn't post the answer on the attending's shift
     }
     if (p.reg !== 'done') return;
     if (p.need && !p.need.every(k => p.work[k] && p.work[k].st === 'done')) return;
@@ -6398,7 +6398,7 @@ const fm = m => { m = Math.max(0, Math.round(m)); return m < 60 ? m + 'm' : Math
 const fl = v => (Math.round(v * 10) / 10).toString();
 const RC = { md: 'r-md', app: 'r-app', rn: 'r-rn', pct: 'r-pct', evs: 'r-evs', rt: 'r-rt', rph: 'r-rph', reg: 'r-reg', tp: 'r-tp', uc: 'r-uc' };
 const ZSHORT = { resus: 'Resus', a: 'A', b: 'B', c: 'C', d: 'D', e: 'E', hall: 'Hall', ft: 'FT', rp: 'Chairs' };
-const dxShown = p => (p.dxK && (!p.alertOn || p.ev === 'done')) ? (p.dxPick && !(g() && g().train) && p.mine ? p.dxPick : p.dx) : null;   // Phase 6 (R5-05): on a shift the card shows the attending's own call
+const dxShown = p => (p.dxK && (!p.alertOn || p.ev === 'done')) ? (p.dxPick && !(g() && g().train) && p.mine && !p.arrest && !p.rosc ? p.dxPick : p.dx) : null;   // Phase 6 (R5-05): on a shift the card shows the attending's own call
 const dxOr = p => dxShown(p) || p.cc;
 function emoji(p) { const a = p.age; if (a < 2) return '👶'; if (a < 13) return p.sex === 'F' ? '👧' : '👦'; if (a < 60) return p.sex === 'F' ? '👩' : '👨'; return p.sex === 'F' ? '👵' : '👴'; }
 const esiKnown = p => p.tri === 'done' || p.alertOn || p.crash || p.arrest || ['room', 'waiting', 'gone'].includes(p.loc);
@@ -6882,6 +6882,7 @@ function myLeft(p) { const me = E.staff(g().me), k = me && me.q[0]; return k && 
 /* What a room needs next: t = words, c = tone, i = the icon the floor plan shows. */
 function nextStep(p, r, G) {
   const pv = p.prov ? E.staff(p.prov) : null, nm = pv ? (isMe(pv) ? 'You' : esc(pv.short)) : '';
+  if (MD() && p.prov === G.me && !p.mine && p.ev === 'none' && !p.arrest) return { t: 'On your list: see them', c: 'n-act fl', i: 'steth' };   // R1.13-01
   if (mine(p) && !p.arrest) {
     if (p.ev === 'q') return { t: 'In your line', c: 'n-wait', i: 'steth' };
     if (p.ev === 'doing') { const n = myLeft(p); return { t: 'You’re in the room' + (n ? ` · ${n} min left` : ''), c: 'n-wait', i: 'steth' }; }
@@ -7350,6 +7351,7 @@ function mdPrimary0(p, G) {
   if (p.arrest && mine(p)) return p.ev === 'none'   // audit R5-01: your own patient in arrest
     ? `<div class="prim"><button type="button" class="big bad" data-act="see" data-arg="${p.id}">Run the code</button><p class="hint" style="margin:0">Your patient has <b>no pulse</b>. Every minute without a doctor lowers the odds. <b><span data-cd="${(p.tArrest != null ? p.tArrest : p.tArrive) + E.ARREST_NO_TEAM}"></span></b> before they are gone.</p></div>`
     : `<p class="hint">You're running the code. CPR is going.</p>`;
+  if (MD() && p.prov === G.me && !p.mine && p.ev === 'none') return `<div class="prim">${mtpBtn}<button type="button" class="big ${p.arrest ? 'bad' : 'act'}" data-act="see" data-arg="${p.id}">${p.arrest ? 'Run the code' : 'See this patient'}</button><p class="hint" style="margin:0">${p.arrest ? 'Every minute without a doctor lowers the odds.' : 'The charge nurse put them on your list. They wait for you.'}</p></div>`;   // R1.13-01: a patient handed to the attending can be seen
   if (!mine(p)) {
     const s = E.staff(p.prov), take = p.ev === 'q' && !p.arrest;
     return `<p class="hint">${s ? esc(s.name) : 'Another provider'} has this patient${take ? ' but hasn\'t started' : ''}.</p>${take ? `<div class="prim"><button type="button" class="big" data-act="see" data-arg="${p.id}">Take over</button></div>` : ''}`;
