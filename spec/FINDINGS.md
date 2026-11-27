@@ -165,3 +165,20 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 | F-107 | 15a | Low | QA4-13: Playing a class code leaves its role and scenario on the menu with no notice | Open |  |
 | F-108 | 15a | Low | QA4-14: Gate password in plain text (owner chose not to harden the gate) | Accepted (owner, gate) |  |
 
+## Stage 15a round 5 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-109 | 15a | Medium | QA5-1: Full names pass the first-name rule: BOB JONES, JO SMITH (capitals read as initials), Ana.Smith, AnaSmith | Open |  |
+| F-110 | 15a | Medium | QA5-2: The profanity check refuses real names by substring: Yoshito, Yoshitaka, Ashita, Shitara, Fagan | Open |  |
+| F-111 | 15a | Medium | QA5-3: The attending's report credits disposition points with no dispositions (staff actions land in the attending's ledger); Clinical counts radio calls with no patients seen | Open |  |
+| F-112 | 15a | Medium | QA5-4: The bleed-neglect messages tell the attending the diagnosis and treatment ("in hemorrhagic shock. They need fluids and blood now.") | Open |  |
+| F-113 | 15a | Medium | QA5-5: The syncope score (and HEART) counts a normal troponin that was never ordered | Open |  |
+| F-114 | 15a | Low | QA5-6: Missing space after the notice on the Class code sheet | Open |  |
+| F-115 | 15a | Low | QA5-7: Text under 12 px: Class code notice 11.25 px, list-board patient names 11.7 px at 360 px, tiny 3D labels sideways | Open |  |
+| F-116 | 15a | Low | QA5-8: Targets under 44 px: list pod headers 22 px, sideways Waiting-room bar 16 px, About credit links | Open |  |
+| F-117 | 15a | Low | QA5-9: 360 px crowding: vitals pill clipped; the meter overlaps provider chips | Open |  |
+| F-118 | 15a | Low | QA5-10: Focus falls to the page after the shift-intro card; the page body is a Tab stop | Open |  |
+| F-119 | 15a | Low | QA5-11: The Orientation step counter jumps from 16 to 19 of 27 | Open |  |
+| F-120 | 15a | Low | QA5-12: "1 Diagnoses" (grammar) | Open |  |
+| F-121 | 15a | Low | QA5-13: Gate password in plain text (owner chose not to harden the gate) | Accepted (owner, gate) |  |

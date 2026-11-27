@@ -122,3 +122,20 @@ Functionality and Visual design pass at their thresholds exactly.
 ### Bugs
 
 Medium 4, Low 10. They are QA4-1 to QA4-14 in `spec/FINDINGS.md`, as F-095 to F-108.
+
+## Round 5: Nov 27, 2026, v0.33.0 candidate (work branch at a13ca66), local copy
+
+**Verdict: FAIL.** Two criteria are under threshold: Functionality 7 of 8 and Clinical safety 9 of 10. No Critical or High bug.
+
+| Criterion | Score | Threshold | Result | Key evidence |
+|---|---|---|---|---|
+| Functionality | 7 | 8 | FAIL | All core flows complete in both roles. Failing acceptance criteria: REQ-11 AC1 (disposition points with no dispositions, QA5-3), REQ-16 AC1 (full names in capitals or joined pass; real names refused, QA5-1, QA5-2), REQ-07 AC5 (bleed-neglect message, QA5-4). |
+| Product depth | 8 | 7 | PASS | Full content; harder levels and hand-overs scale as specified. Deductions: QA5-3, QA5-5. |
+| Visual design and usability | 7 | 7 | PASS | No sideways scroll; one obvious action; small targets and text remain (QA5-6 to QA5-10). |
+| Code quality | 7 | 6 | PASS | No `Math.random` in the engine; no inline handlers; JSON state with an exact round trip; same arrivals on one code. |
+| Offline and install | 9 | 8 | PASS | Chrome reports no installability errors; offline with 3D; update swaps the cache and keeps Resume. |
+| Clinical safety | 9 | 10 | FAIL | The notice is everywhere QA looked; the name isn't stored. Gap: the first-name-only promise can be got around (QA5-1). |
+
+### Bugs
+
+Medium 5, Low 8. They are QA5-1 to QA5-13 in `spec/FINDINGS.md`, as F-109 to F-121.
