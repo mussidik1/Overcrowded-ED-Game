@@ -95,3 +95,30 @@ stops here and the owner gets a summary.
 ### Bugs
 
 Medium 4, Low 9. They are QA3-1 to QA3-13 in `spec/FINDINGS.md`, as F-082 to F-094.
+
+## Round 4: Nov 27, 2026, v0.33.0 candidate (work branch at 4c70f7e), local copy (the owner chose one more round after round 3)
+
+**Verdict: FAIL.** One criterion is under threshold: Clinical safety 9 of 10. No Critical or High bug. Five criteria pass;
+Functionality and Visual design pass at their thresholds exactly.
+
+- **Browser:** Chromium at 390x844, 844x390, 360x640 and 1280x800.
+- **Server:** Supabase mocked with request routing; the gate was tested as edcodeblack.com.
+- **Build check:** `npm test` (778 ok, 0 FAIL) and lint were clean. The served `index.html` is identical to the repo's.
+
+| Criterion | Score | Threshold | Result | Key evidence |
+|---|---|---|---|---|
+| Functionality | 8 | 8 | PASS | Both Orientations; 12 played and read-through lessons plus a case card; shifts in both roles; class code, Send, results and delete (mock); resume; crash guard; stale save; offline; gate. Held at 8 by QA4-1 to QA4-4. |
+| Product depth | 8 | 7 | PASS | 32 lessons, about 60 orders, harm reasons, HEART and Canadian Syncope scores, ACLS and PALS cards, returns, a report that explains. |
+| Visual design and usability | 7 | 7 | PASS | No sideways scroll; 44 px menus. Against: toasts over cards (QA4-1), pill labels hidden while a message shows (QA4-7), small targets (QA4-8), overlaps (QA4-9). |
+| Code quality | 7 | 6 | PASS | CSP with hashes; no inline handlers; no `Math.random` in the engine; exact save round trip; class-code sync 4 of 4; tests and lint pass. |
+| Offline and install | 8 | 8 | PASS | Service worker cache `overcrowded-0.33.0-…`; offline reload, resume and 3D; manifest; a new version served on the next load. |
+| Clinical safety | 9 | 10 | FAIL | The notice is everywhere the spec names, plus the order sheet and radio and code cards; no personal data. Gap: How to play, the glossary, and in-shift charge-nurse patient cards (QA4-11). |
+
+### REQ walk (summary)
+
+- **Pass:** every REQ but REQ-11.
+- **Partial:** REQ-11 (attending report contradictions: QA4-3, 4, 6).
+
+### Bugs
+
+Medium 4, Low 10. They are QA4-1 to QA4-14 in `spec/FINDINGS.md`, as F-095 to F-108.
