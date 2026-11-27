@@ -139,3 +139,21 @@ Medium 4, Low 10. They are QA4-1 to QA4-14 in `spec/FINDINGS.md`, as F-095 to F-
 ### Bugs
 
 Medium 5, Low 8. They are QA5-1 to QA5-13 in `spec/FINDINGS.md`, as F-109 to F-121.
+
+## Round 6: Nov 27, 2026, v0.33.0 candidate (work branch at 7bb5e19), local copy
+
+**Verdict: FAIL.** Two High bugs are open, and two criteria are under threshold. Clinical safety passes for the first time
+(10 of 10).
+
+| Criterion | Score | Threshold | Result | Key evidence |
+|---|---|---|---|---|
+| Functionality | 7 | 8 | FAIL | Every core flow completes. Broken: REQ-07 AC5 (QA6-1) and REQ-11 AC1 (QA6-2); edge flows QA6-4, 5, 6. |
+| Product depth | 6 | 7 | FAIL | Real content and teaching throughout, but the attending's grade doesn't follow from play: an idle attending got Clinical 100% and 2 stars while handed-over patients waited 12 hours (QA6-2). HEART card contradiction (QA6-3). |
+| Visual design and usability | 7 | 7 | PASS | No sideways scroll; clear actions; keyboard dialogs work. Small targets and text remain (QA6-8). |
+| Code quality | 7 | 6 | PASS | One file with hashed CSP; no `Math.random` in the engine; delegated taps; JSON save; identical arrivals for three students on one code. |
+| Offline and install | 8 | 8 | PASS | Offline menu, resume and 3D; manifest; an update served on one reload with the save resumed. |
+| Clinical safety | 10 | 10 | PASS | The notice is everywhere clinical content shows; Send carries only initials and numbers; initials not stored; nothing personal cached or logged. |
+
+### Bugs
+
+High 2, Medium 2, Low 8. They are QA6-1 to QA6-12 in `spec/FINDINGS.md`, as F-122 to F-133.
