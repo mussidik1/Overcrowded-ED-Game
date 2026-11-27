@@ -611,7 +611,7 @@ function scoreDx(p, right, pick, dx0) {
   else {
     S.dxWrong = (S.dxWrong || 0) + 1; care(MUST.has(p.ck) ? -20 : -8, 'md', p);
     (S.dxLog = S.dxLog || []).push({ name: p.name, said: pick, dx: dxWas, must: MUST.has(p.ck) });
-    if (MUST.has(p.ck)) mm(60, `${p.name}: called ${pick}. It was ${dxWas}`, 'A must-not-miss diagnosis', true);
+    if (MUST.has(p.ck)) mm(60, `${p.name}: ${pick === 'no diagnosis called' ? 'no diagnosis called' : 'called ' + pick}. It was ${dxWas}`, 'A must-not-miss diagnosis', true);
     litAdd(MUST.has(p.ck) ? 5 : 2, `missed ${dxWas}${MUST.has(p.ck) ? ' (must not miss)' : ''}`, p);
   }
 }
@@ -848,7 +848,7 @@ function scores() { return { patients: patientScore(), clinical: scoreOf('clinic
    as context. A part with nothing to grade yet (no diagnosis called, no radio call) is left out rather than counted as perfect. */
 function mdScores() {
   const S = G.stats, M = S.md || {}, dn = (M.dxRight || 0) + (M.dxWrong || 0), B = S.boxC || {}, rn = (B.right || 0) + (B.wrong || 0) + (B.miss || 0);
-  return { clinical: scoreOf('clinical'), dx: dn ? Math.round(100 * (M.dxRight || 0) / dn) : null, radio: rn ? Math.round(100 * (B.right || 0) / rn) : null, legal: Math.max(0, Math.min(100, Math.round(100 - (G.lit || 0)))) };
+  return { clinical: M.seen ? scoreOf('clinical') : null, dx: dn ? Math.round(100 * (M.dxRight || 0) / dn) : null, radio: rn ? Math.round(100 * (B.right || 0) / rn) : null, legal: Math.max(0, Math.min(100, Math.round(100 - (G.lit || 0)))) };
 }
 const gradeParts = () => { if (G.mode === 'md') { const m = mdScores(); return [m.clinical, m.dx, m.radio, m.legal]; } const s = scores(); return [s.patients, s.clinical, s.admin, s.staff]; };
 function avgScore() { const v = gradeParts().filter(x => x != null); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0; }
@@ -858,7 +858,17 @@ function avgScore() { const v = gradeParts().filter(x => x != null); return v.le
 const PACE = [15, 25, 40];
 const paceStars = w => (w <= PACE[0] ? 3 : w <= PACE[1] ? 2 : w <= PACE[2] ? 1 : 0);
 const paced = () => G.level === 'rush' && G.mode !== 'md';
-function overallStars() { if (paced()) return Math.min(baseStars(), paceStars(avgWait())); return baseStars(); }
+/* Round 13 (R5.13-02, R5.13-05, R1.13-03): the attending's stars are capped by the work: patients the attending saw. Seeing patients is the
+   job, so an attending who sees nobody earns no stars, whatever the radio did. A full shift: 30 for three stars, 15 for two, 6 for one;
+   the Rush: 6, 3 and 1. (An engaged attending sees 40 to 50 in a shift, a slow one about 20.) */
+const SEEN_FOR = { shift: [30, 15, 6], rush: [6, 3, 1] };
+const seenLim = () => SEEN_FOR[G.level === 'rush' ? 'rush' : 'shift'];
+const seenStars = n => { const L = seenLim(); return n >= L[0] ? 3 : n >= L[1] ? 2 : n >= L[2] ? 1 : 0; };
+function overallStars() {
+  if (paced()) return Math.min(baseStars(), paceStars(avgWait()));
+  if (G.mode === 'md' && !G.train) return Math.min(baseStars(), seenStars((G.stats.md || {}).seen || 0));
+  return baseStars();
+}
 function baseStars() { const v = gradeParts(); if (G.mode === 'md') { const w = v.filter(x => x != null); return w.length ? Math.round(w.reduce((n, x) => n + scoreStars(x), 0) / w.length) : 0; } return Math.round(v.reduce((n, x) => n + scoreStars(x == null ? 100 : x), 0) / 4); }
 const scoreStars = v => (v == null ? 0 : v >= 85 ? 3 : v >= 70 ? 2 : v >= 55 ? 1 : 0);
 function care(n, tag, p) {
@@ -2049,6 +2059,7 @@ function workGap(p) {
   return true;
 }
 function treatGap(p) {
+  if (!p.right) return;   // verification side note: a patient nobody wrote orders for has no plan to measure against
   const gap = p.right.tr.filter(k => !p.tr.includes(k));
   if (gap.length) { p.txGap = gap; p.tGap = G.t; if (!G.pre) note(`${label(p)} isn't improving. Something isn't treated.`, 'bad'); }
 }
@@ -3468,14 +3479,20 @@ function toggleStat(pid) {
 }
 // QA6-2: a patient the charge nurse put on the attending's list and the attending never saw counts against the attending: when they
 // leave, or when the shift ends with them still waiting.
-function unseenHanded(p, how) {
+function unseenHanded(p, how, end) {
   if (!p || !p.handed || p.mine || p.unseenDone || G.mode !== 'md' || G.train || G.pre) return;
+  if (end && p.tHanded != null && G.t - p.tHanded < 30) { p.unseenDone = true; return; }   // R6.13-08: put on the list in the last half hour: a sign-out, not a miss
   p.unseenDone = true; care(-25, 'md', p); litAdd(5, `on your list and never seen (${how})`, p);
   G.stats.md.unseen = (G.stats.md.unseen || 0) + 1;
   mm(55, `${p.name} was on your list and never seen`, how[0].toUpperCase() + how.slice(1), true);
 }
+// R5.13-03: a diagnosis the attending was asked for and never called counts as not called (scored as a miss), not left out of the grade
+function noCall(p) {
+  if (!p || !p.dxq || !p.mine || G.mode !== 'md' || G.train || G.pre) return;
+  p.dxq = null; G.stats.md.dxNone = (G.stats.md.dxNone || 0) + 1; scoreDx(p, false, 'no diagnosis called');
+}
 function leave(p, outcome) {
-  settleDx(p); unseenHanded(p, outcome === 'expired' ? 'they died waiting' : ['lwbs', 'ama'].includes(outcome) ? 'they left without being seen by you' : 'another doctor finished their care');
+  settleDx(p); noCall(p); unseenHanded(p, outcome === 'expired' ? 'they died waiting' : ['lwbs', 'ama'].includes(outcome) ? 'they left without being seen by you' : 'another doctor finished their care');
   const r = roomOf(p);
   if (r) { r.pid = null; if (r.kind === 'chair') r.st = 'clean'; else { r.st = 'dirty'; r.dirt = (p.iso || outcome === 'expired') ? 'term' : 'std'; } }
   if (p.loc === 'triage') { const i = G.triageQ.indexOf(p.id); if (i >= 0) G.triageQ.splice(i, 1); }
@@ -3736,6 +3753,14 @@ function minuteTick() {
       if ((p.ord === 'need' || p.ord === 'more') && p.loc === 'room') { p.ordWait = (p.ordWait || 0) + 1; if (p.ordWait > 15) care(-0.3, 'md'); }
       if (p.dsp === 'mddecide' || p.dsp === 'decide' || p.dxq) { p.decWait = (p.decWait || 0) + 1; if (p.decWait > 15) care(-0.3, 'md'); }
       if (p.ev === 'q' && p.loc === 'room') { p.queueWait = (p.queueWait || 0) + 1; if (p.queueWait > 30) care(-0.2, 'md'); }
+    }
+    // Round 13 (R5.13-04, R6.13-02, F-134): a patient put on the attending's list waits for the attending, and waiting costs. After 45 minutes
+    // unseen the sickest get visibly worse (pale, fast, the pressure falling); after an hour the charge nurse gives them to another doctor,
+    // and it counts as never seen. The clock runs from the hand-over.
+    if (G.mode === 'md' && !G.train && p.handed && !p.mine && p.prov === G.me && p.ev === 'none' && p.loc === 'room' && p.tHanded != null && !p.arrest) {
+      const w = t - p.tHanded;
+      if (w > 45 && !p.handWorse && vEsi(p) <= 2) { p.handWorse = true; if (!p.crash) { p.crash = true; p.tCrash = t; } care(-5, 'md', p); litAdd(2, 'got worse waiting for you on your list', p); toast(`${label(p)} looks worse: pale, heart racing, pressure falling. They're still waiting for you.`, 'bad'); sound('bad'); }
+      if (w > 60) { unseenHanded(p, 'after an hour the charge nurse gave them to another doctor'); p.prov = null; note(`The charge nurse gave ${label(p)} to another doctor.`, 'bad'); }
     }
     if (mdMine(p) && p.txGap && p.txGap.length && !p.txHarm && t - p.tGap > 20) {
       p.txHarm = true; G.stats.md.untreated++; care(-20, 'harm', p); litAdd(MUST.has(p.ck) ? 10 : 5, 'left untreated for 20 minutes', p);
@@ -4522,7 +4547,7 @@ function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' 
 function endShift(reason) {
   if (G.over) return;
   // calls not yet settled, and patients left unseen, count at the end: once, with no card or firing after them, and not after a firing (R1.13-05, R3.13-07)
-  if (reason !== 'fired') { G.ending = true; for (const id of G.order) { const q = G.pts[id]; settleDx(q); if (q && q.loc !== 'gone') unseenHanded(q, 'they were still waiting when the shift ended'); } }
+  if (reason !== 'fired') { G.ending = true; for (const id of G.order) { const q = G.pts[id]; settleDx(q); if (q && q.loc !== 'gone') { unseenHanded(q, 'they were still waiting when the shift ended', true); noCall(q); } } }
   delete G.ending; delete G.fireNow;
   if (!G.pre && G.stats.returnsLate && G.mode !== 'md') care(-20 * G.stats.returnsLate, 'returns');
   G.over = true; G.running = false; G.fail = reason === 'walkout' || reason === 'fired' ? reason : null;
@@ -4547,7 +4572,7 @@ function endShift(reason) {
   const S = G.stats;
   G.report = {
     level: G.level, scen: G.scen || 'none', pack: G.pack, code: G.code || null, endMin: Math.round(Math.min(G.t, G.shift || G.t)), realSec: Math.round(S.realSec || 0), spdSec: S.spdSec || null, bedFirst: S.bedFirst || 0, fail: G.fail, care: Math.round(G.care), wait: Math.round(avgWait()), sat: Math.round(staffSat()),
-    stars: G.fail ? 0 : overallStars(), avg: avgScore(), own: G.mode === 'md' ? mdScores() : null, pace: paced() ? { wait: Math.round(avgWait()), stars: paceStars(avgWait()), lim: PACE.slice() } : null,
+    stars: G.fail ? 0 : overallStars(), avg: avgScore(), own: G.mode === 'md' ? mdScores() : null, seenCap: G.mode === 'md' && !G.train ? { n: (G.stats.md || {}).seen || 0, stars: seenStars((G.stats.md || {}).seen || 0), lim: seenLim().slice() } : null, pace: paced() ? { wait: Math.round(avgWait()), stars: paceStars(avgWait()), lim: PACE.slice() } : null,
     seen: list.length, dc: S.dc, adm: S.admit + S.icu + S.bh, proc: S.or + S.cath, tx: S.tx, lwbs: S.lwbs, ama: S.ama,
     expired: S.expired + deadHere.length,   // audit R5-02: the dead who haven't left yet count too, whenever they arrived (R6.8-01)
     noTeam: S.noTeam || 0, lyticLate: S.lyticLate || 0,
@@ -4652,7 +4677,7 @@ function botStep(o) {
     // Phase 6 (R5-04): the attending's own load grows with the level. The game's charge nurse hands the sickest new patients (ESI 1 and 2)
     // straight to the attending up to MD_LOAD of them at once, and holds the rest longer for the attending on harder levels (the other
     // doctors are busier). Easy keeps today's pace.
-    if (G.mode === 'md' && !G.pre && !G.train && needsProv(p) && !p.prov && !p.arrest && vEsi(p) <= 2 && mdLoad() < (MD_LOAD[G.level] || 0) && canAssign(staff(G.me), p).ok) add(5, () => { if (p.prov) return false; p.prov = G.me; p.handed = true; note(`The charge nurse put ${label(p)} on your list. See them when you can.`); return true; });   // QA4-4: handed over, not seen: the attending sees them (and gets the credit) with See this patient
+    if (G.mode === 'md' && !G.pre && !G.train && needsProv(p) && !p.prov && !p.arrest && !p.handed && vEsi(p) <= 2 && mdLoad() < (MD_LOAD[G.level] || 0) && canAssign(staff(G.me), p).ok) add(5, () => { if (p.prov) return false; p.prov = G.me; p.handed = true; p.tHanded = G.t; toast(`The charge nurse put ${label(p)} on your list. See them soon: they wait for you.`, 'info'); return true; });   // R5.13-04: a toast, not just a log line   // QA4-4: handed over, not seen: the attending sees them (and gets the credit) with See this patient
     const mdWait = G.mode === 'md' && !(p.prov && p.prov !== G.me) && G.t - (p.tNeed != null ? Math.max(p.tNeed, p.tRoom) : p.tRoom) < (p.arrest ? 1 : (vEsi(p) <= 2 ? 6 : 15) * (MD_HOLD[G.level] || 1));
     if (needsProv(p) && o.prov !== false && !(G.mode === 'md' && p.prov === G.me) && !mdWait) add(vEsi(p) <= 2 ? 4.5 : 7, () => {
       if (!needsProv(p)) return false;
@@ -4746,7 +4771,7 @@ function mdPlay(o) {
   for (const p of inRooms()) if (mdMine(p) && p.arrest && p.ev === 'none') act(() => assign(G.me, p.id).ok);   // your own patient arrested: run the code
   const line = me.q.filter(k => !k.started && k.type !== 'box').length;
   if (line < (o.line || 2) && me.st === 'on') {
-    const next = inRooms().filter(p => needsProv(p) && !p.prov && p.ev === 'none').sort((a, b) => (b.arrest - a.arrest) || vEsi(a) - vEsi(b) || a.tRoom - b.tRoom)[0];
+    const next = inRooms().filter(p => needsProv(p) && (!p.prov || (p.handed && !p.mine && p.prov === G.me)) && p.ev === 'none').sort((a, b) => (b.arrest - a.arrest) || vEsi(a) - vEsi(b) || a.tRoom - b.tRoom)[0];
     if (next) act(() => assign(G.me, next.id).ok);
   }
 }
@@ -5042,6 +5067,6 @@ const RADIO_BTN = {
   miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
 };
 for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
-Object.assign(OC, { WATCH_WHY, settleDx, mdScores, ordWhy, detResult, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
+Object.assign(OC, { WATCH_WHY, settleDx, noCall, seenStars, mdScores, ordWhy, detResult, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);

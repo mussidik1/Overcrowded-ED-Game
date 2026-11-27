@@ -95,6 +95,9 @@ const aAn = w => (/^[AEIOU]/i.test(w) ? 'an ' : 'a ') + w;
 const MD = () => { const G = E.G; return !!(G && G.mode === 'md' && U.scene !== 'title'); };   // game or its report
 const isMe = s => !!(s && MD() && s.id === E.G.me);
 const mine = p => !!(p && MD() && p.mine && p.prov === E.G.me);
+// R6.13-01: on the attending's regular shift, a bleeding patient shows signs (pale, fast, pressure falling) until the diagnosis is known
+// or massive transfusion is running; MTP stays an order on the sheet. The charge nurse and Orientation keep the plain hint.
+const mtpHid = p => !!(p && MD() && !(E.G && E.G.train) && !p.dxK && !p.bb);
 function head(title, sub) { return `<div class="sh-h"><div><h3>${title}</h3>${sub ? `<div class="sh-sub">${sub}</div>` : ''}</div></div>`; }
 const PLAIN = () => store('oc-plain') !== '0';   // plain words under results and radio calls; on unless switched off
 const Q3D_NAME = { auto: 'auto', high: 'sharp', med: 'balanced', low: 'battery saver' };
@@ -565,7 +568,7 @@ function nextStep(p, r, G) {
     if (p.txGap && p.txGap.length && !LEAVING.includes(p.dsp)) return { t: E.vitalsOf(p).trend === 'better' ? 'Missing an order' : 'Not improving', c: 'n-bad fl', i: 'alert' };
   }
   if (p.arrest) return p.ev === 'doing' ? { t: 'Code in progress', c: 'n-code', i: 'code' } : p.ev === 'q' ? { t: 'Code: ' + nm, c: 'n-code', i: 'code' } : { t: MD() ? 'CODE: run it' : 'CODE: send an MD', c: 'n-code fl', i: 'code' };
-  if (p.bleed === 'mtp' && !p.bb && p.dsp === 'none') return { t: p.shock ? 'SHOCK: activate MTP' : 'Bleeding: activate MTP', c: 'n-bad fl', i: 'blood' };
+  if (p.bleed === 'mtp' && !p.bb && p.dsp === 'none') return mtpHid(p) ? { t: 'Unstable: pale and fast', c: 'n-bad fl', i: 'alert' } : { t: p.shock ? 'SHOCK: activate MTP' : 'Bleeding: activate MTP', c: 'n-bad fl', i: 'blood' };
   if (!E.zoneNurses(r.z).length && !(E.isBoarder(p) && hasHold())) return { t: 'No nurse!', c: 'n-bad fl', i: 'nurse' };
   if (p.sitter && !r.safe && !p.sitBy) return { t: 'Needs a sitter', c: 'n-bad fl', i: 'eye' };
   switch (p.dsp) {
@@ -620,7 +623,7 @@ function tagsHTML(p) {
   if (p.bleed) {
     const k = p.bleed === 'mtp' ? 'mtp' : 'blood', it = p.treat[k];
     const s = it && it.st === 'done' ? 'done' : p.bleed === 'mtp' && !p.bb ? 'need' : p.bb ? 'run' : 'pend';
-    out.push(`<i class="tg ${s}">${p.bleed === 'mtp' ? 'MTP' : 'BLOOD'}</i>`);
+    out.push(`<i class="tg ${s}">${mtpHid(p) ? 'UNSTABLE' : p.bleed === 'mtp' ? 'MTP' : 'BLOOD'}</i>`);
   }
   return out.join('');
 }
@@ -830,7 +833,7 @@ function goalRow(p, k) {
 }
 function primary(p, G) { return primary0(p, G) + helpBlock(p); }
 function primary0(p, G) {
-  const mtpBtn = p.bleed === 'mtp' && !p.bb ? `<button type="button" class="big bad" data-act="mtp" data-arg="${p.id}">Activate massive transfusion</button>` : '';
+  const mtpBtn = p.bleed === 'mtp' && !p.bb && !mtpHid(p) ? `<button type="button" class="big bad" data-act="mtp" data-arg="${p.id}">Activate massive transfusion</button>` : '';
   if ((p.loc === 'wall' || p.loc === 'triage') && !intakeDone(p)) return intakeBlock(p, G, mtpBtn);
   if (['wall', 'waiting', 'triage'].includes(p.loc)) return `<div class="prim">${mtpBtn}<button type="button" class="big act" data-act="placeSel" data-arg="${p.id}">Choose a room</button>${p.loc === 'wall' && ve(p) >= 3 && !p.alertOn ? `<button type="button" class="big" data-act="toWait" data-arg="${p.id}">Hand off to the waiting room</button>` : ''}${p.loc === 'waiting' ? recheckBlock(p, G) : ''}</div>`;
   if (p.loc === 'enroute') return `${mtpBtn ? `<div class="prim">${mtpBtn}</div>` : ''}<p class="hint">Inbound, ETA <span data-cd="${p.eta}"></span>. Have a ${p.esi === 1 ? 'resus bay' : 'room'} clean and ready.</p>`;
@@ -979,7 +982,7 @@ function ptSheet(G, p) {
   if (p.ck === 'afib' && p.dxK) { const h = E.afOnset(p); kv.push(['Onset', h != null ? `Started about <b>${h} hours</b> ago` : 'Not sure when it started: <b>at least a few days</b>']); }
   if (p.iso && p.screen !== 'pending') kv.push(['Isolation', p.iso === 'air' ? 'Airborne. Room 8 or 16.' : 'Droplet. Mask, and a room with a door.']);
   if (p.sitter) kv.push(['Safety', 'Needs a safe room (19 or 20) or a 1:1 sitter']);
-  if (p.bleed === 'mtp') kv.push(['Bleeding', p.bb ? 'Massive transfusion activated' : '<b>Hemorrhage. Activate MTP.</b>']);
+  if (p.bleed === 'mtp') kv.push(mtpHid(p) ? ['Looks', '<b>Pale and sweaty, heart racing, pressure falling.</b>'] : ['Bleeding', p.bb ? 'Massive transfusion activated' : '<b>Hemorrhage. Activate MTP.</b>']);   // R6.13-01: signs, not the diagnosis, for the attending
   else if (p.bleed === 'prbc' && (!MD() || p.treat.blood)) kv.push(['Blood', p.treat.blood && p.treat.blood.st === 'done' ? 'Transfusion given' : MD() ? 'Transfusion ordered' : 'Needs a transfusion']);   // the attending decides that for themselves
   if (p.ret) kv.push(['Return', 'Seen here earlier today and back sicker']);
   if (p.gray && p.ev === 'done' && p.dxK) {   // QA5-5: a troponin that wasn't drawn isn't shown as normal; a HEART score needs one
@@ -1016,7 +1019,7 @@ const ORDER_TX = [['meds', 'Medications', 'Pain, nausea, pills, the usual drug']
   ['blood', 'Blood transfusion', 'Units of blood, one at a time'], ['mtp', 'Massive transfusion', 'Coolers of blood, right now'], ['repair', 'Laceration repair', 'Stitches. You do them']];
 function mdPrimary(p, G) { return mdPrimary0(p, G) + helpBlock(p); }
 function mdPrimary0(p, G) {
-  const mtpBtn = p.bleed === 'mtp' && !p.bb ? `<button type="button" class="big bad" data-act="mtp" data-arg="${p.id}">Activate massive transfusion</button>` : '';
+  const mtpBtn = p.bleed === 'mtp' && !p.bb && !mtpHid(p) ? `<button type="button" class="big bad" data-act="mtp" data-arg="${p.id}">Activate massive transfusion</button>` : '';
   if (p.loc === 'enroute') return `${mtpBtn ? `<div class="prim">${mtpBtn}</div>` : ''}<p class="hint">Inbound, ETA <span data-cd="${p.eta}"></span>. The charge nurse is getting a ${p.esi === 1 ? 'resus bay' : 'room'} ready.</p>`;
   if (p.loc !== 'room') return `<p class="hint">The charge nurse is working on a room for ${esc(p.name.split(' ')[0])}.</p>`;
   if (!p.prov && E.needsProv(p)) return `<div class="prim">${mtpBtn}<button type="button" class="big ${p.arrest ? 'bad' : 'act'}" data-act="see" data-arg="${p.id}">${p.arrest ? 'Run the code' : 'See this patient'}</button><p class="hint" style="margin:0">${p.arrest ? 'Every minute without a doctor lowers the odds. Another doctor takes it in a minute if you don\'t.' : 'Leave them too long and another provider picks them up.'}</p></div>`;
@@ -3226,7 +3229,7 @@ function litHTML(R) {
   const L = R.lit || 0, ST = ['No action', 'Call from administration', 'Peer review', 'Performance improvement plan'];
   // the stage the player reached in the shift, not the number: risk added at the end has no call (audit R5.9-03)
   const stage = R.fail === 'fired' ? 'Fired' : R.litStage != null ? ST[Math.min(3, R.litStage)] : L >= 75 ? 'Fired' : L >= 50 ? ST[3] : L >= 40 ? ST[2] : L >= 25 ? ST[1] : ST[0];
-  const miss = (R.dxLog || []).map(d => `<li><b>${esc(d.name)}</b>: you called ${esc(d.said)}. It was <b>${esc(d.dx)}</b>${d.must ? ' (must not miss)' : ''}.</li>`).join('');
+  const miss = (R.dxLog || []).map(d => `<li><b>${esc(d.name)}</b>: ${d.said === 'no diagnosis called' ? 'no diagnosis called' : `you called ${esc(d.said)}`}. It was <b>${esc(d.dx)}</b>${d.must ? ' (must not miss)' : ''}.</li>`).join('');
   return `<div class="litbox"><div class="lit-row"><div><b>${R.acc}%</b><small>Clinical accuracy</small></div><div><b>${R.dxRight} of ${R.dxRight + R.dxWrong}</b><small>Diagnoses right</small></div><div class="${L >= 50 ? 'bad' : L >= 25 ? 'warn' : ''}"><b>${L}%</b><small>Legal risk · ${stage}</small></div></div>${miss ? `<h4>Diagnoses to review</h4><ul class="dxmiss">${miss}</ul>` : ''}${(R.litLog || []).length ? `<details><summary>What raised your legal risk</summary><ul>${R.litLog.map(x => `<li>+${x.n}: ${esc(x.why)}</li>`).join('')}</ul></details>` : ''}${R.lawCalls ? `<p class="hint">Lawyers called ${R.lawCalls} time${R.lawCalls > 1 ? 's' : ''}.</p>` : ''}</div>`;
 }
 function scoreCardsHTML(R, led, LED) {
@@ -3236,13 +3239,14 @@ function scoreCardsHTML(R, led, LED) {
     return `${hi ? `<small>Best: ${(LED[hi[0]] || hi[0]).replace(/<small>.*<\/small>/, '').trim()}</small>` : ''}${lo ? `<small class="neg">Hurt most: ${(LED[lo[0]] || lo[0]).replace(/<small>.*<\/small>/, '').trim()}</small>` : ''}`; };
   const card = (name, v, extra) => `<div class="scard ${v == null ? '' : v >= 80 ? 'good' : v >= 60 ? 'warn' : 'bad'}"><span>${name}</span><b>${v == null ? '—' : v + '%'}</b>${v == null ? '<i>not graded</i>' : `<i aria-label="${E.scoreStars(v)} of 3 stars">${st(v)}</i>`}${extra || ''}</div>`;
   const dept = `<div class="scards">${card('Patients', R.sc.patients, `<small>${R.lwbs ? `${R.lwbs} left without being seen` : 'How they felt about the visit'}</small>`)}${card('Clinical', R.sc.clinical, why('clinical'))}${card('Admin', R.sc.admin, why('admin'))}${card('Staff', R.sc.staff, '')}</div>`;
-  const sh = R.stars | 0, shift = `<p class="shift-stars"><b>This shift: <span aria-label="${sh} of 3 stars">${'★'.repeat(sh)}${'☆'.repeat(3 - sh)}</span></b> ${R.pace && R.pace.stars < sh + 1 && R.pace.stars === sh && R.pace.stars < 3 ? 'capped by your pace (below)' : R.mode === 'md' ? 'from your own scores below' : 'from the four scores below'}</p>`;   // R4.13-04
+  const sh = R.stars | 0, shift = `<p class="shift-stars"><b>This shift: <span aria-label="${sh} of 3 stars">${'★'.repeat(sh)}${'☆'.repeat(3 - sh)}</span></b> ${R.pace && R.pace.stars === sh && sh < 3 ? 'capped by your pace (below)' : R.seenCap && R.seenCap.stars === sh && sh < 3 ? 'capped by the patients you saw (below)' : R.mode === 'md' ? 'from your own scores below' : 'from the four scores below'}</p>`;   // R4.13-04
   if (R.mode === 'md' && R.own) {   // Phase 6 (R5-03): the attending's stars come from the attending's own four; the department's are context
     const o = R.own, B = R.boxC || {};
-    return shift + `<div class="scards">${card('Clinical', o.clinical, `<small>Your own patients</small>${why('clinical', true)}`)}${card('Diagnoses', o.dx, `<small>${R.dxRight} of ${R.dxRight + R.dxWrong} right</small>`)}${card('Radio calls', o.radio, `<small>${B.right || 0} of ${(B.right || 0) + (B.wrong || 0) + (B.miss || 0)} right</small>`)}${card('Legal', o.legal, `<small>Legal risk ${R.lit}%</small>`)}</div>`
+    const sn = R.seenCap ? `<p class="hint pace"><b>Patients you saw:</b> ${R.seenCap.n | 0}. ★★★ needs ${R.seenCap.lim[0] | 0}, ★★ ${R.seenCap.lim[1] | 0}, ★ ${R.seenCap.lim[2] | 0}. Seeing patients is the job: the shift’s stars can’t beat the work.</p>` : '';   // round 13: the workload cap
+    return shift + sn + `<div class="scards">${card('Clinical', o.clinical, `<small>Your own patients</small>${why('clinical', true)}`)}${card('Diagnoses', o.dx, `<small>${R.dxRight} of ${R.dxRight + R.dxWrong} right</small>`)}${card('Radio calls', o.radio, `<small>${B.right || 0} of ${(B.right || 0) + (B.wrong || 0) + (B.miss || 0)} right</small>`)}${card('Legal', o.legal, `<small>Legal risk ${R.lit}%</small>`)}</div>`
       + `<details class="dept"><summary>The department today (not your grade)</summary>${dept}</details>`;
   }
-  const pace = R.pace ? `<p class="hint pace"><b>Rush pace:</b> ${R.pace.wait} min from the door to a provider, on average. ★★★ needs ${R.pace.lim[0]} or under, ★★ ${R.pace.lim[1]}, ★ ${R.pace.lim[2]}. In the Rush, the shift’s stars can’t beat your pace.</p>` : '';
+  const pace = R.pace ? `<p class="hint pace"><b>Rush pace:</b> ${R.pace.wait | 0} min from the door to a provider, on average. ★★★ needs ${R.pace.lim[0] | 0} or under, ★★ ${R.pace.lim[1] | 0}, ★ ${R.pace.lim[2] | 0}. In the Rush, the shift’s stars can’t beat your pace.</p>` : '';
   return shift + pace + `<div class="scards">${card('Patients', R.sc.patients, `<small>${R.lwbs ? `${R.lwbs} left without being seen` : 'How they felt about the visit'}</small>`)}${card('Clinical', R.sc.clinical, why('clinical'))}${card('Admin', R.sc.admin, why('admin'))}${card('Staff', R.sc.staff, `<small>${R.fail === 'walkout' ? 'They walked out' : 'Average morale'}</small>`)}</div>`;
 }
 /* What each star takes, and how far the next one is. */

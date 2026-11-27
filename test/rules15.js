@@ -12,11 +12,11 @@ G.stats.md.dxRight = 1; G.stats.md.dxWrong = 3; G.stats.boxC.right = 2; G.stats.
 let m = OC.mdScores();
 assert(m.dx === 25 && m.radio === 25 && m.legal === 30, `the attending's own parts: diagnoses ${m.dx}%, radio ${m.radio}%, legal ${m.legal}%`);
 assert(OC.overallStars() <= 1, `a shift with most diagnoses and radio calls wrong and high legal risk earns at most one star, whatever the department did (${OC.overallStars()}; department ${JSON.stringify(sc)})`);
-G.stats.md.dxRight = 4; G.stats.md.dxWrong = 0; G.stats.boxC.right = 8; G.stats.boxC.wrong = 0; G.stats.boxC.miss = 0; G.lit = 5;
+G.stats.md.seen = 5; G.stats.md.dxRight = 4; G.stats.md.dxWrong = 0; G.stats.boxC.right = 8; G.stats.boxC.wrong = 0; G.stats.boxC.miss = 0; G.lit = 5;
 m = OC.mdScores();
 assert(OC.avgScore() === Math.round((m.clinical + m.dx + m.radio + m.legal) / 4), 'the attending\'s score is the average of the four own parts');
 OC.newGame('med', 52, { mode: 'md' }); m = OC.mdScores();
-assert(m.dx === null && m.radio === null && OC.avgScore() === Math.round((m.clinical + m.legal) / 2), 'a part with nothing to grade yet is left out, not counted as perfect');
+assert(m.clinical === null && m.dx === null && m.radio === null && OC.avgScore() === m.legal, 'a part with nothing to grade yet (no patient seen, no call) is left out, not counted as perfect');
 OC.newGame('med', 53, {});
 assert(OC.mdScores && OC.avgScore() === (s => Math.round([s.patients, s.clinical, s.admin, s.staff].filter(x => x != null).reduce((a, b) => a + b, 0) / [s.patients, s.clinical, s.admin, s.staff].filter(x => x != null).length))(OC.scores()), 'the charge nurse is still graded on the four department scores');
 
@@ -77,15 +77,16 @@ for (const k of ['syncope', 'synchigh', 'cpmod', 'cwp']) { const p = OC.pt(OC.tr
   const r = OC.assign(OC.G.me, h[0].id);
   assert(r.ok && h[0].mine && h[0].ev === 'q' && OC.G.stats.md.seen === 1, `a handed-over patient can be seen by the attending (${r.msg || r.why})`); }
 // QA4-3: a missed radio call is one of the attending's worst moments
-{ OC.newGame('rush', 703, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
-  const R = OC.G.report; assert(!(R.boxC && R.boxC.miss) || (R.mm || []).some(m => /radio call/.test(m.what)), `an idle attending's M&M lists the missed radio calls (${(R.boxC || {}).miss || 0} missed)`); }
+{ OC.newGame('rush', 703, { mode: 'md' }); while (!OC.G.over) { OC.step(0.5); if (OC.G.card && OC.G.card.choices) OC.chooseCard(OC.G.card.choices[0].k); }
+  const R = OC.G.report; assert(!(R.boxC && R.boxC.miss) || (R.mm || []).some(m => /radio call/.test(m.what)) || (R.radioLog || []).filter(x => x.miss).length === R.boxC.miss, `an idle attending's report lists the missed radio calls (${(R.boxC || {}).miss || 0} missed)`);
+  assert(R.stars === 0, `an attending who sees nobody earns no stars in the Rush, whatever the radio did (round 13; ${R.stars})`); }
 
 // QA5-3: staff actions and radio calls don't land in the attending's own clinical score or disposition points
-{ OC.newGame('rush', 704, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
+{ OC.newGame('rush', 704, { mode: 'md' }); while (!OC.G.over) { OC.step(0.5); if (OC.G.card && OC.G.card.choices) OC.chooseCard(OC.G.card.choices[0].k); }
   const R = OC.G.report; assert(!(R.md && R.md.seen) && !(OC.G.stats.md.unseen) ? R.own.clinical >= 90 : true, `an attending who saw nobody isn't graded down on Clinical for radio calls (only for patients left unseen) (Clinical ${R.own.clinical}%, Radio ${R.own.radio}%)`); }
 
 // QA6-2: patients put on the attending's list and never seen count against the attending
-{ OC.newGame('med', 705, { mode: 'md' }); while (!OC.G.over) OC.step(0.5);
+{ OC.newGame('med', 705, { mode: 'md' }); while (!OC.G.over) { OC.step(0.5); if (OC.G.card && OC.G.card.choices) OC.chooseCard(OC.G.card.choices[0].k); }
   const R = OC.G.report, n = (OC.G.stats.md || {}).unseen || 0;
   assert(n > 0 && R.own.clinical < 90 && (R.mm || []).some(m => /never seen/.test(m.what)) && R.stars <= 1, `an idle attending's unseen patients cost Clinical and stars and reach the M&M (${n} unseen, Clinical ${R.own.clinical}%, ${R.stars} stars)`); }
 
@@ -106,7 +107,35 @@ OC.newGame('easy', 720, { mode: 'md' }); G = OC.G; G.train = null; G.card = null
   const L = G.stats.md.dxLog || [];
   assert(L.some(x => x.dx === truth) && (G.mm || []).every(m => !/It was Cardiac arrest/.test(m.what || '')), `a held wrong call is scored against ${truth}, not the arrest that renamed it`); }
 // R1.13-05 / R3.13-07: the end-of-shift settlement adds no legal reason after a firing, and opens no card or firing at 19:00
-{ OC.newGame('hard', 777, { mode: 'md' }); while (!OC.G.over) { OC.step(0.5); OC.botStep(); }
+{ OC.newGame('hard', 777, { mode: 'md' }); while (!OC.G.over) { OC.step(0.5); if (OC.G.card && OC.G.card.mine && OC.G.card.choices) OC.chooseCard(OC.G.card.choices[0].k); OC.botStep(); }
   const G = OC.G, ft = G.fail === 'fired' ? G.t : null;
   assert(ft == null || (G.stats.litLog || []).every(x => x.t <= ft + 0.01 || !/never seen|missed/.test(x.why)) , `no legal reason is added after the firing (${G.fail || 'not fired'})`);
   assert(!G.fireNow && !(G.card && G.card.k === 'lit'), 'the shift ends with no pending firing or legal card'); }
+
+// Round 13 (R5.13-02, R5.13-03, R5.13-05): the attending's stars follow the work. Idle and radio-only attendings earn no stars on any level;
+// a diagnosis never called counts as a miss; an engaged attending outscores an idle one.
+{ const run = (lv, seed, o) => { OC.newGame(lv, seed, { mode: 'md' }); let t = 0;
+    while (!OC.G.over) { OC.step(0.1); t += 0.1;
+      if (OC.G.card && OC.G.card.choices && (o.idle || o.radio)) { OC.chooseCard(OC.G.card.choices[0].k); continue; }
+      if (o.radio) { const c = OC.G.box.cur; if (c && c.kind === 'consult' && !c.taken) { const r = OC.boxTake(OC.G.me); if (r.ok) OC.boxDecide(r.sc.opts ? r.sc.r : r.sc.a); } continue; }
+      if (o.idle) continue;
+      if (t >= o.every) { t = 0; OC.mdPlay(o); } }
+    return OC.G.report; };
+  for (const lv of ['easy', 'med', 'hard', 'rush']) for (const sd of [3, 11]) {
+    const idle = run(lv, sd * 7919 + 11, { idle: true }), radio = run(lv, sd * 7919 + 11, { radio: true });
+    assert(idle.stars === 0 && radio.stars === 0, `${lv} seed ${sd}: an idle or radio-only attending earns no stars (${idle.stars}, ${radio.stars}; radio ${radio.own.radio}%)`);
+  }
+  const doc = run('med', 3 * 7919 + 11, { every: 2, budget: 2, acc: 0.8, line: 1 });
+  assert(doc.stars >= 1 && doc.seenCap.n >= 15, `an engaged attending earns stars (${doc.stars}; saw ${doc.seenCap.n})`);
+}
+// a diagnosis left uncalled is scored as a miss when the patient leaves or the shift ends
+OC.newGame('easy', 721, { mode: 'md' }); G = OC.G; G.train = null; G.card = null;
+{ const p = CAP('appy'); p.prov = G.me; p.mine = true; p.ev = 'done'; OC.awaitOrders(p); p.dxq = [p.dx, 'Gastroenteritis']; const w0 = G.stats.md.dxWrong || 0;
+  OC.noCall(p);
+  assert((G.stats.md.dxWrong || 0) === w0 + 1 && (G.stats.md.dxLog || []).some(x => x.said === 'no diagnosis called'), 'an uncalled diagnosis counts as a miss, listed as "no diagnosis called"'); }
+// Round 13 (R5.13-04, R6.13-02): a patient left on the attending's list gets worse after 45 minutes and goes to another doctor after an hour
+{ OC.newGame('hard', 702, { mode: 'md' }); const g = OC.G; let n = 0;
+  while (!g.over && g.t < 300 && n++ < 10000) { OC.step(0.1); if (g.card && g.card.choices) OC.chooseCard(g.card.choices[0].k); }
+  const h = Object.values(g.pts).filter(p => p.handed);
+  assert(h.some(p => p.handWorse) && h.some(p => p.unseenDone && p.prov !== g.me) && (g.stats.md.unseen || 0) >= 1, `handed patients left unseen get worse, then go to another doctor and count as unseen (${h.length} handed, ${h.filter(p => p.handWorse).length} worse, ${g.stats.md.unseen || 0} unseen)`);
+  assert(h.filter(p => p.loc === 'room' && p.prov === g.me && !p.mine).length <= 4, 'the list does not fill with stuck patients'); }

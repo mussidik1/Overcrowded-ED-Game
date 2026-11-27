@@ -1181,3 +1181,12 @@ button.ob { border: 0; font: inherit; color: inherit; cursor: pointer; }
 .rep details.dept summary { cursor: pointer; min-height: 44px; align-items: center; }
 .shift-stars { margin: 4px 0 8px; font-size: 1.05em; }
 .shift-stars span { color: var(--gold, #b8860b); letter-spacing: 1px; }
+/* Round 13 (R4.13-01): a sideways phone on the list board left about 40 px of board under the pinned top block and the dock. There the
+   top block (clock, scores, the Box, goals, pod chips) scrolls away with the board, and the Menu button stays pinned, so the rooms get
+   the screen. */
+@media (orientation: landscape) and (max-height: 500px) {
+  body.ingame:not(.mapmode) .top { position: static; }
+  body.ingame:not(.mapmode) #btnPause { position: fixed; z-index: 31; top: calc(4px + env(safe-area-inset-top)); right: max(6px, env(safe-area-inset-right)); box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
+  body.ingame:not(.mapmode) .toasts { top: calc(6px + env(safe-area-inset-top)); right: 60px; }
+  body.ingame:not(.mapmode) .dock { padding-top: 4px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
+}

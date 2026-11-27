@@ -49,8 +49,9 @@ procedures), reads results, picks a diagnosis from a short list, and picks a dis
 - AC5: On a regular shift the game gives no answers away: no list of missing orders, no instant right or wrong on a diagnosis (the card
   keeps the attending's call), a consultant who isn't the right one says so without naming the right one, and an incoming alert doesn't
   carry its diagnosis for the attending. Orientation and Lessons still show all of these, as teaching.
-- AC6: On Manic Monday and Full Moon Friday the game's charge nurse puts more of the sickest patients on the attending's list; each waits
-  for the attending to see them (no credit until then).
+- AC6: On Manic Monday, Full Moon Friday and the Rush the game's charge nurse puts some of the sickest patients on the attending's list,
+  with a message; each waits for the attending (See this patient; no credit until then), gets worse after 45 minutes unseen, and goes to
+  another doctor after an hour, counted as never seen.
 
 **REQ-08 Attending: radio calls.** EMS medical-direction calls ring on the radio (the Box); the attending answers with a choice of
 orders. Calls not answered ring out and count as missed. The charge nurse doesn't give medical direction.
@@ -66,7 +67,7 @@ lowered before the drug.
 a verdict, the M&M (worst moments), and for the attending the orders, diagnoses and radio calls to review, with reasons.
 - The charge nurse is graded on Patients, Clinical, Admin and Staff. The attending is graded on their own decisions: Clinical (own
   patients), Diagnoses called right, Radio calls answered right, and Legal (100 minus legal risk); the department's scores show as
-  context. During a shift the attending's Diagnoses box shows how many were called, not how many were right.
+  context. During a shift the attending's Diagnoses box shows how many were called, not how many were right. The attending's stars are capped by patients seen (a full shift 30, 15 and 6 for three, two and one stars; the Rush 6, 3 and 1); a diagnosis left uncalled counts as a miss.
 - In the Five-Minute Rush, the charge nurse's stars are capped by pace: the average minutes from the door to a provider (15, 25 and 40
   for three, two and one stars), shown on the report.
 - A career rank per role (charge nurse: New grad to Director of emergency nursing; attending: Intern to Department chair) grows with the
