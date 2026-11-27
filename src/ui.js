@@ -2141,13 +2141,20 @@ const cbClean = v => {
 // get through. A rude word spelled as initials is refused too. Game only: the server's rule (cbClean above, matched to the contract file)
 // is unchanged and still accepts these.
 const cbLetters = n => n.replace(/[.\s]/g, '');
-const cbInitials = n => /^(\p{L}\.?\s?){1,4}$/u.test(n) && [...cbLetters(n)].length <= 4;
+// R3.13-04: initials, not short names. Letters stand alone ("S.K.", "A M", "J S K M"), or two or three capitals typed together ("JS",
+// "JSK"). Not scripts where one character is a whole syllable of a name (Chinese, Japanese kana, Korean).
+const cbInitials = n => {
+  if (!/^(\p{L}\.?\s?){1,4}$/u.test(n) || [...cbLetters(n)].length > 4 || /[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(n)) return false;
+  const groups = n.split(/[.\s]+/).filter(Boolean);
+  if (groups.every(x => [...x].length === 1)) return true;
+  return groups.length === 1 && /^\p{Lu}{2,3}$/u.test(groups[0]);
+};
 const CB_RUDE_I = /^(fuck|shit|cunt|fag|ass|arse|cock|cum|tit|tits|dick|piss|twat|wank|sex|porn|poo|poop|butt|kkk|nazi|hell|damn|crap|slut|whor|bich)$/;
 const cbRude = n => CB_RUDE_I.test(cbLetters(n).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase());
 const cbSendable = v => { const n = cbClean(v); return n && cbInitials(n) && !cbRude(n) ? n : null; };
 const cbNameWhy = v => { const n = String(v || '').trim(), c = cbClean(n); return !n ? 'Type your initials.' : /\p{N}/u.test(n) ? 'No numbers: your initials, like S.K. or JS.'
   : /\p{Default_Ignorable_Code_Point}/u.test(n) ? 'Your keyboard added a hidden character: type your initials again.'
-  : c && cbInitials(c) && cbRude(c) ? 'Please use your own initials.' : 'Initials only: 1 to 4 letters, like S.K. or JS. No names.'; };
+  : c && cbInitials(c) && cbRude(c) ? 'Please use your own initials.' : 'Initials only: 1 to 4 letters, like S.K., J S or JS. No names.'; };
 const cbAlpha = v => String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
 const cbCodeNorm = v => { const t = cbAlpha(v); return /^[0-9A-HJKMNP-TV-Z]{6}$/.test(t) ? t.slice(0, 3) + '-' + t.slice(3) : null; };   // any well-formed code, whatever its version
 const cbKeyNorm = v => { const t = cbAlpha(v); return /^[0-9A-HJKMNP-TV-Z]{16}$/.test(t) ? t : null; };
