@@ -1,6 +1,6 @@
-# 02 Spec: Emergency Department: Code Black (v0.32.0)
+# 02 Spec: Emergency Department: Code Black (v0.33.0 candidate)
 
-Retrofitted Nov 26, 2026, from `README.md` and `CLAUDE.md`. It describes **v0.32.0 as released**. Corrected after QA round 1 where the spec, not the game, was wrong: REQ-03 (the radio pack is on Play a shift by design) and REQ-14 (two lessons were always read-through). Each requirement (REQ) has acceptance
+Retrofitted Nov 26, 2026, from `README.md` and `CLAUDE.md`. It described v0.32.0 as released for QA round 1; since round 2 it describes the **v0.33.0 candidate** (Phase 6 game design, the owner's decisions of Nov 26, 2026). Corrected after QA round 1 where the spec, not the game, was wrong: REQ-03 (the radio pack is on Play a shift by design) and REQ-14 (two lessons were always read-through). Each requirement (REQ) has acceptance
 criteria (AC) an evaluator can check in the running game. "Phone" means about 390 x 844 upright and 844 x 390 sideways; "desktop" means
 about 1280 x 800. A local copy has no password gate.
 
@@ -46,6 +46,10 @@ procedures), reads results, picks a diagnosis from a short list, and picks a dis
 - AC3: An incomplete workup leaves a gap that shows in the patient getting no better.
 - AC4: Gray-zone patients (chest pain, syncope, TIA, pneumonia) show a validated risk score built from the patient's own parts, and
   the attending makes the call.
+- AC5: On a regular shift the game gives no answers away: no list of missing orders, no instant right or wrong on a diagnosis (the card
+  keeps the attending's call), a consultant who isn't the right one says so without naming the right one, and an incoming alert doesn't
+  carry its diagnosis for the attending. Orientation and Lessons still show all of these, as teaching.
+- AC6: On Manic Monday and Full Moon Friday the game's charge nurse hands the attending more of the sickest patients directly.
 
 **REQ-08 Attending: radio calls.** EMS medical-direction calls ring on the radio (the Box); the attending answers with a choice of
 orders. Calls not answered ring out and count as missed. The charge nurse doesn't give medical direction.
@@ -57,13 +61,21 @@ children under 13), with a result. An arrest nobody runs for 20 minutes is a dea
 up with it, and some on a blood thinner. Tenecteplase is harm outside the window or on a blood thinner. Pressure over 185/110 must be
 lowered before the drug.
 
-**REQ-11 Scores and report.** Five scores run on screen during a shift. The end-of-shift report shows four scores with stars (0 to 3),
+**REQ-11 Scores and report.** Four scores run on screen during a shift. The end-of-shift report shows four scores with stars (0 to 3),
 a verdict, the M&M (worst moments), and for the attending the orders, diagnoses and radio calls to review, with reasons.
+- The charge nurse is graded on Patients, Clinical, Admin and Staff. The attending is graded on their own decisions: Clinical (own
+  patients), Diagnoses called right, Radio calls answered right, and Legal (100 minus legal risk); the department's scores show as
+  context. During a shift the attending's Diagnoses box shows how many were called, not how many were right.
+- In the Five-Minute Rush, the charge nurse's stars are capped by pace: the average minutes from the door to a provider (15, 25 and 40
+  for three, two and one stars), shown on the report.
+- A career rank per role (charge nurse: New grad to Director of emergency nursing; attending: Intern to Department chair) grows with the
+  stars earned (two points a star, one in the Rush), shows on the menu, and the report says what the shift added. Device only.
 - AC1: Every report line follows from what happened in that shift.
 - AC2: The best result per level is remembered on the device and shown on the menu.
 
 **REQ-12 Saves and resume.** A shift in progress is saved on the device and offered as Resume on the menu after a reload. A class shift
-saved on another game version can't resume, and the menu says why.
+saved on another game version can't resume, and the menu says why. A damaged save is never offered or is removed with a message. An
+error during a shift stops it with a message, keeps the last good save, and offers Reload.
 
 ## Learning
 
@@ -85,7 +97,8 @@ Copy and Share, and an instructor key hidden until Show key. A student types the
 - AC3: If the server can't be reached, the instructor is told so and may use the code without results.
 
 **REQ-16 Sending a result.** At the end of a class shift a student may Send their summary with a first name or initials only.
-- AC1: Names outside the allowed form are refused with a reason; a result can't be sent twice.
+- AC1: The game sends one first name, initials, or a first name plus an initial ("Ana", "S.K.", "Ana M."); two full words (a full
+  name), other forms and common profanity are refused with a reason; a result can't be sent twice.
 - AC2: A failure says whether it was the network, a timeout or the server.
 
 **REQ-17 Class results.** With the code and key, the instructor reads the class's results (unranked), can delete one or all, and can copy
@@ -105,7 +118,9 @@ Tapping a room or patient opens its card. Turning 3D off shows the flat map.
 **REQ-21 Offline and install.** After one visit over http(s), the game loads and plays with no network (the service worker), installs to
 the home screen, and a new version replaces the old one on a later load.
 
-**REQ-22 Accessibility.** Controls work by keyboard; dialogs take and return focus; important state is not shown by colour alone.
+**REQ-22 Accessibility.** Controls work by keyboard; dialogs take and return focus; the board behind a menu or card can't be reached by
+keyboard; Escape closes the pause menu; important state is not shown by colour alone. In a shift, the phone's back button closes what is
+open or opens the pause menu.
 
 ## Safety and privacy
 
