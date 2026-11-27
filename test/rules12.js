@@ -75,7 +75,7 @@ for (const k of ['stemi', 'nstemi', 'cpmod']) { const p = mine(k, {}, 6400 + k.l
 // ---- R6.2-08: harm says why, and never gives away the diagnosis
 { const p = mine('sbo', {}, 6440); toasts = []; sign(p, [], ['reglan']);
   const t = toasts.find(x => /can hurt/.test(x)) || '';
-  assert(/blockage/.test(t) && !/obstruction/i.test(t), `metoclopramide harm says why without naming the diagnosis: "${t}"`); }
+  assert(/gut/.test(t) && !/obstruction|blockage/i.test(t), `metoclopramide harm says why without naming the diagnosis: "${t}"`); }
 { const p = mine('stroke', { lkw: 300 }, 6441); toasts = []; sign(p, ['ct', 'lab'], ['tnk']);
   assert(toasts.some(x => /4\.5 hours/.test(x)), 'a late lytic says it is past 4.5 hours'); }
 

@@ -481,7 +481,7 @@ function roomNeeds(p, r, G) { const n = nextStep(p, r, G); return /n-act|n-bad|n
 function renderZoneBar(G) {
   const act = E.active();
   const wall = act.filter(p => p.loc === 'wall').length, wait = act.filter(p => p.loc === 'waiting' || p.loc === 'triage').length;
-  let h = `<button type="button" class="zc${wall ? ' warn' : ''}" data-act="jump" data-arg="intake">EMS ${wall}</button><button type="button" class="zc${wait > 6 ? ' warn' : ''}" data-act="jump" data-arg="intake" aria-label="${wait} in the waiting room">Lobby ${wait}</button>`;   // R4-05: says what it counts
+  let h = `<button type="button" class="zc${wall ? ' warn' : ''}" data-act="jump" data-arg="intake">EMS ${wall}</button><button type="button" class="zc${wait > 6 ? ' warn' : ''}" data-act="jump" data-arg="intake" aria-label="Waiting ${wait}: at the door and in the waiting room">Waiting ${wait}</button>`;   // R4.13-05: the visible word is in the name, and counts the door too   // R4-05: says what it counts
   for (const z of E.ZONES) {
     const ns = E.zoneNurses(z.id), load = E.zoneLoad(z.id, hasHold()), cap = ns.length * 4, n = E.zonePts(z.id);
     const st = !ns.length ? (n ? 'none' : 'empty') : load > cap ? 'over' : 'ok';
@@ -974,7 +974,7 @@ function ptSheet(G, p) {
   if (p.alert === 'stroke' && (p.alertOn || p.ev === 'done')) {   // walk-in strokes too, once seen (Phase 3, R6-02)
     if (p.lkwT != null) kv.push(['Onset', `Last known well <b>${E.clock(p.lkwT)}</b> · ${p.anticoag ? 'check the home meds' : p.strokeKind && p.strokeKind !== 'in' ? 'outside the 4.5-hour window for the thrombolytic' : `the thrombolytic has to be in by ${E.clock(p.lkwT + E.LYTIC_WINDOW)}`}`]);   // no deadline for a patient who can't have it (round 12)
     else kv.push(['Onset', 'Last known well <b>unknown</b>: woke up with it']);
-    if (p.anticoag) kv.push(['Home meds', `Takes <b>${esc(p.anticoag)}</b> (a blood thinner)`]);
+    if (p.anticoag) kv.push(['Home meds', `Takes <b>${esc(p.anticoag)}</b> (an anticoagulant: a blood thinner), last dose this morning`]);
   }
   if (p.ck === 'afib' && p.dxK) { const h = E.afOnset(p); kv.push(['Onset', h != null ? `Started about <b>${h} hours</b> ago` : 'Not sure when it started: <b>at least a few days</b>']); }
   if (p.iso && p.screen !== 'pending') kv.push(['Isolation', p.iso === 'air' ? 'Airborne. Room 8 or 16.' : 'Droplet. Mask, and a room with a door.']);
@@ -1942,8 +1942,8 @@ const LESSONS = {
     { id: 'k7', wait: true, title: 'Two clocks', text: `**Door to CT: 25 minutes.**\n**Door to needle: 60 minutes.**\nThe drug goes in once CT shows no bleed, neurology agrees, and BP is under 185/110.`,
       done: () => { const p = LP(); return !!(p.treat.tnk && p.treat.tnk.st === 'done') || p.loc === 'gone'; } },
     { id: 'k8', wait: true, title: 'After the drug', text: `Neurology admits her to the **ICU** to watch for bleeding.`, done: lLeft },
-    { id: 'k8b', next: true, title: 'Not every stroke gets it', text: `**No clot drug** if they:\n• arrived **over 4½ hours** after last known well,\n• **woke up** with it (onset unknown counts as too late),\n• take a **blood thinner** like apixaban (check **Home meds**).\nThen there is no door-to-needle clock. **Let the pressure run** up to **220/120**, unless a large-vessel stroke goes for **clot removal**.` },
-    { id: 'k9', final: true, title: 'Stroke: the short version', text: `**Looks like**: sudden face droop, weak arm or leg, slurred speech.\n**Order**: CT, labs, thrombolytic. BP control if over 185/110.\n**No drug** if late, woke up with it, or on a blood thinner: pressure up to 220/120 is fine.\n**Clock**: CT in 25, drug in 60.\n**Charge nurse**: room her now, keep CT free.` },
+    { id: 'k8b', next: true, title: 'Not every stroke gets it', text: `**No clot drug** if:\n• it would go in **over 4½ hours** after last known well,\n• they **woke up** with it: onset unknown counts as too late (an MRI can sometimes decide; not in this game),\n• they took an **anticoagulant** (a blood thinner like apixaban or rivaroxaban) in the **last two days** (check **Home meds**). Aspirin doesn't count.\nThen there is no door-to-needle clock. **Let the pressure run** up to **220/120**, unless a large-vessel stroke goes for **clot removal**.` },
+    { id: 'k9', final: true, title: 'Stroke: the short version', text: `**Looks like**: sudden face droop, weak arm or leg, slurred speech.\n**Order**: CT, labs, thrombolytic. BP control if over 185/110.\n**No drug** if late, woke up with it, or on an anticoagulant taken in the last two days: pressure up to 220/120 is fine.\n**Clock**: CT in 25, drug in 60.\n**Charge nurse**: room her now, keep CT free.` },
   ] },
   arrest: { name: 'Cardiac arrest', sys: 'cardio', blurb: 'Shockable or not. Epinephrine, amiodarone, the H’s and T’s. Children and injuries.', steps: [
     { id: 'ca0', next: true, title: 'No pulse', text: `**Cardiac arrest**: the heart has stopped pumping. No pulse, not breathing.\nThe team starts **CPR** at once: push **hard** (2 inches, 5 cm) and **fast** (100 to 120 a minute), let the chest **come back up**, keep **pauses under 10 seconds**, and swap compressors **every 2 minutes**. The attending **runs the code**.` },
@@ -2334,7 +2334,7 @@ function cbSendHTML(R, at) {
   return `<div class="cb-send" id="cbSendBox"><label for="cbName"><b>Send this to your instructor</b></label>`
     + (U.repLost === at ? '<small class="cb-err">This device couldn’t keep this summary: send it now, before you leave this page.</small>' : '')
     + (U.leaveAsk === at ? `<small class="cb-err" role="alert">Not sent yet. Tap Send first, or tap Menu or Run it back again to leave without sending.</small>` : '')
-    + `<div class="cc-row"><input id="cbName" class="cb-name" data-pick="cbname" data-at="${esc(String(at))}" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="Your initials, like S.K." value="${esc(U.cbName || '')}"${busy ? ' disabled' : ''}${st && !busy && bad ? ' aria-invalid="true" aria-describedby="cbNameErr"' : ''}><button type="button" class="big act" data-act="cbSend" data-arg="${esc(String(at))}"${busy ? ' disabled' : ''}>${busy ? 'Sending…' : 'Send'}</button></div>`
+    + `<div class="cc-row"><input id="cbName" class="cb-name" data-pick="cbname" data-at="${esc(String(at))}" type="text" maxlength="8" aria-label="Your initials (1 to 4 letters)" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="Your initials, like S.K." value="${esc(U.cbName || '')}"${busy ? ' disabled' : ''}${st && !busy && bad ? ' aria-invalid="true" aria-describedby="cbNameErr"' : ''}><button type="button" class="big act" data-act="cbSend" data-arg="${esc(String(at))}"${busy ? ' disabled' : ''}>${busy ? 'Sending…' : 'Send'}</button></div>`
     + (st && !busy ? `<small class="cb-err" id="${bad ? 'cbNameErr' : 'cbSendErr'}" role="alert">${esc(st)}</small>` : '')
     + `<small>Sends your initials, <b>${esc(cbWhat(R))}</b> (the score is the average of your ${R.mode === 'md' ? 'own scores that had something to grade' : 'four scores'}), and these numbers: ${esc(cbWhatAll(R))}, to the instructor who made ${esc(R.code)}. The full list is in About, under Privacy. ${CB_WHO}</small></div>`;   // the box first, the small print after it (audit R5.7-09e)
 }
@@ -2713,7 +2713,7 @@ const ACT = {
   view: v => { U.view = v === 'list' || v === 'map' ? v : U.view === 'map' ? 'list' : 'map'; store('oc-view', U.view); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   mode: m => { U.mode = m === 'md' ? 'md' : 'rn'; store('oc-mode', U.mode); setH($('#title'), titleHTML()); },
   scenario: k => { U.scen = E.SCENS[k] ? k : 'none'; store('oc-scen', U.scen); setH($('#title'), titleHTML()); },
-  print: () => { document.querySelectorAll('details.rep-more').forEach(d => { d.open = true; }); try { window.print(); } catch (e) { toast('Printing isn’t available here. Open the game in your browser to print.', 'info'); } },
+  print: () => { document.querySelectorAll('details.rep-more, details.dept, .litbox details').forEach(d => { d.open = true; }); try { window.print(); } catch (e) { toast('Printing isn’t available here. Open the game in your browser to print.', 'info'); } },
   coachNext: () => { const t = TR(); if (t && t.brk != null) { t.brk = null; t.t0 = g().t; U.coachKey = null; } else coachAdvance(); },
   chapter: k => { start('train', null, +k || 0); },
   chapters: () => { U.sheet = { type: 'chapters' }; },
@@ -3152,7 +3152,7 @@ function start(lvl, lesson, chapter, code) {
 }
 const verdictOf = R => {   // the stars are the owner's scoring; the words mustn't praise what went wrong (audit R6.6-09, R5.8-05, R6.8-05)
   const m = R.mode === 'md' && R.md;
-  if (m && !m.seen) return 'You saw no patients this shift: the stars come from the radio calls and the department the computer ran.';
+  if (m && !m.seen) return 'You saw no patients this shift. Seeing patients is the job: Clinical and Diagnoses need patients you saw.';
   const d = m ? m.died || 0 : 0, cl = m ? m.codeLost || 0 : 0, hd = m ? m.handed || 0 : 0, left = m ? (m.arrestLeft || 0) + (m.codeLate || 0) : 0, see = (R.mm || []).length ? 'Read the M&M below.' : 'Read the worst moments below.';
   if (m && (d - cl - hd > 0 || left)) {   // a death after another doctor's prompt code isn't the student's (R6.11-03); a late code at the end is (R6.11-02)   // built from what happened, so one patient doesn't read as two (audit R4.9-07)
     const a = d ? `${d === 1 ? 'One of your own patients' : `${d} of your own patients`} died${cl ? ` (${cl === d ? (d === 1 ? 'after a code run by the book' : 'all after codes run by the book') : `${cl} after a code run by the book`})` : ''}` : '';
@@ -3225,17 +3225,18 @@ function litHTML(R) {
 function scoreCardsHTML(R, led, LED) {
   if (!R.sc) return '';
   const st = v => '★'.repeat(E.scoreStars(v)) + '☆'.repeat(3 - E.scoreStars(v));
-  const why = c => { const e = Object.entries(led).filter(([k, v]) => SC_TAGS[c].includes(k) && Math.abs(v) >= 1); const lo = e.filter(x => x[1] < 0).sort((a, b) => a[1] - b[1])[0], hi = e.filter(x => x[1] > 0).sort((a, b) => b[1] - a[1])[0];
+  const why = (c, own) => { const e = Object.entries(led).filter(([k, v]) => SC_TAGS[c].includes(k) && !(own && ['box', 'boxn'].includes(k)) && Math.abs(v) >= 1); /* R4.13-03: the Box isn't in the attending's own Clinical */ const lo = e.filter(x => x[1] < 0).sort((a, b) => a[1] - b[1])[0], hi = e.filter(x => x[1] > 0).sort((a, b) => b[1] - a[1])[0];
     return `${hi ? `<small>Best: ${(LED[hi[0]] || hi[0]).replace(/<small>.*<\/small>/, '').trim()}</small>` : ''}${lo ? `<small class="neg">Hurt most: ${(LED[lo[0]] || lo[0]).replace(/<small>.*<\/small>/, '').trim()}</small>` : ''}`; };
-  const card = (name, v, extra) => `<div class="scard ${v == null ? '' : v >= 80 ? 'good' : v >= 60 ? 'warn' : 'bad'}"><span>${name}</span><b>${v == null ? '—' : v + '%'}</b><i aria-label="${E.scoreStars(v)} of 3 stars">${st(v)}</i>${extra || ''}</div>`;
+  const card = (name, v, extra) => `<div class="scard ${v == null ? '' : v >= 80 ? 'good' : v >= 60 ? 'warn' : 'bad'}"><span>${name}</span><b>${v == null ? '—' : v + '%'}</b>${v == null ? '<i>not graded</i>' : `<i aria-label="${E.scoreStars(v)} of 3 stars">${st(v)}</i>`}${extra || ''}</div>`;
   const dept = `<div class="scards">${card('Patients', R.sc.patients, `<small>${R.lwbs ? `${R.lwbs} left without being seen` : 'How they felt about the visit'}</small>`)}${card('Clinical', R.sc.clinical, why('clinical'))}${card('Admin', R.sc.admin, why('admin'))}${card('Staff', R.sc.staff, '')}</div>`;
+  const sh = R.stars | 0, shift = `<p class="shift-stars"><b>This shift: <span aria-label="${sh} of 3 stars">${'★'.repeat(sh)}${'☆'.repeat(3 - sh)}</span></b> ${R.pace && R.pace.stars < sh + 1 && R.pace.stars === sh && R.pace.stars < 3 ? 'capped by your pace (below)' : R.mode === 'md' ? 'from your own scores below' : 'from the four scores below'}</p>`;   // R4.13-04
   if (R.mode === 'md' && R.own) {   // Phase 6 (R5-03): the attending's stars come from the attending's own four; the department's are context
     const o = R.own, B = R.boxC || {};
-    return `<div class="scards">${card('Clinical', o.clinical, `<small>Your own patients</small>${why('clinical')}`)}${card('Diagnoses', o.dx, `<small>${R.dxRight} of ${R.dxRight + R.dxWrong} right</small>`)}${card('Radio calls', o.radio, `<small>${B.right || 0} of ${(B.right || 0) + (B.wrong || 0) + (B.miss || 0)} right</small>`)}${card('Legal', o.legal, `<small>Legal risk ${R.lit}%</small>`)}</div>`
+    return shift + `<div class="scards">${card('Clinical', o.clinical, `<small>Your own patients</small>${why('clinical', true)}`)}${card('Diagnoses', o.dx, `<small>${R.dxRight} of ${R.dxRight + R.dxWrong} right</small>`)}${card('Radio calls', o.radio, `<small>${B.right || 0} of ${(B.right || 0) + (B.wrong || 0) + (B.miss || 0)} right</small>`)}${card('Legal', o.legal, `<small>Legal risk ${R.lit}%</small>`)}</div>`
       + `<details class="dept"><summary>The department today (not your grade)</summary>${dept}</details>`;
   }
-  const pace = R.pace ? `<p class="hint pace"><b>Rush pace:</b> ${R.pace.wait} min from the door to a provider, on average. ★★★ needs ${R.pace.lim[0]} or under, ★★ ${R.pace.lim[1]}, ★ ${R.pace.lim[2]}. In the Rush, your stars can’t beat your pace.</p>` : '';
-  return pace + `<div class="scards">${card('Patients', R.sc.patients, `<small>${R.lwbs ? `${R.lwbs} left without being seen` : 'How they felt about the visit'}</small>`)}${card('Clinical', R.sc.clinical, why('clinical'))}${card('Admin', R.sc.admin, why('admin'))}${card('Staff', R.sc.staff, `<small>${R.fail === 'walkout' ? 'They walked out' : 'Average morale'}</small>`)}</div>`;
+  const pace = R.pace ? `<p class="hint pace"><b>Rush pace:</b> ${R.pace.wait} min from the door to a provider, on average. ★★★ needs ${R.pace.lim[0]} or under, ★★ ${R.pace.lim[1]}, ★ ${R.pace.lim[2]}. In the Rush, the shift’s stars can’t beat your pace.</p>` : '';
+  return shift + pace + `<div class="scards">${card('Patients', R.sc.patients, `<small>${R.lwbs ? `${R.lwbs} left without being seen` : 'How they felt about the visit'}</small>`)}${card('Clinical', R.sc.clinical, why('clinical'))}${card('Admin', R.sc.admin, why('admin'))}${card('Staff', R.sc.staff, `<small>${R.fail === 'walkout' ? 'They walked out' : 'Average morale'}</small>`)}</div>`;
 }
 /* What each star takes, and how far the next one is. */
 /* Orders the attending missed or did not need, patient by patient, with the reason. */

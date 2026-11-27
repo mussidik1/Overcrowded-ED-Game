@@ -133,13 +133,13 @@
    "ama": 0,
    "expired": 0,
    "left": 17,
-   "care": 1055,
+   "care": 1080,
    "wait": 28,
    "stars": 0,
    "fail": "fired",
-   "lit": 82,
-   "acc": 64,
-   "stateHash": "d3c03923"
+   "lit": 75,
+   "acc": 65,
+   "stateHash": "2a0e5bbf"
   },
   "md/hard/none": {
    "arrivals": 125,

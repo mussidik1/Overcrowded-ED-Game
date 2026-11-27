@@ -1175,3 +1175,9 @@ button.ob { border: 0; font: inherit; color: inherit; cursor: pointer; }
 .t-note p { margin: 0 0 8px; font-size: 15px; line-height: 1.35; }
 .t-note button { min-height: 44px; padding: 0 18px; font: inherit; font-weight: 700; border-radius: 10px; border: 2px solid currentColor; background: transparent; color: inherit; }
 
+/* round 13 (R4.13-02, R4.13-04): the department box shows it opens; the shift's own stars sit above the cards */
+.rep details.dept summary::before { content: '▸'; margin-right: 6px; }
+.rep details.dept[open] summary::before { content: '▾'; }
+.rep details.dept summary { cursor: pointer; min-height: 44px; align-items: center; }
+.shift-stars { margin: 4px 0 8px; font-size: 1.05em; }
+.shift-stars span { color: var(--gold, #b8860b); letter-spacing: 1px; }

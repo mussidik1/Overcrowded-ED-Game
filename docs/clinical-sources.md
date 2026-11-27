@@ -24,7 +24,7 @@ nurse (RN) for flow.
 | Pulmonary embolism (pe, mpe) | ESC guidelines for acute pulmonary embolism, 2019 | Physician | |
 | Aortic dissection (dissect) | ACC/AHA guideline for aortic disease, 2022 | Physician | |
 | Hemorrhagic shock, tranexamic acid (mvc, moto) | ATLS, 10th edition, 2018; CRASH-2 trial, 2010, and its 3-hour analysis, 2011 | Physician | |
-| Canadian Syncope Risk Score (syncope) | Thiruganesan et al., 2016 | Physician | |
+| Canadian Syncope Risk Score (syncope) | Thiruganasambandamoorthy V, et al. CMAJ 2016;188(12):E289-E298 | Physician | |
 | First order set by complaint (all cases sharing a door picture) | Clinical consultant's list, Nov 25, 2026 (`WORKUP` in `src/engine.js`) | Physician | yes |
 | Triage (ESI) | Emergency Severity Index handbook, version 5 (ENA) | RN | |
 | All other cases (hyperkalemia, overdoses, toxic ingestions, surgical abdomen, torsion, ectopic, cauda equina and the rest) | To confirm: each case's rule is written in `src/engine.js` with a comment | Physician | |

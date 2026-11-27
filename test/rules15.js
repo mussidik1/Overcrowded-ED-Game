@@ -105,3 +105,8 @@ OC.newGame('easy', 720, { mode: 'md' }); G = OC.G; G.train = null; G.card = null
   OC.dxPick(p.id, 'Gastroenteritis'); p.dx = 'Cardiac arrest'; OC.settleDx(p);
   const L = G.stats.md.dxLog || [];
   assert(L.some(x => x.dx === truth) && (G.mm || []).every(m => !/It was Cardiac arrest/.test(m.what || '')), `a held wrong call is scored against ${truth}, not the arrest that renamed it`); }
+// R1.13-05 / R3.13-07: the end-of-shift settlement adds no legal reason after a firing, and opens no card or firing at 19:00
+{ OC.newGame('hard', 777, { mode: 'md' }); while (!OC.G.over) { OC.step(0.5); OC.botStep(); }
+  const G = OC.G, ft = G.fail === 'fired' ? G.t : null;
+  assert(ft == null || (G.stats.litLog || []).every(x => x.t <= ft + 0.01 || !/never seen|missed/.test(x.why)) , `no legal reason is added after the firing (${G.fail || 'not fired'})`);
+  assert(!G.fireNow && !(G.card && G.card.k === 'lit'), 'the shift ends with no pending firing or legal card'); }

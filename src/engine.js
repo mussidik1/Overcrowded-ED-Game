@@ -473,13 +473,13 @@ function sameClassAlt(p, k, t) {
 }
 // Round 2 (R6.2-08): why a drug is harm for this patient, so the feedback teaches the reason without giving away the diagnosis.
 const CONTRA_WHY_DRUG = { asa: 'it adds to the bleeding risk', heparin: 'a blood thinner makes bleeding worse', enox: 'a blood thinner makes bleeding worse', apixa: 'a blood thinner makes bleeding worse',
-  ketor: 'NSAIDs can make bleeding and heart attacks worse', ibu: 'NSAIDs can make bleeding and heart attacks worse', tnk: 'a clot buster can cause major bleeding' };
+  ketor: 'NSAIDs make bleeding worse', ibu: 'NSAIDs make bleeding worse', tnk: 'a clot buster can cause major bleeding' };
 const CONTRA_WHY = {
-  stroke: { tnk: 'it is more than 4.5 hours since they were last known well (later needs perfusion imaging, which this game doesn\'t model)', heparin: 'no blood thinner drip in the first day of sudden weakness or speech trouble: it can bleed into the brain', enox: 'no blood thinner in the first day of sudden weakness or speech trouble: it can bleed into the brain', asa: 'no aspirin in the 24 hours after a clot buster' },
+  stroke: { tnk: 'it is more than 4.5 hours since they were last known well (later needs perfusion imaging, which this game doesn\'t model)', heparin: 'no blood thinner drip in the first days after sudden weakness or speech trouble: it can bleed into the brain', enox: 'no blood thinner in the first days after sudden weakness or speech trouble: it can bleed into the brain', asa: 'no aspirin in the 24 hours after a clot buster' },
   cpmod: { ntg: 'the pressure is under 90', morph: 'opioids drop a pressure under 90 further', fent: 'opioids drop a pressure under 90 further', hydro: 'opioids drop a pressure under 90 further', metop: 'with a low or borderline pressure, a fast rate or age over 70, a beta-blocker can push the heart into shock', ibu: 'NSAIDs are harmful when the pain could be the heart', ketor: 'NSAIDs are harmful when the pain could be the heart' },
   cwp: { ibu: 'a heart attack isn\'t ruled out until the troponin is back', ketor: 'a heart attack isn\'t ruled out until the troponin is back', ntg: 'the pressure is under 90' },
   afib: { dilt: 'it slows a heart that is already holding no pressure', metop: 'it slows a heart that is already holding no pressure' },
-  sbo: { reglan: 'it pushes the gut against a blockage' }, anaph: { epiarr: '1 mg IV is the cardiac arrest dose: with a pulse it can cause a heart attack' },
+  sbo: { reglan: 'it speeds up a gut that may not be able to move things on' }, anaph: { epiarr: '1 mg IV is the cardiac arrest dose: with a pulse it can cause a heart attack' },
   asthma: { metop: 'beta-blockers tighten the airways' }, copd: { metop: 'beta-blockers tighten the airways' }, dka: { d50: 'the sugar is already high' },
   chb: { metop: 'it slows a heart that is already too slow', dilt: 'it slows a heart that is already too slow' }, od: { loraz: 'a sedative can stop the breathing of a patient who is already this drowsy' },
   shock: { labet: 'the pressure is already too low', nicard: 'the pressure is already too low', metop: 'the pressure is already too low', furo: 'it drains volume from a patient in shock' },
@@ -490,7 +490,7 @@ const CONTRA_WHY = {
 for (const k of ['strokew', 'lvo']) CONTRA_WHY[k] = CONTRA_WHY.stroke;
 for (const k of ['nstemi', 'stemi']) CONTRA_WHY[k] = CONTRA_WHY.cpmod;
 function contraWhy(p, k) {
-  if (STROKE_CASES.includes(p.ck) && k === 'tnk' && p.anticoag) return `they take ${p.anticoag}, a blood thinner, so a clot buster could make them bleed`;   // R6-02
+  if (STROKE_CASES.includes(p.ck) && k === 'tnk' && p.anticoag) return `they took ${p.anticoag}, an anticoagulant (a blood thinner), this morning, so a clot buster could make them bleed`;   // R6-02
   if (STROKE_CASES.includes(p.ck) && k === 'tnk' && p.lkwT == null) return 'nobody knows when they were last known well, so the 4.5-hour window can\'t be confirmed';   // R1.3-04
   const own = (CONTRA_WHY[p.ck] || {})[k]; if (own) return own;
   if ((CONTRA[p.ck] || []).includes('@bleed') && BLEED_RISK.includes(k)) return CONTRA_WHY_DRUG[k] || 'it makes bleeding worse';   // the bleeding-risk class, only where bleeding is the reason
@@ -549,7 +549,7 @@ function litAdd(n, why, p) {
   if (G.pre || G.mode !== 'md' || G.train || !n || (G.over && G.fail)) return;   // a fired attending gets no reason added after the firing (R6.9-02)
   G.lit = Math.max(0, Math.min(100, (G.lit || 0) + n));
   if (n > 0) (G.stats.litLog = G.stats.litLog || []).push({ t: G.t, n, why: (p ? p.name + ': ' : '') + why, who: p ? p.name : null });
-  if (!G.over) litCheck();   // added at the end of the shift: no call, card or firing after it (audit R5.9-03)
+  if (!G.over && !G.ending) litCheck();   // added at the end of the shift: no call, card or firing after it (audit R5.9-03)
 }
 function litCheck() {
   G.litStage = G.litStage || 0;
@@ -1263,8 +1263,8 @@ function grayScore(c, age) {
     // standing point to a vasovagal faint (-1, and -2 as the ED diagnosis); a new bundle branch block is a QRS over 130 ms (+1); no warning
     // with that ECG points to the heart (+2). Heart disease and the QRS axis come from the dice; the pressure and troponin are normal here.
     const hd = chance(c.k === 'synchigh' ? 0.6 : 0.2);
-    if (c.k !== 'synchigh') { const s = -1 - 2 + (hd ? 1 : 0); return g('Canadian Syncope Risk Score', s, 'low', 'home', [], ['warning signs, long standing: vasovagal (-1)', 'ED diagnosis vasovagal (-2)', hd && 'history of heart disease (1)', 'blood pressure and troponin normal (0)']); }
-    const ax = chance(0.5), s = (hd ? 1 : 0) + 1 + (ax ? 1 : 0) + 2, parts = [hd && 'history of heart disease (1)', 'QRS over 130 ms: new bundle branch block (1)', ax && 'abnormal QRS axis (1)', 'no warning with that ECG: likely the heart (2)', 'blood pressure and troponin normal (0)'];
+    if (c.k !== 'synchigh') { const s = -1 - 2 + (hd ? 1 : 0); return g('Canadian Syncope Risk Score', s, 'very low', 'home', [], ['trigger: long standing, a vasovagal setup (-1)', 'ED diagnosis: vasovagal syncope (-2)', hd && 'history of heart disease (1)', 'blood pressure and troponin normal (0)']); }   // R6.13-05: -3 and -2 are very low
+    const ax = chance(0.5), s = (hd ? 1 : 0) + 1 + (ax ? 1 : 0) + 2, parts = [hd && 'history of heart disease (1)', 'QRS 140 ms, a new bundle branch block (1)', ax && 'abnormal QRS axis (1)', 'ED diagnosis: cardiac syncope, no warning with that ECG (2)', 'blood pressure and troponin normal (0)'];
     return s <= 3 ? g('Canadian Syncope Risk Score', s, 'medium', 'obs', ['admit'], parts) : g('Canadian Syncope Risk Score', s, 'high', 'obs', ['admit'], parts);
   }
   if (c.gray === 'tia') {   // ABCD2: age 60 or more, BP 140/90 or more (this case: 172/96), clinical (numbness only: 0), duration (20 minutes: 1), diabetes
@@ -4520,8 +4520,10 @@ const STARS = { easy: [300, 800, 1400], med: [500, 1300, 2000], hard: [400, 1200
 const STARS_MD = { easy: [600, 1200, 1800], med: [600, 1300, 2000], hard: [600, 1300, 2000], train: [300, 800, 1400], rush: [120, 240, 310] };
 function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' ? STARS_MD : STARS)[level || (G && G.level) || 'med']; return c >= s[2] ? 3 : c >= s[1] ? 2 : c >= s[0] ? 1 : 0; }
 function endShift(reason) {
-  for (const id of G.order) { const q = G.pts[id]; settleDx(q); if (q && q.loc !== 'gone') unseenHanded(q, 'they were still waiting when the shift ended'); }   // calls not yet settled, and patients left unseen, count at the end
   if (G.over) return;
+  // calls not yet settled, and patients left unseen, count at the end: once, with no card or firing after them, and not after a firing (R1.13-05, R3.13-07)
+  if (reason !== 'fired') { G.ending = true; for (const id of G.order) { const q = G.pts[id]; settleDx(q); if (q && q.loc !== 'gone') unseenHanded(q, 'they were still waiting when the shift ended'); } }
+  delete G.ending; delete G.fireNow;
   if (!G.pre && G.stats.returnsLate && G.mode !== 'md') care(-20 * G.stats.returnsLate, 'returns');
   G.over = true; G.running = false; G.fail = reason === 'walkout' || reason === 'fired' ? reason : null;
   const list = G.order.map(id => G.pts[id]).filter(p => p.tArrive >= 0 && p.loc !== 'enroute' && p.loc !== 'new');
