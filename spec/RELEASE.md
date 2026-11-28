@@ -1,3 +1,43 @@
+# Release v0.33.0: fair grading, no giveaways, safer saves (audit Phases 4 and 6)
+
+- **Version:** 0.33.0 (class codes from v0.32.0 read as stale, by design; save format unchanged).
+- **Commit to release:** the head of `3d` once the Tests workflow is green at that exact commit (candidate `1f79199`).
+- **Replaces:** v0.32.0 on `main` (`78916ef`).
+- **Database:** no change (no new file in `supabase/migrations/`).
+
+## Release notes
+
+The v0.33.0 paragraph in `README.md`. In short: the attending is graded on their own calls, with stars capped by patients seen
+(30/24/18 a shift, 5/4/3 in the Rush; the owner, Nov 28); no answers given away on regular shifts; patients the charge nurse puts on
+the attending's list wait, worsen and move on; Rush pace cap for the charge nurse; career rank; crash guard and safe saves; initials
+only for class results; larger text and controls on menus and cards.
+
+## Review
+
+QA (Stage 15a) rounds 1 to 7: all FAIL; the owner stopped the loop after round 7 (`spec/QA-REPORT.md`). Round 13, six reviewers on
+the whole release diff; every Critical and High re-checked by a second agent and fixed (`docs/audit/round13/STATUS.md`,
+`verification.md`). Drift check: 17 mismatches, none Critical, all fixed (`docs/audit/round13/drift-check.md`).
+
+## CTO memo (Nov 28, 2026, at 1f79199)
+
+Full text: `docs/audit/round13/cto-memo.md`.
+
+- **Behind the gate, to testers: GO WITH CONDITIONS.** **With real students: NO-GO** (no clinician review, F-034; the round-7 QA
+  FAIL not re-graded; F-136 to F-144 not signed off). The gate stays on.
+- Evidence (checked by the CTO agent): npm test 800 ok, lint clean, a clean rebuild byte-identical, stress 188 shifts in range, no
+  database change, the merge into `main` clean; idle and radio-only attendings 0 stars in 40 of 40 new-seed shifts.
+- **Conditions before the merge into `main`:**
+  1. Tests green on `3d` at the exact commit merged.
+  2. `docs/SMOKE.md` on a phone: an iPhone in Safari, Class code on two devices, the 3D floor, the sideways list board.
+  3. The owner's written sign-off on F-136 to F-144 by ID (F-136, rude initials, needs an explicit decision).
+  4. The owner's call on drift #1: an incoming alert still shows its type ("SEPSIS", "STEMI") to the attending.
+  5. Paperwork (done: this file, `spec/STATUS.md`, `spec/FINDINGS.md`).
+  6. Optional: a short R5/R6 recheck of the fixes made after the reviewed commit, or the owner counts them as bug fixes.
+- Top risks: grading feels harsh or misleads a debrief (testers, class results; fix forward); Safari and sideways layouts (WebKit
+  job, testers; roll back by revert); rude initials in class results (instructor deletes; a server rule needs a migration).
+
+---
+
 # Release v0.32.0: the high-priority clinical content (audit Phase 3)
 
 - **Version:** 0.32.0 (new content, no change to saves; class codes from v0.31.0 read as stale, by design).
