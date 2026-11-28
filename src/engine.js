@@ -827,12 +827,12 @@ const cap = x => x ? x.charAt(0).toUpperCase() + x.slice(1) : x;
 const langMul = p => (p.lang && p.interp !== 'on' ? 1.5 : 1);
 
 /* In physician mode the player answers only for physician work, and only for their own patients. */
-const MD_TAGS = new Set(['md', 'orders', 'harm', 'dispo', 'box', 'consult', 'flow', 'goals', 'returns', 'gray', 'blood']);
+const MD_TAGS = new Set(['md', 'ecg', 'orders', 'harm', 'dispo', 'box', 'consult', 'flow', 'goals', 'returns', 'gray', 'blood']);
 const PT_TAGS = new Set(['flow', 'goals', 'returns', 'gray', 'blood', 'consult', 'dispo']);   // QA5-3: disposition points only for the attending's own patients
 /* v0.25: the four scores. Clinical and admin rise and fall with the same events that move points, sorted by the ledger's tag.
    Patients is how they felt about the visit (their experience). Staff is morale. Each reads 0 to 100. */
 const SC_OF = {};
-for (const k of ['md', 'orders', 'harm', 'dispo', 'gray', 'blood', 'safety', 'returns', 'box', 'boxn', 'consult', 'sitter', 'goals', 'ratio', 'uncovered', 'waiting']) SC_OF[k] = 'clinical';
+for (const k of ['md', 'ecg', 'orders', 'harm', 'dispo', 'gray', 'blood', 'safety', 'returns', 'box', 'boxn', 'consult', 'sitter', 'goals', 'ratio', 'uncovered', 'waiting']) SC_OF[k] = 'clinical';
 for (const k of ['admin', 'divert', 'wall', 'flow', 'staffing', 'lwbs', 'ama', 'hall', 'chair', 'transfer', 'experience']) SC_OF[k] = 'admin';
 const freshSc = () => ({ clinical: { g: 0, b: 0 }, admin: { g: 0, b: 0 } });
 const SC_PRIOR = 150;   // a clean start reads 100%, and the first mistake doesn't sink it
@@ -1293,6 +1293,7 @@ function unitName() { return (chance(0.85) ? 'Medic ' : 'Ambulance ') + randi(2,
 function onArrive(p) {
   if (!G.pre) { G.stats.arrived++; if (p.lang) G.stats.lep++; hooks.arrive(p); }
   if (p.ecg10 && !p.work.ecg) p.work.ecg = { st: 'todo', tOrd: G.t };
+  if (p.ecgRepeat) { delete p.ecgRepeat; p.ecgRepeatDue = G.t + 8; }   // v0.34: Repeat ECG on Arrival
   p.patience = p.esi >= 5 ? randi(80, 150) : p.esi === 4 ? randi(110, 190) : p.esi === 3 ? randi(150, 250) : 1e9;
 }
 function arrivals() { arrivals0(); }
@@ -1384,6 +1385,7 @@ function spawnEms(extra) {
   p.unit = unitName(); p.loc = 'wall'; p.tArrive = G.t; onArrive(p);
   outageMiss(c, p);
   note(`${p.unit} at the bay: ${ageSex(p)}, ${p.cc}`);
+  if ((c.wk || []).includes('ecg')) ecgQueue(p, 'ems');   // v0.34: the crew's 12-lead from the ambulance
 }
 function spawnAlert() {
   const c = pickCase(['a'], 'alert');
@@ -1392,6 +1394,7 @@ function spawnAlert() {
   const p = makePatient(c, 'ems');
   p.unit = unitName(); p.loc = 'enroute'; p.eta = G.t + randi(7, 12); p.alertOn = true; p.dxK = alertDxKnown();
   outageMiss(c, p);
+  if ((c.wk || []).includes('ecg')) ecgQueue(p, 'ems');   // v0.34: the 12-lead sent ahead
   G.enroute.push(p.id);
   G.box.q.push({ kind: 'notify', pid: p.id, unit: p.unit, id: ++G.box.seq });
 }
@@ -3135,7 +3138,7 @@ function resultTick() {
   for (const p of active()) {
     for (const k in p.work) {
       const w = p.work[k];
-      if (w.st === 'run' && G.t >= w.due && !(k === 'lab' && outActive('lab'))) { w.st = 'done'; w.tDone = G.t; if (p.alertOn && p.find[k]) note(`${label(p)} ${WORK[k].label}: ${p.find[k]}`); }
+      if (w.st === 'run' && G.t >= w.due && !(k === 'lab' && outActive('lab'))) { w.st = 'done'; w.tDone = G.t; if (p.alertOn && p.find[k] && !(k === 'ecg' && ecgOn())) note(`${label(p)} ${WORK[k].label}: ${p.find[k]}`); }
     }
   }
 }
@@ -3492,7 +3495,7 @@ function noCall(p) {
   p.dxq = null; G.stats.md.dxNone = (G.stats.md.dxNone || 0) + 1; scoreDx(p, false, 'no diagnosis called');
 }
 function leave(p, outcome) {
-  settleDx(p); noCall(p); unseenHanded(p, outcome === 'expired' ? 'they died waiting' : ['lwbs', 'ama'].includes(outcome) ? 'they left without being seen by you' : 'another doctor finished their care');
+  settleDx(p); noCall(p); settleEcg(p); unseenHanded(p, outcome === 'expired' ? 'they died waiting' : ['lwbs', 'ama'].includes(outcome) ? 'they left without being seen by you' : 'another doctor finished their care');
   const r = roomOf(p);
   if (r) { r.pid = null; if (r.kind === 'chair') r.st = 'clean'; else { r.st = 'dirty'; r.dirt = (p.iso || outcome === 'expired') ? 'term' : 'std'; } }
   if (p.loc === 'triage') { const i = G.triageQ.indexOf(p.id); if (i >= 0) G.triageQ.splice(i, 1); }
@@ -3634,13 +3637,55 @@ function crashSetup(p) {
   p.amaMul = 1;
 }
 /* The rhythm line has to agree with the monitor: a rate of 127 is not "normal sinus rhythm". */
-function ecgRead(p) {
+function ecgText(p) {
   const hr = Math.round(vRaw(p, G.t).v.hr), f = p.find.ecg || NORMAL.ecg;
-  if (/^Normal sinus rhythm/.test(f)) p.find.ecg = hr > 100 ? `Sinus tachycardia, rate ${hr}` : hr < 60 ? `Sinus bradycardia, rate ${hr}` : `Normal sinus rhythm, rate ${hr}`;
-  else if (/rate \d+/.test(f)) p.find.ecg = f.replace(/rate \d+/, `rate ${hr}`);
-  else if (/^Sinus tachycardia \d+/.test(f)) p.find.ecg = f.replace(/^Sinus tachycardia \d+/, `Sinus tachycardia ${hr}`);
-  else if (/^Sinus tach, /.test(f) && hr <= 100) p.find.ecg = f.replace('Sinus tach, ', 'Sinus rhythm, ');
+  if (/^(Normal sinus rhythm|Sinus tachycardia, rate|Sinus bradycardia)/.test(f)) return hr > 100 ? `Sinus tachycardia, rate ${hr}` : hr < 60 ? `Sinus bradycardia, rate ${hr}` : `Normal sinus rhythm, rate ${hr}`;
+  if (/rate \d+/.test(f)) return f.replace(/rate \d+/, `rate ${hr}`);
+  if (/^Sinus tachycardia \d+/.test(f)) return f.replace(/^Sinus tachycardia \d+/, `Sinus tachycardia ${hr}`);
+  if (/^Sinus tach, /.test(f) && hr <= 100) return f.replace('Sinus tach, ', 'Sinus rhythm, ');
+  return f;
 }
+function ecgRead(p) { p.find.ecg = ecgText(p); ecgQueue(p, 'ed'); }
+/* v0.34 (the owner, Nov 28, 2026): every ECG in the department needs the attending's signature. On a regular attending shift each one
+   comes up as a tracing marked Requires Physician Signature, with no written reading: STEMI, No STEMI, or (for the ECG an ambulance
+   sends ahead) Repeat ECG on Arrival. STEMI activates the cath lab; on an ECG with no STEMI, cardiology looks and stands it down. Whether
+   the read was right counts when the patient leaves, like a diagnosis. Orientation, Lessons and the charge nurse see the reading. */
+const ECG_PICK = { stemi: 'STEMI', no: 'No STEMI', repeat: 'Repeat ECG on Arrival' };
+const ecgStemi = p => !!p && p.ck === 'stemi';
+const ecgOn = () => G.mode === 'md' && !G.train && !G.pre;
+function ecgQueue(p, src) {
+  if (!p || !ecgOn()) return;
+  (p.ecgs = p.ecgs || []).push({ src, read: src === 'ems' ? ecgText(p) : p.find.ecg, t: G.t, pick: null, tSign: null, done: false });
+  if (src === 'ems') note(`${p.unit || 'The ambulance'} sent a 12-lead ECG ahead for ${label(p)}. It needs your signature.`);
+}
+const ecgPending = p => (p && p.ecgs || []).find(e => !e.pick) || null;
+function ecgSign(pid, pick) {
+  const p = pt(pid), e = ecgPending(p);
+  if (!e) return { ok: false, why: 'No ECG waiting for a signature' };
+  if (!ECG_PICK[pick] || (pick === 'repeat' && e.src !== 'ems')) return { ok: false, why: 'Pick STEMI or No STEMI' };
+  e.pick = pick; e.tSign = G.t; const S = G.stats.md; S.ecgSigned = (S.ecgSigned || 0) + 1;
+  if (pick === 'repeat' && !p.wk.includes('ecg')) { if (p.loc === 'enroute') p.ecgRepeat = true; else p.ecgRepeatDue = G.t + 8; }
+  if (pick === 'stemi') { if (!ecgStemi(p)) e.cathOff = G.t + 20; note(`Cath lab activated for ${label(p)}.`); }
+  return { ok: true, msg: `Signed: ${ECG_PICK[pick]}.` };
+}
+// scored when the patient leaves (or the shift ends); a cath lab activated for no STEMI is stood down by cardiology after 20 minutes
+function ecgScore(p, e, end) {
+  if (e.done) return; e.done = true;
+  if (end && !e.pick && G.t - e.t < 10) return;   // done in the last ten minutes: a sign-out, not a miss
+  const S = G.stats.md, must = ecgStemi(p);
+  if (!e.pick) { S.ecgUnsigned = (S.ecgUnsigned || 0) + 1; care(must ? -20 : -4, 'ecg', p); if (must) { litAdd(8, 'never signed an ECG that showed a STEMI', p); mm(70, `${p.name}'s ECG showed a STEMI and was never signed`, 'A must-not-miss ECG', true); } (S.ecgLog = S.ecgLog || []).push({ name: p.name, read: e.read, pick: null, src: e.src }); return; }
+  const right = must ? e.pick === 'stemi' : e.pick !== 'stemi';
+  if (right) { S.ecgRight = (S.ecgRight || 0) + 1; care(2, 'ecg', p); if (e.tSign - e.t > 10) care(-2, 'ecg', p); return; }
+  (S.ecgLog = S.ecgLog || []).push({ name: p.name, read: e.read, pick: e.pick, src: e.src });
+  if (must) { S.ecgMiss = (S.ecgMiss || 0) + 1; care(-20, 'ecg', p); litAdd(10, `signed a STEMI ECG as ${ECG_PICK[e.pick]}`, p); mm(70, `${p.name}'s ECG showed a STEMI: you signed ${ECG_PICK[e.pick]}`, 'A must-not-miss ECG', true); }
+  else { S.ecgFalse = (S.ecgFalse || 0) + 1; care(-8, 'ecg', p); litAdd(2, 'activated the cath lab for an ECG with no STEMI', p); }
+}
+function ecgTick(p) {
+  if (!p.ecgs && !p.ecgRepeatDue) return;
+  for (const e of p.ecgs || []) if (e.cathOff && !e.done && G.t >= e.cathOff) { toast(`Cardiology read ${label(p)}'s ECG: no STEMI. The cath lab stands down.`, 'bad'); ecgScore(p, e); }
+  if (p.ecgRepeatDue && G.t >= p.ecgRepeatDue && p.loc === 'room') { delete p.ecgRepeatDue; ecgRead(p); }
+}
+const settleEcg = (p, end) => { if (p && p.ecgs) for (const e of p.ecgs) ecgScore(p, e, end); };
 function crash(p) {
   const waited = Math.round(G.t - (p.tTriage != null ? p.tTriage : p.tArrive)), shown = vEsi(p);
   const why = p.esiT != null ? `Under-triaged as ESI ${shown} and never rechecked`
@@ -3748,6 +3793,7 @@ function minuteTick() {
     screenTick(p);
     if (p.crash && !p.arrest && p.loc !== 'room' && t - p.tCrash > 15) waitingArrest(p);
     hemorrhageTick(p);
+    ecgTick(p);
     if (G.pre) continue;
     if (mdMine(p)) {
       if ((p.ord === 'need' || p.ord === 'more') && p.loc === 'room') { p.ordWait = (p.ordWait || 0) + 1; if (p.ordWait > 15) care(-0.3, 'md'); }
@@ -4507,6 +4553,85 @@ function trainOutage(k, mins) {
   toast(`${O.msg} Expected back in about ${Math.round(mins)} min.`, 'alert'); sound('alarm');
 }
 
+/* ---------- ECG tracings (v0.34) ----------
+   Every ECG in the game is drawn, not a photo: a heart-vector model. Each wave is a few Gaussian bursts of one 3D vector (x to the
+   patient's left, y down, z to the front), and each lead reads that vector along its own direction (Einthoven and Goldberger for the
+   limb leads, the horizontal plane for V1 to V6), so the twelve leads agree with each other the way a real tracing does. The reading
+   text (p.find.ecg) chooses the pattern: rate and rhythm, Q waves, bundle branch blocks, ST elevation or depression, LVH, peaked T,
+   a wide QRS with a tall R in aVR. lintEcg() checks at load that every reading in the game has a pattern. Pure math, no dice: the
+   irregular rhythm of A-fib comes from a hash of the patient, so a tracing never changes when it is drawn again. */
+const ECG_LEADS = ['I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6'];
+const PREC = { V1: [128, 1.35], V2: [108, 2.3], V3: [84, 2.3], V4: [62, 2.3], V5: [38, 1.6], V6: [12, 1.15] };
+function ecgProj(v, L) {
+  const [x, y, z] = v;
+  switch (L) {
+    case 'I': return x; case 'II': return 0.5 * x + 0.866 * y; case 'III': return -0.5 * x + 0.866 * y;
+    case 'aVR': return -(0.75 * x + 0.433 * y); case 'aVL': return 0.75 * x - 0.433 * y; case 'aVF': return 0.866 * y;
+    default: { const [a, g] = PREC[L], r = a * Math.PI / 180; return g * (Math.cos(r) * x + Math.sin(r) * z + 0.15 * y); }
+  }
+}
+const ecgN = d => { const m = Math.hypot(...d); return d.map(x => x / m); };
+const ecgG = (t, c, w) => Math.exp(-0.5 * ((t - c) / w) ** 2);
+const ecgSig = x => 1 / (1 + Math.exp(-x));
+function ecgHash(s) { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function ecgRng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+function ecgSpec(read) {
+  const s = { rate: 75, rhythm: 'sinus', wide: 1, P: { c: -0.10, w: 0.022, a: 0.14, d: [0.55, 0.83, 0.1] },
+    Q: [{ n: 'sep', c: 0.014, w: 0.006, a: 0.22, d: [-0.55, 0.3, 0.8] }, { n: 'main', c: 0.043, w: 0.011, a: 1.4, d: [0.62, 0.66, -0.2] }, { n: 'ant', c: 0.036, w: 0.009, a: 0.35, d: [0.55, 0.2, 0.8] }, { n: 'late', c: 0.068, w: 0.009, a: 0.42, d: [-0.25, -0.6, -0.5] }],
+    T: { a: 0.3, w: 0.05, d: [0.62, 0.55, 0.45] }, ST: null, known: false };
+  const m = String(read || ''), C = n => s.Q.find(q => q.n === n);
+  const r = m.match(/rate (\d+)/) || m.match(/^Sinus tachycardia (\d+)/);
+  if (r) s.rate = +r[1]; else if (/^Sinus tach/.test(m)) s.rate = 112;
+  if (/^(Normal sinus rhythm|Sinus tachycardia|Sinus bradycardia|Sinus rhythm|Sinus tach)/.test(m)) s.known = true;
+  const qrs = m.match(/QRS (\d+) ms/); if (qrs) s.wide = +qrs[1] / 80; /* a normal QRS here measures about 80 ms */
+  if (/Irregularly irregular/.test(m)) { s.rhythm = 'af'; s.known = true; }
+  if (/P waves march through/.test(m)) { s.rhythm = 'chb'; s.atrial = 82; s.wide = 1.45; /* a ventricular escape: about 140 ms */ s.known = true; }
+  if (/ST elevation V1–V4/.test(m)) { s.ST = { a: 0.3, d: ecgN([0.05, -0.35, 0.94]) }; s.T.a = 0.42; s.T.d = ecgN([0.25, 0.1, 0.96]); s.known = true; }
+  if (/ST depression V4–V6/.test(m)) { s.ST = { a: 0.17, d: ecgN([-0.8, -0.3, -0.35]) }; s.T.a = 0.15; s.known = true; }
+  if (/Nonspecific ST changes/.test(m)) { s.ST = { a: 0.05, d: ecgN([-0.8, -0.4, -0.2]) }; s.T.a = 0.1; s.known = true; }
+  if (/old Q waves/.test(m)) { s.Q.unshift({ n: 'qinf', c: 0.02, w: 0.012, a: 0.5, d: ecgN([0.3, -0.95, 0]) }); C('main').d = ecgN([0.85, 0.3, -0.25]); s.T.d = ecgN([0.8, 0.1, 0.5]); s.known = true; }
+  if (/New bundle branch block/.test(m)) {   // left bundle branch block: no septal q, a broad notched leftward R, discordant ST-T
+    s.Q = [{ c: 0.045, w: 0.017, a: 1.3, d: ecgN([0.8, 0.2, -0.55]) }, { c: 0.092, w: 0.016, a: 1.15, d: ecgN([0.85, 0.05, -0.5]) }];
+    s.T = { a: 0.35, w: 0.06, d: ecgN([-0.75, -0.15, 0.6]) }; s.ST = { a: 0.12, d: ecgN([-0.75, -0.15, 0.6]) }; s.wide = 1; s.qEnd = 0.13; s.known = true; }
+  if (/right bundle branch block/.test(m)) { s.Q.push({ c: 0.098, w: 0.014, a: 0.75, d: ecgN([-0.6, 0.05, 0.8]) }); s.qEnd = 0.125; s.T.d = ecgN([0.75, 0.55, -0.1]); s.known = true; }
+  if (/S wave in I, T inversion in III/.test(m)) { s.Q.unshift({ c: 0.012, w: 0.008, a: 0.35, d: ecgN([0.87, -0.5, 0]) }); s.Q.push({ c: 0.085, w: 0.01, a: 0.45, d: ecgN([-0.95, 0.15, 0.25]) }); s.T.d = ecgN([0.95, -0.05, 0.3]); s.known = true; }
+  if (/left ventricular hypertrophy/.test(m)) { C('main').a = 2.9; C('main').d = ecgN([0.7, 0.35, -0.55]); C('late').a = 0.9; s.T.d = ecgN([-0.8, -0.2, 0.3]); s.T.a = 0.25; s.ST = { a: 0.1, d: ecgN([-0.85, -0.25, 0.2]) }; s.known = true; }
+  if (/Peaked T waves/.test(m)) { s.T.a = 1.0; s.T.w = 0.03; s.P.a = 0.05; s.P.w = 0.03; s.known = true; }
+  if (/tall R wave in aVR/.test(m)) { s.Q.push({ n: 'tca', c: 0.062, w: 0.01, a: 1.1, d: ecgN([-0.85, -0.5, 0.1]) }); s.wide = 1.42; /* with the terminal R, about 140 ms */ s.known = true; }
+  return s;
+}
+/* One lead, `secs` long, sampled every dt. */
+function ecgTrace(read, seedStr, secs, dt) {
+  const s = ecgSpec(read), R = ecgRng(ecgHash(seedStr || read)), rr0 = 60 / s.rate;
+  // beat times (QRS onsets)
+  const beats = []; let t = -rr0 * R();
+  while (t < secs + 1) { beats.push(t); t += s.rhythm === 'af' ? rr0 * (0.6 + 0.8 * R()) : rr0 * (1 + 0.02 * (R() - 0.5)); }
+  const pT = []; if (s.rhythm === 'chb') { let u = -0.3 * R(); while (u < secs + 1) { pT.push(u); u += 60 / s.atrial; } }
+  else if (s.rhythm === 'sinus') for (const b of beats) pT.push(b + s.P.c);
+  const fw = s.rhythm === 'af' ? [0, 1, 2, 3].map(() => [4 + 3 * R(), 2 * Math.PI * R(), 0.02 + 0.03 * R()]) : [];
+  const qt = Math.min(0.46, 0.40 * Math.sqrt(rr0)) + (s.wide - 1) * 0.06, tc = qt - 0.075, qEnd = s.qEnd || 0.09 * s.wide;
+  const N = Math.round(secs / dt), out = {}; for (const L of ECG_LEADS) out[L] = new Array(N).fill(0);
+  const vec = [0, 0, 0];
+  for (let i = 0; i < N; i++) {
+    const tt = i * dt; vec[0] = vec[1] = vec[2] = 0;
+    const add = (d, k) => { vec[0] += d[0] * k; vec[1] += d[1] * k; vec[2] += d[2] * k; };
+    for (const b of beats) { const x = tt - b; if (x < -0.05 || x > 0.75) continue;
+      for (const q of s.Q) add(q.d, q.a * ecgG(x, q.c * s.wide, q.w * s.wide));
+      add(s.T.d, s.T.a * ecgG(x, tc, s.T.w));
+      if (s.ST) add(s.ST.d, s.ST.a * ecgSig((x - qEnd + 0.01) / 0.008) * ecgSig((tc + 0.05 - x) / 0.03));
+    }
+    for (const p of pT) { const x = tt - p; if (Math.abs(x) < 0.12) add(s.P.d, s.P.a * ecgG(x, 0, s.P.w)); }
+    for (const L of ECG_LEADS) out[L][i] = ecgProj(vec, L);
+    if (fw.length) { let f = 0; for (const [hz, ph, a] of fw) f += a * Math.sin(2 * Math.PI * hz * tt + ph); for (const L of ECG_LEADS) out[L][i] += f * (L === 'V1' ? 1.2 : L === 'II' || L === 'III' || L === 'aVF' ? 0.8 : 0.35); }
+  }
+  return { s, beats, out, dt, qt, qEnd };
+}
+function lintEcg() {
+  const reads = new Set([NORMAL.ecg, 'Sinus tachycardia, rate 120', 'Sinus bradycardia, rate 50', 'Normal sinus rhythm, rate 80']);
+  for (const c of CASES) if (c.find && c.find.ecg) reads.add(c.find.ecg);
+  for (const r of reads) if (!ecgSpec(r).known) throw new Error(`ECG reading with no tracing pattern: "${r}"`);
+}
 /* ---------- end of shift ---------- */
 function avgWait() {
   let n = 0, sum = 0;
@@ -4547,7 +4672,7 @@ function starsFor(c, level, mode) { const s = ((mode || (G && G.mode)) === 'md' 
 function endShift(reason) {
   if (G.over) return;
   // calls not yet settled, and patients left unseen, count at the end: once, with no card or firing after them, and not after a firing (R1.13-05, R3.13-07)
-  if (reason !== 'fired') { G.ending = true; for (const id of G.order) { const q = G.pts[id]; settleDx(q); if (q && q.loc !== 'gone') { unseenHanded(q, 'they were still waiting when the shift ended', true); noCall(q); } } }
+  if (reason !== 'fired') { G.ending = true; for (const id of G.order) { const q = G.pts[id]; settleDx(q); settleEcg(q, true); if (q && q.loc !== 'gone') { unseenHanded(q, 'they were still waiting when the shift ended', true); noCall(q); } } }
   delete G.ending; delete G.fireNow;
   if (!G.pre && G.stats.returnsLate && G.mode !== 'md') care(-20 * G.stats.returnsLate, 'returns');
   G.over = true; G.running = false; G.fail = reason === 'walkout' || reason === 'fired' ? reason : null;
@@ -4577,7 +4702,7 @@ function endShift(reason) {
     expired: S.expired + deadHere.length,   // audit R5-02: the dead who haven't left yet count too, whenever they arrived (R6.8-01)
     noTeam: S.noTeam || 0, lyticLate: S.lyticLate || 0,
     lit: Math.round(G.lit || 0), litStage: G.litStage || 0, acc: G.mode === 'md' ? accuracy() : null, dxRight: (S.md && S.md.dxRight) || 0, dxWrong: (S.md && S.md.dxWrong) || 0, dxLog: ((S.md && S.md.dxLog) || []).slice(), litLog: (S.litLog || []).slice(), lawCalls: S.lawCalls || 0, wrongDrug: (S.md && S.md.wrongDrug) || 0,
-    returns: S.returns + S.returnsLate, returnList: (S.returnList || []).slice(), radioLog: (S.radioLog || []).slice(), left: active().length,
+    returns: S.returns + S.returnsLate, returnList: (S.returnList || []).slice(), radioLog: (S.radioLog || []).slice(), ecgLog: G.mode === 'md' ? ((S.md || {}).ecgLog || []).slice() : [], ecg: G.mode === 'md' ? { signed: (S.md || {}).ecgSigned || 0, right: (S.md || {}).ecgRight || 0, miss: (S.md || {}).ecgMiss || 0, falseCath: (S.md || {}).ecgFalse || 0, unsigned: (S.md || {}).ecgUnsigned || 0 } : null, left: active().length,
     wallAvg: walls.length ? Math.round(walls.reduce((a, b) => a + b, 0) / walls.length) : 0,
     wallMax: walls.length ? Math.round(Math.max(...walls)) : 0, wallOver: walls.filter(w => w > 30).length,
     boxC: Object.assign({}, S.boxC), boxN: Object.assign({}, S.boxN), goalsMet: S.goals.met, goalsMiss: S.goals.miss,
@@ -4745,6 +4870,9 @@ function mdPlay(o) {
   else if (G.card && G.card.mine) { act(() => { chooseCard(G.card.choices[0].k); return true; }); }   // v0.28: the call from administration, or a lawyer: refer to risk management
   const c = G.box.cur;
   if (c && c.kind === 'consult' && !c.taken) act(() => { const r = boxTake(G.me); if (!r.ok) return false; boxDecide(r.sc.opts ? (chance(acc) ? r.sc.r : (r.sc.r + 1) % r.sc.opts.length) : chance(acc) ? r.sc.a : !r.sc.a); return true; });
+  for (const p of active()) if (ecgPending(p)) act(() => {   // v0.34: sign the ECGs, right as often as the bot is accurate
+    const right = ecgStemi(p) ? 'stemi' : 'no', wrong = right === 'stemi' ? 'no' : 'stemi';
+    return ecgSign(p.id, chance(acc) ? right : wrong).ok; });
   for (const p of active()) {
     if (!mdMine(p)) continue;
     if (p.ord === 'need' || p.ord === 'more') act(() => {
@@ -5020,6 +5148,7 @@ function lintCases() {
   if (bad.length) throw new Error('Case data problems:\n' + bad.join('\n'));
 }
 lintCases();
+lintEcg();   // after every case is in (the v0.29 conditions are added below the autopilot)
 // Round 2 (R1.2-07): the code cards are data too. Every question has four answers and exactly one right one, every reason exists, every
 // case named in the cause and trauma lists exists, and every cause has a card.
 function lintCode() {
@@ -5067,6 +5196,6 @@ const RADIO_BTN = {
   miemss: { 7: ['She may refuse', 'No: transport'], 8: ['He may refuse', 'No: transport'], 10: ['Cath lab hospital', 'Closest hospital'], 14: ['Closest ED', 'Cath lab hospital'] },
 };
 for (const k of Object.keys(RADIO_PLAIN)) (SCEN[k] || []).forEach((s, i) => { const x = RADIO_PLAIN[k][i]; if (x) { s.plain = x[0]; s.pwhy = x[1]; } const b = (RADIO_BTN[k] || {})[i]; if (b) s.btn = b; });
-Object.assign(OC, { WATCH_WHY, settleDx, noCall, seenStars, mdScores, ordWhy, detResult, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
+Object.assign(OC, { WATCH_WHY, settleDx, noCall, seenStars, ecgTrace, ecgSpec, ECG_LEADS, ECG_PICK, ecgSign, ecgPending, settleEcg, ecgStemi, mdScores, ordWhy, detResult, missNow, provSpeed, EXAM, ORD_WHY, FIND_PLAIN, examOf: p => (p && p.rosc ? 'A pulse came back after CPR. Intubated and on the ventilator. Watch the pressure and the oxygen.' : (p && EXAM[p.ck]) || '') + (p && p.rehab && !p.rosc ? ' Lives alone and is unsteady on their feet: not safe to go home yet.' : ''), whyOf: p => (p && ((p.crash && (CRASH[p.ck] || {}).why) || ORD_WHY[p.ck])) || '' });
 if (typeof module !== 'undefined' && module.exports) module.exports = OC;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -49,6 +49,10 @@ procedures), reads results, picks a diagnosis from a short list, and picks a dis
 - AC5: On a regular shift the game gives no answers away: no list of missing orders, no instant right or wrong on a diagnosis (the card
   keeps the attending's call), a consultant who isn't the right one says so without naming the right one, and an incoming alert (named as EMS
   calls it) doesn't count as the diagnosis: the attending still works it up and names it. Orientation and Lessons still show all of these, as teaching.
+- AC7: Every ECG is a drawn 12-lead tracing. On a regular shift each ECG in the department, and an ambulance's 12-lead sent ahead,
+  needs the attending's signature: the tracing marked Requires Physician Signature, no written reading, and STEMI, No STEMI, or (ambulance
+  only) Repeat ECG on Arrival. STEMI activates the cath lab; the read is scored when the patient leaves. The charge nurse, Orientation and
+  Lessons see the reading under the tracing.
 - AC6: On Manic Monday, Full Moon Friday and the Rush the game's charge nurse puts some of the sickest patients on the attending's list,
   with a message; each waits for the attending (See this patient; no credit until then), gets worse after 45 minutes unseen, and goes to
   another doctor after an hour, counted as never seen.

@@ -557,6 +557,7 @@ function myLeft(p) { const me = E.staff(g().me), k = me && me.q[0]; return k && 
 /* What a room needs next: t = words, c = tone, i = the icon the floor plan shows. */
 function nextStep(p, r, G) {
   const pv = p.prov ? E.staff(p.prov) : null, nm = pv ? (isMe(pv) ? 'You' : esc(pv.short)) : '';
+  if (MD() && !G.train && E.ecgPending(p)) return { t: 'ECG: needs your signature', c: 'n-act fl', i: 'decide' };   // v0.34
   if (MD() && p.prov === G.me && !p.mine && p.ev === 'none' && !p.arrest) return { t: 'On your list: see them', c: 'n-act fl', i: 'steth' };   // R1.13-01
   if (mine(p) && !p.arrest) {
     if (p.ev === 'q') return { t: 'In your line', c: 'n-wait', i: 'steth' };
@@ -811,6 +812,7 @@ function pathRows(p, G) {
     else if (w.st === 'todo') v = k === 'lab' ? (p.loc === 'room' || p.pitSeen ? 'Waiting for a PCT (the nurse draws it if techs are tied up)' : 'Drawn once roomed') : k === 'ecg' ? 'Waiting for a PCT or nurse' : 'In line for the scanner';
     else if (w.st === 'doing') v = k === 'lab' ? 'Drawing now' : k === 'ecg' ? 'Doing it now' : 'Scanning now';
     else if (w.st === 'run') v = `Resulting in <span data-cd="${w.due}"></span>`;
+    else if (k === 'ecg' && MD() && !g().train) { const e = (p.ecgs || []).slice().reverse().find(x => x.src === 'ed'); v = e && e.pick ? `Your read: <b>${esc(E.ECG_PICK[e.pick])}</b>` : '<b>Requires Physician Signature</b> (the tracing is above)'; st = e && e.pick ? 'ok' : 'need'; }   // v0.34: no written reading on the attending's shift
     else { const f = p.find[k] || 'Resulted', pl = PLAIN() && !dxPending(p) && (E.FIND_PLAIN[f] || (/^Normal sinus rhythm/.test(f) ? 'a normal heartbeat' : /^Sinus tachycardia, rate/.test(f) ? 'a fast, regular heartbeat' : /^Sinus bradycardia/.test(f) ? 'a slow, regular heartbeat' : '')); v = `<b>${esc(f)}</b>${pl ? `<small class="dxp">${esc(pl)}</small>` : ''}`; st = 'ok'; }
     rows.push(row(nm, v, st));
   }
@@ -992,6 +994,7 @@ function ptSheet(G, p) {
   if (['room', 'waiting', 'wall', 'triage'].includes(p.loc)) { const px = Math.round(Math.max(0, Math.min(100, p.px))); kv.push(['Experience', `<span class="pxv ${px >= 70 ? 'ok' : px >= 45 ? 'warn' : 'bad'}">${px}%</span> · ${p.lastUpdate != null ? (G.t - p.lastUpdate < 1 ? 'updated just now' : `updated <span data-el="${p.lastUpdate}"></span> ago`) : 'no update yet'}${PLAIN() ? '<small class="dxp">how they feel about the visit; an update raises it</small>' : ''}`]); }
   h += `<div class="ph-cc">${kv.map(([k, v]) => `<div><span>${k}</span><div>${v}</div></div>`).join('')}</div>`;
   if (MD() && p.ck && E.rxName && p.tr.includes('meds') && mine(p)) kv.push(['Medications', esc(E.rxName(p))]);
+  h += ecgBlock(p);   // v0.34
   h += MD() ? mdPrimary(p, G) : primary(p, G);
   h += `<ol class="path">${pathRows(p, G)}</ol>`;
   const gk = Object.keys(p.goals); if (gk.length && p.loc !== 'enroute') h += `<div class="goals">${gk.map(k => goalRow(p, k)).join('')}</div>`;
@@ -1142,6 +1145,52 @@ function openViewer(pid, d) {
   v.addEventListener('click', e => { if (e.target.closest('[data-vw="x"]') || !e.target.closest('.vw-cap')) closeViewer(); });
   document.body.appendChild(v); U.viewer = { pid, d };
 }
+/* v0.34: the 12-lead, drawn on ECG paper. 25 mm/s and 10 mm/mV, four columns of three leads (2.5 s each), a lead II rhythm strip
+   (10 s), and a 1 mV calibration pulse at the start of each row. Units are millimetres; the SVG scales to the screen. */
+const ECG_CACHE = new Map();
+function ecgSVG(read, seed, cls) {
+  const key = read + '|' + seed;
+  let body = ECG_CACHE.get(key);
+  if (!body) {
+    const T = E.ecgTrace(read, seed, 10, 0.004), out = T.out, dt = T.dt, X0 = 7, rows = [['I', 'aVR', 'V1', 'V4'], ['II', 'aVL', 'V2', 'V5'], ['III', 'aVF', 'V3', 'V6']], Y = [22, 52, 82, 114];
+    const pts = (L, t0, t1, y) => { const a = []; for (let i = Math.round(t0 / dt); i < Math.round(t1 / dt); i++) a.push(`${(X0 + i * dt * 25).toFixed(1)},${(y - out[L][i] * 10).toFixed(2)}`); return a.join(' '); };
+    const cal = y => `M1,${y} h2 v-10 h4 v10 h0`;
+    let g = '';
+    rows.forEach((r, ri) => {
+      g += `<path class="ecg-cal" d="${cal(Y[ri])}"/>`;
+      r.forEach((L, ci) => { g += `<polyline class="ecg-l" points="${pts(L, ci * 2.5, ci * 2.5 + 2.5, Y[ri])}"/><text class="ecg-t" x="${X0 + ci * 62.5 + (ci ? 1.2 : 2.6)}" y="${Y[ri] - 9}">${L}</text>`; if (ci) g += `<path class="ecg-sep" d="M${X0 + ci * 62.5},${Y[ri] - 3} v6"/>`; });
+    });
+    g += `<path class="ecg-cal" d="${cal(Y[3])}"/><polyline class="ecg-l" points="${pts('II', 0, 10, Y[3])}"/><text class="ecg-t" x="${X0 + 2.6}" y="${Y[3] - 9}">II</text>`;
+    body = g; ECG_CACHE.set(key, body); if (ECG_CACHE.size > 40) ECG_CACHE.delete(ECG_CACHE.keys().next().value);
+  }
+  const pid = 'ecgg' + (ecgSVG.n = (ecgSVG.n || 0) + 1);
+  return `<svg class="ecg ${cls || ''}" viewBox="0 0 258 128" role="img" aria-label="12-lead ECG"><defs><pattern id="${pid}m" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1,0 V1 H0" class="ecg-g1"/></pattern><pattern id="${pid}M" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="url(#${pid}m)"/><path d="M5,0 V5 H0" class="ecg-g5"/></pattern></defs><rect width="258" height="128" class="ecg-bg"/><rect width="258" height="128" fill="url(#${pid}M)"/>${body}</svg>`;
+}
+const ecgSeed = (p, e) => `${p.id}|${Math.round((e && e.t) || 0)}`;
+// What the ECG block shows: on the attending's regular shift, the tracing to sign (no reading); otherwise the tracing and its reading.
+function ecgBlock(p) {
+  const sign = MD() && !(E.G && E.G.train), list = p.ecgs || [], pend = E.ecgPending(p);
+  if (sign && list.length) {
+    const e = pend || list[list.length - 1], i = list.indexOf(e);
+    const src = e.src === 'ems' ? `sent ahead by ${esc(p.unit || 'the ambulance crew')}` : 'done here';
+    return `<div class="ecgbox${pend ? ' need' : ''}"><div class="ecg-h"><b>12-lead ECG</b> · ${src}${pend ? ' · <span class="ecg-sig">Requires Physician Signature</span>' : ` · Signed: <b>${esc(E.ECG_PICK[e.pick])}</b>`}</div>`
+      + `<button type="button" class="ecg-thumb" data-act="ecgView" data-arg="${p.id}|${i}" aria-label="Open the ECG full screen">${ecgSVG(e.read, ecgSeed(p, e))}</button>`
+      + (pend ? `<div class="ecg-btns"><button type="button" class="big bad" data-act="ecgSign" data-arg="${p.id}|stemi">STEMI</button><button type="button" class="big" data-act="ecgSign" data-arg="${p.id}|no">No STEMI</button>${e.src === 'ems' ? `<button type="button" class="big" data-act="ecgSign" data-arg="${p.id}|repeat">Repeat ECG on Arrival</button>` : ''}</div><p class="hint" style="margin:0">Your read is your signature. STEMI activates the cath lab.</p>` : '')
+      + `</div>`;
+  }
+  const w = p.work && p.work.ecg;
+  if (!sign && w && w.st === 'done' && p.find.ecg) return `<div class="ecgbox"><div class="ecg-h"><b>12-lead ECG</b> · ${esc(p.find.ecg)}</div><button type="button" class="ecg-thumb" data-act="ecgView" data-arg="${p.id}|-1" aria-label="Open the ECG full screen">${ecgSVG(p.find.ecg, ecgSeed(p, null))}</button></div>`;
+  return '';
+}
+function openEcg(pid, i) {
+  const p = E.pt(pid); if (!p) return;
+  const sign = MD() && !(E.G && E.G.train), e = i >= 0 ? (p.ecgs || [])[i] : null, read = e ? e.read : p.find.ecg; if (!read) return;
+  closeViewer(); const v = document.createElement('div'); v.id = 'viewer'; v.className = 'vw-ecg'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-label', '12-lead ECG');
+  const cap = sign ? (e && e.pick ? `Signed: ${esc(E.ECG_PICK[e.pick])}` : 'Requires Physician Signature') : esc(read);
+  v.innerHTML = `<div class="vw-img">${ecgSVG(read, ecgSeed(p, e), 'big')}</div><div class="vw-cap"><div class="vw-h"><b>12-lead ECG</b> · ${esc(p.name)} · 25 mm/s, 10 mm/mV</div><div class="vw-f">${cap}</div><button type="button" class="big" data-vw="x">Close</button></div>`;
+  v.addEventListener('click', ev => { if (ev.target.closest('[data-vw="x"]')) closeViewer(); });
+  document.body.appendChild(v); U.viewer = { pid, ecg: i };
+}
 function closeViewer() { const v = document.getElementById('viewer'); if (v) v.remove(); U.viewer = null; }
 /* The named tests a card shows: the attending's own orders, or (for the charge nurse) what the provider ordered. */
 function detShown(p) {
@@ -1165,7 +1214,7 @@ function ordersBlock(p, G, add) {
 const dxPending = p => MD() && mine(p) && !p.dxK && !(E.G && E.G.train) && !p.gray && !E.NODX.has(p.ck);
 /* v0.28: the attending names the diagnosis from the exam and the results. */
 function dxBlock(p) {
-  const ev = [E.examOf(p)].concat(p.wk.includes('ecg') && p.work.ecg && p.work.ecg.st === 'done' && p.find.ecg ? [`ECG: ${p.find.ecg}`] : [], (p.det || []).map(d => { const r = (p.dres && p.dres[d]) || E.detResult(p, d); return r && r[0] ? `${(E.LABS[d] || E.IMGS[d] || {}).n || d}: ${r[0]}` : null; })).filter(Boolean);
+  const ev = [E.examOf(p)].concat(p.wk.includes('ecg') && p.work.ecg && p.work.ecg.st === 'done' && p.find.ecg ? [MD() && !g().train ? `ECG: your read: ${(() => { const e = (p.ecgs || []).slice().reverse().find(x => x.pick); return e ? E.ECG_PICK[e.pick] : 'not signed yet'; })()}` : `ECG: ${p.find.ecg}`] : [], (p.det || []).map(d => { const r = (p.dres && p.dres[d]) || E.detResult(p, d); return r && r[0] ? `${(E.LABS[d] || E.IMGS[d] || {}).n || d}: ${r[0]}` : null; })).filter(Boolean);
   return `<div class="prim"><div class="prim-l">What’s the diagnosis?</div>${ev.length ? `<ul class="dxev">${ev.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<p class="hint" style="margin:0">A miss costs accuracy and raises your legal risk.</p><div class="cgrid">${p.dxq.map(d => `<button type="button" class="cbtn" data-act="dxPick" data-arg="${p.id}|${esc(d)}"><b>${esc(d)}</b></button>`).join('')}</div></div>`;
 }
 function mdDecideBlock(p) {
@@ -1458,7 +1507,9 @@ const GLOSS = [
     ['Sepsis', 'The body’s reaction to an infection, out of control. Antibiotics are due within the hour.'],
     ['Hemorrhage', 'Bleeding, usually heavy.'],
     ['Hypotensive', 'With a low blood pressure.'],
-    ['STEMI', 'The kind of heart attack that needs a blocked artery opened in the cath lab right away.'],
+    ['STEMI', 'The kind of heart attack that needs a blocked artery opened in the cath lab right away. On the ECG: ST elevation in two leads next to each other.'],
+    ['Physician signature', 'Every ECG must be read and signed by a doctor. Here the attending signs each one: STEMI, No STEMI, or Repeat ECG on Arrival for one sent from the ambulance.'],
+    ['12-lead ECG', 'Twelve views of the heart\'s electricity on pink paper: each small box is 0.04 seconds wide and 0.1 mV tall; a big box is five small ones.'],
     ['Stroke, LVO', 'A blocked or burst blood vessel in the brain. An LVO, large-vessel occlusion, is a big clot that may need to be pulled out.'],
     ['TIA', 'A stroke that clears up on its own within minutes. A warning sign.'],
     ['DKA', 'Diabetic ketoacidosis. Very high blood sugar with acid in the blood.'],
@@ -1592,6 +1643,7 @@ function helpMD() {
 <li><b>Radio orders.</b> Some crews ask for a dose or an order, not a yes or no. Pick the drug, dose, and route.</li>
 <li><b>Admit by phone.</b> For a straightforward medical admission, admit to the hospitalist by phone instead of waiting for them to come down. Some patients need a second consult; the card says so.</li>
 <li><b>Bedside tests.</b> A fingerstick glucose or urine dip reads in a minute and works when the lab is down. Check the sugar early on every stroke.</li>
+<li><b>Sign the ECGs.</b> Every ECG in the department comes to you as a tracing marked <b>Requires Physician Signature</b>. Read it and sign: <b>STEMI</b> (activates the cath lab), <b>No STEMI</b>, or for an ECG the ambulance sends ahead, <b>Repeat ECG on Arrival</b>. Whether you were right shows when the patient leaves.</li>
 <li><b>Answer the radio.</b> Tap Answer, read the call, approve or deny. Only you can.</li>
 <li><b>Alerts.</b> Time goals: ECG in 10, CT in 25, needle in 60, balloon in 90.</li>
 <li><b>Your scores.</b> Your own calls: Clinical (your own patients), Diagnoses (called; how many were right shows at the end; one left uncalled is a miss), Radio (medical-direction calls answered right) and Legal (100 minus legal risk). The department's Patients, Admin and Staff show on your summary as context. <b>Seeing patients is the job:</b> the stars are capped by how many you saw (30, 24, 18 on a shift; 5, 4, 3 in the Rush). The meter counts patients waiting on a next step.</li>
@@ -2081,7 +2133,7 @@ const GAME_V = '/*GAMEV*/';   // the build puts the version here: a code gives t
 // v0.29.1: codes carry the version. PAST_V holds only the version just before this one ('' is v0.29.0 and earlier, before codes
 // carried one): each entry is another 1-in-64 chance that a mistyped code reads as stale, so each release replaces it, never appends.
 // The check is 6 bits, so about 1 code in 64 from another version still reads as current: refused almost always, not always.
-const PAST_V = ['0.32.0'];   // v0.33.0 replaces v0.32.0 on the live site
+const PAST_V = ['0.33.0'];   // v0.34.0 replaces v0.33.0 on the live site
 E.setCodeVersion(GAME_V, PAST_V);
 const staleWhy = () => `That code looks mistyped, or it was made on another version of the game (this is v${GAME_V}). Check each letter. If it’s right, ask your instructor for a new code.`;
 /* Class codes: an instructor makes one, students enter it, and everyone plays the same shift (same arrivals and events). */
@@ -2718,6 +2770,8 @@ const ACT = {
   aboutDone: () => { store('oc-seen-about', '1'); ACT.tmenu('main'); },
   tmenu: a => { if (a && a !== 'main' && U.scene === 'title') backTrap(); U.tm = a || 'main'; if (U.scene === 'title') { setH($('#title'), titleHTML()); $('#title').scrollTop = 0; if (U.kbd) { const f = $('#title .t-back') || focusables($('#title'))[0]; if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* a nicety */ } } } },   // QA2-4: the focus follows a menu change
   img: a => { const [pid, d] = a.split('|'); openViewer(pid, d); },
+  ecgView: a => { const [pid, i] = a.split('|'); openEcg(pid, +i); },
+  ecgSign: a => { const [pid, k] = a.split('|'); res(E.ecgSign(pid, k)); },
   q3d: () => { const o = ['low', 'med', 'high', 'auto']; U.q3d = o[(o.indexOf(U.q3d) + 1) % o.length]; store('oc-3dq', U.q3d); if (window.OC3D && OC3D.quality) OC3D.quality(U.q3d); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   three: () => { U.three = !U.three; store('oc-3d', U.three ? '1' : '0'); if (U.scene === 'title') setH($('#title'), titleHTML()); },
   view: v => { U.view = v === 'list' || v === 'map' ? v : U.view === 'map' ? 'list' : 'map'; store('oc-view', U.view); if (U.scene === 'title') setH($('#title'), titleHTML()); },
@@ -3257,6 +3311,12 @@ function ordLogHTML(m) {
   return `<h4>Orders to review</h4><ul class="ordlog">${L.slice(0, Math.max(12, bad.length)).map(x => `<li><b>${esc(x.name)}</b> · ${esc(x.dx || '')}${x.miss.length ? `<span class="ol-m">Missed: ${esc(x.miss.join(', '))}</span>` : ''}${(x.unsafe || []).length ? `<span class="ol-m">Can hurt them: ${esc(x.unsafe.join('; '))}</span>` : ''}${x.extra.length ? `<span class="ol-x">Not needed: ${esc(x.extra.join(', '))}</span>` : ''}${x.fine && x.fine.length ? `<span class="ol-f">Also reasonable: ${esc(x.fine.join(', '))}</span>` : ''}${x.why ? `<span class="ol-w">${esc(x.why)}</span>` : ''}</li>`).join('')}</ul>${L.length > 12 ? `<p class="hint">And ${L.length - 12} more.</p>` : ''}`;
 }
 /* Radio calls the attending got wrong or let ring out, with the plain reason. */
+function ecgLogHTML(R) {   // v0.34: the ECGs signed wrong or never signed, with the reading, after the shift
+  const q = R.ecg; if (!q || !q.signed && !q.unsigned) return '';
+  const L = (R.ecgLog || []).slice(0, 8);
+  return `<h4>ECGs you signed</h4><p class="hint">${q.right | 0} of ${(q.signed | 0) + (q.unsigned | 0)} right${q.falseCath ? `; ${q.falseCath | 0} cath lab activation${q.falseCath === 1 ? '' : 's'} for no STEMI` : ''}${q.unsigned ? `; ${q.unsigned | 0} never signed` : ''}.</p>`
+    + (L.length ? `<ul class="ordlog">${L.map(x => `<li><b>${esc(x.name)}</b>: ${x.pick ? `you signed ${esc(E.ECG_PICK[x.pick])}` : 'never signed'}<span class="ol-w">The reading: ${esc(x.read)}</span></li>`).join('')}</ul>` : '');
+}
 function radioLogHTML(R) {
   const L = (R.radioLog || []); if (!L.length) return '';
   return `<h4>Radio calls to review</h4><ul class="ordlog">${L.slice(0, 8).map(x => `<li>${esc(x.q)}<span class="ol-m">${x.miss ? 'Rang out. ' : 'You got it wrong. '}Right answer: ${esc(x.right || (x.btn ? x.btn[x.a ? 0 : 1] : x.a ? 'Approve' : 'Deny'))}${x.said ? ` (you ordered ${esc(x.said)})` : ''}</span><span class="ol-w">${esc(x.why)}</span></li>`).join('')}</ul>`;
@@ -3269,7 +3329,7 @@ function returnsHTML(R) {
 function mdReportHTML(R, t) {
   if (R.mode !== 'md' || !R.md) return returnsHTML(R);
   const m = R.md;
-  return ordLogHTML(m) + radioLogHTML(R) + returnsHTML(R) + `<h4>Your patients</h4><table>${t('Patients you saw', m.seen)}${t('ESI 1 and 2 seen within 10 min of a room', m.fast)}${t('Orders right / extra / missed', `${m.ordRight} / ${m.ordExtra} / ${m.ordMiss}`)}${t('Clean order sets', m.clean)}${t('Workups you had to add to', m.gaps)}${t('Unsafe orders (a drug that can hurt this patient, or a risky treatment with no reason for it)', (m.contra || 0) + (m.unneeded || 0))}${t('Complications (partly chance)', Math.max(0, (m.harm || 0) - (m.contra || 0)))}${t('Your own patients who died', m.died || 0)}${m.codeLost ? t('Of them, after a code run by the book', m.codeLost) : ''}${m.arrestOpen ? t('Your own patients still in cardiac arrest at the end, with no code running', m.arrestOpen) : ''}${t('Patients who got worse untreated', m.untreated)}${t('Disposition calls right / wrong', `${m.dispoRight} / ${m.dispoWrong}`)}${t('Medical direction calls answered', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Medical direction calls right (of those you answered)', `${R.boxC.right} of ${R.boxC.ans}`)}</table>`;
+  return ordLogHTML(m) + ecgLogHTML(R) + radioLogHTML(R) + returnsHTML(R) + `<h4>Your patients</h4><table>${t('Patients you saw', m.seen)}${t('ESI 1 and 2 seen within 10 min of a room', m.fast)}${t('Orders right / extra / missed', `${m.ordRight} / ${m.ordExtra} / ${m.ordMiss}`)}${t('Clean order sets', m.clean)}${t('Workups you had to add to', m.gaps)}${t('Unsafe orders (a drug that can hurt this patient, or a risky treatment with no reason for it)', (m.contra || 0) + (m.unneeded || 0))}${t('Complications (partly chance)', Math.max(0, (m.harm || 0) - (m.contra || 0)))}${t('Your own patients who died', m.died || 0)}${m.codeLost ? t('Of them, after a code run by the book', m.codeLost) : ''}${m.arrestOpen ? t('Your own patients still in cardiac arrest at the end, with no code running', m.arrestOpen) : ''}${t('Patients who got worse untreated', m.untreated)}${t('Disposition calls right / wrong', `${m.dispoRight} / ${m.dispoWrong}`)}${t('Medical direction calls answered', `${R.boxC.ans} of ${R.boxC.ans + R.boxC.miss}`)}${t('Medical direction calls right (of those you answered)', `${R.boxC.right} of ${R.boxC.ans}`)}</table>`;
 }
 function mmHTML(R) {
   if (!R.mm) return '';
@@ -3534,5 +3594,5 @@ function boot2(data) {
 /*MAP*/
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-window.OCUI = { U, render, save: f => save(f), cbClean, cbSendable, verdictOf, start, omOf: k => omOf(k), showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
+window.OCUI = { U, render, save: f => save(f), ecgSVG: (r, s) => ecgSVG(r, s), cbClean, cbSendable, verdictOf, start, omOf: k => omOf(k), showTitle, mapFocus, tgt3d: x => tgt3d(x), mapRect: x => { const r = mapRect(x); return { left: r.left, top: r.top, width: r.width, height: r.height }; }, cam: () => ({ far: CAM.far, x: CAM.x, y: CAM.y, w: CAM.w, h: CAM.h }), coach: () => { const t = TR(), st = coachStep(); return t && st ? { lesson: lessonKey(), i: t.step, id: st.id, wait: t.brk == null && !!st.wait && t.held !== t.step, next: t.brk != null || !!st.next || t.held === t.step, final: t.brk == null && !!st.final, n: STEPS_NOW().length, brk: t.brk != null ? t.brk : null, ch: (chOf(t.step) || {}).k } : null; } };
 })();
