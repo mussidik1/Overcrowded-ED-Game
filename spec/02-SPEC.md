@@ -67,7 +67,7 @@ lowered before the drug.
 a verdict, the M&M (worst moments), and for the attending the orders, diagnoses and radio calls to review, with reasons.
 - The charge nurse is graded on Patients, Clinical, Admin and Staff. The attending is graded on their own decisions: Clinical (own
   patients), Diagnoses called right, Radio calls answered right, and Legal (100 minus legal risk); the department's scores show as
-  context. During a shift the attending's Diagnoses box shows how many were called, not how many were right. The attending's stars are capped by patients seen (a full shift 30, 15 and 6 for three, two and one stars; the Rush 6, 3 and 1); a diagnosis left uncalled counts as a miss.
+  context. During a shift the attending's Diagnoses box shows how many were called, not how many were right. The attending's stars are capped by patients seen (a full shift 30, 24 and 18 for three, two and one stars; the Rush 5, 4 and 3); a diagnosis left uncalled counts as a miss.
 - In the Five-Minute Rush, the charge nurse's stars are capped by pace: the average minutes from the door to a provider (15, 25 and 40
   for three, two and one stars), shown on the report.
 - A career rank per role (charge nurse: New grad to Director of emergency nursing; attending: Intern to Department chair) grows with the

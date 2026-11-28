@@ -859,9 +859,9 @@ const PACE = [15, 25, 40];
 const paceStars = w => (w <= PACE[0] ? 3 : w <= PACE[1] ? 2 : w <= PACE[2] ? 1 : 0);
 const paced = () => G.level === 'rush' && G.mode !== 'md';
 /* Round 13 (R5.13-02, R5.13-05, R1.13-03): the attending's stars are capped by the work: patients the attending saw. Seeing patients is the
-   job, so an attending who sees nobody earns no stars, whatever the radio did. A full shift: 30 for three stars, 15 for two, 6 for one;
-   the Rush: 6, 3 and 1. (An engaged attending sees 40 to 50 in a shift, a slow one about 20.) */
-const SEEN_FOR = { shift: [30, 15, 6], rush: [6, 3, 1] };
+   job, so an attending who sees nobody earns no stars, whatever the radio did. A full shift: 30 for three stars, 24 for two, 18 for one;
+   the Rush: 5, 4 and 3 (2.5, 2.0 and 1.5 an hour, the top of a busy real shift: the game is meant to be a rush). */
+const SEEN_FOR = { shift: [30, 24, 18], rush: [5, 4, 3] };   // the owner, Nov 28, 2026: 2.5, 2.0 and 1.5 patients an hour
 const seenLim = () => SEEN_FOR[G.level === 'rush' ? 'rush' : 'shift'];
 const seenStars = n => { const L = seenLim(); return n >= L[0] ? 3 : n >= L[1] ? 2 : n >= L[2] ? 1 : 0; };
 function overallStars() {
