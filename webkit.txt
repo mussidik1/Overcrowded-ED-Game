@@ -1,5 +1,5 @@
-commit 78916efaeee851d152e9f9a75387e379a882bdcc
-date   2026-11-26 03:39 UTC
+commit 1ae8ab03b79b5817067da3e13861236032008187
+date   2026-11-28 05:20 UTC
 Version 1.65.2
 ProductName:		macOS ProductVersion:		26.7.2 BuildVersion:		25G332 
 
@@ -12,22 +12,21 @@ ok   Run it back starts the same shift again in one tap
 No errors.
 
 === python test/ui_test.py ===
-FAIL
-1:report {"care": 1723, "wait": 11, "sat": 58, "stars": 2, "seen": 112, "dc": 38, "adm": 34, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 4, "interp": 18, "pitSeen": 0}
-51:ERRORS:
-52:  CHECK FAILED: tapping a new arrival opens intake: pick a registrar or a triage nurse
+PASS
+1:report {"care": 1602, "wait": 11, "sat": 57, "stars": 2, "seen": 112, "dc": 37, "adm": 34, "lwbs": 0, "ama": 0, "returns": 0, "mtp": 4, "interp": 18, "pitSeen": 0}
+52:No errors.
+ok   report shows ED metrics, patient experience, and staffing hours
 ok   report walks through the worst moments (M&M)
 ok   back to the menu
-ERRORS:
-  CHECK FAILED: tapping a new arrival opens intake: pick a registrar or a triage nurse
+No errors.
 
 === python test/md_ui_test.py ===
 PASS
-1:report {'care': 2237, 'stars': 3, 'wait': 21, 'left': 15} {'seen': 46, 'fast': 18, 'ordRight': 137, 'ordExtra': 12, 'ordMiss': 8, 'clean': 31, 'gaps': 1, 'harm': 0, 'untreated': 0, 'dispoRight': 40, 'dispoWrong': 0, 'wrongDrug': 6, 'log': [{'name': 'Tom F.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': ['Furosemide (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Aspirin until the troponin is back; then ibuprofen for the chest wall, and home.'}, {'name': 'Omar C.', 'dx': 'Cellulitis', 'miss': [], 'extra': ['Acyclovir (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Ruth P.', 'dx': 'Pneumonia, low risk', 'miss': [], 'extra': ['Trimethoprim-sulfamethoxazole (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Chest X-ray finds it. The BUN from the labs feeds the CURB-65 score. Antibiotics; most go home on pills.'}, {'name': 'Dorothy L.', 'dx': 'Suspected tuberculosis', 'miss': [], 'extra': ['CT head'], 'fine': [], 'unsafe': [], 'why': 'Chest X-ray and labs. Isolate first. Treatment starts upstairs.'}, {'name': 'Carmen C.', 'dx': 'Influenza', 'miss': [], 'extra': ['CT head'], 'fine': [], 'unsafe': [], 'why': 'A respiratory swab confirms flu. Fever medicine and fluids at home. Mask and an isolation room while they are here.'}, {'name': 'Andre B.', 'dx': 'Dental abscess', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'No tests. An antibiotic and pain control, then a dentist.'}, {'name': 'Mei P.', 'dx': 'Hyperkalemia', 'miss': [], 'extra': [], 'fine': [], 'unsafe': [], 'why': 'The ECG shows the danger before the lab does. Calcium protects the heart; insulin with dextrose pushes potassium into cells; then dialysis.'}, {'name': 'Rosa H.', 'dx': 'Influenza', 'miss': [], 'extra': ['Amoxicillin-clavulanate (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'A respiratory swab confirms flu. Fever medicine and fluids at home. Mask and an isolation room while they are here.'}, {'name': 'Malik G.', 'dx': 'Chest pain, low risk', 'miss': [], 'extra': ['CT head'], 'fine': [], 'unsafe': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Aspirin until the troponin is back; then ibuprofen for the chest wall, and home.'}, {'name': 'Wei N.', 'dx': 'Acute ischemic stroke', 'miss': [], 'extra': [], 'fine': [], 'unsafe': [], 'why': 'CT rules out a bleed. Glucose rules out a mimic. Then the clot-busting drug. Neurology. An ECG is reasonable.'}, {'name': 'Jen R.', 'dx': 'Kidney stone', 'miss': [], 'extra': ['Lidocaine (wrong drug)', 'Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Urine shows blood. A CT finds the stone. Ketorolac for the pain, and fluids.'}, {'name': 'Dorothy E.', 'dx': 'Cellulitis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Labs show how sick. Pills failed, so antibiotics by vein. No scan without a pus pocket.'}, {'name': 'Helen B.', 'dx': 'A-fib with rapid rate', 'miss': ['Medications (diltiazem)'], 'extra': ['Nitroglycerin (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'ECG names the rhythm. Labs look for a cause. Diltiazem slows the rate. Cardiology.'}], 'dxRight': 26, 'dxWrong': 5, 'dxLog': [{'name': 'Kwame F.', 'said': 'Heart failure flare', 'dx': 'Pneumonia', 'must': False}, {'name': 'Frank B.', 'said': 'Appendicitis', 'dx': 'Gastroenteritis', 'must': False}, {'name': 'Andre H.', 'said': 'Angioedema from an ACE inhibitor', 'dx': 'Anaphylaxis', 'must': True}, {'name': 'Jean E.', 'said': 'Gout', 'dx': 'Ankle sprain', 'must': False}, {'name': 'Carmen J.', 'said': 'Salicylate overdose', 'dx': 'Acetaminophen overdose', 'must': True}], 'died': 0, 'codeLost': 0, 'handed': 0, 'codeLate': 0, 'arrestOpen': 0, 'arrestLeft': 0}
-32:No errors.
+1:report {'care': 1719, 'stars': 2, 'wait': 22, 'left': 19} {'seen': 40, 'fast': 17, 'ordRight': 141, 'ordExtra': 9, 'ordMiss': 2, 'clean': 31, 'gaps': 0, 'harm': 0, 'untreated': 0, 'dispoRight': 34, 'dispoWrong': 0, 'dxCalled': 25, 'dxRight': 21, 'unseen': 2, 'wrongDrug': 2, 'log': [{'name': 'Tamika W.', 'dx': 'Diabetic ketoacidosis', 'miss': [], 'extra': ['Regular insulin 10 units IV (wrong drug)', 'Glucagon (wrong drug)'], 'fine': [], 'unsafe': [], 'why': 'Labs show the sugar, the acid, and the potassium. Fluids first. Insulin once the potassium is known. Potassium replaced: insulin drives it into the cells. ICU.'}, {'name': 'Tom R.', 'dx': 'Medication refill', 'miss': [], 'extra': ['CBC', 'BMP'], 'fine': [], 'unsafe': [], 'why': 'Nothing to order. No symptoms: the refill is written at discharge.'}, {'name': 'Thi T.', 'dx': 'Simple laceration', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'No tests. Clean it and stitch it.'}, {'name': 'Malik E.', 'dx': 'Chest pain', 'miss': [], 'extra': ['CT head'], 'fine': [], 'unsafe': [], 'why': 'ECG, troponin, and a chest X-ray: all normal. Aspirin until the troponin is back; then ibuprofen for the chest wall, and home.'}, {'name': 'Earl T.', 'dx': 'Massive pulmonary embolism', 'miss': [], 'extra': ['CT head'], 'fine': [], 'unsafe': [], 'why': 'Too unstable for the scanner. A bedside heart ultrasound shows a failing right heart with a pressure under 90: that is massive PE. The clot buster (tenecteplase) now, and oxygen. ICU.'}, {'name': 'Jim K.', 'dx': 'Gastroenteritis', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Labs check for dehydration. Fluids and nausea medication. A soft belly needs no CT.'}, {'name': 'Earl V.', 'dx': 'Dehydration', 'miss': [], 'extra': ['Chest X-ray'], 'fine': [], 'unsafe': [], 'why': 'Labs show the kidneys are dry. Fluids fix it.'}], 'dxWrong': 4, 'dxLog': [{'name': 'Wei F.', 'said': 'Appendicitis', 'dx': 'Kidney stone', 'must': False}, {'name': 'Lucia J.', 'said': 'Biliary colic', 'dx': 'Cholecystitis', 'must': False}, {'name': 'Jim K.', 'said': 'Bowel obstruction', 'dx': 'Gastroenteritis', 'must': False}, {'name': 'Yara A.', 'said': 'Lung cancer', 'dx': 'Pneumonia', 'must': False}], 'died': 0, 'codeLost': 0, 'handed': 0, 'codeLate': 0, 'arrestOpen': 0, 'arrestLeft': 0}
+36:No errors.
 ok   the team sheet has no nurse controls for the attending
 ok   the attending shift report
-ok   best score kept for the attending (average of the four: 91)
+ok   best score kept for the attending (average of the four: 76)
 No errors.
 
 === MODE=rn python test/train_test.py ===
@@ -35,7 +34,7 @@ PASS
 74:No errors.
 68/69 k3
 69/69 end
-taps: 78, game clock: 10:26, care 147, cards read 72, words 1765, longest 48
+taps: 78, game clock: 10:31, care 147, cards read 72, words 1765, longest 48
 No errors.
 
 === MODE=md python test/train_test.py ===
@@ -43,7 +42,7 @@ PASS
 44:No errors.
 39/40 kdx
 40/40 end
-taps: 58, game clock: 09:45, care 242, cards read 42, words 1053, longest 66
+taps: 58, game clock: 09:45, care 242, cards read 42, words 1066, longest 66
 No errors.
 
 === MODE=rn VW=667 VH=375 python test/train_test.py ===
@@ -51,7 +50,7 @@ PASS
 74:No errors.
 68/69 k3
 69/69 end
-taps: 79, game clock: 10:31, care 147, cards read 72, words 1764, longest 48
+taps: 79, game clock: 10:32, care 147, cards read 72, words 1764, longest 48
 No errors.
 
 === LESSON=heart python test/train_test.py ===
@@ -77,7 +76,7 @@ No errors.
 === python test/offline_test.py ===
 PASS
 1:note: this engine dropped the planted entry on a plain page change, before the game or its service worker loaded; only the cache name could be checked
-5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.32.0-2958c64a64']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
+5:ok   another app's saved files on the same site are left alone (caches: ['another-app-v1', 'overcrowded-0.33.0-e7b0cca1e3']; its file reads None; its entries: []; planted: True; still there after a page change, before the game loaded: False)
 9:No errors.
 ok   it keeps a copy of the game (6 files)
 ok   with the network off, the game still loads
@@ -102,7 +101,7 @@ No errors.
 
 === python test/gate_test.py ===
 PASS
-7:No errors.
+10:No errors.
 ok   the right password opens the game
 ok   this device remembers it
 ok   with the gate switched off in the database, anyone goes straight in
@@ -117,12 +116,11 @@ ok   side: About on the menu opens it again, with Back
 No errors.
 
 === python test/events_test.py ===
-PASS
-16:No errors.
-ok   the bell opens Events, and the arrivals are listed there
-ok   an icon that needs you shakes every couple of seconds (4 now)
-ok   and the others keep still
-No errors.
+FAIL
+CHECK FAILED: the ambulance drives in (an animation, not a jump)
+CHECK FAILED: it drives up facing the way it goes, then turns to park ([])
+CHECK FAILED: and pulls past its stall before backing in
+CHECK FAILED: the crew and patient stay out of sight while the ambulance pulls in
 
 === python test/class_test.py ===
 FAIL
@@ -130,5 +128,20 @@ ok   Forget this key puts the focus on Keep, and Keep puts it back on Forget, ne
 ok   the About page says who can read class results (the developer too), for how long, what is kept about networks, and that no licensed clinician has reviewed the content
 ok   the Lessons page says no licensed clinician has reviewed them (audit R6.6-11)
 CHECK FAILED: Tab and Shift+Tab stay inside the open sheet, a modal dialog (13 of 41 left it)
+
+=== python test/crash_test.py ===
+FAIL
+ok   Start the new one starts it
+ok   the tutorial error log exists and is empty on the menu
+CHECK FAILED: Tab stays on the crash card (OUT:BODY,in)
+CHECK FAILED: Tab stays inside an open patient sheet
+
+=== python test/career_test.py ===
+PASS
+8:No errors.
+ok   the Rush adds its stars as points once (2 stars, now 33)
+ok   the report says what the shift added to the rank
+ok   going back to the menu doesn't count the shift again
+No errors.
 
 SOME FAILED
