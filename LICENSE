@@ -1,0 +1,11 @@
+Emergency Department: Code Black
+Copyright (c) 2025-2026 the owner of this repository (GitHub: mussidik1). All rights reserved.
+
+The source code, game content, clinical text, lessons, artwork and 3D models made for this project may be read and the game may be
+played at edcodeblack.com, but none of it may be copied, modified, redistributed, or used in another work without the copyright
+holder's written permission. Making the repository public does not grant a licence.
+
+Third-party parts keep their own licences (three.js and meshoptimizer: MIT; the Cardo fonts: SIL Open Font License 1.1; mesh2motion
+characters and animations: CC0; the medical images: as listed in img/CREDITS.md). See THIRD_PARTY_NOTICES.txt.
+
+This is a teaching game, not clinical guidance. It is provided as is, without warranty of any kind.

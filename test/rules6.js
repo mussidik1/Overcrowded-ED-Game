@@ -17,8 +17,8 @@ assert(hi.tr[0] === 'bp' && hi.tr.includes('tnk') && hi.bp0[0] > 185, `a stroke 
 assert(hi.lkwT != null && hi.lkw === 50 && OC.clock(hi.lkwT) === OC.clock(G.t - 50), `last known well is on the record (${OC.clock(hi.lkwT)})`);
 const rep = OC.boxNotify();
 assert(rep.ok && /Last known well \d\d:\d\d/.test(rep.msg), 'the radio report gives last known well: ' + rep.msg);
-let sawHeld = false, bpAtNeedle = null;
-run(120, () => { if (hi.treat.tnk && hi.treat.tnk.st === 'wait' && hi.consult.st === 'here' && hi.work.ct && hi.work.ct.st === 'done' && !OC.bpOkForLytic(hi)) sawHeld = true; if (done(hi, 'tnk') && !bpAtNeedle) bpAtNeedle = OC.vitalsOf(hi); return done(hi, 'tnk'); }, BOT);
+let bpAtNeedle = null;
+run(120, () => { if (done(hi, 'tnk') && !bpAtNeedle) bpAtNeedle = OC.vitalsOf(hi); return done(hi, 'tnk'); }, BOT);
 assert(done(hi, 'bp') && done(hi, 'tnk') && hi.treat.bp.tDone < hi.treat.tnk.tDone, 'pressure control goes in first, then the thrombolytic');
 assert(bpAtNeedle && bpAtNeedle.sbp <= 185 && bpAtNeedle.dbp <= 110, `the thrombolytic went in under the limit (${bpAtNeedle && bpAtNeedle.sbp}/${bpAtNeedle && bpAtNeedle.dbp})`);
 const after = OC.vitalsOf(hi, hi.treat.tnk.tDone + 45);
@@ -145,7 +145,7 @@ OC.newGame('med', 39, { scen: 'mci' }); G = OC.G;
 let card = null;
 for (let i = 0; i < 700 && !card; i++) { OC.step(0.1); if (G.card && G.card.eid === 'mci') card = G.card; else clearCard(); }
 assert(card && /1 red tag, 1 yellow, and 4 greens/.test(card.text) && /Red is critical/.test(card.text) && card.choices.length === 3 && card.choices.some(c => c.k === 'green'), 'EMS asks what the hospital can take: ' + (card && card.text));
-const t0 = G.t; OC.chooseCard('ok');
+OC.chooseCard('ok');
 const tagged = () => G.order.map(OC.pt).filter(p => p.tag);
 run(6, () => tagged().length >= 1);
 const red = tagged()[0];

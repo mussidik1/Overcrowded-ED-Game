@@ -49,7 +49,7 @@ const s = P(OC.trainPatient('lvo', 'room', { room: roomFree(), prov: 'md1' })); 
 assert(OC.txNeedOf(s) === 'stroke' && OC.txFast(s) && OC.iftNeed(s) === 3, 'a big-vessel stroke needs clot removal, fast, with a critical care crew');
 OC.callHosp(s.id, 'univ'); s.txYes = 'yes'; run(15, () => s.dsp !== 'txcall');
 const c0 = G.care; G.mods.airWx = -1e9; G.wxAir = []; r = OC.bookIFT(s.id, 'air');
-assert(r.ok && G.care > c0, 'a flight for a time-critical stroke 48 min away by ground scores');
+assert(r.ok && G.care >= c0, 'a flight for a time-critical stroke 48 min away is arranged (in the attending role it is the charge nurse\'s call, so it no longer scores for the attending: QA5-3)');
 s.airAbort = false; run(40, () => s.dsp === 'iftreport'); run(4);
 assert(s.dsp === 'iftreport' && s.iftRep == null, 'the flight crew waits for the attending’s report');
 r = OC.giveReport(s.id);
@@ -87,7 +87,7 @@ run(8);
 assert(pn.consult.st === 'here' && pn.consult.tVisit < 0, 'the hospitalist accepts without coming down');
 const ap = P(OC.trainPatient('appy', 'room', { room: roomFree() })); ap.ev = 'done'; ap.dxK = true; for (const k of ap.wk) ap.work[k] = { st: 'done', tDone: G.t };
 r = OC.consult(ap.id, 'hosp', { phone: true });
-assert(!r.ok && /Surgery/.test(r.why), 'a surgical problem cannot be admitted by phone to the hospitalist');
+assert(!r.ok && /sight unseen/.test(r.why) && (OC.G.train ? /Surgery/.test(r.why) : !/Surgery/.test(r.why)), 'a surgical problem cannot be admitted by phone to the hospitalist (who names the right service only in Orientation and Lessons, QA2-2)');
 
 // 7. A second consult
 const hx = P(OC.trainPatient('hipfx', 'room', { room: roomFree() })); hx.con2 = 'hosp'; hx.ev = 'done'; hx.dxK = true; for (const k of hx.wk) hx.work[k] = { st: 'done', tDone: G.t };

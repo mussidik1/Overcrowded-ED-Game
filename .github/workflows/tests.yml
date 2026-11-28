@@ -1,5 +1,5 @@
-# Runs on every push to main and the 3d branch: the rule checks (and that the committed build matches the source), stress, the database
-# rules, and the UI tests in Chrome. The phone-size UI tests in WebKit (the engine behind Safari) run on macOS for main and by hand.
+# Runs on every push to any branch and on every pull request (audit R2-03): the rule checks (and that the committed build matches the
+# source), the lint check, stress, the database rules, and the UI tests in Chrome. The phone-size UI tests in WebKit (the engine behind Safari) run on macOS for main and by hand.
 # The repo is public (since Nov 25, 2026), so GitHub-hosted runners, macOS included, don't count against the plan's monthly minutes.
 # (While it was private, macOS minutes counted ten times, and this job used up the month's allowance.)
 # The UI tests were written against Chrome; this is the only place they run in Safari's engine.
@@ -8,7 +8,8 @@ name: Tests (rules + Safari engine)
 
 on:
   push:
-    branches: [main, 3d]
+    branches: ['**']
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -34,6 +35,7 @@ jobs:
       - run: npm run build
       - name: The committed build matches the source
         run: git diff --exit-code --stat index.html sw.js 3d/map3d.js || { echo "Rebuild with npm run build and commit index.html, sw.js and 3d/map3d.js"; exit 1; }
+      - run: npm run lint
       - run: npm test
       - run: npm run stress
 
@@ -84,7 +86,7 @@ jobs:
       - name: Run the UI tests
         run: |
           fail=0
-          for t in ui_test md_ui_test map_test class_test gate_test about_test events_test imaging_test offline_test; do
+          for t in ui_test md_ui_test map_test class_test gate_test about_test events_test imaging_test offline_test crash_test map3d_life_test career_test; do
             echo "=== $t ==="; timeout 600 python test/$t.py || fail=1
           done
           for m in rn md; do echo "=== train_test MODE=$m ==="; MODE=$m timeout 900 python test/train_test.py || fail=1; done
@@ -147,6 +149,8 @@ jobs:
           run python test/about_test.py
           run python test/events_test.py
           run python test/class_test.py
+          run python test/crash_test.py
+          run python test/career_test.py
           echo "" >> results.txt
           if [ $fail = 0 ]; then echo "ALL PASS" >> results.txt; else echo "SOME FAILED" >> results.txt; fi
           cat results.txt

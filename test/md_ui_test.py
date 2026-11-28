@@ -63,7 +63,7 @@ def run():
         ok(J('OC.G.running'), 'the shift is running')
         ok(not page.is_visible('#modalWrap'), 'no charge-nurse decision cards for the attending')
         ok(page.inner_text('.brand small').lower() == 'attending', 'header says Attending')
-        ok(not page.is_visible('#btnYellow') and page.locator('#pStaff span').inner_text() == 'Staff' and page.locator('#pClin span').inner_text() in ('Clinical', 'Clin'), 'attending HUD: the four scores; no yellow button')
+        ok(not page.is_visible('#btnYellow') and page.locator('#pPat span').inner_text() in ('Clinical', 'Clin') and page.locator('#pClin span').inner_text() in ('Diagnoses', 'Dx', 'Dx called') and page.locator('#pAdm span').inner_text() == 'Radio' and page.locator('#pStaff span').inner_text() == 'Legal', 'attending HUD: the attending\'s own four scores (clinical, diagnoses, radio, legal); no yellow button')
 
         # ---------- see a patient ----------
         sim(180, "OC.inRooms().some(p => OC.needsProv(p) && !p.prov && !p.arrest)")   # on a quiet morning the other providers can take the first few
@@ -113,8 +113,8 @@ def run():
             ok('what’s the diagnosis?' in page.inner_text('#sheet').lower() and page.locator('#sheet [data-act="dxPick"]').count() == 4, 'results back: you pick the diagnosis from four')
             dx = J(f"OC.dxName(OC.pt('{pid}').ck)")
             tap(f'#sheet [data-act="dxPick"][data-arg="{pid}|{dx}"]')
-            ok(J(f"OC.pt('{pid}').dxK") and J('OC.G.stats.md.dxRight') == 1, 'the right diagnosis counts')
-            ok('Accuracy' in page.inner_text('body') and 'Legal risk' in page.inner_text('body'), 'accuracy and legal risk show on the floor')
+            ok(J(f"OC.pt('{pid}').dxK") and J('OC.G.stats.md.dxCalled') == 1 and J(f"!!(OC.pt('{pid}').dxPend && OC.pt('{pid}').dxPend.right)"), 'the diagnosis is recorded, and scores when the patient leaves (QA2-1)')
+            ok('Legal risk' in page.inner_text('body') and 'Accuracy' not in page.inner_text('#top'), 'legal risk shows on the floor; accuracy waits for the report (QA2-1)')
             if page.is_visible('#sheetWrap'): tap('.sheet-x')
         # ---------- make the call ----------
         sim(240, f"(() => {{ const p = OC.pt('{pid}'); return p.dsp === 'mddecide' || p.dsp === 'decide' || !!p.mdPick || p.loc === 'gone'; }})()")
@@ -122,7 +122,7 @@ def run():
         if st['dsp'] == 'mddecide' and not st['gray']:
             open_pt(pid)
             why = J(f"OC.whyOf(OC.pt('{pid}'))")
-            ok(why and why in page.inner_text('#sheet'), 'with the diagnosis in, the card says why that workup was the right one')
+            ok(not (why and why in page.inner_text('#sheet')), 'on a shift the card doesn\'t explain the workup at the call (it would give the diagnosis away; the report does, QA2-1)')
             pl = J(f"(() => {{ const p = OC.pt('{pid}'); const named = (p.det || []).map(d => OC.FIND_PLAIN[((p.dres && p.dres[d]) || OC.detResult(p, d))[0]]); const kinds = Object.keys(p.find).filter(k => p.wk.includes(k) && !(p.det || []).some(d => OC.DET_KIND(d) === k)).map(k => OC.FIND_PLAIN[p.find[k]]); return [...named, ...kinds].filter(Boolean); }})()")   # v0.19: named tests show their own results   # only the tests that were ordered: a reasonable extra (an ECG in DKA) has a result line only if someone ordered it
             ok(all(x in page.inner_text('#sheet') for x in pl), f'results carry plain words: {pl}')
         if st['dsp'] in ('mddecide', 'decide'):

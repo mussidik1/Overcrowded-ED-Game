@@ -99,7 +99,7 @@ assert(ages, "every risk score's age part matches the patient's age");
 
 // R6-18 the first order set is graded against the presenting complaint, not the hidden diagnosis
 let clean18 = [], harm18 = [];
-for (const [g, w] of Object.entries(OC.WORKUP)) for (const k of w.cases) {
+for (const w of Object.values(OC.WORKUP)) for (const k of w.cases) {
   const s18 = sign(k, w.det, w.rx), lowBp = OC.vitalsOf(s18.p).sbp < 90, opi = w.rx.filter(d => ['morph', 'fent', 'hydro'].includes(d)).length;
   if (lowBp && s18.extra > opi) clean18.push(`${k}: extra ${s18.extra} with a low pressure`);
   if (lowBp && opi && !s18.extra) clean18.push(`${k}: an opioid on a low pressure passed as the workup`);   // round 12, R3.12-04

@@ -47,6 +47,8 @@ with sync_playwright() as pw:
     page.route('**/rest/v1/rpc/cb_class_new', on_new)
     names = J("(L) => [L.accept.filter(n => !OCUI.cbClean(n)), L.refuse.filter(n => OCUI.cbClean(n))]", CALL['names'])
     ok(names == [[], []], f'the game accepts and refuses the same names as the contract file says the database does ({names})')
+    send = J("(L) => L.map(n => [n, !!OCUI.cbSendable(n)])", ['S.K.', 'JS', 'A M', 'J.D.', 'JSK', 'j.s.k.m.', 'Sam', 'Ana M.', 'John', 'JOHN', 'Al Wu', '王伟', '김민준', 'Олег', 'BOB JONES', 'AnaSmith', 'Ana.Smith', 'FUCK', 'Yoshito', 'Dr. Who'])
+    ok([x[1] for x in send] == [True] * 6 + [False] * 14, f'initials only (owner, QA5-1; R3.13-04): single letters, or 2 or 3 capitals typed together; no short names, no syllable scripts, no profanity (owner, QA-2, QA-19): {send}')
     src_ui = open(os.path.join(os.path.dirname(__file__), '..', 'src', 'ui.js'), encoding='utf-8').read()
     page.locator('#sheet [data-act="codeMake"][data-arg="rush"]').tap(); page.wait_for_timeout(700)
     first = reg[0].get('p_code') if reg else ''
@@ -140,20 +142,20 @@ with sync_playwright() as pw:
     page.locator('#report [data-act="menu"]').tap(); page.wait_for_timeout(300)
     ok(page.is_visible('#report') and 'Not sent yet' in sb.inner_text(), 'leaving the summary with the result unsent asks first, in the Send box')
     page.locator('#report [data-act="cbSend"]').tap(); page.wait_for_timeout(300)
-    ok('first name or initials' in sb.inner_text() and not sent, 'it asks for a name before sending')
-    for bad, why in [('sam@school.edu', 'letters only'), ('ㅤㅤㅤ', 'hidden character'), ('５５５ ５５５', 'No numbers'), ('Bob1', 'No numbers'), ('Abcdefghijklmnopqrstuv', 'At most 20')]:
+    ok('initials' in sb.inner_text() and not sent, 'it asks for initials before sending')
+    for bad, why in [('sam@school.edu', 'Initials only'), ('ㅤㅤㅤ', 'hidden character'), ('５５５ ５５５', 'No numbers'), ('Bob1', 'No numbers'), ('Samantha', 'Initials only'), ('Bob Jones', 'Initials only')]:
         page.locator('#report input.cb-name').fill(bad); page.locator('#report [data-act="cbSend"]').tap(); page.wait_for_timeout(250)
         ok(why in sb.inner_text() and not sent, f'{bad!r} is refused before anything is sent, saying why ({why})')
     # typed with the keyboard, refused, then fixed: the caret is at the end, so Backspace edits the name (audit R4.6-02)
-    page.locator('#report input.cb-name').fill(''); page.locator('#report input.cb-name').press_sequentially('Sam 2', delay=30); page.locator('#report input.cb-name').press('Enter'); page.wait_for_timeout(250)
+    page.locator('#report input.cb-name').fill(''); page.locator('#report input.cb-name').press_sequentially('SK 2', delay=30); page.locator('#report input.cb-name').press('Enter'); page.wait_for_timeout(250)
     ok(J("document.getElementById('cbName').getAttribute('aria-invalid')") == 'true' and J("document.getElementById('cbName').getAttribute('aria-describedby')") == 'cbNameErr', 'a refused name is marked invalid and linked to its message')
     page.keyboard.press('Backspace'); page.keyboard.press('Backspace'); page.wait_for_timeout(100)
-    ok(page.locator('#report input.cb-name').input_value() == 'Sam' and J("document.activeElement && document.activeElement.id") == 'cbName' and J("document.getElementById('cbName').getAttribute('aria-invalid')") is None and page.locator('#cbNameErr').count() == 0,
+    ok(page.locator('#report input.cb-name').input_value() == 'SK' and J("document.activeElement && document.activeElement.id") == 'cbName' and J("document.getElementById('cbName').getAttribute('aria-invalid')") is None and page.locator('#cbNameErr').count() == 0,
        f'after a refusal the box keeps focus with the caret at the end, and fixing the name clears the refusal ({page.locator("#report input.cb-name").input_value()!r})')
     page.locator('#report input.cb-name').press_sequentially(' 2', delay=30); page.locator('#report input.cb-name').press('Enter'); page.wait_for_timeout(250)
     ok(page.locator('#cbNameErr').count() == 1 and 'No numbers' in page.locator('#cbNameErr').inner_text(), 'the same refused name sent again shows its refusal again (audit R4.8-02)')
     page.locator('#report input.cb-name').fill('')
-    page.locator('#report input.cb-name').fill('  Sam   R ')
+    page.locator('#report input.cb-name').fill('  S   K ')
     with page.expect_request('**/rpc/cb_submit'): page.locator('#report input.cb-name').press('Enter')
     page.wait_for_timeout(400)
     ok(len(sent) == 1 and 'isn’t set up for class results' in sb.inner_text(), 'Enter in the name box sends; a code the server doesn\'t know gets a plain answer')
@@ -168,7 +170,7 @@ with sync_playwright() as pw:
     ok(len(sent) == 6, 'a tap on it then does nothing')
     held[0].fulfill(status=200, content_type='application/json', body='{"ok": true}'); page.wait_for_timeout(600)
     s0 = sent[-1]
-    ok(s0.get('p_code') == code and s0.get('p_name') == 'Sam R' and s0.get('p_role') == 'rn' and s0.get('p_level') == 'rush' and isinstance(s0.get('p_score'), int) and 0 <= s0['p_score'] <= 100,
+    ok(s0.get('p_code') == code and s0.get('p_name') == 'S K' and s0.get('p_role') == 'rn' and s0.get('p_level') == 'rush' and isinstance(s0.get('p_score'), int) and 0 <= s0['p_score'] <= 100,
        f'it sends the code, the tidied name, role, shift and a 0-100 score ({s0})')
     ok(sorted(s0.keys()) == sorted(CALL['calls']['cb_submit'].keys()) and sorted((s0.get('p_stats') or {}).keys()) == sorted(CALL['calls']['cb_submit']['p_stats'].keys()),
        f'the send call matches the contract file, argument names and stats keys ({sorted((s0.get("p_stats") or {}).keys())})')

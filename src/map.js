@@ -321,7 +321,7 @@ function pathIn(from, at) {
   return [LIFT, [1150, 676], [1150, HALL_Y]].concat(routeTo([1150, HALL_Y], at));
 }
 const pathOut = (from, at) => [at].concat(routeOut(at, from === 'pad' ? 'pad' : from === 'bay' ? 'bay' : 'up'));
-const AMB_LINGER = new Map(), HELI = new Map();
+const AMB_LINGER = new Map();
 /* Walk a figure along a path with WAAPI; its own transform is already where it ends. */
 function walkPath(n, path, then) {
   const segs = []; let len = 0;
@@ -526,6 +526,7 @@ function use3d(G) {
   const el = document.getElementById('map'); if (!el || !OC3D.ok) { ld(false); return false; }
   if (!el.querySelector('canvas.floor3d')) { if (!OC3D.init(el, H3D)) { D3.failed = true; return false; } if (OC3D.quality) OC3D.quality(U.q3d); }
   if (!el.classList.contains('three')) el.classList.add('three');
+  if (OC3D.wake) OC3D.wake();
   const r = OC3D.ready(); ld(!r); return r;
 }
 function load3d() {
@@ -539,7 +540,8 @@ const H3D = {
   RM, icon: k => ICO[k] || ICO.wait, route: (a, b) => routeTo(a, b), routeIn: (to, from) => pathIn(from || 'lift', to).slice(1), routeUp: (at, from) => pathOut(from || 'lift', at).slice(1), entry: from => pathIn(from || 'lift', [600, 349])[0], PAD, speed: () => Math.min(4, U.speed || 1),
   drag: () => { U.mapDrag = performance.now() + 250; },
   live: () => U.scene === 'game' && !U.paused && !U.modal,
-  fail: () => { D3.failed = true; off3d(); },
+  on: () => floor3d() && (U.scene === 'game' || U.scene === 'title'),
+  fail: (err, why) => { D3.failed = true; off3d(); if (why === 'lost') toast('The 3D floor stopped. Showing the flat map; reload to get 3D back.', 'bad'); },
   tap(kind, id, cx, cy, far) {
     let n = null;
     if (kind === 'room') n = document.getElementById('mroom-' + id);
@@ -563,7 +565,7 @@ function mapRender(G) {
 <pattern id="tile" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0 V26 H0" fill="none" stroke="rgba(27,34,48,.05)" stroke-width="1"/></pattern>
 <pattern id="plank" width="46" height="14" patternUnits="userSpaceOnUse"><path d="M0 14 H46 M18 0 V14" fill="none" stroke="rgba(110,78,40,.13)" stroke-width="1"/></pattern>
 <pattern id="carpet" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#E6DECF"/><circle cx="3" cy="3" r="1.1" fill="rgba(110,96,70,.2)"/><circle cx="9" cy="9" r="1.1" fill="rgba(110,96,70,.2)"/></pattern></defs>
-<g id="mStatic">${mapStatic()}</g><g id="mSvc"></g><g id="mRooms">${G.rooms.filter(r => RM[r.id]).map(r => `<g id="mroom-${r.id}" data-act="room" data-arg="${r.id}" transform="translate(${RM[r.id].x} ${RM[r.id].y})" role="button"></g>`).join('')}</g><g id="mSigns"></g><g id="mAmbs"></g><g id="mHeli"></g><g id="mScan" pointer-events="none"></g><g id="mWx" pointer-events="none"></g><g id="mPts"><g id="mPtsWall"></g><g id="mPtsWalk"></g></g><g id="mAmb"></g><g id="mMove"></g><g id="mPeople"></g><g id="mNames"></g><g id="mFx"></g><g id="mNeed"></g><g id="mSpot"></g></svg>`;
+<g id="mStatic">${mapStatic()}</g><g id="mSvc"></g><g id="mRooms">${G.rooms.filter(r => RM[r.id]).map(r => `<g id="mroom-${r.id}" data-act="room" data-arg="${r.id}" transform="translate(${RM[r.id].x} ${RM[r.id].y})" role="button" tabindex="0" aria-label="Room ${esc(String(r.id))}"></g>`).join('')}</g><g id="mSigns"></g><g id="mAmbs"></g><g id="mHeli"></g><g id="mScan" pointer-events="none"></g><g id="mWx" pointer-events="none"></g><g id="mPts"><g id="mPtsWall"></g><g id="mPtsWalk"></g></g><g id="mAmb"></g><g id="mMove"></g><g id="mPeople"></g><g id="mNames"></g><g id="mFx"></g><g id="mNeed"></g><g id="mSpot"></g></svg>`;
     el._built = true; camBind(el);
   }
   const on3d = use3d(G); if (!on3d) off3d();

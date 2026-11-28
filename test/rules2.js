@@ -31,10 +31,8 @@ assert(G.stats.pitDc > 0, `PIT discharged simple patients straight from triage (
 
 // 3. MTP: no activation -> shock -> traumatic arrest; activation -> cooler -> transfusion
 G = fresh(33);
-const mvcCase = OC.CASES.find(c => c.k === 'mvc');
 function makeMvc() {
   G.box.q = []; G.box.cur = null;
-  const pfx = Object.keys(G.pts).length;
   // spawn by hand through the engine's own alert path: push a notify and fast-forward its arrival
   const p = Object.values(G.pts)[0];
   return p;
@@ -90,7 +88,6 @@ if (lep) {
 function emsCount(on) {
   OC.newGame('hard', 909); clearCard();
   if (on) { OC.setDivert('yellow', true); OC.setDivert('red', true); }
-  const s0 = OC.G.stats.arrived;
   for (let i = 0; i < 6000; i++) { clearCard(); OC.G.mods.noDivert = -1e9; OC.G.region.susp = -1e9; if (on) { OC.G.dv.yellow.on = true; OC.G.dv.red.on = true; } OC.step(0.1); }
   return OC.G.stats.diverted;
 }

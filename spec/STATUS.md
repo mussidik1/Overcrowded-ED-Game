@@ -2,7 +2,8 @@
 
 - **Project:** Emergency Department: Code Black. **Mode:** adopted mid-project at v0.31.0 (owner's choice, Nov 25, 2026): the
   ship stages now, the full spec (Stages 0–7, traceability) before the next feature work.
-- **Current stage:** 18 for v0.32.0 (publish). v0.31.0 history below; v0.32.0 in `spec/RELEASE.md`.
+- **Pipeline addendum (Nov 26, 2026):** `spec/PIPELINE-ADDENDUM.md` applies and wins where it conflicts with the older pipeline. The builder never signs off on its own work. `spec/QA-RUBRIC.md` thresholds approved by the owner (Nov 26). `spec/00-INTAKE.md` and `spec/02-SPEC.md` retrofitted from the README and CLAUDE.md (owner's choice) so Stage 15a has REQs. Stage 15a round 1 on v0.32.0 as released (owner's choice): **FAIL** (Functionality 7/8, Visual design 5/7, Clinical safety 8/10; no Critical or High bug; 8 Medium, 14 Low: F-048 to F-069). `spec/QA-REPORT.md`. Round 2 (Nov 27, v0.33.0 candidate): **FAIL** (Functionality 7/8, Visual design 6/7, Clinical safety 9/10; 1 High: QA2-1; F-070 to F-081). Round 3 (Nov 27, v0.33.0 candidate): **FAIL** (Functionality 7/8, Clinical safety 9/10; Visual design now passes at 7; no Critical or High; F-082 to F-094). Third failed round: stopped for the owner, per the addendum. Round 4 (owner's choice; Nov 27): **FAIL** on Clinical safety only (9/10); the other five pass (Functionality 8/8, Visual design 7/7); no Critical or High; F-095 to F-108. Round 5 (owner's choice): **FAIL** (Functionality 7/8, Clinical safety 9/10; no Critical or High; F-109 to F-121). Round 6: **FAIL** (2 High: QA6-1, QA6-2; Functionality 7/8, Product depth 6/7; Clinical safety 10/10 passes; F-122 to F-133). Round 7: **FAIL** (1 High: QA7-1; Product depth 6/7, Visual design 6/7; Functionality 8, Clinical safety 10 pass; F-134 to F-144). Stopped for the owner. **The owner stopped the QA loop (Nov 27)**: the open round-7 items are known issues for v0.33.0, and the six-reviewer round (round 13) runs next.
+- **Current stage:** v0.32.0 released (Nov 26, 2026): `main` at `78916ef`, Deploy run 4 green. v0.31.0 history below; v0.32.0 in `spec/RELEASE.md`.
 
 | Stage | Result | Notes |
 |---|---|---|
@@ -32,4 +33,4 @@
 
 **Open findings:** none Critical/High open. Accepted risks pending the owner's sign-off: F-034, F-035, F-036.
 
-**Next action:** release v0.32.0 (owner said "Release", Nov 26, 2026): Tests green on `3d`, merge into `main`, deploy check.
+**Next action:** v0.32.0 is released (Tests run 71 green on `3d` at `f3a40f3`; Deploy run 4 green). Next: Phase 4 small items, Phase 6 quick wins, Phase 7 Lows.

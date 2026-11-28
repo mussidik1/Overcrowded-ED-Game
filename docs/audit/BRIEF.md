@@ -153,3 +153,20 @@ npm test                           # Node rule checks (about 1 minute)
 - What changed (Phase 3, `docs/PRO_AUDIT.md` R6-02, 08, 09, 11 to 18, 20): drug keys (asthma, anaphylaxis, TXA, COPD, pneumonia and shock combinations, DKA potassium, TIA disposition); strokes that aren't all eligible (`strokeSetup`); risk scores built from the patient's parts (`grayScore`); the first order set graded against the complaint (`WORKUP` in `signOrders`); `docs/clinical-sources.md`. A licensed clinician answered three open questions; the owner decided the rest as clinical consultant; no licensed clinician has reviewed the content as a whole (`docs/audit/verification.md`, "Clinician's answers").
 - Read `docs/audit/round11/STATUS.md` for the previous round. `test/rules14.js` holds this phase's checks.
 - **Do not contact supabase.co or edcodeblack.com**, and do not change the live database. Reports go to `docs/audit/round12/`, scratch to `scratchpad/round12/rN/`.
+
+## Round 13 (Nov 27, 2026): the release review of v0.33.0 (audit Phases 4 and 6, and seven QA fix rounds)
+- Branch `claude/sleepy-rubin-jot35n` at the commit this section was added in. `main` is v0.32.0 (live, behind the gate).
+- One review round per release, on the release's whole diff: `git diff 78916ef..HEAD -- src src3d test tools build.js eslint.config.js .github README.md CLAUDE.md LICENSE THIRD_PARTY_NOTICES.txt img/CREDITS.md`. No database change in this release.
+- What changed:
+  - **Phase 4** (`docs/audit/phase4.md`): crash guard, safe saves, 3D lifecycle, CI on every branch, ESLint, licence and credits, stroke lesson exclusions.
+  - **Phase 6**, the owner's decisions:
+    - The attending is graded on their own calls (`mdScores`).
+    - No answer giveaways on regular shifts (diagnosis, consults, alerts, hints).
+    - Rush stars are capped by pace.
+    - The attending's load grows with the level.
+    - Career rank.
+    - Screens: 12 px text, 44 px controls (including a taller sideways strip), labels, symbols beside colour.
+  - **Seven Stage 15a QA rounds** (`spec/QA-REPORT.md`, `spec/FINDINGS.md` F-048 to F-144) and their fixes. Among them: initials only in Send (the owner's decision), the teaching-game notice on every clinical screen, a diagnosis that scores when the patient leaves, handed-over patients who count against the attending if never seen, keyboard focus handling, and the replace-saved-shift question.
+- **Known issues the owner accepted when he stopped the QA loop (Nov 27):** the open items from QA round 7, F-134 to F-144. Among them: unseen patients don't deteriorate, the sideways list board, and small sideways floor targets. Review them anyway, and rate them.
+- Read `spec/02-SPEC.md` (the requirements) and `spec/QA-REPORT.md`. `test/rules15.js`, `crash_test.py`, `map3d_life_test.py` and `career_test.py` hold this release's checks.
+- **Do not contact supabase.co or edcodeblack.com**, and do not change the live database. Reports go to `docs/audit/round13/`; scratch goes to `scratchpad/round13/rN/`.

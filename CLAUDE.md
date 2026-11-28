@@ -11,7 +11,7 @@ The player runs one shift (07:00 to 19:00) in a 32-bed emergency department, on 
 
 Menu structure: **Play a shift** (Five-Minute Rush, Quiet Tuesday, Manic Monday, Full Moon Friday, plus scenarios, weather and class codes), **Learn** (Orientation with a scripted preceptor, and short per-condition Lessons), **Settings**. It is a teaching tool for nursing and EM classes. The README has the full player-facing description.
 
-Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages.yml` deploys it: on a push to `main` it checks the build, runs `npm test`, and publishes only the game files (`index.html`, `sw.js`, the manifest, icons, `apple-touch-icon.png`, `og.jpg`, `img/`, `3d/`, `CNAME`, and `deploy.txt`, which names the commit and run so the live check knows it is testing this deployment). The source, tests, docs and this file stay off the website. A new file the game loads at runtime must be added to that workflow's package step. That site and `*.github.io` show a password gate during private testing (see "Backend" below). The repo is public (since Nov 25, 2026; it was private from Nov 18), so anyone can read the source and this file.
+Live at https://edcodeblack.com (CNAME). Since v0.29.1, `.github/workflows/pages.yml` deploys it: on a push to `main` it checks the build, runs `npm test`, and publishes only the game files (`index.html`, `sw.js`, the manifest, icons, `apple-touch-icon.png`, `og.jpg`, `img/`, `3d/`, `CNAME`, `THIRD_PARTY_NOTICES.txt`, and `deploy.txt`, which names the commit and run so the live check knows it is testing this deployment). The source, tests, docs and this file stay off the website. A new file the game loads at runtime must be added to that workflow's package step. That site and `*.github.io` show a password gate during private testing (see "Backend" below). The repo is public (since Nov 25, 2026; it was private from Nov 18), so anyone can read the source and this file.
 
 ## Branches and releases
 
@@ -78,7 +78,7 @@ src/index.template.html  page shell with /*FONTS*/ /*STYLE*/ /*ENGINE*/ /*UI*/ p
 src3d/map3d.js           3D floor (three.js). esbuild bundles it to 3d/map3d.js
 build.js                 builds index.html and sw.js. Stops if engine.js or ui.js+map.js fails to parse
 build3d.js               esbuild call for the 3D bundle
-test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor, rules14.js the Phase 3 clinical content (v0.32)
+test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor, rules14.js the Phase 3 clinical content (v0.32), rules15.js the v0.33 grading, giveaway and save rules
 test/golden.js           a change detector: seeded-shift behaviour fingerprints, class sync, class codes, save round trips, answer keys, code cards, drug rules, scripted codes
 test/sim.js, stress.js   simulated shifts, and 188 shifts across every level and scenario
 test/*_test.py           Playwright UI tests against the built index.html (test/_browser.py picks the browser)
@@ -133,7 +133,7 @@ When you add anything random that should be the same for every player on a code 
 Class results and the testing gate use **Supabase, the same project as Case Room**. The address, the publishable key (public by design) and an optional privacy contact are in `src/backend.json`; `build.js` puts them in the page (`CB` in `ui.js`) and the CSP. Since v0.31.0 the whole Code Black database is in `supabase/` (`supabase/README.md` explains it), and the results sit in a `codeblack` schema that the API doesn't expose. The functions are the only way in:
 
 - `rpc/cb_class_new`: making a class code registers it with an **instructor key** (16 characters) that the game makes and keeps on that device (`oc-ckeys`, `{ v: 1, c: { code: { k, t, p, s, e, x, g } } }`: the key, when the server made the class, unconfirmed, shown, when it ends, ended, taken by another class). Repeating it is safe; a code another class has comes back `taken`, and the game makes another before showing it. A code shows only once the server has registered it (if the server can't be reached, or class results are full, the instructor may use it without results; not when the network is busy, which someone else can cause). The key stays hidden until the instructor taps Show key, and is masked when typed.
-- `rpc/cb_submit`: a student sends their summary: first name or initials, score 0 to 100, stars, real time played, stats (`client_call.json` lists the keys), the version the shift was played on, and the result's own id (kept once however often it's retried). The name is never stored on the device.
+- `rpc/cb_submit`: a student sends their summary: initials (the game sends 1 to 4 letters since v0.33; the server still accepts a short name), score 0 to 100, stars, real time played, stats (`client_call.json` lists the keys), the version the shift was played on, and the result's own id (kept once however often it's retried). The name is never stored on the device.
 - `rpc/cb_class_read`, `rpc/cb_class_delete`: the instructor's Class results list, and deleting one result or all. Both need the key. Copy table and Download CSV export it.
 - `rpc/cb_health`: for the deploy's check and the daily watch (`db-watch.yml`): every migration recorded live, whether the clean-up runs, whether callers' addresses are read and public, how full the storage backstops and the held codes are, and a fingerprint of the database's functions, tables and clean-up job (`codeblack.fingerprint()`, which must match `supabase/tests/fingerprint.json`; `run.sh` prints a new one when the unapplied migration changes). No class data.
 - `rpc/cb_gate_on`, `rpc/cb_gate_check`: the password gate, active only on `edcodeblack.com/.net` and `*.github.io` (`GATED`). The password is checked by bcrypt hash in the database, and a device that passed the gate once can play offline.
@@ -155,16 +155,17 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules14.js: engine rule checks in Node (~760 "ok" lines; any "FAIL:" sets exit 1)
+npm test          # rules.js through rules15.js: engine rule checks in Node (~780 "ok" lines; any "FAIL:" sets exit 1)
                   #   then golden.js: behaviour fingerprints, stream sync, class codes, save round trips, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
+npm run lint      # ESLint, correctness rules only (eslint.config.js; tools/lint.js splices map.js into ui.js like the build)
 npm run sim       # simulated shifts at several player speeds
 npm run stress    # 188 shifts across every level and scenario: stuck states, out-of-range vitals
 npm run db:test   # the Supabase migrations and their rules on a throwaway local Postgres (needs PostgreSQL 15+)
 npm run db:live   # the live project's rules, from outside (not from a Claude cloud container: supabase.co is blocked)
 ```
 
-The UI tests are Python Playwright scripts against the **built** `index.html`, so build first. In this cloud container Chromium is preinstalled; use `python3 -m pip install playwright` if the module is missing, and don't run `playwright install`. Common ones: `test/ui_test.py`, `md_ui_test.py`, `map_test.py`, `train_test.py` (env `MODE=md`, `LESSON=stroke`, `CHAPTER=2`, `VIEW=list`), `finger_test.py`, `class_test.py`, `offline_test.py`, `map3d_test.py`, `imaging_test.py`, `gate_test.py`, `events_test.py`, `about_test.py`. `BROWSER=webkit|firefox` switches engines and `CHROME_PATH` points at a local Chrome (see `test/_browser.py`). Screenshots go to `test/shots/` (gitignored).
+The UI tests are Python Playwright scripts against the **built** `index.html`, so build first. In this cloud container Chromium is preinstalled; use `python3 -m pip install playwright` if the module is missing, and don't run `playwright install`. Common ones: `test/crash_test.py` (the crash guard and broken saves), `map3d_life_test.py` (the 3D loop and a lost WebGL context, served), `test/ui_test.py`, `md_ui_test.py`, `map_test.py`, `train_test.py` (env `MODE=md`, `LESSON=stroke`, `CHAPTER=2`, `VIEW=list`), `finger_test.py`, `class_test.py`, `offline_test.py`, `map3d_test.py`, `imaging_test.py`, `gate_test.py`, `events_test.py`, `about_test.py`. `BROWSER=webkit|firefox` switches engines and `CHROME_PATH` points at a local Chrome (see `test/_browser.py`). Screenshots go to `test/shots/` (gitignored).
 
 Practical notes:
 - **`test/golden.js` is a change detector, not a correctness check.** It records what the game does today: a change that moves a shift's outcomes, a class code's layout, a save round trip, an answer key (drug keys, radio calls, the pregnancy-test list), any code card's text, answers or reasons, the drug-scoring rule lists, or the outcome of 80 scripted codes fails it, with a readable diff for the content. If the change is intended, run `npm run golden:update` and say in the commit which golden lines moved and why. Whether the content is *right* is checked by the rule tests (`rules10.js` plays every case, `rules11.js` and `rules12.js` check the clinical rules and code cards). `docs/SMOKE.md` is the by-hand phone checklist before a merge into `main`.
@@ -173,9 +174,11 @@ Practical notes:
 - A full lesson sweep is `LESSON=<key> python3 test/train_test.py` for every key. Case lessons are named `c_<case>`.
 - Imaging comes from Wikimedia and Open-i. Credit each picture in `img/credits.json`, and wait 4 to 12 seconds between fetches.
 
-CI (`.github/workflows/tests.yml`): every push to `main` or `3d` builds, fails if the committed build doesn't match the source, then runs `npm test` and `npm run stress`, the database rules on a local Postgres, and the Chrome UI tests on Ubuntu. The WebKit UI suite runs on macOS for `main` or a manual run, and writes its results to `webkit.txt` on the `ci-results` branch. The repo is public, so these runners cost no Actions minutes; if it goes private again, macOS minutes count ten times against the monthly allowance (the WebKit job used up a month's 3,000 in Nov 2026).
+CI (`.github/workflows/tests.yml`): every push to any branch, and every pull request, builds, fails if the committed build doesn't match the source, then runs `npm run lint`, `npm test` and `npm run stress`, the database rules on a local Postgres, and the Chrome UI tests on Ubuntu. The WebKit UI suite runs on macOS for `main` or a manual run, and writes its results to `webkit.txt` on the `ci-results` branch. The repo is public, so these runners cost no Actions minutes; if it goes private again, macOS minutes count ten times against the monthly allowance (the WebKit job used up a month's 3,000 in Nov 2026).
 
 ## Conventions
 
 - Player-facing text is plain, short English. Clinical terms get a plain gloss (the "Plain words" setting, `DX_PLAIN`, `FIND_PLAIN`, the Words glossary). Results read as findings, so the diagnosis stays the player's call.
 - Each release adds tests for its new rules. Commit messages start `vX.Y.Z: ...`.
+- **License:** all rights reserved (the owner's choice, Nov 26, 2026; `LICENSE`). Third-party licence texts are in `THIRD_PARTY_NOTICES.txt`; image credits are written from `img/credits.json` by `node tools/credits.js`.
+- **Errors:** `frame()` and taps run inside a crash guard (`crash()` in ui.js): an error stops the shift with a message and keeps the last good save. Saves are checked by `saveShape()`; a new save format needs a `MIGRATE` entry. Tutorial step errors go to `window.__coachErrs`, and `train_test.py` fails on any.
