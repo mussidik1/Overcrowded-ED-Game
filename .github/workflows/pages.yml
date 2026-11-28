@@ -109,7 +109,7 @@ jobs:
         run: |
           mkdir _site
           echo "$GITHUB_SHA $GITHUB_RUN_ID $GITHUB_RUN_ATTEMPT" > _site/deploy.txt   # names this deployment, whatever changed (R2.8-02)
-          cp index.html sw.js manifest.webmanifest apple-touch-icon.png og.jpg CNAME _site/
+          cp index.html sw.js manifest.webmanifest apple-touch-icon.png og.jpg CNAME THIRD_PARTY_NOTICES.txt _site/
           cp -r icons 3d _site/
           mkdir _site/img && cp img/*.jpg img/CREDITS.md _site/img/
           echo "Published files:"; (cd _site && find . -type f | sort | sed 's|^\./||' | awk -F/ '{print $1}' | uniq -c)

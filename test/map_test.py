@@ -54,8 +54,8 @@ def run():
         # the layout: one strip on top, rails at the sides, the whole floor between
         ok(J("document.body.classList.contains('rails')"), 'a sideways phone gets side rails')
         m, top = box('#map'), box('#top')
-        ok(top['height'] <= 44, f"the top strip is one slim line ({round(top['height'])}px)")
-        ok(m['height'] >= 390 - 46 and m['width'] >= 600, f"the floor gets the rest of the screen ({round(m['width'])}x{round(m['height'])})")
+        ok(top['height'] <= 52, f"the top strip is one line with 44 px controls (owner, Nov 26) ({round(top['height'])}px)")
+        ok(m['height'] >= 390 - 52 and m['width'] >= 600, f"the floor gets the rest of the screen ({round(m['width'])}x{round(m['height'])})")
         cam = J('OCUI.cam()')
         ok(cam['x'] <= 0 and cam['y'] <= 0 and cam['x'] + cam['w'] >= 1400 and cam['y'] + cam['h'] >= 712, 'the whole floor is on screen, no dragging needed')
         ok(cam['far'] and J("getComputedStyle(document.querySelector('#mRooms .nearonly')).display") == 'none', 'zoomed out, rooms show icons, not words')
@@ -205,11 +205,11 @@ def run():
         page.wait_for_timeout(1700)
         ok('Room 12 is clean' in page.locator('#toasts').inner_text(), 'the next message follows the first')
         lbl = J("(() => { const s = document.querySelector('#pPat span'); return getComputedStyle(s, '::after').content + '|' + getComputedStyle(s).display; })()")
-        ok('Pts' in lbl and 'none' not in lbl and th <= 44, f'with the Box ringing, the scores keep their labels and the strip stays one line ({th}px)')
+        ok('Pts' in lbl and 'none' not in lbl and th <= 52, f'with the Box ringing, the scores keep their labels and the strip stays one line ({th}px)')
         for (w, h) in [(667, 375)]:
             page.set_viewport_size({'width': w, 'height': h}); page.wait_for_timeout(350)
             th2 = J("document.getElementById('top').offsetHeight"); bx = box('#boxbar .bx-btn')
-            ok(th2 <= 44 and bx and bx['x'] + bx['width'] <= w + 1, f'{w}x{h}: the ringing Box stays in the strip ({th2}px) with its button on screen')
+            ok(th2 <= 52 and bx and bx['x'] + bx['width'] <= w + 1, f'{w}x{h}: the ringing Box stays in the strip ({th2}px) with its button on screen')
         page.set_viewport_size({'width': 844, 'height': 390}); page.wait_for_timeout(300)
         J("() => { OC.G.box.cur = null; OC.G.box.q = []; document.getElementById('toasts').innerHTML = ''; OCUI.render(); }")
         # v0.16.3: while a message shows, the scores are five numbers beside it. Routine news skips the strip and waits under the bell.
@@ -293,6 +293,7 @@ def run():
         # the attending sees the same floor, but the charge nurse runs the pods
         J("() => { OCUI.U.freeze = false; OCUI.U.paused = false; OCUI.showTitle(); }"); page.wait_for_timeout(300)
         tap('[data-act="mode"][data-arg="md"]'); tap('[data-act="tmenu"][data-arg="play"]'); tap('button.lvl[data-arg="med"]'); page.wait_for_timeout(500)
+        if page.locator('#title [data-act="replaceGo"]').count(): tap('#title [data-act="replaceGo"]'); page.wait_for_timeout(500)   # a saved shift is there: it asks first (QA6-4)
         ok(J('OC.G.mode') == 'md', 'an attending shift starts on the floor plan')
         ok(J("getComputedStyle(document.getElementById('railL')).display") == 'none', 'the attending has no intake rail')
         tap('#mzh-a')

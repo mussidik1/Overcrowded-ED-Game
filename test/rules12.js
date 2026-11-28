@@ -75,7 +75,7 @@ for (const k of ['stemi', 'nstemi', 'cpmod']) { const p = mine(k, {}, 6400 + k.l
 // ---- R6.2-08: harm says why, and never gives away the diagnosis
 { const p = mine('sbo', {}, 6440); toasts = []; sign(p, [], ['reglan']);
   const t = toasts.find(x => /can hurt/.test(x)) || '';
-  assert(/blockage/.test(t) && !/obstruction/i.test(t), `metoclopramide harm says why without naming the diagnosis: "${t}"`); }
+  assert(/gut/.test(t) && !/obstruction|blockage/i.test(t), `metoclopramide harm says why without naming the diagnosis: "${t}"`); }
 { const p = mine('stroke', { lkw: 300 }, 6441); toasts = []; sign(p, ['ct', 'lab'], ['tnk']);
   assert(toasts.some(x => /4\.5 hours/.test(x)), 'a late lytic says it is past 4.5 hours'); }
 
@@ -273,7 +273,7 @@ assert(OC.codeCause({ id: 'a1', ck: 'asthma', age: 30 }) === 'trap' && /let air 
 { const p = mine('salod', {}, 9300); toasts = []; sign(p, [], ['asa']); const t = toasts.find(x => /can hurt/.test(x)) || '';
   assert(/already took/.test(t) && !/bleeding/.test(t), `aspirin in an aspirin overdose says why, not "bleeding risk": "${t}" (R1.3-04)`); }
 { const p = mine('stroke', { lkw: 60 }, 9301); p.lkwT = null; assert(/known well/.test(OC.contraWhy(p, 'tnk')) && !/more than 4\.5/.test(OC.contraWhy(p, 'tnk')), 'an unknown onset is told the onset is unknown (R1.3-04)'); }
-{ const words = ['sepsis', 'septic', 'obstruction', 'stemi', 'nstemi', 'fibrillation', 'a-fib', 'overdose of', 'diabetic', 'ketoacidosis', 'pulmonary embolism', 'anaphyla'];
+{ const words = ['sepsis', 'septic', 'obstruction', 'stemi', 'nstemi', 'fibrillation', 'a-fib', 'overdose of', 'diabetic', 'ketoacidosis', 'pulmonary embolism', 'anaphyla', 'stable clot', 'an overdose', 'embol', 'hemorrhag', 'stroke', 'dissection'];   // QA3-1
   const bad = []; for (const [ck, M] of Object.entries(OC.CONTRA_WHY)) for (const [d, t] of Object.entries(M)) { const dx = ((OC.CASES.find(c => c.k === ck) || {}).dx || '').toLowerCase();
     if ((dx && t.toLowerCase().includes(dx)) || words.some(w => t.toLowerCase().includes(w))) bad.push(`${ck}/${d}`); }
   assert(!bad.length, `no harm reason names a diagnosis (R1.3-04)${bad.length ? ': ' + bad.join(', ') : ''}`); }

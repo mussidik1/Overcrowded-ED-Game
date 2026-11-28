@@ -83,3 +83,137 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 | F-045 | 16 | Low | The sheet's close button was 38 px | Fixed | 44 px |
 | F-046 | 16 | Low | The Send box didn't name role and shift | Fixed | added |
 | F-047 | 16 | Low | The wrong-key message left out the restart; RELEASE named a stale commit | Fixed | text corrected |
+
+## Stage 15a round 1 (Nov 26, 2026, v0.32.0; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-048 | 15a | Medium | QA-1: Gate card is 420 px wide: Play and the title are off-screen on every phone (index.html .gate-card) | Fixed (to be confirmed by QA) | gate card in a fixed track; gate_test checks 320, 360, 390 |
+| F-049 | 15a | Medium | QA-2: Privacy: a full name ("John Smith") passes validation and is sent with a result | Fixed (to be confirmed by QA) | owner: one first name, initials, or first name + initial; class_test |
+| F-050 | 15a | Medium | QA-3: Cardiac arrest and fast-heart-rhythm lessons are text only, though REQ-14 lists them as played | Fixed (to be confirmed by QA) | the Lessons screen and spec REQ-14 say 9 played, 2 read-through (spec error) |
+| F-051 | 15a | Medium | QA-4: A malformed but parseable save is offered as Resume and leaves a dead board throwing every frame | Fixed (to be confirmed by QA) | saveShape() before Resume; crash_test |
+| F-052 | 15a | Medium | QA-5: Accessibility: modals don't take focus; the hidden board behind the menu and modals is reachable by keyboard | Fixed in part (to be confirmed by QA) | the board is inert behind menus, reports and cards; an opening card takes the focus |
+| F-053 | 15a | Low | QA-6: Escape doesn't close the pause menu | Fixed (to be confirmed by QA) | Escape closes pause; crash_test |
+| F-054 | 15a | Medium | QA-7: Clinical notice incomplete: Lessons and class results carry only the no-clinician half; Orientation has neither | Fixed (to be confirmed by QA) | teaching-game notice on Learn, Lessons, the Orientation row and class results |
+| F-055 | 15a | Low | QA-8: "Sign with no orders" is enabled but always refused, and the refusal hints that something is needed | Open | refusing an empty first sheet is the existing design; older rule tests rely on it. Kept as a Low |
+| F-056 | 15a | Low | QA-9: Code-card reason names bleeding for tenecteplase in a DKA arrest (the patient is dry, not bleeding) | Fixed (to be confirmed by QA) | own reason for the dry (hypovolaemic) arrest card |
+| F-057 | 15a | Medium | QA-10: Tenecteplase with no indication isn't flagged as harm at signing; the report says "Unsafe orders 1" without naming it; insulin before the potassium gets no comment | Fixed (to be confirmed by QA) | an unneeded risky treatment is named at signing and in the review; rules15 |
+| F-058 | 15a | Low | QA-11: The radio-call pack isn't in Settings, only on Play a shift for the attending | Fixed (spec error) | the radio pack is on Play a shift by design; spec REQ-03 corrected |
+| F-059 | 15a | Medium | QA-12: Text under 12 px carries state and tap targets are under 44 px during a shift | Fixed in part (to be confirmed by QA) | no text under 12 px; menus, list board, coach buttons, rail chips, Next, Team, Beds, zoom and (owner, Nov 26) the sideways top strip are 44 px; upright score pills are narrower than 44 px |
+| F-060 | 15a | Low | QA-13: A code pasted with spaces is cut off by maxlength=9 and refused | Fixed (to be confirmed by QA) | code box takes 20 characters; readCode drops spaces |
+| F-061 | 15a | Low | QA-14: With results off, text refers to Show key and Copy key buttons that aren't shown | Fixed (to be confirmed by QA) | wording |
+| F-062 | 15a | Low | QA-15: The arrival toast covers the "tap a green room" placement prompt | Open |  |
+| F-063 | 15a | Low | QA-16: Upright list board: waiting-room card text clipped, a pill overlaps R1, the opening toast covers the clock | Open |  |
+| F-064 | 15a | Low | QA-17: Browser or Android back mid-shift leaves the app instead of closing the open sheet (save kept) | Fixed (to be confirmed by QA) | back button closes the open sheet or opens pause; crash_test |
+| F-065 | 15a | Low | QA-18: A double tap on a level's Start passes through and opens a patient card on the new board | Fixed (to be confirmed by QA) | taps on the board are ignored for 0.6 s after Start |
+| F-066 | 15a | Low | QA-19: Profanity is accepted as a student name and would show on the instructor's list | Fixed (to be confirmed by QA) | owner: a small profanity check in the game; class_test |
+| F-067 | 15a | Low | QA-20: The patient card's Complaint field is empty after an arrest | Fixed (to be confirmed by QA) | an arrest never leaves the complaint blank |
+| F-068 | 15a | Low | QA-21: "without iv fluids" in the M&M: IV should be capitalised | Fixed (to be confirmed by QA) | abbreviations kept in sentences (IV fluids) |
+| F-069 | 15a | Low | QA-22: 3D files are cached only after a shift is played online (first-visit offline gets the flat map) | Open |  |
+
+## Stage 15a round 2 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-070 | 15a | High | QA2-1: A regular attending shift gives the diagnosis away: the decision heading reads "Your call · <true diagnosis>" under the attending's wrong pick, and Accuracy and Legal change at the pick | Fixed (to be confirmed by QA) | the heading shows the attending's own call; the diagnosis scores when the patient leaves or the shift ends; live accuracy and the workup line wait for the report |
+| F-071 | 15a | Medium | QA2-2: On a shift, the second-consult refusal and the phone-admit refusal name the right service or disposition; "I don't think they need us" hints none is needed | Fixed (to be confirmed by QA) | second-consult, phone-admit and no-consult refusals name nothing on a shift |
+| F-072 | 15a | Medium | QA2-3: The syncope risk score is a random number with no parts; diagnosis labels ("Syncope, high risk", "Chest pain, low risk") name the risk band before the call | Fixed (to be confirmed by QA) | Canadian Syncope Risk Score built from listed parts; diagnoses renamed "Syncope" and "Chest pain" (owner) |
+| F-073 | 15a | Medium | QA2-4: Keyboard: map rooms can't take focus; the patient card doesn't take focus; focus isn't returned after a dialog; Tab leaves dialogs; focus lost on menu change | Fixed (to be confirmed by QA) | map rooms focusable (Enter/Space); a keyboard-opened sheet takes focus; focus returns on close; Tab stays inside a card; focus follows menu changes |
+| F-074 | 15a | Medium | QA2-5: The Lessons list doesn't mark which lessons are played, read-through or case cards | Fixed (to be confirmed by QA) | each lesson labelled On a patient, Read-through or Case cards |
+| F-075 | 15a | Low | QA2-6: Floating waiting and Next buttons cover room labels and (attending) score pills on the phone list board | Fixed (to be confirmed by QA) | the floating counter stays below the scores; the list board leaves room for it |
+| F-076 | 15a | Low | QA2-7: Small targets and text: sideways map tokens 14-21 px, play-menu chips 36 px, list jump chips 32 px, desktop map text 8.6-11 px | Open |  |
+| F-077 | 15a | Low | QA2-8: Stacked arrival toasts cover the wall, door and waiting area on the sideways map | Fixed (to be confirmed by QA) | arrival cards show one at a time, in turn, on a sideways phone |
+| F-078 | 15a | Low | QA2-9: With results off, the saved-code row points to Show key and Copy key buttons that aren't there | Fixed (to be confirmed by QA) | the key text shows only when the key buttons do |
+| F-079 | 15a | Low | QA2-10: The attending's Radio pill reads 0% before any call (should read a dash) | Open |  |
+| F-080 | 15a | Low | QA2-11: The served build says v0.32.0; the spec says v0.33.0 candidate | Fixed (to be confirmed by QA) | version 0.33.0 |
+| F-081 | 15a | Low | QA2-12: The gate password is stored in plain text (informational; the owner chose not to harden the gate) | Accepted (owner, gate) |  |
+
+## Stage 15a round 3 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-082 | 15a | Medium | QA3-1: Harm reasons name an undiagnosed condition: PE tenecteplase ("a stable clot") and overdose lorazepam ("on top of an overdose") | Fixed (to be confirmed by QA) | PE tenecteplase, overdose lorazepam and stroke blood-thinner reasons reworded; rules12 checks more condition words |
+| F-083 | 15a | Medium | QA3-2: The hemorrhagic-shock toast ("in hemorrhagic shock. Activate the massive transfusion protocol!") gives the attending the answer on a shift | Fixed (to be confirmed by QA) | the attending hears the signs (falling pressure, racing heart, pale and sweaty); rules15 |
+| F-084 | 15a | Medium | QA3-3: Tab leaves an open patient sheet for the top bar and the board | Fixed (to be confirmed by QA) | Tab stays inside an open patient sheet (and the preceptor card beside it); crash_test |
+| F-085 | 15a | Medium | QA3-4: Closing the pause menu (Escape or Resume) leaves focus on the page body | Fixed (to be confirmed by QA) | closing pause returns the focus to the Menu button; crash_test |
+| F-086 | 15a | Low | QA3-5: The attending's M&M lists unassigned patients' events | Fixed (to be confirmed by QA) | the attending M&M counts only own patients for hemorrhagic shock |
+| F-087 | 15a | Low | QA3-6: "0 orders signed" when the only order is an unsafe drug | Fixed (to be confirmed by QA) | the signed count includes every drug on the sheet |
+| F-088 | 15a | Low | QA3-7: The radio medical-direction question and result cards carry no teaching-game notice (keeps Clinical safety at 9) | Fixed (to be confirmed by QA) | the teaching-game notice on the radio question and result cards |
+| F-089 | 15a | Low | QA3-8: Scenario and weather chips 36 px; list jump chips 32 px at 360 px; 11-12 px text in two places | Open |  |
+| F-090 | 15a | Low | QA3-9: The phone back button leaves the game from the menus (outside a shift) | Fixed (to be confirmed by QA) | Back on the menus returns to the main menu first |
+| F-091 | 15a | Low | QA3-10: "Dr. Who" passes the name rule (title read as initials); the three-word message's example is refused | Fixed (to be confirmed by QA) | initials are single letters ("S.", "J.D.", "JS"), so "Dr." is not; the message example is "Ana M."; class_test |
+| F-092 | 15a | Low | QA3-11: The gate stores the password in plain text and opens offline on any stored value (owner chose not to harden the gate) | Accepted (owner, gate) |  |
+| F-093 | 15a | Low | QA3-12: Harm feedback at signing may be lost in a busy message stream (not confirmed) | Open |  |
+| F-094 | 15a | Low | QA3-13: The 360 px list board is crowded: Next, the counter and messages overlap tiles | Open |  |
+
+## Stage 15a round 4 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-095 | 15a | Medium | QA4-1: Toasts (z-index 100) cover decision-card and radio-card text on the list board (cards z-index 95) | Fixed (to be confirmed by QA) | messages go under an open card (z-index 90 while a card is open) |
+| F-096 | 15a | Medium | QA4-2: Attending Orientation step and How to play still teach Patients, Clinical, Admin, Staff instead of Clinical, Diagnoses, Radio, Legal | Fixed (to be confirmed by QA) | attending Orientation and How to play teach Clinical, Diagnoses, Radio, Legal |
+| F-097 | 15a | Medium | QA4-3: An idle attending Rush with every radio call missed reads "Nothing went badly wrong this shift" in the M&M | Fixed (to be confirmed by QA) | a missed radio call is an M&M line for the attending; rules15 |
+| F-098 | 15a | Medium | QA4-4: The attending report credits patients the game handed over and examined (Patients you saw 2, time-goal and disposition points) when the player did nothing | Fixed (to be confirmed by QA) | handed-over patients wait on the list (no credit, no exam) until See this patient; rules15 |
+| F-099 | 15a | Low | QA4-5: A signed order set with an unsafe drug is confirmed in a green toast | Fixed (to be confirmed by QA) | an unsafe order set is confirmed in red |
+| F-100 | 15a | Low | QA4-6: The department section on the attending report has no disclosure marker; "Clinical accuracy" beside a different "Clinical" score | Open |  |
+| F-101 | 15a | Low | QA4-7: Score pills lose their labels while a message shows in the top bar | Open |  |
+| F-102 | 15a | Low | QA4-8: Small targets and text: 36 px chips, 31 px Find a doctor, 32 px jump tabs, 22 px zone header, 21 px map tokens, 8.6 px desktop staff names, 11.25 px Class code notice | Open |  |
+| F-103 | 15a | Low | QA4-9: Order-menu badges overlap the arrows; the sheet close button overlaps the first order row | Open |  |
+| F-104 | 15a | Low | QA4-10: The name filter refuses "Dick" and accepts "Hitler" | Fixed (to be confirmed by QA) | "Dick" accepted (a real first name); "Hitler" refused; class_test |
+| F-105 | 15a | Low | QA4-11: No teaching-game notice on How to play, the glossary, or in-shift charge-nurse patient cards (keeps Clinical safety at 9) | Fixed (to be confirmed by QA) | the notice on How to play, the glossary and patient cards |
+| F-106 | 15a | Low | QA4-12: A card shows "ECG: Sinus tach" with HR 83; "interpreter in 0m" | Open |  |
+| F-107 | 15a | Low | QA4-13: Playing a class code leaves its role and scenario on the menu with no notice | Open |  |
+| F-108 | 15a | Low | QA4-14: Gate password in plain text (owner chose not to harden the gate) | Accepted (owner, gate) |  |
+
+## Stage 15a round 5 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-109 | 15a | Medium | QA5-1: Full names pass the first-name rule: BOB JONES, JO SMITH (capitals read as initials), Ana.Smith, AnaSmith | Fixed (to be confirmed by QA) | owner: initials only, 1 to 4 letters (no full name can pass); class_test |
+| F-110 | 15a | Medium | QA5-2: The profanity check refuses real names by substring: Yoshito, Yoshitaka, Ashita, Shitara, Fagan | Fixed (to be confirmed by QA) | the rude-word check now matches whole initials only, so real names aren't refused |
+| F-111 | 15a | Medium | QA5-3: The attending's report credits disposition points with no dispositions (staff actions land in the attending's ledger); Clinical counts radio calls with no patients seen | Fixed (to be confirmed by QA) | staff and charge-nurse actions don't score for the attending; radio calls stay out of the attending's Clinical; rules15 |
+| F-112 | 15a | Medium | QA5-4: The bleed-neglect messages tell the attending the diagnosis and treatment ("in hemorrhagic shock. They need fluids and blood now.") | Fixed (to be confirmed by QA) | the bleed-neglect messages give the signs only on the attending's shift |
+| F-113 | 15a | Medium | QA5-5: The syncope score (and HEART) counts a normal troponin that was never ordered | Fixed (to be confirmed by QA) | a troponin not drawn shows as not drawn; HEART says it needs one |
+| F-114 | 15a | Low | QA5-6: Missing space after the notice on the Class code sheet | Fixed (to be confirmed by QA) | space added |
+| F-115 | 15a | Low | QA5-7: Text under 12 px: Class code notice 11.25 px, list-board patient names 11.7 px at 360 px, tiny 3D labels sideways | Open |  |
+| F-116 | 15a | Low | QA5-8: Targets under 44 px: list pod headers 22 px, sideways Waiting-room bar 16 px, About credit links | Open |  |
+| F-117 | 15a | Low | QA5-9: 360 px crowding: vitals pill clipped; the meter overlaps provider chips | Open |  |
+| F-118 | 15a | Low | QA5-10: Focus falls to the page after the shift-intro card; the page body is a Tab stop | Open |  |
+| F-119 | 15a | Low | QA5-11: The Orientation step counter jumps from 16 to 19 of 27 | Open |  |
+| F-120 | 15a | Low | QA5-12: "1 Diagnoses" (grammar) | Fixed (to be confirmed by QA) | the pill reads "Dx called" |
+| F-121 | 15a | Low | QA5-13: Gate password in plain text (owner chose not to harden the gate) | Accepted (owner, gate) |  |
+
+## Stage 15a round 6 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-122 | 15a | High | QA6-1: The diagnosis toast is green with a good sound for a right call and red with a bad sound for a wrong one, on a regular shift (ACT.dxPick uses r.right) | Fixed (to be confirmed by QA) | on a shift the diagnosis message is neutral in colour and has no sound; Orientation and Lessons keep them |
+| F-123 | 15a | High | QA6-2: Neglect scores perfectly: handed-over patients (prov set, not mine) left unseen don't count against the attending; an idle Manic Monday got Clinical 100% and 2 stars | Fixed (to be confirmed by QA) | a handed-over patient left unseen costs Clinical (-25), legal risk and an M&M line when they leave or the shift ends; rules15 |
+| F-124 | 15a | Medium | QA6-3: HEART card: "needs a troponin, not drawn yet" above "Your call · HEART score 4" (p.det is empty for patients the game's providers work up) | Fixed (to be confirmed by QA) | one troponin rule for the risk line and the call; HEART asks for a troponin before the call |
+| F-125 | 15a | Medium | QA6-4: Starting a new shift silently deletes the saved one | Fixed (to be confirmed by QA) | a new shift asks before replacing the saved one (Keep my shift / Start the new one); crash_test |
+| F-126 | 15a | Low | QA6-5: The menu's best stars come from the average score, not the stars earned (pace cap, attending) | Fixed (to be confirmed by QA) | the menu shows the best stars a shift earned |
+| F-127 | 15a | Low | QA6-6: A double tap on Start the shift opens the triage sheet on the list board | Fixed (to be confirmed by QA) | taps on the board are ignored for 0.6 s after Start the shift |
+| F-128 | 15a | Low | QA6-7: Initials accept short names (JOHN, Bob) and misspelled rude words (FUK) | Open |  |
+| F-129 | 15a | Low | QA6-8: Small targets and text: 32 px jump chips, 36 px scenario chips, 18 px Beds upstairs, sideways hall rooms and The Box, 11.25 and 11.7 px text | Open |  |
+| F-130 | 15a | Low | QA6-9: The first-visit page doesn't take focus or have a dialog role; Escape doesn't close the Play submenu | Fixed (to be confirmed by QA) | Escape leaves a submenu |
+| F-131 | 15a | Low | QA6-10: Gate password in plain text (owner chose not to harden the gate) | Accepted (owner, gate) |  |
+| F-132 | 15a | Low | QA6-11: M&M times out of order (went home at 07:11, diagnosis call at 07:20) | Open |  |
+| F-133 | 15a | Low | QA6-12: Harder levels bring more patients, not a higher ESI 1-2 share (46%, 44%, 48%) | Open |  |
+
+## Stage 15a round 7 (Nov 27, 2026, v0.33.0 candidate; `spec/QA-REPORT.md`)
+
+| ID | Stage | Sev | Finding | Status | Resolution |
+|---|---|---|---|---|---|
+| F-134 | 15a | High | QA7-1: Unseen critical patients on the attending's list don't deteriorate (11 h stable); an idle attending still earns Clinical 55%, a star and rank points | Fixed (round 13) | Handed patients worsen at 45 min and move at 60; stars capped by patients seen; idle gets 0 stars (rules15) |
+| F-135 | 15a | Medium | QA7-2: The list board on a sideways phone shows about 90 px of rooms (header, pills, Box bar, chips and dock fill the screen) | Fixed (round 13) | The top block scrolls on a sideways list board: about 318 px, 10 rooms (R4.13-01) |
+| F-136 | 15a | Medium | QA7-3: Initials accept slurs and violent words (NIG, COON, KILL, RAPE) and 4-letter names (John, Mary) | Open |  |
+| F-137 | 15a | Medium | QA7-4: Sideways 2D floor plan: 70 of 97 targets under 44 px (hall rooms 44x21, chips 21x21, Box dot 14x16) | Open |  |
+| F-138 | 15a | Low | QA7-5: The HEART card lists 2 of its 5 parts for low-risk chest pain | Open |  |
+| F-139 | 15a | Low | QA7-6: "Best: Alert time goals" on an idle charge-nurse shift | Open |  |
+| F-140 | 15a | Low | QA7-7: Needed-work tags show on a non-own alert patient before any order (hints at the workup) | Open |  |
+| F-141 | 15a | Low | QA7-8: Small controls: 36 px chips, 32 px jump chips, 16x22 checkbox, 11.25 px Class code notice | Open |  |
+| F-142 | 15a | Low | QA7-9: Focus falls to the page after the first-shift card | Open |  |
+| F-143 | 15a | Low | QA7-10: About 48% of arrivals are ESI 1-2 even on Quiet Tuesday | Open |  |
+| F-144 | 15a | Low | QA7-11: An empty gate submit leaves the previous error | Open |  |
+
+The owner stopped the Stage 15a loop after round 7 (Nov 27, 2026): the open items F-134 to F-144 are known issues for v0.33.0 (Accepted-Risk, pending his release sign-off). Round 13 fixed F-134 and F-135; F-136 to F-144 are held by the owner (Nov 28), not yet signed off. Round 13's open Mediums are in `docs/audit/round13/STATUS.md`.

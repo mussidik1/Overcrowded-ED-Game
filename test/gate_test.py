@@ -32,6 +32,11 @@ with sync_playwright() as pw:
     ok(page.is_visible('#gate') and not page.is_visible('#title .t-brand >> nth=0') or (page.is_visible('#gate') and J("getComputedStyle(document.getElementById('title')).visibility") == 'hidden'), 'edcodeblack.com opens on the password screen, with the game hidden')
     ok('private testing' in page.inner_text('#gate'), 'it says the game is in private testing')
     page.screenshot(path=os.path.join(os.path.dirname(__file__), 'shots', 'gate.png'))
+    for w, h in [(320, 640), (360, 740), (390, 844)]:   # QA-1: the card, its title and Play fit an upright phone
+        page.set_viewport_size({'width': w, 'height': h}); page.wait_for_timeout(200)
+        fit = J("(() => { const W = innerWidth, r = e => document.querySelector(e).getBoundingClientRect(), c = r('#gate .gate-card'), b = r('#gate button[type=\"submit\"]'), t = r('#gate .t-brand'); return c.left >= 0 && c.right <= W && b.right <= W && b.left >= 0 && t.right <= W && b.height >= 44; })()")
+        ok(fit, f'{w}x{h}: the gate card, its title and Play fit the screen, and Play is 44 px tall')
+    page.set_viewport_size({'width': 844, 'height': 390}); page.wait_for_timeout(200)
     page.fill('#gateP', 'nope'); page.click('#gate button[type="submit"]'); page.wait_for_timeout(500)
     ok(page.is_visible('#gate') and 'isn’t right' in page.inner_text('#gate'), 'a wrong password is refused')
     page.fill('#gateP', 'right-pass'); page.click('#gate button[type="submit"]'); page.wait_for_timeout(900)
