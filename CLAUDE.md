@@ -68,8 +68,8 @@ The game is **one self-contained `index.html`**. `build.js` inlines the engine, 
 ## Layout
 
 ```
-src/engine.js            simulation, no DOM (~4,900 lines). Exposes window.OC, or module.exports under Node
-src/ui.js                phone-first UI (~3,200 lines). Reads OC.G, calls OC actions. Exposes window.OCUI
+src/engine.js            simulation, no DOM (~5,100 lines). Exposes window.OC, or module.exports under Node
+src/ui.js                phone-first UI (~3,500 lines). Reads OC.G, calls OC actions. Exposes window.OCUI
 src/backend.json         the Supabase address, publishable key and privacy contact (build.js puts them in the page and its CSP)
 supabase/                the Code Black database: baseline, migrations (applied.sha256 freezes the applied ones), tests
 src/map.js               SVG floor plan. Spliced into ui.js at /*MAP*/ at build time, not a separate file at runtime
@@ -155,7 +155,7 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules15.js: engine rule checks in Node (~780 "ok" lines; any "FAIL:" sets exit 1)
+npm test          # rules.js through rules15.js: engine rule checks in Node (~800 "ok" lines; any "FAIL:" sets exit 1)
                   #   then golden.js: behaviour fingerprints, stream sync, class codes, save round trips, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run lint      # ESLint, correctness rules only (eslint.config.js; tools/lint.js splices map.js into ui.js like the build)

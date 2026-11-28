@@ -47,8 +47,8 @@ procedures), reads results, picks a diagnosis from a short list, and picks a dis
 - AC4: Gray-zone patients (chest pain, syncope, TIA, pneumonia) show a validated risk score built from the patient's own parts, and
   the attending makes the call.
 - AC5: On a regular shift the game gives no answers away: no list of missing orders, no instant right or wrong on a diagnosis (the card
-  keeps the attending's call), a consultant who isn't the right one says so without naming the right one, and an incoming alert doesn't
-  carry its diagnosis for the attending. Orientation and Lessons still show all of these, as teaching.
+  keeps the attending's call), a consultant who isn't the right one says so without naming the right one, and an incoming alert (named as EMS
+  calls it) doesn't count as the diagnosis: the attending still works it up and names it. Orientation and Lessons still show all of these, as teaching.
 - AC6: On Manic Monday, Full Moon Friday and the Rush the game's charge nurse puts some of the sickest patients on the attending's list,
   with a message; each waits for the attending (See this patient; no credit until then), gets worse after 45 minutes unseen, and goes to
   another doctor after an hour, counted as never seen.
@@ -95,11 +95,12 @@ The Lessons screen says which are which. A finished lesson is marked done.
 **REQ-15 Class code.** An instructor makes a code for a role, level, scenario and radio pack; it shows as six characters (ABC-DEF) with
 Copy and Share, and an instructor key hidden until Show key. A student types the code and plays exactly the same shift.
 - AC1: Mistyped codes are refused before Start (about 63 in 64); O reads as 0 and I or L as 1.
-- AC2: A code from another game version is refused as stale.
+- AC2: A code from the previous game version is refused as stale; one from an older version is refused as mistyped (about 63 in 64).
 - AC3: If the server can't be reached, the instructor is told so and may use the code without results.
 
 **REQ-16 Sending a result.** At the end of a class shift a student may Send their summary with their initials only.
-- AC1: The game sends initials only: 1 to 4 letters, with or without periods or spaces ("S.K.", "JS"). Names, numbers, other
+- AC1: The game sends initials only: 1 to 4 single letters with periods or spaces ("S.K.", "J S", "J.S.K.M."; up to three
+  spaced groups), or 2 or 3 capitals typed together ("JS", "JSK"). Names, numbers, other
   forms and rude words spelled as initials are refused with a reason; a result can't be sent twice.
 - AC2: A failure says whether it was the network, a timeout or the server.
 
