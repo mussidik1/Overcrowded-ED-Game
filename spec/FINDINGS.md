@@ -204,8 +204,8 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 
 | ID | Stage | Sev | Finding | Status | Resolution |
 |---|---|---|---|---|---|
-| F-134 | 15a | High | QA7-1: Unseen critical patients on the attending's list don't deteriorate (11 h stable); an idle attending still earns Clinical 55%, a star and rank points | Open |  |
-| F-135 | 15a | Medium | QA7-2: The list board on a sideways phone shows about 90 px of rooms (header, pills, Box bar, chips and dock fill the screen) | Open |  |
+| F-134 | 15a | High | QA7-1: Unseen critical patients on the attending's list don't deteriorate (11 h stable); an idle attending still earns Clinical 55%, a star and rank points | Fixed (round 13) | Handed patients worsen at 45 min and move at 60; stars capped by patients seen; idle gets 0 stars (rules15) |
+| F-135 | 15a | Medium | QA7-2: The list board on a sideways phone shows about 90 px of rooms (header, pills, Box bar, chips and dock fill the screen) | Fixed (round 13) | The top block scrolls on a sideways list board: about 318 px, 10 rooms (R4.13-01) |
 | F-136 | 15a | Medium | QA7-3: Initials accept slurs and violent words (NIG, COON, KILL, RAPE) and 4-letter names (John, Mary) | Open |  |
 | F-137 | 15a | Medium | QA7-4: Sideways 2D floor plan: 70 of 97 targets under 44 px (hall rooms 44x21, chips 21x21, Box dot 14x16) | Open |  |
 | F-138 | 15a | Low | QA7-5: The HEART card lists 2 of its 5 parts for low-risk chest pain | Open |  |
@@ -216,4 +216,4 @@ Statuses: Open, Fixed, Accepted-Risk (needs the owner's sign-off before release)
 | F-143 | 15a | Low | QA7-10: About 48% of arrivals are ESI 1-2 even on Quiet Tuesday | Open |  |
 | F-144 | 15a | Low | QA7-11: An empty gate submit leaves the previous error | Open |  |
 
-The owner stopped the Stage 15a loop after round 7 (Nov 27, 2026): the open items F-134 to F-144 are known issues for v0.33.0 (Accepted-Risk, pending his release sign-off).
+The owner stopped the Stage 15a loop after round 7 (Nov 27, 2026): the open items F-134 to F-144 are known issues for v0.33.0 (Accepted-Risk, pending his release sign-off). Round 13 fixed F-134 and F-135; F-136 to F-144 are held by the owner (Nov 28), not yet signed off. Round 13's open Mediums are in `docs/audit/round13/STATUS.md`.
