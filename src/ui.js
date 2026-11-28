@@ -788,7 +788,7 @@ function pathRows(p, G) {
   const pitBy = p.pitBy ? E.staff(p.pitBy) : null;
   const cos = p.cosign === 'need' ? '. Waiting on the attending co-sign.' : p.cosign === 'wait' ? '. Needs an attending co-sign; no attending is free.' : p.cosign === 'done' ? '. Attending co-signed.' : '';
   if (mine(p) && (p.ord === 'need' || p.ord === 'more')) rows.push(row('Orders', p.ord === 'need' ? 'Waiting for your orders' : 'The workup is missing something', 'need'));
-  rows.push(row('Provider', p.ev === 'done' ? `Seen by ${pv ? (isMe(pv) ? 'you' : esc(pv.name)) : 'a provider'}${cos}` : p.ev === 'doing' ? `${esc(pv ? pv.name : 'Provider')} is in the room` : p.ev === 'q' ? `${esc(pv ? pv.name : '')}, in line` : p.pitSeen ? `Seen in triage by ${esc(pitBy ? pitBy.name : 'the triage provider')}${p.loc === 'room' ? '. Needs a provider here.' : ''}` : p.loc === 'room' ? 'Not assigned yet' : 'After rooming', p.ev === 'done' ? 'ok' : p.ev === 'none' && p.loc === 'room' ? 'need' : p.pitSeen ? 'ok' : 'idle'));
+  rows.push(row('Provider', p.ev === 'done' ? `Seen by ${pv ? (isMe(pv) ? 'you' : esc(pv.name)) : 'a provider'}${cos}` : p.ev === 'doing' ? `${esc(pv ? pv.name : 'Provider')} is in the room` : p.ev === 'q' ? `${esc(pv ? pv.name : '')}, in line` : p.pitSeen ? `Seen in triage by ${esc(pitBy ? pitBy.name : 'the triage provider')}${p.loc === 'room' ? '. Needs a provider here.' : ''}` : p.loc === 'room' ? (MD() && p.prov === E.G.me && !p.mine ? 'On your list, not seen yet' : 'Not assigned yet') : 'After rooming', p.ev === 'done' ? 'ok' : p.ev === 'none' && p.loc === 'room' ? 'need' : p.pitSeen ? 'ok' : 'idle'));
   if (p.lang) rows.push(row('Interpreter', p.interp === 'on' ? `${E.LANGS[p.lang]} interpreter connected` : p.interp === 'req' ? `${E.LANGS[p.lang]} interpreter in <span data-cd="${p.interpDue}"></span>` : `<b>Speaks ${E.LANGS[p.lang]}.</b> Care runs slower and riskier without one.`, p.interp === 'on' ? 'ok' : p.interp === 'req' ? 'wait' : 'need'));
   let keys = p.wk.slice(); if (p.work.ecg && !keys.includes('ecg')) keys.unshift('ecg');
   const unwritten = MD() && p.ev !== 'done' && !p.arrest;   // in the attending's game the orders are the player's to work out
@@ -1581,7 +1581,7 @@ function helpHTML() {
 }
 function helpMD() {
   return head('How to work a shift', `You’re an attending, ${shiftSpan()}. The charge nurse runs the board. You run the medicine.`) + WORDS_BTN + (U.view === 'map' ? legendHTML(true) : '') + `<ol class="help">
-<li><b>Pick up patients.</b> ${U.view === 'map' ? (floor3d() ? 'A stethoscope' : 'A blue stethoscope') : 'Needs a provider'} means waiting for a doctor. Tap the room, then See this patient. Sickest first.</li>
+<li><b>Pick up patients.</b> ${U.view === 'map' ? (floor3d() ? 'A stethoscope' : 'A blue stethoscope') : 'Needs a provider'} means waiting for a doctor. Tap the room, then See this patient. Sickest first. On busier shifts the charge nurse puts some on <b>your list</b>: they wait for you, get worse after 45 minutes, and go to another doctor after an hour.</li>
 <li><b>Write orders.</b> Pick tests and treatment, then Sign. Order what they need, nothing extra. Extra tests cost time and points. Tap a scan on the card to see it.</li>
 <li><b>Close the gaps.</b> Missing a test? You’ll hear about it. Not improving? A treatment is missing. Read the vitals.</li>
 <li><b>Make the call.</b> Home, rehab (can leave, can’t manage alone: the exam says so), admit (call the right consultant once results are back), or transfer. Chest pain, fainting, TIA and mild pneumonia (CURB-65) get a risk score.</li>
@@ -1594,7 +1594,7 @@ function helpMD() {
 <li><b>Bedside tests.</b> A fingerstick glucose or urine dip reads in a minute and works when the lab is down. Check the sugar early on every stroke.</li>
 <li><b>Answer the radio.</b> Tap Answer, read the call, approve or deny. Only you can.</li>
 <li><b>Alerts.</b> Time goals: ECG in 10, CT in 25, needle in 60, balloon in 90.</li>
-<li><b>Your scores.</b> Your own calls: Clinical (your own patients), Diagnoses (called; how many were right shows at the end), Radio (medical-direction calls answered right) and Legal (100 minus legal risk). The department's Patients, Admin and Staff show on your summary as context. The meter counts patients waiting on a next step.</li>
+<li><b>Your scores.</b> Your own calls: Clinical (your own patients), Diagnoses (called; how many were right shows at the end; one left uncalled is a miss), Radio (medical-direction calls answered right) and Legal (100 minus legal risk). The department's Patients, Admin and Staff show on your summary as context. <b>Seeing patients is the job:</b> the stars are capped by how many you saw (30, 24, 18 on a shift; 5, 4, 3 in the Rush). The meter counts patients waiting on a next step.</li>
 </ol>`;
 }
 function renderSheet(G) {
@@ -2144,7 +2144,7 @@ const cbClean = v => {
 // get through. A rude word spelled as initials is refused too. Game only: the server's rule (cbClean above, matched to the contract file)
 // is unchanged and still accepts these.
 const cbLetters = n => n.replace(/[.\s]/g, '');
-// R3.13-04: initials, not short names. Letters stand alone ("S.K.", "A M", "J S K M"), or two or three capitals typed together ("JS",
+// R3.13-04: initials, not short names. Letters stand alone ("S.K.", "A M", "J.S.K.M."; the server rule allows up to three spaced groups), or two or three capitals typed together ("JS",
 // "JSK"). Not scripts where one character is a whole syllable of a name (Chinese, Japanese kana, Korean).
 const cbInitials = n => {
   if (!/^(\p{L}\.?\s?){1,4}$/u.test(n) || [...cbLetters(n)].length > 4 || /[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(n)) return false;
@@ -2249,8 +2249,8 @@ function cbRows(L) {
   for (const r of rows) { const k = nm(r); seen[k] = (seen[k] || 0) + 1; r.nth = seen[k]; r.of = tot[k]; r.det = cbDet(r); r.when = cbDate(r.at, true); }
   L._of = L.rows; L._rows = rows; return rows;
 }
-const CB_NOTE = 'Not for grading: scores are self-reported, anyone with the code can send a result under any name (a repeated name may be a retry or another student), and it is a teaching game, not clinical guidance: no licensed clinician has reviewed its clinical content.';
-const CB_MDNOTE = 'Attending: the score and stars are the attending’s own: Clinical on the patients they saw, Diagnoses called right, Radio calls answered right, and Legal. A part with nothing to grade is left out of the average. Radio calls differ between players, and complications are partly chance. Many patients who arrest die even after a well-run code (the list says which deaths came after a code run by the book: every rhythm check right, the code started within 5 minutes).';   // R3.13-05
+const CB_NOTE = 'Not for grading: scores are self-reported, anyone with the code can send a result under any initials (a repeated entry may be a retry or another student), and it is a teaching game, not clinical guidance: no licensed clinician has reviewed its clinical content.';
+const CB_MDNOTE = 'Attending: the score and stars are the attending’s own: Clinical on the patients they saw, Diagnoses called right, Radio calls answered right, and Legal. A part with nothing to grade is left out of the average, and the stars are capped by the patients the attending saw (30, 24 and 18 on a full shift; 5, 4 and 3 in the Rush). Radio calls differ between players, and complications are partly chance. Many patients who arrest die even after a well-run code (the list says which deaths came after a code run by the book: every rhythm check right, the code started within 5 minutes).';   // R3.13-05
 const cbClock = m => { const t = 7 * 60 + (m || 0); return String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
 function cbDet(r) {   // the second line of a result: the student's own numbers first
   const q = v => (v == null ? '?' : v), parts = [`${r.min} min played${r.fast ? ` (${r.fast}% sped up)` : ''}`];
