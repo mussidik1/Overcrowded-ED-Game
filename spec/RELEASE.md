@@ -1,3 +1,15 @@
+# Release v0.34.0: the 12-lead ECG, drawn and signed
+
+- **Version:** 0.34.0 (class codes from v0.33.0 read as stale; save format unchanged).
+- **Replaces:** v0.33.0 on `main` (`1ae8ab0`).
+- **Database:** no change.
+- **Release notes:** the v0.34.0 paragraph in `README.md`: every ECG drawn by a heart-vector model (15 readings, measured in
+  `test/rules16.js`); on a regular attending shift each ECG needs the attending's signature (STEMI, No STEMI, Repeat ECG on Arrival).
+- **Review:** skipped by the owner (Nov 28, 2026: "Skip the review, merge v0.34.0 behind the gate"). No drift check or CTO memo was
+  run. The phone check and F-136 to F-144 stay held. No licensed clinician has read the drawn ECGs.
+
+---
+
 # Release v0.33.0: fair grading, no giveaways, safer saves (audit Phases 4 and 6)
 
 - **Version:** 0.33.0 (class codes from v0.32.0 read as stale, by design; save format unchanged).

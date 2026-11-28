@@ -31,6 +31,7 @@ Run this by hand on a real phone before each merge into `main`, after `npm test`
 - [ ] Sideways: the top strip buttons are easy to tap (about 44 px). Known exception (R4.13-06/07): floor-plan labels and the list board's pod chips are still small.
 - [ ] Sideways on the list board: the top block scrolls away with the rooms, and Menu stays in the corner.
 - [ ] Attending, Manic Monday: a message says the charge nurse put a patient on your list; the card has See this patient and Next says "On your list: see them". Leave one: after 45 minutes it looks worse, and after an hour it goes to another doctor.
+- [ ] Attending, any shift: an ECG card says Requires Physician Signature and shows a 12-lead with no reading; STEMI / No STEMI (and Repeat ECG on Arrival for an ambulance ECG) sign it; tapping the tracing opens it full screen and it can be read sideways.
 - [ ] Attending report: "Patients you saw: N" with what each star needs (30, 24, 18; Rush 5, 4, 3).
 
 ## Class code

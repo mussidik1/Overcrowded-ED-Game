@@ -48,6 +48,7 @@ The owner is a paramedic and EMS educator. He reads replies on the phone app.
 - **The hospital has neurosurgery** (it takes trauma) but **no cardiac surgery**: dissections transfer out, and cardiothoracic is a phone consult.
 - **Cardiac arrest is modeled on ACLS and PALS** (audit phase 1, reworked in round 2). The rhythm and the reversible cause follow the case (`CAUSE_OF`, `TRAUMA_CASES`, `LIMB_CASES`, `BLEED_SRC` in engine.js); otherwise they come from the patient id. Children under 13 get PALS cards with doses by an estimated weight (`kgOf`). When the attending runs the code, each rhythm check is a card `CODE_GAP` game minutes apart, followed by a result card. The answers, the rhythm and the minutes before a doctor got there set the ROSC odds (`CODE_BASE`; a game-run doctor scores `CODE_AI_Q`). `lintCode()` checks the card data at load. Your own patient's arrest shows **Run the code** with a countdown; another provider's patient gets a code at once; a code whose doctor leaves restarts its 20 minutes. An arrest nobody runs for 20 minutes is a death, and it counts. **No licensed clinician has reviewed this content yet.**
 - **Clinical rules that depend on the moment use `CONTRA_IF`** (add with `addContraIf`, which merges): tenecteplase outside 4.5 hours of last known well (unknown onset counts as outside), nitroglycerin and opioids under SBP 90, metoprolol with signs of shock, NSAIDs in chest pain before the troponin, rate control in unstable A-fib (which needs synchronized cardioversion). `CONTRA_WHY` gives the reason the harm message shows; it must never name a diagnosis the player hasn't made.
+- **ECGs are drawn, not photos** (v0.34, the owner, Nov 28, 2026: no licensing worries for a future Steam release). `ecgTrace` in engine.js is a heart-vector model: each wave is Gaussian bursts of one 3D vector and each lead reads it along its own axis, so the leads agree. The reading text (`p.find.ecg`) picks the pattern; `lintEcg()` fails at load if a reading has none, and `rules16.js` measures each pattern. On a regular attending shift every ECG (and an ambulance's 12-lead) needs the attending's signature: STEMI, No STEMI, or Repeat ECG on Arrival; scored when the patient leaves. Never show the written reading to the attending on a regular shift.
 - **Same-class drug alternatives are neutral** ("works, but not the first choice"): they neither fill the slot nor score as wrong. Ondansetron and acetaminophen are never wrong.
 - **Class codes stay six characters.** Since v0.29.1 the game version is folded into the check characters, so a code from another version is usually refused (about 63 in 64) instead of becoming a different shift.
 - **Rejected:** pixel art or flat styles for 3D; Cloudflare Access or an email login for the gate; easier regular levels; routine work that runs itself; a CSP on the Claude artifact copy (it breaks the host); hardening the gate (it's deleted at launch). Renumbering rooms is left alone because Orientation, Lessons and tests name rooms by number.
@@ -78,7 +79,7 @@ src/index.template.html  page shell with /*FONTS*/ /*STYLE*/ /*ENGINE*/ /*UI*/ p
 src3d/map3d.js           3D floor (three.js). esbuild bundles it to 3d/map3d.js
 build.js                 builds index.html and sw.js. Stops if engine.js or ui.js+map.js fails to parse
 build3d.js               esbuild call for the 3D bundle
-test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor, rules14.js the Phase 3 clinical content (v0.32), rules15.js the v0.33 grading, giveaway and save rules
+test/rules*.js           Node rule checks against src/engine.js (npm test); rules11.js and rules12.js hold the audit's clinical fixes, rules13.js the attending's numbers sent to the instructor, rules14.js the Phase 3 clinical content (v0.32), rules15.js the v0.33 grading, giveaway and save rules, rules16.js the v0.34 drawn ECGs (measured) and the ECG signature
 test/golden.js           a change detector: seeded-shift behaviour fingerprints, class sync, class codes, save round trips, answer keys, code cards, drug rules, scripted codes
 test/sim.js, stress.js   simulated shifts, and 188 shifts across every level and scenario
 test/*_test.py           Playwright UI tests against the built index.html (test/_browser.py picks the browser)
@@ -155,7 +156,7 @@ npm run build     # node build3d.js && node build.js -> 3d/map3d.js, index.html,
 ## Tests
 
 ```sh
-npm test          # rules.js through rules15.js: engine rule checks in Node (~800 "ok" lines; any "FAIL:" sets exit 1)
+npm test          # rules.js through rules16.js: engine rule checks in Node (~850 "ok" lines; any "FAIL:" sets exit 1)
                   #   then golden.js: behaviour fingerprints, stream sync, class codes, save round trips, answer keys
 npm run golden:update   # rewrite test/golden.json after an intended change; say why in the commit
 npm run lint      # ESLint, correctness rules only (eslint.config.js; tools/lint.js splices map.js into ui.js like the build)
